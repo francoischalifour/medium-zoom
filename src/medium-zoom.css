@@ -1,0 +1,30 @@
+.medium-zoom-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  opacity: 0;
+  transition: opacity 300ms;
+  will-change: opacity;
+}
+
+.medium-zoom--open .medium-zoom-overlay {
+  cursor: pointer;
+  cursor: zoom-out;
+  opacity: 1;
+}
+
+.medium-zoom-image {
+  cursor: pointer;
+  cursor: zoom-in;
+  transition: all 300ms;
+}
+
+.medium-zoom-image--open {
+  position: relative;
+  z-index: 999;
+  cursor: pointer;
+  cursor: zoom-out;
+  will-change: transform;
+}

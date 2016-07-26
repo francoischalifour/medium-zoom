@@ -1,0 +1,59 @@
+{
+  "name": "medium-zoom",
+  "version": "0.1.0",
+  "description": "Medium-like zoom on your pictures in pure JavaScript",
+  "license": "MIT",
+  "repository": "francoischalifour/medium-zoom",
+  "author": {
+    "name": "Francois Chalifour",
+    "email": "francois.chalifour@gmail.com",
+    "url": "http://francoischalifour.com"
+  },
+  "main": "src/medium-zoom.js",
+  "scripts": {
+    "lint": "./node_modules/.bin/standard",
+    "clean": "./node_modules/.bin/rimraf ./dist && mkdir dist",
+    "prebuild": "npm run clean && npm run lint",
+    "build": "NODE_ENV=build ./node_modules/.bin/webpack && NODE_ENV=dev ./node_modules/.bin/webpack",
+    "dev": "NODE_ENV=dev ./node_modules/.bin/webpack --progress --colors --watch"
+  },
+  "pre-commit": [
+    "lint"
+  ],
+  "standard": {
+    "ignore": [
+      "/dist/"
+    ],
+    "globals": [
+      "requestAnimationFrame",
+      "Event"
+    ]
+  },
+  "keywords": [
+    "medium",
+    "zoom",
+    "lightbox",
+    "image",
+    "picture",
+    "click",
+    "scroll",
+    "pure",
+    "vanilla",
+    "javascript"
+  ],
+  "devDependencies": {
+    "autoprefixer": "^6.3.7",
+    "babel": "^6.5.2",
+    "babel-core": "^6.10.4",
+    "babel-loader": "^6.2.4",
+    "babel-plugin-transform-object-assign": "^6.8.0",
+    "babel-preset-es2015": "^6.9.0",
+    "css-loader": "^0.23.1",
+    "postcss-loader": "^0.9.1",
+    "pre-commit": "^1.1.3",
+    "rimraf": "^2.5.3",
+    "standard": "^7.1.2",
+    "style-loader": "^0.13.1",
+    "webpack": "^1.13.1"
+  }
+}

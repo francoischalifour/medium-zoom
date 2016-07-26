@@ -1,0 +1,201 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Demo | Medium Zoom</title>
+
+    <link href="https://fonts.googleapis.com/css?family=Varela+Round|Work+Sans" rel="stylesheet">
+    <link href="reset.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <header class="header">
+      <h1 class="header__title">Medium Zoom — Demo</h1>
+      <div class="header__subtitle">Medium-like zoom on your pictures in pure JavaScript</div>
+
+      <div class="header__info">
+        <a href="https://github.com/francoischalifour/medium-zoom" class="button">View on GitHub</a>
+        <a href="http://francoischalifour.com/lab/medium-image-zoom" class="button">Read the article</a>
+      </div>
+
+      <div class="header__illustration">
+        <img
+          src="http://negativespace.co/wp-content/uploads/2016/05/ngspc_0007.jpg"
+          alt="Medium Zoom illustration"
+        >
+      </div>
+    </header>
+
+    <article class="container">
+      <p>
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+        Tempora praesentium cupiditate fugit voluptas, rem eligendi, voluptatem molestias pariatur atque amet,
+        dicta, similique beatae optio quos! Hic necessitatibus dicta magni, tempore.
+        Atque illo voluptatibus fugiat id pariatur cum quasi vel ut repellendus iure quaerat,
+        doloremque sit voluptatum odio maiores provident consequuntur accusantium saepe.
+      </p>
+
+      <figure>
+        <img
+          id="zoom-margin"
+          src="http://negativespace.co/wp-content/uploads/2015/03/lucho-26.jpg"
+          alt="Zoom with margin"
+        >
+        <figcaption>Zoom with margin</figcaption>
+      </figure>
+
+      <p>
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+        Ea dolores quaerat, quis modi nostrum sequi adipisci ratione esse
+         blanditiis error beatae vel non vero dolor nemo. Animi nemo quisquam ducimus!
+      </p>
+
+      <figure>
+        <img
+          id="zoom-background"
+          src="https://static.pexels.com/photos/106118/pexels-photo-106118.jpeg"
+          alt="Zoom with background color"
+        >
+        <figcaption>Zoom with background color</figcaption>
+      </figure>
+
+      <p>
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dignissimos magnam illo,
+        quam iusto, autem ratione commodi deleniti vero magni fuga consectetur expedita,
+        voluptatum enim quidem? Rem, minima laboriosam hic! Id.
+      </p>
+
+      <figure class="pull-right">
+        <img
+          id="zoom-scrollOffset"
+          src="https://static.pexels.com/photos/116835/pexels-photo-116835.jpeg"
+          alt="Zoom without scroll effect"
+        >
+        <figcaption>Zoom without scroll offset</figcaption>
+      </figure>
+
+      <p>
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusamus cum nulla
+        eligendi recusandae at quae odio, harum nesciunt ut temporibus vitae, laudantium minus.
+        Iste officia aliquid, laborum ratione maxime beatae.
+      </p>
+
+      <p>
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Enim asperiores totam fugiat
+        repellendus laboriosam accusantium, possimus similique quos repellat molestias excepturi
+        ad perspiciatis beatae! Qui repellat numquam incidunt, accusamus autem.
+      </p>
+
+      <figure class="pull-left">
+        <img
+          id="zoom-metaClick"
+          src="https://static.pexels.com/photos/116738/pexels-photo-116738.jpeg"
+          alt="Zoom without meta click"
+        >
+        <figcaption>Zoom without meta click</figcaption>
+      </figure>
+
+      <p>
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+        Accusamus cum nulla eligendi recusandae at quae odio, harum nesciunt ut
+        temporibus vitae, laudantium minus. Iste officia aliquid, laborum ratione maxime beatae.
+      </p>
+
+      <p>
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+        Corrupti provident sunt recusandae enim commodi ab dolorem ipsum dolor magni
+        reprehenderit accusantium quasi a autem neque asperiores, tenetur impedit repudiandae quos.
+      </p>
+
+      <p>
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+        Corporis veritatis cupiditate iure velit laboriosam eius nesciunt officiis
+        odit cumque deleniti assumenda esse exercitationem ducimus, accusantium eligendi itaque dolorem molestias saepe!
+      </p>
+
+      <p>
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+        Accusamus cum nulla eligendi recusandae at quae odio, harum nesciunt ut
+        temporibus vitae, laudantium minus. Iste officia aliquid, laborum ratione maxime beatae.
+      </p>
+
+      <figure>
+        <img
+          id="zoom-trigger"
+          src="https://cdn-images-1.medium.com/max/1200/1*YOjx4pdfzMXi2uLmOPksTg.png"
+          alt="Zoom to trigger"
+        >
+        <figcaption>
+          <button id="btn-trigger" class="button">Trigger the zoom</button>
+        </figcaption>
+      </figure>
+
+      <p>
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+        Corrupti provident sunt recusandae enim commodi ab dolorem ipsum dolor magni
+        reprehenderit accusantium quasi a autem neque asperiores, tenetur impedit repudiandae quos.
+      </p>
+
+      <h2>Journal</h2>
+
+      <blockquote id="journal">
+          <p>In this journal appears the history of the images zoomed.</p>
+      </blockquote>
+
+    </article>
+
+    <footer class="footer">
+      <div class="footer__links">
+        <a href="https://github.com/francoischalifour/medium-zoom" class="button">View on GitHub</a>
+        <a href="http://francoischalifour.com/lab/medium-image-zoom" class="button">Read the article</a>
+      </div>
+
+      <div class="footer__copyright">
+        Made by <a href="http://francoischalifour.com">François Chalifour</a>
+      </div>
+    </footer>
+
+    <script src="../dist/medium-zoom.min.js"></script>
+    <script>
+      window.addEventListener('load', () => {
+        // Add the zoom effect to the hero image
+        const heroZoom = mediumZoom('.header__illustration img')
+
+        // Handle the zoom on click on the button
+        const zoomToTrigger = mediumZoom('#zoom-trigger')
+        const button = document.querySelector('#btn-trigger')
+        button.addEventListener('click', () => zoomToTrigger.show())
+
+        // Add zooms to a container
+        const containerZoom = [
+          heroZoom,
+          mediumZoom('#zoom-margin', {
+            margin: 48
+          }),
+          mediumZoom('#zoom-background', {
+            background: '#212530'
+          }),
+          mediumZoom('#zoom-scrollOffset', {
+            scrollOffset: 0
+          }),
+          mediumZoom('#zoom-metaClick', {
+            metaClick: false
+          }),
+          zoomToTrigger
+        ]
+
+        // Write in the journal an image is zoomed
+        const journal = document.querySelector('#journal')
+
+        containerZoom.forEach(zoom => {
+          zoom.addEventListeners('show', event => {
+            const time = (new Date()).toLocaleTimeString()
+            journal.innerHTML += `<p>❯ "${event.target.alt}" was zoomed at ${time}`
+          })
+        })
+      })
+    </script>
+  </body>
+</html>
