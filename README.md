@@ -6,7 +6,7 @@
   <img src="https://cloud.githubusercontent.com/assets/6137112/17153725/3c052454-537e-11e6-9340-b52ef32a5667.gif" alt="medium-zoom demo">
   <br>
   <br>
-  <a href="http://francoischalifour.com/files/lab/mediums-image-zoom/">View demo 🔎</a>
+  <a href="http://francoischalifour.com/files/lab/medium-image-zoom/">View demo 🔎</a>
 </p>
 
 ## Install
@@ -250,7 +250,7 @@ zoom.addEventListeners('show', event => {
 
 ## Demo
 
-[View demo 🔎](http://francoischalifour.com/files/lab/mediums-image-zoom/), go to the [demo folder](demo/) or [read the article](http://francoischalifour.com/lab/medium-image-zoom/).
+[View demo 🔎](http://francoischalifour.com/files/lab/medium-image-zoom/), go to the [demo folder](demo/) or [read the article](http://francoischalifour.com/lab/medium-image-zoom/).
 
 ## Dev
 
