@@ -157,16 +157,18 @@
       </div>
     </footer>
 
-    <script src="../dist/medium-zoom.min.js"></script>
+    <script src="../dist/medium-zoom.js"></script>
     <script>
-      window.addEventListener('load', () => {
+      window.addEventListener('load', function () {
         // Add the zoom effect to the hero image
         const heroZoom = mediumZoom('.header__illustration img')
 
         // Handle the zoom on click on the button
         const zoomToTrigger = mediumZoom('#zoom-trigger')
         const button = document.querySelector('#btn-trigger')
-        button.addEventListener('click', () => zoomToTrigger.show())
+        button.addEventListener('click', function () {
+          zoomToTrigger.show()
+        })
 
         // Add zooms to a container
         const containerZoom = [
@@ -189,8 +191,8 @@
         // Write in the journal an image is zoomed
         const journal = document.querySelector('#journal')
 
-        containerZoom.forEach(zoom => {
-          zoom.addEventListeners('show', event => {
+        containerZoom.forEach(function (zoom) {
+          zoom.addEventListeners('show', function (event) {
             const time = (new Date()).toLocaleTimeString()
             journal.innerHTML += `<p>❯ "${event.target.alt}" was zoomed at ${time}`
           })
