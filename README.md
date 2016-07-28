@@ -15,7 +15,7 @@
 $ npm install --save medium-zoom
 ```
 
-Or download the [minified version](dist/medium-zoom.min.js).
+Or download the [minified version](https://raw.githubusercontent.com/francoischalifour/medium-zoom/master/dist/medium-zoom.min.js).
 
 *No dependencies.*
 
