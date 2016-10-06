@@ -9,7 +9,7 @@
     "email": "francois.chalifour@gmail.com",
     "url": "http://francoischalifour.com"
   },
-  "main": "src/medium-zoom.js",
+  "main": "dist/medium-zoom.js",
   "scripts": {
     "lint": "./node_modules/.bin/standard",
     "clean": "./node_modules/.bin/rimraf ./dist && mkdir dist",

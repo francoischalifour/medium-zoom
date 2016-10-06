@@ -235,4 +235,6 @@ const mediumZoom = (selector, {
 
 if (typeof window !== 'undefined') {
   window.mediumZoom = mediumZoom
+} else if (module && module.exports) {
+  module.exports = mediumZoom
 }
