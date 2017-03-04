@@ -118,6 +118,29 @@ const mediumZoom = (selector, {
     })
   }
 
+  const detachAll = () => {
+    const event = new Event('detach')
+
+    images.forEach(image => {
+      image.classList.remove('medium-zoom-image')
+      image.removeEventListener('click', onClick)
+      image.dispatchEvent(event)
+    })
+
+    if (target) {
+      target.removeEventListener('transitionend', detachAll)
+    }
+  }
+
+  const detach = () => {
+    if (target) {
+      zoomOut()
+      target.addEventListener('transitionend', detachAll)
+    } else {
+      detachAll()
+    }
+  }
+
   const onClick = event => {
     if (event.metaKey || event.ctrlKey) {
       if (options.metaClick) {
@@ -228,6 +251,7 @@ const mediumZoom = (selector, {
     toggle: triggerZoom,
     update,
     addEventListeners,
+    detach,
     images,
     options
   }

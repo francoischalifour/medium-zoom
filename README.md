@@ -140,6 +140,18 @@ zoom.update({
 })
 ```
 
+#### `.detach()`
+
+Releases the images related to the zoom from the plugin.
+
+```js
+const zoom = mediumZoom('#my-image')
+
+zoom.detach()
+```
+
+*Emits an event [`detach`](#events).*
+
 #### `.addEventListeners(type, listener)`
 
 Registers the specified listener on each target of the zoom.
@@ -160,6 +172,7 @@ zoom.addEventListeners('hidden', () => {
 | shown            | Fired when the zoom has finished being animated                     |
 | hide             | Fired immediately when the `hide` instance method is called         |
 | hidden           | Fired when the zoom out has finished being animated                 |
+| detach           | Fired when the `detach` instance method is called                   |
 
 ```js
 const zoom = mediumZoom('#image-tracked')
@@ -245,6 +258,16 @@ const zoom = mediumZoom('#image-tracked')
 zoom.addEventListeners('show', event => {
   console.log(`"${event.target.alt}" has been zoomed ${++counter} times`)
 })
+```
+
+<details>
+ <summary>Detach the zoom after a while</summary>
+```js
+const zoom = mediumZoom('#image-detach')
+
+setTimeout(() => {
+  zoom.detach()
+}, 5000)
 ```
 </details>
 

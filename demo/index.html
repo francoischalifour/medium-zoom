@@ -138,6 +138,15 @@
         reprehenderit accusantium quasi a autem neque asperiores, tenetur impedit repudiandae quos.
       </p>
 
+      <figure>
+        <img
+          id="zoom-detach"
+          src="https://static.pexels.com/photos/106118/pexels-photo-106118.jpeg"
+          alt="Zoom detached after 5 seconds"
+        >
+        <figcaption>Zoom detached after 5 seconds</figcaption>
+      </figure>
+
       <h2>Journal</h2>
 
       <blockquote id="journal">
@@ -157,7 +166,7 @@
       </div>
     </footer>
 
-    <script src="../dist/medium-zoom.js"></script>
+    <script src="../dist/medium-zoom.min.js"></script>
     <script>
       window.addEventListener('load', function () {
         // Add the zoom effect to the hero image
@@ -169,6 +178,13 @@
         button.addEventListener('click', function () {
           zoomToTrigger.show()
         })
+
+        // Add a zoom to be detached
+        const zoomToDetach = mediumZoom('#zoom-detach')
+
+        setTimeout(function () {
+          zoomToDetach.detach()
+        }, 5000)
 
         // Add zooms to a container
         const containerZoom = [
@@ -185,7 +201,8 @@
           mediumZoom('#zoom-metaClick', {
             metaClick: false
           }),
-          zoomToTrigger
+          zoomToTrigger,
+          zoomToDetach
         ]
 
         // Write in the journal an image is zoomed
@@ -195,6 +212,11 @@
           zoom.addEventListeners('show', function (event) {
             const time = (new Date()).toLocaleTimeString()
             journal.innerHTML += `<p>❯ "${event.target.alt}" was zoomed at ${time}`
+          })
+
+          zoom.addEventListeners('detach', function (event) {
+            const time = (new Date()).toLocaleTimeString()
+            journal.innerHTML += `<p>❯ "${event.target.alt}" was detached at ${time}`
           })
         })
       })
