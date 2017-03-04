@@ -259,6 +259,7 @@ zoom.addEventListeners('show', event => {
   console.log(`"${event.target.alt}" has been zoomed ${++counter} times`)
 })
 ```
+</details>
 
 <details>
  <summary>Detach the zoom after a while</summary>
