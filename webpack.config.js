@@ -1,6 +1,5 @@
 const path = require('path')
 const webpack = require('webpack')
-
 const autoprefixer = require('autoprefixer')
 
 const pkg = require('./package.json')
@@ -19,10 +18,18 @@ const banner = `
 
 let outputFile
 
-plugins.push(new webpack.BannerPlugin(banner))
+plugins.push(new webpack.BannerPlugin({ banner }))
+plugins.push(new webpack.LoaderOptionsPlugin({
+  options: {
+    postcss: [autoprefixer]
+  }
+}))
 
 if (env === 'build') {
-  plugins.push(new webpack.optimize.UglifyJsPlugin({ minimize: true, compress: { warnings: false } }))
+  plugins.push(new webpack.optimize.UglifyJsPlugin({
+    minimize: true,
+    sourceMap: true
+  }))
   outputFile = `${libraryName}.min.js`
 } else {
   outputFile = `${libraryName}.js`
@@ -39,22 +46,25 @@ module.exports = {
     umdNamedDefine: true
   },
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.js$/,
-        loader: 'babel',
+        loader: 'babel-loader',
         exclude: /node_modules/
       },
       {
         test: /\.css$/,
-        loader: 'style-loader!css-loader!postcss-loader'
+        use: [
+          'style-loader',
+          'css-loader',
+          'postcss-loader'
+        ]
       }
     ]
   },
   plugins,
-  postcss: () => [ autoprefixer ],
   resolve: {
-    root: path.resolve('./src'),
-    extensions: ['', '.js']
+    modules: [path.resolve('./src')],
+    extensions: ['.js']
   }
 }
