@@ -197,8 +197,8 @@ const mediumZoom = (selector, {
   const animateTarget = () => {
     if (!target) return
 
-    const windowWidth = document.body.clientWidth || window.innerWidth
-    const windowHeight = document.body.clientHeight || window.innerHeight
+    const windowWidth = document.documentElement.clientWidth || window.innerWidth
+    const windowHeight = document.documentElement.clientHeight || window.innerHeight
 
     const viewportWidth = windowWidth - (options.margin * 2)
     const viewportHeight = windowHeight - (options.margin * 2)
