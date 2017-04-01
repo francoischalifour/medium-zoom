@@ -118,26 +118,26 @@ const mediumZoom = (selector, {
     })
   }
 
-  const detachAll = () => {
-    const event = new Event('detach')
-
-    images.forEach(image => {
-      image.classList.remove('medium-zoom-image')
-      image.removeEventListener('click', onClick)
-      image.dispatchEvent(event)
-    })
-
-    if (target) {
-      target.removeEventListener('transitionend', detachAll)
-    }
-  }
-
   const detach = () => {
-    if (target) {
-      zoomOut()
-      target.addEventListener('transitionend', detachAll)
+    const doDetach = () => {
+      const event = new Event('detach')
+
+      images.forEach(image => {
+        image.classList.remove('medium-zoom-image')
+        image.removeEventListener('click', onClick)
+        image.dispatchEvent(event)
+      })
+
+      if (target) {
+        target.removeEventListener('transitionend', doDetach)
+      }
+    }
+
+    if (!target) {
+      doDetach()
     } else {
-      detachAll()
+      zoomOut()
+      target.addEventListener('transitionend', doDetach)
     }
   }
 
