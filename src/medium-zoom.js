@@ -15,10 +15,10 @@ const mediumZoom = (selector, {
 } = {}) => {
   require('./medium-zoom.css')
 
-  const SUPPORTED_FORMATS = [ 'IMG', 'PICTURE', 'SVG' ]
+  const SUPPORTED_FORMATS = ['IMG', 'PICTURE', 'SVG']
   const KEY_ESC = 27
   const KEY_Q = 81
-  const CANCEL_KEYS = [ KEY_ESC, KEY_Q ]
+  const CANCEL_KEYS = [KEY_ESC, KEY_Q]
 
   const isSupported = img => SUPPORTED_FORMATS.includes(img.tagName)
   const isScaled = img => img.naturalWidth !== img.width
