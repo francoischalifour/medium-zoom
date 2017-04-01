@@ -1,6 +1,6 @@
 /*!
  * 
- *    medium-zoom v0.1.1
+ *    medium-zoom v0.1.2
  *    Medium-like zoom on your pictures in pure JavaScript
  *    Copyright (c) 2017 Francois Chalifour
  *    https://github.com/francoischalifour/medium-zoom
@@ -668,8 +668,8 @@ var mediumZoom = function mediumZoom(selector) {
   var animateTarget = function animateTarget() {
     if (!target) return;
 
-    var windowWidth = document.body.clientWidth || window.innerWidth;
-    var windowHeight = document.body.clientHeight || window.innerHeight;
+    var windowWidth = window.innerWidth;
+    var windowHeight = window.innerHeight;
 
     var viewportWidth = windowWidth - options.margin * 2;
     var viewportHeight = windowHeight - options.margin * 2;
