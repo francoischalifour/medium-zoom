@@ -219,9 +219,9 @@ const mediumZoom = (selector, {
   }
 
   let options = {
-    margin: parseInt(margin) || 0,
+    margin,
     background,
-    scrollOffset: parseInt(scrollOffset) || 48,
+    scrollOffset,
     metaClick
   }
 
