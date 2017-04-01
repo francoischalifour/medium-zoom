@@ -56,6 +56,6 @@
     "rimraf": "^2.6.1",
     "standard": "^9.0.0",
     "style-loader": "^0.13.2",
-    "webpack": "^2.2.1"
+    "webpack": "^2.3.2"
   }
 }
