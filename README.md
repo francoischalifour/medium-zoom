@@ -186,6 +186,7 @@ zoom.addEventListeners('show', event => {
 
 <details>
  <summary>Images in post content</summary>
+
 ```js
 mediumZoom('.post img')
 ```
@@ -193,6 +194,7 @@ mediumZoom('.post img')
 
 <details>
  <summary>One image by `id`</summary>
+
 ```js
 mediumZoom('#cover')
 ```
@@ -200,6 +202,7 @@ mediumZoom('#cover')
 
 <details>
  <summary>Images with `data` attribute</summary>
+
 ```js
 mediumZoom('[data-action="zoom"]')
 ```
@@ -207,6 +210,7 @@ mediumZoom('[data-action="zoom"]')
 
 <details>
  <summary>External images</summary>
+
 ```js
 mediumZoom('img[src^="http"]')
 ```
@@ -214,6 +218,7 @@ mediumZoom('img[src^="http"]')
 
 <details>
  <summary>Images from a database</summary>
+
 ```js
 fetch('https://myapi.com/posts/{id}', {
   method: 'GET'
@@ -229,6 +234,7 @@ fetch('https://myapi.com/posts/{id}', {
 
 <details>
  <summary>Margins, overlay, scroll offset and click</summary>
+
 ```js
 mediumZoom({
   margin: 16,
@@ -241,6 +247,7 @@ mediumZoom({
 
 <details>
  <summary>Trigger the zoom dynamically</summary>
+
 ```js
 const button = document.querySelector('#btn-zoom')
 const zoom = mediumZoom('#image')
@@ -251,6 +258,7 @@ button.addEventListener('click', () => zoom.show())
 
 <details>
  <summary>Zoom counter</summary>
+
 ```js
 let counter = 0
 const zoom = mediumZoom('#image-tracked')
@@ -263,6 +271,7 @@ zoom.addEventListeners('show', event => {
 
 <details>
  <summary>Detach the zoom after a while</summary>
+
 ```js
 const zoom = mediumZoom('#image-detach')
 
