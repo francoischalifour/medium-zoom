@@ -21,6 +21,10 @@
   "pre-commit": [
     "lint:fix"
   ],
+  "babel": {
+    "presets": ["es2015"],
+    "plugins": ["transform-object-assign"]
+  },
   "standard": {
     "ignore": [
       "/dist/"
