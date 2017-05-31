@@ -1,6 +1,6 @@
 # medium-zoom [![npm](https://img.shields.io/npm/v/medium-zoom.svg)](https://www.npmjs.com/package/medium-zoom) [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](https://github.com/feross/standard)
 
-> Medium-like zoom on your pictures in pure JavaScript 🔎🖼
+> Medium-like zoom on your pictures in vanilla JavaScript 🔎🖼
 
 <p align="center">
   <img src="https://cloud.githubusercontent.com/assets/6137112/17153725/3c052454-537e-11e6-9340-b52ef32a5667.gif" alt="medium-zoom demo">
@@ -52,16 +52,22 @@ mediumZoom(<selector>, <options>)
 
 By default, the zoom is applied to all scaled images (with HTML or CSS properties). You can specify the zoomable images with a [CSS selector](http://www.w3schools.com/cssref/css_selectors.asp) and add [options](#options).
 
-Additionally, you can pass an array-like or an array of images to the plugin.
+Additionally, you can pass an [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element), a [NodeList](https://developer.mozilla.org/en-US/docs/Web/API/NodeList), an [HTMLCollection](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCollection) or an array of images to the plugin.
 
 ```js
 // CSS selector
 mediumZoom('#cover')
 
-// array-like
+// Element
+mediumZoom(document.getElementById('cover'))
+
+// NodeList
 mediumZoom(document.querySelectorAll('[data-action="zoom"]'))
 
-// array
+// HTMLCollection
+mediumZoom(document.images)
+
+// Array
 const imagesToZoom = [
   document.querySelector('#cover'),
   ...document.querySelectorAll('[data-action="zoom"]')

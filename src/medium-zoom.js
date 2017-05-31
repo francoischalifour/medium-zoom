@@ -15,35 +15,37 @@ const mediumZoom = (selector, {
 } = {}) => {
   require('./medium-zoom.css')
 
-  const SUPPORTED_FORMATS = ['IMG', 'PICTURE', 'SVG']
+  const SUPPORTED_FORMATS = ['IMG']
   const KEY_ESC = 27
   const KEY_Q = 81
   const CANCEL_KEYS = [KEY_ESC, KEY_Q]
 
   const isSupported = img => SUPPORTED_FORMATS.includes(img.tagName)
   const isScaled = img => img.naturalWidth !== img.width
-  const isArrayLike = item => (!!item &&
-      typeof item === 'object' &&
-      item.length &&
-      typeof item.length === 'number' &&
-      item.length > 0)
+  const isListOrCollection = selector =>
+    NodeList.prototype.isPrototypeOf(selector) ||
+    HTMLCollection.prototype.isPrototypeOf(selector)
+  const isNode = selector =>
+    (selector && selector.nodeType === 1)
 
   const getImages = () => {
     try {
       return Array.isArray(selector)
         ? selector.filter(isSupported)
-        : isArrayLike(selector)
+        : isListOrCollection(selector)
           ? [...selector].filter(isSupported)
-          : typeof selector === 'string'
-            ? [...document.querySelectorAll(selector)].filter(isSupported)
-            : [...document.querySelectorAll(
-                SUPPORTED_FORMATS.map(attr => attr.toLowerCase()).join(',')
-              )].filter(isScaled)
+          : isNode(selector)
+            ? [selector].filter(isSupported)
+            : typeof selector === 'string'
+              ? [...document.querySelectorAll(selector)].filter(isSupported)
+              : [...document.querySelectorAll(
+                  SUPPORTED_FORMATS.map(attr => attr.toLowerCase()).join(',')
+                )].filter(isScaled)
     } catch (err) {
       throw new SyntaxError(
-        '[medium-zoom] Unknown selector when applying the zoom.' +
-        'Expects a CSS selector, an array-like or an array.' +
-        'Check https://github.com/francoischalifour/medium-zoom for more.'
+        'Unknown selector when applying the zoom.\n' +
+        'Expects a CSS selector, a Node element, a NodeList, an HTMLCollection or an array.\n' +
+        'See: https://github.com/francoischalifour/medium-zoom'
       )
     }
   }

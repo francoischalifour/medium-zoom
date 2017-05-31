@@ -1,7 +1,7 @@
 /*!
  * 
- *    medium-zoom v0.1.2
- *    Medium-like zoom on your pictures in pure JavaScript
+ *    medium-zoom v0.1.3
+ *    Medium-like zoom on your pictures in vanilla JavaScript
  *    Copyright (c) 2017 Francois Chalifour
  *    https://github.com/francoischalifour/medium-zoom
  *    MIT license
@@ -148,8 +148,6 @@ module.exports = function(module) {
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 /**
@@ -174,7 +172,7 @@ var mediumZoom = function mediumZoom(selector) {
 
   __webpack_require__(0);
 
-  var SUPPORTED_FORMATS = ['IMG', 'PICTURE', 'SVG'];
+  var SUPPORTED_FORMATS = ['IMG'];
   var KEY_ESC = 27;
   var KEY_Q = 81;
   var CANCEL_KEYS = [KEY_ESC, KEY_Q];
@@ -185,17 +183,20 @@ var mediumZoom = function mediumZoom(selector) {
   var isScaled = function isScaled(img) {
     return img.naturalWidth !== img.width;
   };
-  var isArrayLike = function isArrayLike(item) {
-    return !!item && (typeof item === 'undefined' ? 'undefined' : _typeof(item)) === 'object' && item.length && typeof item.length === 'number' && item.length > 0;
+  var isListOrCollection = function isListOrCollection(selector) {
+    return NodeList.prototype.isPrototypeOf(selector) || HTMLCollection.prototype.isPrototypeOf(selector);
+  };
+  var isNode = function isNode(selector) {
+    return selector && selector.nodeType === 1;
   };
 
   var getImages = function getImages() {
     try {
-      return Array.isArray(selector) ? selector.filter(isSupported) : isArrayLike(selector) ? [].concat(_toConsumableArray(selector)).filter(isSupported) : typeof selector === 'string' ? [].concat(_toConsumableArray(document.querySelectorAll(selector))).filter(isSupported) : [].concat(_toConsumableArray(document.querySelectorAll(SUPPORTED_FORMATS.map(function (attr) {
+      return Array.isArray(selector) ? selector.filter(isSupported) : isListOrCollection(selector) ? [].concat(_toConsumableArray(selector)).filter(isSupported) : isNode(selector) ? [selector].filter(isSupported) : typeof selector === 'string' ? [].concat(_toConsumableArray(document.querySelectorAll(selector))).filter(isSupported) : [].concat(_toConsumableArray(document.querySelectorAll(SUPPORTED_FORMATS.map(function (attr) {
         return attr.toLowerCase();
       }).join(',')))).filter(isScaled);
     } catch (err) {
-      throw new SyntaxError('[medium-zoom] Unknown selector when applying the zoom.' + 'Expects a CSS selector, an array-like or an array.' + 'Check https://github.com/francoischalifour/medium-zoom for more.');
+      throw new SyntaxError('Unknown selector when applying the zoom.\n' + 'Expects a CSS selector, a Node element, a NodeList, an HTMLCollection or an array.\n' + 'See: https://github.com/francoischalifour/medium-zoom');
     }
   };
 
