@@ -42,8 +42,8 @@ const mediumZoom = (selector, {
                   SUPPORTED_FORMATS.map(attr => attr.toLowerCase()).join(',')
                 )].filter(isScaled)
     } catch (err) {
-      throw new SyntaxError(
-        'Unknown selector when applying the zoom.\n' +
+      throw new TypeError(
+        'The provided selector is invalid.\n' +
         'Expects a CSS selector, a Node element, a NodeList, an HTMLCollection or an array.\n' +
         'See: https://github.com/francoischalifour/medium-zoom'
       )
