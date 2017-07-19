@@ -1,6 +1,6 @@
 {
   "name": "medium-zoom",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Medium-like zoom on your pictures in vanilla JavaScript",
   "license": "MIT",
   "repository": "francoischalifour/medium-zoom",
