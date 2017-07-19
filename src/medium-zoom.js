@@ -185,7 +185,7 @@ const mediumZoom = (selector, {
   const onScroll = () => {
     if (isAnimating || !target) return
 
-    const currentScroll = (document.documentElement.scrollTop || document.body.scrollTop)
+    const currentScroll = document.documentElement.scrollTop || document.body.scrollTop
 
     if (Math.abs(scrollTop - currentScroll) > options.scrollOffset) {
       zoomOut()
