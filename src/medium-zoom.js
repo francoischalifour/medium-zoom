@@ -64,7 +64,7 @@ const mediumZoom = (selector, {
     const event = new Event('show')
     target.dispatchEvent(event)
 
-    scrollTop = (document.documentElement.scrollTop || document.body.scrollTop)  //fix for Mozilla, cause document.body.scrollTop property always equal 0
+    scrollTop = document.documentElement.scrollTop || document.body.scrollTop
     isAnimating = true
 
     document.body.appendChild(overlay)
@@ -185,7 +185,7 @@ const mediumZoom = (selector, {
   const onScroll = () => {
     if (isAnimating || !target) return
 
-    let currentScroll = (document.documentElement.scrollTop || document.body.scrollTop); //mozilla fix
+    const currentScroll = (document.documentElement.scrollTop || document.body.scrollTop)
 
     if (Math.abs(scrollTop - currentScroll) > options.scrollOffset) {
       zoomOut()
