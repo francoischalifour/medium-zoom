@@ -1,5 +1,5 @@
 /*!
- * medium-zoom v0.1.5
+ * medium-zoom v0.1.6
  * Medium-like zoom on your pictures in vanilla JavaScript
  * Copyright 2017 Francois Chalifour
  * https://github.com/francoischalifour/medium-zoom
@@ -189,7 +189,7 @@ var mediumZoom = function mediumZoom(selector) {
     var event = new Event('show');
     target.dispatchEvent(event);
 
-    scrollTop = document.body.scrollTop;
+    scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
     isAnimating = true;
 
     document.body.appendChild(overlay);
@@ -308,7 +308,9 @@ var mediumZoom = function mediumZoom(selector) {
   var onScroll = function onScroll() {
     if (isAnimating || !target) return;
 
-    if (Math.abs(scrollTop - document.body.scrollTop) > options.scrollOffset) {
+    var currentScroll = document.documentElement.scrollTop || document.body.scrollTop;
+
+    if (Math.abs(scrollTop - currentScroll) > options.scrollOffset) {
       zoomOut();
     }
   };
