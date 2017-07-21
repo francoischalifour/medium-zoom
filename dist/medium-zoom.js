@@ -1,5 +1,5 @@
 /*!
- * medium-zoom v0.1.6
+ * medium-zoom v0.1.7
  * Medium-like zoom on your pictures in vanilla JavaScript
  * Copyright 2017 Francois Chalifour
  * https://github.com/francoischalifour/medium-zoom
@@ -347,7 +347,7 @@ var mediumZoom = function mediumZoom(selector) {
     var scaleX = Math.min(naturalWidth, viewportWidth) / width;
     var scaleY = Math.min(naturalHeight, viewportHeight) / height;
     var scale = Math.min(scaleX, scaleY) || 1;
-    var translateX = isCenterAligned ? 0 : (-left + (viewportWidth - width) / 2) / scale;
+    var translateX = isCenterAligned ? 0 : (-left + (viewportWidth - width) / 2 + options.margin) / scale;
     var translateY = (-top + (viewportHeight - height) / 2 + options.margin) / scale;
 
     target.style.transform = 'scale(' + scale + ') translate3d(' + translateX + 'px, ' + translateY + 'px, 0)';
