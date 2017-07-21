@@ -216,7 +216,7 @@ const mediumZoom = (selector, {
     const scale = Math.min(scaleX, scaleY) || 1
     const translateX = isCenterAligned
       ? 0
-      : (-left + ((viewportWidth - width) / 2)) / scale
+      : (-left + ((viewportWidth - width) / 2) + options.margin) / scale
     const translateY = (-top + ((viewportHeight - height) / 2) + options.margin) / scale
 
     target.style.transform = `scale(${scale}) translate3d(${translateX}px, ${translateY}px, 0)`
