@@ -31,26 +31,31 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
-        loader: require.resolve('babel-loader'),
-        exclude: /node_modules/
+        loader: require.resolve('babel-loader')
       },
       {
         test: /\.css$/,
         use: [
-          require.resolve('style-loader'),
-          require.resolve('css-loader'),
-          require.resolve('postcss-loader')
+          {
+            loader: require.resolve('style-loader')
+          },
+          {
+            loader: require.resolve('css-loader')
+          },
+          {
+            loader: require.resolve('postcss-loader'),
+            options: {
+              plugins: [
+                autoprefixer
+              ]
+            }
+          }
         ]
       }
     ]
   },
   plugins: [
     new webpack.BannerPlugin({ banner }),
-    new webpack.LoaderOptionsPlugin({
-      options: {
-        postcss: [autoprefixer]
-      }
-    }),
     new webpack.optimize.UglifyJsPlugin({
       include: /\.min\.js$/,
       minimize: true,
