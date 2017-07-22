@@ -13,14 +13,18 @@
   "scripts": {
     "lint": "standard",
     "lint:fix": "standard --fix",
+    "precommit": "lint-staged",
     "clean": "rimraf ./dist && mkdir dist",
     "prebuild": "npm run clean && npm run lint",
     "build": "webpack --progress --colors",
     "dev": "webpack -d --progress --colors --watch"
   },
-  "pre-commit": [
-    "lint:fix"
-  ],
+  "lint-staged": {
+    "src/**/*.js": [
+      "lint:fix",
+      "git add"
+    ]
+  },
   "babel": {
     "presets": [
       "es2015"
@@ -64,8 +68,9 @@
     "babel-plugin-transform-object-assign": "^6.22.0",
     "babel-preset-es2015": "^6.24.1",
     "css-loader": "^0.28.4",
+    "husky": "^0.14.3",
+    "lint-staged": "^4.0.2",
     "postcss-loader": "^2.0.6",
-    "pre-commit": "^1.2.2",
     "rimraf": "^2.6.1",
     "standard": "^10.0.2",
     "style-loader": "^0.18.2",
