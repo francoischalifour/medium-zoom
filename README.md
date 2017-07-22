@@ -1,6 +1,6 @@
 # medium-zoom [![npm](https://img.shields.io/npm/v/medium-zoom.svg)](https://www.npmjs.com/package/medium-zoom) [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](https://github.com/feross/standard)
 
-> Medium-like zoom on your pictures in vanilla JavaScript 🔎🖼
+> Medium zoom on your pictures in vanilla JavaScript 🔎 🖼
 
 <p align="center">
   <img src="https://cloud.githubusercontent.com/assets/6137112/17153725/3c052454-537e-11e6-9340-b52ef32a5667.gif" alt="medium-zoom demo">
