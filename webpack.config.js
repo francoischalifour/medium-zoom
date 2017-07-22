@@ -1,19 +1,17 @@
 const path = require('path')
 const webpack = require('webpack')
-const autoprefixer = require('autoprefixer')
-const pkg = require('./package.json')
+const { name, description, version, author, repository, license } = require('./package.json')
 
-const libraryName = pkg.name
-const banner = `${libraryName} v${pkg.version}
-${pkg.description}
-Copyright ${new Date().getFullYear()} ${pkg.author.name}
-https://github.com/${pkg.repository}
-Licensed under ${pkg.license}`
+const banner = `${name} v${version}
+${description}
+Copyright ${new Date().getFullYear()} ${author.name}
+https://github.com/${repository}
+Licensed under ${license}`
 
 module.exports = {
   entry: {
-    [libraryName]: path.join(__dirname, `/src/${libraryName}`),
-    [`${libraryName}.min`]: path.join(__dirname, `/src/${libraryName}`)
+    [name]: path.join(__dirname, `/src/${name}`),
+    [`${name}.min`]: path.join(__dirname, `/src/${name}`)
   },
   devtool: 'source-map',
   output: {
@@ -22,10 +20,6 @@ module.exports = {
     library: 'mediumZoom',
     libraryTarget: 'umd',
     umdNamedDefine: true
-  },
-  resolve: {
-    modules: [path.resolve('./src')],
-    extensions: ['.js']
   },
   module: {
     rules: [
@@ -46,7 +40,7 @@ module.exports = {
             loader: require.resolve('postcss-loader'),
             options: {
               plugins: [
-                autoprefixer
+                require('autoprefixer')
               ]
             }
           }
