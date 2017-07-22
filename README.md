@@ -226,15 +226,14 @@ mediumZoom('img[src^="http"]')
  <summary>Images from a database</summary>
 
 ```js
-fetch('https://myapi.com/posts/{id}', {
-  method: 'GET'
-})
-.then(response => {
-  const imagesToZoom = response.images
-    .map(imgSrc => document.querySelector(`img[src=${imgSrc}]`))
+fetch(`https://myapi.com/posts/${postId}`)
+  .then(response => response.json())
+  .then(post => {
+    const imagesToZoom = post.images
+      .map(imgSrc => document.querySelector(`img[src=${imgSrc}]`))
 
-  mediumZoom(imagesToZoom)
-})
+    mediumZoom(imagesToZoom)
+  })
 ```
 </details>
 
