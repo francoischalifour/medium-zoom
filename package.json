@@ -15,8 +15,8 @@
     "lint:fix": "standard --fix",
     "clean": "rimraf ./dist && mkdir dist",
     "prebuild": "npm run clean && npm run lint",
-    "build": "NODE_ENV=build webpack && NODE_ENV=dev webpack",
-    "dev": "NODE_ENV=dev webpack --progress --colors --watch"
+    "build": "webpack --progress --colors",
+    "dev": "webpack -d --progress --colors --watch"
   },
   "pre-commit": [
     "lint:fix"

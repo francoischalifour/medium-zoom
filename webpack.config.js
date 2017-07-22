@@ -1,12 +1,8 @@
 const path = require('path')
 const webpack = require('webpack')
 const autoprefixer = require('autoprefixer')
-
 const pkg = require('./package.json')
 
-const env = process.env.NODE_ENV
-
-const plugins = []
 const libraryName = pkg.name
 const banner = `${libraryName} v${pkg.version}
 ${pkg.description}
@@ -14,55 +10,51 @@ Copyright ${new Date().getFullYear()} ${pkg.author.name}
 https://github.com/${pkg.repository}
 Licensed under ${pkg.license}`
 
-let outputFile
-
-plugins.push(new webpack.BannerPlugin({ banner }))
-plugins.push(new webpack.LoaderOptionsPlugin({
-  options: {
-    postcss: [autoprefixer]
-  }
-}))
-
-if (env === 'build') {
-  plugins.push(new webpack.optimize.UglifyJsPlugin({
-    minimize: true,
-    sourceMap: true
-  }))
-  outputFile = `${libraryName}.min.js`
-} else {
-  outputFile = `${libraryName}.js`
-}
-
 module.exports = {
-  entry: path.join(__dirname, `/src/${libraryName}`),
+  entry: {
+    [libraryName]: path.join(__dirname, `/src/${libraryName}`),
+    [`${libraryName}.min`]: path.join(__dirname, `/src/${libraryName}`)
+  },
   devtool: 'source-map',
   output: {
     path: path.join(__dirname, '/dist'),
-    filename: outputFile,
+    filename: '[name].js',
     library: 'mediumZoom',
     libraryTarget: 'umd',
     umdNamedDefine: true
+  },
+  resolve: {
+    modules: [path.resolve('./src')],
+    extensions: ['.js']
   },
   module: {
     rules: [
       {
         test: /\.js$/,
-        loader: 'babel-loader',
+        loader: require.resolve('babel-loader'),
         exclude: /node_modules/
       },
       {
         test: /\.css$/,
         use: [
-          'style-loader',
-          'css-loader',
-          'postcss-loader'
+          require.resolve('style-loader'),
+          require.resolve('css-loader'),
+          require.resolve('postcss-loader')
         ]
       }
     ]
   },
-  plugins,
-  resolve: {
-    modules: [path.resolve('./src')],
-    extensions: ['.js']
-  }
+  plugins: [
+    new webpack.BannerPlugin({ banner }),
+    new webpack.LoaderOptionsPlugin({
+      options: {
+        postcss: [autoprefixer]
+      }
+    }),
+    new webpack.optimize.UglifyJsPlugin({
+      include: /\.min\.js$/,
+      minimize: true,
+      sourceMap: true
+    })
+  ]
 }

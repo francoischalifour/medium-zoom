@@ -296,9 +296,6 @@ setTimeout(() => {
 * Install the dependencies: `npm install`
 * Watch changes: `npm run dev`
 
-> Make sure to include the full version (not minified) of the library in the HTML file.
-> `npm run dev` doesn't build the minified version.
-
 ## Contributing
 
 Need more options? Send a pull request!
