@@ -87,9 +87,11 @@ const mediumZoom = (selector, {
     target.dispatchEvent(event)
 
     setTimeout(() => {
+      if (!target) return
+
       isAnimating = true
       document.body.classList.remove('medium-zoom--open')
-      if (target) target.style.transform = 'none'
+      target.style.transform = 'none'
 
       target.addEventListener('transitionend', onZoomOutEnd)
     }, 150)
