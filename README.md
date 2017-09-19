@@ -34,6 +34,14 @@ Or download the [minified version](https://raw.githubusercontent.com/francoischa
 
 ### 1. Import the script
 
+From a [CDN](https://en.wikipedia.org/wiki/Content_delivery_network):
+
+```html
+<script src="https://unpkg.com/medium-zoom@0/dist/medium-zoom.min.js"></script>
+```
+
+Or from your `node_modules`:
+
 ```html
 <script src="node_modules/medium-zoom/dist/medium-zoom.min.js"></script>
 ```
@@ -44,7 +52,9 @@ Or:
 const mediumZoom = require('medium-zoom')
 ```
 
-### 2. Run the plugin
+That's it! You don't need to import any CSS styles.
+
+### 2. Use the library
 
 ```js
 mediumZoom(<selector>, <options>)
@@ -305,4 +315,4 @@ Need more options? Send a pull request!
 
 ## License
 
-MIT © [François Chalifour](http://francoischalifour.com)
+MIT © [François Chalifour](https://francoischalifour.com)
