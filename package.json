@@ -7,7 +7,7 @@
   "author": {
     "name": "Francois Chalifour",
     "email": "francois.chalifour@gmail.com",
-    "url": "http://francoischalifour.com"
+    "url": "https://francoischalifour.com"
   },
   "main": "dist/medium-zoom.min.js",
   "scripts": {
