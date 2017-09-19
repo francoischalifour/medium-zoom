@@ -10,8 +10,8 @@ Licensed under ${license}`
 
 module.exports = {
   entry: {
-    [name]: path.join(__dirname, `/src/${name}`),
-    [`${name}.min`]: path.join(__dirname, `/src/${name}`)
+    [name]: path.join(__dirname, `/src`),
+    [`${name}.min`]: path.join(__dirname, `/src`)
   },
   devtool: 'source-map',
   output: {

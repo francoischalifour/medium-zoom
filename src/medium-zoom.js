@@ -1,11 +1,30 @@
+const SUPPORTED_FORMATS = ['IMG']
+const KEY_ESC = 27
+const KEY_Q = 81
+const CANCEL_KEYS = [KEY_ESC, KEY_Q]
+
+const isSupported = img =>
+  SUPPORTED_FORMATS.includes(img.tagName)
+
+const isScaled = img =>
+  img.naturalWidth !== img.width
+
+const isListOrCollection = selector =>
+  NodeList.prototype.isPrototypeOf(selector) ||
+  HTMLCollection.prototype.isPrototypeOf(selector)
+
+const isNode = selector =>
+  (selector && selector.nodeType === 1)
+
 /**
- * Adds a zoom effect on a selection of images when clicked.
+ * Attaches a zoom effect on a selection of images.
  *
- * @param {(string|Object[])} [selector] The images to apply the zoom to
- * @param {number} [options.margin=0] Space outside the zoomed image
+ * @param {(string|Object[])} [selector] The images to attach the zoom to
+ * @param {number} [options.margin=0] The space outside the zoomed image
  * @param {string} [options.background="#fff"] The color of the overlay
- * @param {number} [options.scrollOffset=48] Number of pixels to scroll to dismiss the zoom
- * @param {boolean} [options.metaClick=true] Enables the action on meta click
+ * @param {number} [options.scrollOffset=48] The number of pixels to scroll to dismiss the zoom
+ * @param {boolean} [options.metaClick=true] A boolean to enable the default action on meta click
+ * @return The zoom object
  */
 const mediumZoom = (selector, {
   margin = 0,
@@ -13,22 +32,7 @@ const mediumZoom = (selector, {
   scrollOffset = 48,
   metaClick = true
 } = {}) => {
-  require('./medium-zoom.css')
-
-  const SUPPORTED_FORMATS = ['IMG']
-  const KEY_ESC = 27
-  const KEY_Q = 81
-  const CANCEL_KEYS = [KEY_ESC, KEY_Q]
-
-  const isSupported = img => SUPPORTED_FORMATS.includes(img.tagName)
-  const isScaled = img => img.naturalWidth !== img.width
-  const isListOrCollection = selector =>
-    NodeList.prototype.isPrototypeOf(selector) ||
-    HTMLCollection.prototype.isPrototypeOf(selector)
-  const isNode = selector =>
-    (selector && selector.nodeType === 1)
-
-  const getImages = () => {
+  const selectImages = selector => {
     try {
       return Array.isArray(selector)
         ? selector.filter(isSupported)
@@ -50,10 +54,10 @@ const mediumZoom = (selector, {
     }
   }
 
-  const createOverlay = () => {
+  const createOverlay = background => {
     const overlay = document.createElement('div')
     overlay.classList.add('medium-zoom-overlay')
-    overlay.style.backgroundColor = options.background
+    overlay.style.backgroundColor = background
 
     return overlay
   }
@@ -107,13 +111,11 @@ const mediumZoom = (selector, {
   }
 
   const update = (newOptions = {}) => {
-    options = Object.assign({}, options, newOptions)
-
-    if (options.background) {
-      overlay.style.backgroundColor = options.background
+    if (newOptions.background) {
+      overlay.style.backgroundColor = newOptions.background
     }
 
-    return options
+    return Object.assign(options, newOptions)
   }
 
   const addEventListeners = (type, listener) => {
@@ -131,6 +133,8 @@ const mediumZoom = (selector, {
         image.removeEventListener('click', onClick)
         image.dispatchEvent(event)
       })
+
+      images.splice(0, images.length)
 
       if (target) {
         target.removeEventListener('transitionend', doDetach)
@@ -224,19 +228,20 @@ const mediumZoom = (selector, {
     target.style.transform = `scale(${scale}) translate3d(${translateX}px, ${translateY}px, 0)`
   }
 
-  let options = {
+  const options = {
     margin,
     background,
     scrollOffset,
     metaClick
   }
 
+  // If the selector is ommitted, it represents the options
   if (selector instanceof Object) {
-    options = Object.assign({}, options, selector)
+    Object.assign(options, selector)
   }
 
-  const images = getImages(selector)
-  const overlay = createOverlay()
+  const images = selectImages(selector)
+  const overlay = createOverlay(options.background)
 
   let target = null
   let scrollTop = 0
