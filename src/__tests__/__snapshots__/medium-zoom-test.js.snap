@@ -1,0 +1,56 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`hide hide() renders correctly 1`] = `
+<body>
+  <img
+    class="medium-zoom-image"
+  />
+</body>
+`;
+
+exports[`mediumZoom init with only an option object attaches scaled images and applies options 1`] = `
+<body>
+  <img
+    class="medium-zoom-image"
+    width="200"
+  />
+  <img />
+  <p />
+</body>
+`;
+
+exports[`show show() renders correctly 1`] = `
+<body>
+  <img
+    class="medium-zoom-image medium-zoom-image--open"
+  />
+  <div
+    class="medium-zoom-overlay"
+    style="background-color: rgb(255, 255, 255);"
+  />
+</body>
+`;
+
+exports[`show show() renders correctly with options overlay background 1`] = `
+<body>
+  <img
+    class="medium-zoom-image medium-zoom-image--open"
+  />
+  <div
+    class="medium-zoom-overlay"
+    style="background-color: rgb(186, 218, 85);"
+  />
+</body>
+`;
+
+exports[`update update() background updates the background option, returns all options and renders correctly 1`] = `
+<body>
+  <img
+    class="medium-zoom-image medium-zoom-image--open"
+  />
+  <div
+    class="medium-zoom-overlay"
+    style="background-color: rgb(0, 0, 0);"
+  />
+</body>
+`;
