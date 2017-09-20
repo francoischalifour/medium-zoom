@@ -1,23 +1,45 @@
-# medium-zoom [![npm](https://img.shields.io/npm/v/medium-zoom.svg)](https://www.npmjs.com/package/medium-zoom) [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](https://github.com/feross/standard)
-
-> Medium zoom on your pictures in vanilla JavaScript 🔎 🖼
-
 <p align="center">
-  <img src="https://cloud.githubusercontent.com/assets/6137112/17153725/3c052454-537e-11e6-9340-b52ef32a5667.gif" alt="medium-zoom demo">
-  <br>
-  <br>
-  <a href="http://francoischalifour.com/files/lab/medium-image-zoom/">View demo 🔎</a>
+  <img src="logo.svg" width="64">
+  <h3 align="center">medium-zoom</h3>
+  <p align="center">Medium zoom on your pictures in vanilla JavaScript 🔎 🖼</p>
 </p>
 
-## Install
+<p align="center">
+  <a href="https://www.npmjs.com/package/medium-zoom">
+    <img src="https://img.shields.io/npm/v/medium-zoom.svg?style=flat-square" alt="version">
+  </a>
+  <a href="http://npmcharts.com/compare/medium-zoom">
+    <img src="https://img.shields.io/npm/dm/medium-zoom.svg?style=flat-square" alt="downloads">
+  </a>
+  <a href="https://github.com/francoischalifour/medium-zoom/blob/master/LICENSE">
+    <img src="https://img.shields.io/npm/l/medium-zoom.svg?style=flat-square" alt="MIT license">
+  </a>
+  <a href="https://github.com/francoischalifour/medium-zoom/blob/master/package.json">
+    <img src="https://img.shields.io/badge/dependencies-none-lightgrey.svg?style=flat-square" alt="no dependencies">
+  </a>
+  <br>
+  <a href="https://unpkg.com/medium-zoom/dist">
+    <img src="http://img.badgesize.io/https://unpkg.com/medium-zoom/dist/medium-zoom.min.js?label=size&style=flat-square" alt="size">
+  </a>
+  <a href="https://unpkg.com/medium-zoom/dist">
+    <img src="http://img.badgesize.io/https://unpkg.com/medium-zoom/dist/medium-zoom.min.js?compression=gzip&label=gzip%20size&style=flat-square" alt="gzip size">
+  </a>
+  <a href="https://github.com/facebook/jest">
+    <img src="https://img.shields.io/badge/tested_with-jest-99424f.svg?style=flat-square" alt="tested with Jest">
+  </a>
+  <a href="https://github.com/feross/standard">
+    <img src="https://img.shields.io/badge/code%20style-standard-yellow.svg?style=flat-square" alt="js-standard-style">
+  </a>
+</p>
 
-```console
-$ npm install --save medium-zoom
-```
-
-Or download the [minified version](https://raw.githubusercontent.com/francoischalifour/medium-zoom/master/dist/medium-zoom.min.js).
-
-*No dependencies.*
+<p align="center">
+  <a href="https://medium-zoom.netlify.com">
+    <img src="https://user-images.githubusercontent.com/6137112/30665292-87c012c8-9e1e-11e7-9456-3d94ee73ce98.gif" alt="medium-zoom demo">
+  </a>
+  <br>
+  <br>
+  <a href="https://medium-zoom.netlify.com">View demo 🔎</a>
+</p>
 
 ## Features
 
@@ -29,6 +51,16 @@ Or download the [minified version](https://raw.githubusercontent.com/francoischa
 * 🖼 **Image opener** — *when no link, opens the image source in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)*
 * 📱 **Responsive** — *scales on mobile and desktop*
 * 🚀 **Performant and lightweight** — *should be able to reach 60 fps*
+
+## Install
+
+```console
+$ npm install --save medium-zoom # yarn add medium-zoom
+```
+
+Or download the [minified version](https://unpkg.com/medium-zoom@0/dist/medium-zoom.min.js).
+
+*No dependencies.*
 
 ## Usage
 
@@ -296,14 +328,24 @@ setTimeout(() => {
 ```
 </details>
 
+You can see [more examples](examples/) including [vanilla JavaScript](examples/javascript) and [React ⚛️](examples/react).
+
 ## Demo
 
-[View demo 🔎](http://francoischalifour.com/files/lab/medium-image-zoom/), go to the [demo folder](demo/) or [read the article](http://francoischalifour.com/lab/medium-image-zoom/).
+[View demo 🔎](https://medium-zoom.netlify.com), go to the [examples folder](examples/) or [read the article](https://francoischalifour.com/lab/medium-image-zoom).
 
 ## Dev
 
-* Install the dependencies: `npm install`
-* Watch changes: `npm run dev`
+* `npm install` will install the dev dependencies
+* `npm run dev` will watch changes and rebuild the library
+* open [`examples/javascript/development.html`](examples/javascript/development.html) to try your changes (it includes [`dist/medium-zoom.min.js`](dist/medium-zoom.min.js) which is watched with `npm run dev`)
+
+##### More commands
+
+* Lint code: `npm run lint:fix`
+* Test: `npm test`
+
+*You can also use [Yarn](https://github.com/yarnpkg/yarn).*
 
 ## Contributing
 
