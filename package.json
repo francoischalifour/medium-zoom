@@ -42,7 +42,8 @@
   },
   "standard": {
     "ignore": [
-      "/dist/"
+      "/dist/",
+      "/examples/"
     ],
     "globals": [
       "NodeList",

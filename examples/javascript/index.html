@@ -3,33 +3,38 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#4caf50">
 
-    <title>Demo | Medium Zoom</title>
+    <link rel="shortcut icon" href="favicon.ico">
 
     <link href="https://fonts.googleapis.com/css?family=Varela+Round|Work+Sans" rel="stylesheet">
     <link href="reset.css" rel="stylesheet">
-    <link href="styles.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+
+    <title>Medium Zoom | Demo</title>
   </head>
 
   <body>
     <header class="header">
-      <h1 class="header__title">Medium Zoom — Demo</h1>
-      <div class="header__subtitle">Medium-like zoom on your pictures in pure JavaScript</div>
+      <h1 class="header__title">Medium Zoom</h1>
+      <div class="header__subtitle">Medium zoom on your pictures in vanilla JavaScript</div>
 
       <div class="header__info">
         <a href="https://github.com/francoischalifour/medium-zoom" class="button">View on GitHub</a>
-        <a href="http://francoischalifour.com/lab/medium-image-zoom" class="button">Read the article</a>
-      </div>
-
-      <div class="header__illustration">
-        <img
-          src="https://source.unsplash.com/category/nature/1920x1200"
-          alt="Medium Zoom illustration"
-        >
+        <a href="https://francoischalifour.com/lab/medium-image-zoom" class="button">Read the article</a>
       </div>
     </header>
 
     <article class="container">
+      <figure>
+        <img
+          id="zoom-default"
+          src="images/image-1.jpg"
+          alt="Zoom with default options"
+        >
+        <figcaption>Zoom with default options</figcaption>
+      </figure>
+
       <p>
         Lorem ipsum dolor sit amet, consectetur adipisicing elit.
         Tempora praesentium cupiditate fugit voluptas, rem eligendi, voluptatem molestias pariatur atque amet,
@@ -41,7 +46,7 @@
       <figure>
         <img
           id="zoom-margin"
-          src="https://source.unsplash.com/category/people/1920x1200"
+          src="images/image-2.jpg"
           alt="Zoom with margin"
         >
         <figcaption>Zoom with margin</figcaption>
@@ -56,7 +61,7 @@
       <figure>
         <img
           id="zoom-background"
-          src="https://static.pexels.com/photos/106118/pexels-photo-106118.jpeg"
+          src="images/image-3.jpg"
           alt="Zoom with background color"
         >
         <figcaption>Zoom with background color</figcaption>
@@ -71,7 +76,7 @@
       <figure class="pull-right">
         <img
           id="zoom-scrollOffset"
-          src="https://source.unsplash.com/category/technology/1200x1200"
+          src="images/image-4.jpg"
           alt="Zoom without scroll effect"
         >
         <figcaption>Zoom without scroll offset</figcaption>
@@ -89,10 +94,22 @@
         ad perspiciatis beatae! Qui repellat numquam incidunt, accusamus autem.
       </p>
 
+      <p>
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+        Corrupti provident sunt recusandae enim commodi ab dolorem ipsum dolor magni
+        reprehenderit accusantium quasi a autem neque asperiores, tenetur impedit repudiandae quos.
+      </p>
+
+      <p>
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+        Accusamus cum nulla eligendi recusandae at quae odio, harum nesciunt ut
+        temporibus vitae, laudantium minus. Iste officia aliquid, laborum ratione maxime beatae.
+      </p>
+
       <figure class="pull-left">
         <img
           id="zoom-metaClick"
-          src="https://source.unsplash.com/category/buildings/1200x1920"
+          src="images/image-5.jpg"
           alt="Zoom without meta click"
         >
         <figcaption>Zoom without meta click</figcaption>
@@ -125,7 +142,7 @@
       <figure>
         <img
           id="zoom-trigger"
-          src="https://source.unsplash.com/category/objects/1920x1200"
+          src="images/image-6.jpg"
           alt="Zoom to trigger"
         >
         <figcaption>
@@ -142,7 +159,7 @@
       <figure>
         <img
           id="zoom-detach"
-          src="https://source.unsplash.com/category/food/1920x1200"
+          src="images/image-7.jpg"
           alt="Zoom detached after 5 seconds"
         >
         <figcaption>Zoom detached after 5 seconds</figcaption>
@@ -163,64 +180,13 @@
       </div>
 
       <div class="footer__copyright">
-        Made by <a href="http://francoischalifour.com">François Chalifour</a>
+        Made by <a href="https://francoischalifour.com">François Chalifour</a>
       </div>
+
+      <p><a href="#">Back to top</a></p>
     </footer>
 
-    <script src="../dist/medium-zoom.min.js"></script>
-    <script>
-      window.addEventListener('load', function () {
-        // Add the zoom effect to the hero image
-        const heroZoom = mediumZoom('.header__illustration img')
-
-        // Handle the zoom on click on the button
-        const zoomToTrigger = mediumZoom('#zoom-trigger')
-        const button = document.querySelector('#btn-trigger')
-        button.addEventListener('click', function () {
-          zoomToTrigger.show()
-        })
-
-        // Add a zoom to be detached
-        const zoomToDetach = mediumZoom('#zoom-detach')
-
-        setTimeout(function () {
-          zoomToDetach.detach()
-        }, 5000)
-
-        // Add zooms to a container
-        const containerZoom = [
-          heroZoom,
-          mediumZoom('#zoom-margin', {
-            margin: 48
-          }),
-          mediumZoom('#zoom-background', {
-            background: '#212530'
-          }),
-          mediumZoom('#zoom-scrollOffset', {
-            scrollOffset: 0
-          }),
-          mediumZoom('#zoom-metaClick', {
-            metaClick: false
-          }),
-          zoomToTrigger,
-          zoomToDetach
-        ]
-
-        // Write in the journal an image is zoomed
-        const journal = document.querySelector('#journal')
-
-        containerZoom.forEach(function (zoom) {
-          zoom.addEventListeners('show', function (event) {
-            const time = (new Date()).toLocaleTimeString()
-            journal.innerHTML += `<p>❯ "${event.target.alt}" was zoomed at ${time}`
-          })
-
-          zoom.addEventListeners('detach', function (event) {
-            const time = (new Date()).toLocaleTimeString()
-            journal.innerHTML += `<p>❯ "${event.target.alt}" was detached at ${time}`
-          })
-        })
-      })
-    </script>
+    <script src="https://unpkg.com/medium-zoom@0/dist/medium-zoom.min.js"></script>
+    <script src="demo.js"></script>
   </body>
 </html>
