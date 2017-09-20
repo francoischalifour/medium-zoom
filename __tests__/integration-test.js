@@ -1,5 +1,5 @@
 /* eslint-env jest */
-const mediumZoom = require('../medium-zoom')
+const mediumZoom = require('../src/medium-zoom')
 
 global.requestAnimationFrame = cb => setTimeout(cb, 0)
 
@@ -12,7 +12,7 @@ describe('click', () => {
     }
   })
 
-  test('click on an image should add classes', () => {
+  test('on an image adds classes', () => {
     const image = document.createElement('img')
     root.appendChild(image)
 
@@ -24,7 +24,7 @@ describe('click', () => {
     expect(classNames).toEqual(['medium-zoom-image', 'medium-zoom-image--open'])
   })
 
-  test('click on a detached image should not add classes', () => {
+  test('on a detached image doesn’t add classes', () => {
     const image = document.createElement('img')
     root.appendChild(image)
 

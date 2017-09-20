@@ -15,6 +15,7 @@
     "lint:fix": "standard --fix",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:verbose": "jest --verbose",
     "precommit": "lint-staged",
     "clean": "rimraf ./dist && mkdir dist",
     "prebuild": "npm run clean && npm run lint",

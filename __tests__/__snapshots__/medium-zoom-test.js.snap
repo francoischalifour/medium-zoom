@@ -1,14 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`hide hide() renders correctly 1`] = `
-<body>
-  <img
-    class="medium-zoom-image"
-  />
-</body>
-`;
-
-exports[`mediumZoom init with only an option object attaches scaled images and applies options 1`] = `
+exports[`constructor with only an option object attaches scaled images and applies options 1`] = `
 <body>
   <img
     class="medium-zoom-image"
@@ -19,7 +11,15 @@ exports[`mediumZoom init with only an option object attaches scaled images and a
 </body>
 `;
 
-exports[`show show() renders correctly 1`] = `
+exports[`hide renders correctly 1`] = `
+<body>
+  <img
+    class="medium-zoom-image"
+  />
+</body>
+`;
+
+exports[`show renders correctly 1`] = `
 <body>
   <img
     class="medium-zoom-image medium-zoom-image--open"
@@ -31,7 +31,7 @@ exports[`show show() renders correctly 1`] = `
 </body>
 `;
 
-exports[`show show() renders correctly with options overlay background 1`] = `
+exports[`show renders correctly with options overlay background 1`] = `
 <body>
   <img
     class="medium-zoom-image medium-zoom-image--open"
@@ -43,7 +43,7 @@ exports[`show show() renders correctly with options overlay background 1`] = `
 </body>
 `;
 
-exports[`update update() background updates the background option, returns all options and renders correctly 1`] = `
+exports[`update with background updates the background option, returns all options and renders correctly 1`] = `
 <body>
   <img
     class="medium-zoom-image medium-zoom-image--open"
