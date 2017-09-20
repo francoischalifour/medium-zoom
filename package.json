@@ -18,7 +18,7 @@
     "test:verbose": "jest --verbose",
     "precommit": "lint-staged",
     "clean": "rimraf ./dist && mkdir dist",
-    "prebuild": "npm run clean && npm run lint",
+    "prebuild": "npm run lint && npm run test && npm run clean",
     "build": "webpack --progress --colors",
     "dev": "webpack -d --progress --colors --watch"
   },
