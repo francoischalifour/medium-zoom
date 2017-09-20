@@ -85,13 +85,11 @@ const mediumZoom = (selector, {
   }
 
   const zoomOut = () => {
-    if (!target) return
-
-    const event = new Event('hide')
-    target.dispatchEvent(event)
-
     setTimeout(() => {
       if (!target) return
+
+      const event = new Event('hide')
+      target.dispatchEvent(event)
 
       isAnimating = true
       document.body.classList.remove('medium-zoom--open')
@@ -235,7 +233,7 @@ const mediumZoom = (selector, {
     metaClick
   }
 
-  // If the selector is ommitted, it represents the options
+  // If the selector is omitted, it represents the options
   if (selector instanceof Object) {
     Object.assign(options, selector)
   }
