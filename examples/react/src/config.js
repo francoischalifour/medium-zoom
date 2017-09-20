@@ -6,5 +6,5 @@ export default {
   github: 'https://github.com/francoischalifour/medium-zoom',
   website: BASE_URL,
   article: `${BASE_URL}/lab/medium-image-zoom`,
-  author:' François Chalifour'
+  author: 'François Chalifour'
 }
