@@ -1,0 +1,29 @@
+{
+  "name": "@medium-zoom/react",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "lint": "standard",
+    "lint:fix": "standard --fix"
+  },
+  "standard": {
+    "globals": [
+      "URL",
+      "fetch"
+    ]
+  },
+  "dependencies": {
+    "medium-zoom": "^0.1.8",
+    "react": "^15.6.1",
+    "react-dom": "^15.6.1",
+    "react-markdown": "^2.5.0",
+    "react-scripts": "1.0.13"
+  },
+  "devDependencies": {
+    "standard": "^10.0.3"
+  }
+}
