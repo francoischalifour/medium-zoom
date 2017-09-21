@@ -1,142 +1,6 @@
-.header, .footer {
-  overflow: hidden;
-  position: relative;
-  display: -webkit-flex;
-  display:    -moz-flex;
-  display:     -ms-flex;
-  display:      -o-flex;
-  display:         flex;
-  flex-direction: column;
-
-  padding: 92px 24px;
-
-  text-align: center;
-
-  color: #fff;
-  background: #00AB6C;
-  background: -moz-linear-gradient(top, #00AB6C 0%, #13cc69 100%);
-  background: -webkit-linear-gradient(top, #00AB6C 0%,#13cc69 100%);
-  background: linear-gradient(to bottom, #00AB6C 0%,#13cc69 100%);
-
-  align-items: center;
-  justify-content: center;
-}
-
-.header::before {
-  content: '';
-  position: absolute;
-  top: calc(100% - 16px);
-  width: 100%;
-  background-color: rgba(255,255,255,.3);
-  height: 92px;
-  transform: skewY(2deg);
-}
-
-.header::after {
-  content: '';
-  position: absolute;
-  top: calc(100% - 16px);
-  width: 100%;
-  background-color: rgba(255,255,255,.5);
-  height: 92px;
-  transform: skewY(-4deg);
-}
-
-.header__title {
-  font-size: 3em;
-
-  margin-bottom: .4em;
-}
-
-.header__subtitle {
-  font-size: 1.2em;
-
-  letter-spacing: -.02em;
-
-  color: rgba(255, 255, 255, .8);
-}
-
-.header__info {
-  font-size: 1em;
-
-  margin: 2em;
-}
-
-.footer__copyright {
-  margin: 2em 0;
-
-  color: rgba(255, 255, 255, .8);
-}
-
-.footer__copyright a {
-  padding: 2px;
-
-  color: #fff;
-}
-
-.footer a {
-  color: #fff;
-}
-
-.container {
-  width: 100%;
-  max-width: 768px;
-  margin: 48px auto;
-  padding: 16px;
-}
-
-.container::first-letter {
-  font-size: 112px;
-  font-weight: 400;
-  line-height: 90px;
-
-  float: left;
-
-  margin-top: 12px;
-  padding-right: 12px;
-
-  color: #13cc69;
-}
-
-.button {
-  display: inline-block;
-  min-width: 120px;
-  margin: 4px;
-  padding: 16px 24px;
-  transition: all .16s;
-  color: #fff;
-  border: 2px solid #fff;
-  border-radius: 32px;
-  font-size: .8em;
-}
-
-.button:hover {
-  color: #13cc69;
-  background-color: #fff;
-}
-
-#journal {
-  font-family: Monaco, Consolas, Menlo, monospace;
-  font-size: .8em;
-
-  display: block;
-
-  padding: 24px;
-
-  color: #777;
-  border-radius: 2px;
-  background-color: #f7f7f7;
-}
-
-#journal p {
-  margin-bottom: 1em;
-}
-
 button.button {
   font: inherit;
-
   cursor: pointer;
-
   outline: none;
   background-color: #13cc69;
 }
@@ -154,12 +18,23 @@ img {
 figcaption {
   font-size: .8em;
   font-weight: 300;
-
   margin: 16px;
-
   text-align: center;
-
   color: #999;
+}
+
+blockquote {
+  font-family: Monaco, Consolas, Menlo, monospace;
+  font-size: .8em;
+  display: block;
+  padding: 24px;
+  color: #777;
+  border-radius: 2px;
+  background-color: #f7f7f7;
+}
+
+blockquote p {
+  margin-bottom: 1em;
 }
 
 @media (min-width: 900px) {
@@ -170,13 +45,11 @@ figcaption {
 
   .pull-right {
     float: right;
-
     margin-right: -92px;
   }
 
   .pull-left {
     float: left;
-
     margin-left: -92px;
   }
 }
