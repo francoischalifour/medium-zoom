@@ -336,9 +336,9 @@ You can see [more examples](examples/) including [vanilla JavaScript](examples/j
 
 ## Dev
 
-* `npm install` will install the dev dependencies
-* `npm run dev` will watch changes and rebuild the library
-* open [`examples/javascript/development.html`](examples/javascript/development.html) to try your changes (it includes [`dist/medium-zoom.min.js`](dist/medium-zoom.min.js) which is watched with `npm run dev`)
+* Run `npm install` to install Node dev dependencies
+* Run `npm run dev` to watch changes and rebuild the library
+* Open [`examples/javascript/development/index.html`](examples/javascript/development/index.html) to check your changes (it includes [`dist/medium-zoom.min.js`](dist/medium-zoom.min.js) which is watched with `npm run dev`)
 
 ##### More commands
 

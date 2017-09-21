@@ -8,7 +8,7 @@ The root [`index.html`](index.html) is the demo file. It contains the [productio
 
 ## Development
 
-If you're developing, you want to open [`development/index.html`](development/index.html), which contains the [development version](../../dist/medium-zoom.min.js) of medium-zoom (which is updated with `npm run dev`).
+If you're developing, you want to open [`development/index.html`](development/index.html), which contains the [development version](../../dist/medium-zoom.min.js) of *medium-zoom* (which is updated with `npm run dev`).
 
 To learn more about how to contribute, please [see the dev instructions](../../README.md#dev).
 
