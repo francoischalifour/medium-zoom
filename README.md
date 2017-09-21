@@ -18,10 +18,10 @@
     <img src="https://img.shields.io/badge/dependencies-none-lightgrey.svg?style=flat-square" alt="no dependencies">
   </a>
   <br>
-  <a href="https://unpkg.com/medium-zoom/dist">
+  <a href="https://unpkg.com/medium-zoom/dist/">
     <img src="http://img.badgesize.io/https://unpkg.com/medium-zoom/dist/medium-zoom.min.js?label=size&style=flat-square" alt="size">
   </a>
-  <a href="https://unpkg.com/medium-zoom/dist">
+  <a href="https://unpkg.com/medium-zoom/dist/">
     <img src="http://img.badgesize.io/https://unpkg.com/medium-zoom/dist/medium-zoom.min.js?compression=gzip&label=gzip%20size&style=flat-square" alt="gzip size">
   </a>
   <a href="https://github.com/facebook/jest">
