@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.svg" width="64">
+  <a href="https://medium-zoom.netlify.com"><img src="logo.svg" width="64"></a>
   <h3 align="center">medium-zoom</h3>
   <p align="center">Medium zoom on your pictures in vanilla JavaScript 🔎 🖼</p>
 </p>
