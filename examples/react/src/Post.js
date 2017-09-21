@@ -7,6 +7,10 @@ import Header from './Header'
 import Footer from './Footer'
 
 class Post extends Component {
+  state = {
+    journal: []
+  }
+
   componentDidMount () {
     // Handle the zoom on click on the button
     const zoomToTrigger = mediumZoom('#zoom-trigger')
@@ -17,7 +21,7 @@ class Post extends Component {
 
     // Add a zoom to be detached after 5 seconds
     const zoomToDetach = mediumZoom('#zoom-detach')
-    setTimeout(function () {
+    setTimeout(() => {
       zoomToDetach.detach()
     }, 5000)
 
@@ -42,17 +46,19 @@ class Post extends Component {
     ]
 
     // Write in the journal every time an image is zoomed
-    const journal = document.querySelector('#journal')
-
     this.zooms.forEach(zoom => {
       zoom.addEventListeners('show', event => {
         const time = (new Date()).toLocaleTimeString()
-        journal.innerHTML += `<p>❯ "${event.target.alt}" was zoomed at ${time}`
+        this.setState({
+          journal: [...this.state.journal, `❯ "${event.target.alt}" was zoomed at ${time}`]
+        })
       })
 
       zoom.addEventListeners('detach', event => {
         const time = (new Date()).toLocaleTimeString()
-        journal.innerHTML += `<p>❯ "${event.target.alt}" was detached at ${time}`
+        this.setState({
+          journal: [...this.state.journal, `❯ "${event.target.alt}" was zoomed at ${time}`]
+        })
       })
     })
   }
@@ -68,6 +74,14 @@ class Post extends Component {
 
         <article className='container'>
           <ReactMarkdown source={this.props.post} />
+
+          <h2>Journal</h2>
+
+          <blockquote>
+              <p>In this journal appears the history of the images zoomed.</p>
+
+              {this.state.journal.map((entry, i) => <p key={i}>{entry}</p>)}
+          </blockquote>
         </article>
 
         <Footer {...config} />

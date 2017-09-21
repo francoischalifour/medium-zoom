@@ -136,9 +136,3 @@
   >
   <figcaption>Zoom detached after 5 seconds</figcaption>
 </figure>
-
-<h2>Journal</h2>
-
-<blockquote id="journal">
-    <p>In this journal appears the history of the images zoomed.</p>
-</blockquote>
