@@ -1,7 +1,7 @@
 <p align="center">
   <a href="https://medium-zoom.francoischalifour.com"><img src="logo.svg" width="64"></a>
   <h3 align="center">medium-zoom</h3>
-  <p align="center">Medium zoom on your pictures in vanilla JavaScript 🔎 🖼</p>
+  <p align="center">Medium zoom on your images in vanilla JavaScript 🔎 🖼</p>
 </p>
 
 <p align="center">
