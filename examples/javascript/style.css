@@ -23,7 +23,7 @@ h1 {
 
 h2 {
   font-size: 1.4em;
-  margin-bottom: 1em;
+  margin: 2em 0 1em 0;
 }
 
 a {
@@ -113,33 +113,53 @@ p {
   padding: 16px;
 }
 
+.text-center {
+  text-align: center;
+}
+
 .button {
   display: inline-block;
   min-width: 120px;
   margin: 4px;
   padding: 16px 24px;
   transition: all .16s;
-  color: #fff;
-  border: 2px solid #fff;
+  border: none;
   border-radius: 32px;
   font-size: .8em;
-}
-
-.button:hover {
-  color: #13cc69;
-  background-color: #fff;
+  color: #fff;
+  background-color: #13cc69;
 }
 
 button.button {
   font: inherit;
   cursor: pointer;
   outline: none;
-  background-color: #13cc69;
 }
 
+.button:hover,
 button.button:hover {
-  color: #fff;
   background-color: #00AB6C;
+}
+
+.button.button--action {
+  background-color: #2196f3;
+}
+
+.button.button--action:hover {
+  background-color: #1976d2;
+}
+
+.header .button,
+.footer .button {
+  color: #fff;
+  border: 2px solid #fff;
+  background: transparent;
+}
+
+.header .button:hover,
+.footer .button:hover {
+  color: #13cc69;
+  background-color: #fff;
 }
 
 img {
@@ -163,10 +183,21 @@ blockquote {
   color: #777;
   border-radius: 2px;
   background-color: #f7f7f7;
+  min-height: 128px; /* avoid the jump when the image is detached */
 }
 
 blockquote p {
   margin-bottom: 1em;
+}
+
+pre {
+  font-family: Monaco, Consolas, Menlo, monospace;
+  font-size: .8em;
+  padding: 24px;
+  margin: 1em 0;
+  color: #fff;
+  border-radius: 2px;
+  background-color: #222;
 }
 
 @media (min-width: 900px) {
