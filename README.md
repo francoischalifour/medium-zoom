@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://medium-zoom.netlify.com"><img src="logo.svg" width="64"></a>
+  <a href="https://medium-zoom.francoischalifour.com"><img src="logo.svg" width="64"></a>
   <h3 align="center">medium-zoom</h3>
   <p align="center">Medium zoom on your pictures in vanilla JavaScript 🔎 🖼</p>
 </p>
@@ -33,12 +33,12 @@
 </p>
 
 <p align="center">
-  <a href="https://medium-zoom.netlify.com">
+  <a href="https://medium-zoom.francoischalifour.com">
     <img src="https://user-images.githubusercontent.com/6137112/30665292-87c012c8-9e1e-11e7-9456-3d94ee73ce98.gif" alt="medium-zoom demo">
   </a>
   <br>
   <br>
-  <a href="https://medium-zoom.netlify.com">View demo 🔎</a>
+  <a href="https://medium-zoom.francoischalifour.com">View demo 🔎</a>
 </p>
 
 ## Features
@@ -332,7 +332,7 @@ You can see [more examples](examples/) including [vanilla JavaScript](examples/j
 
 ## Demo
 
-[View demo 🔎](https://medium-zoom.netlify.com), go to the [examples folder](examples/) or [read the article](https://francoischalifour.com/lab/medium-image-zoom).
+[View demo 🔎](https://medium-zoom.francoischalifour.com), go to the [examples folder](examples/) or [read the article](https://francoischalifour.com/lab/medium-image-zoom).
 
 ## Dev
 
