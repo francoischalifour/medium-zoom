@@ -26,6 +26,34 @@
     </header>
 
     <article class="container">
+
+      <h2>Images in `overflow: hidden` containers</h2>
+
+      <div class="layout">
+        <div class="content">
+          <div class="card">
+            <img class="container-overflow" src="https://images.unsplash.com/photo-1502508512528-19b6a9fa4e95?ixlib=rb-0.3.5&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1920&fit=max&s=3b05e061cf6220cd16eeed6adf3be515" alt="">
+          </div>
+          <div class="card">
+            <img class="container-overflow" src="https://images.unsplash.com/photo-1502772066658-3006ff41449b?ixlib=rb-0.3.5&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1920&fit=max&s=6fa8ec1e3b33dc527d677aa37e14661a" alt="">
+          </div>
+          <div class="card">
+            <img class="container-overflow" src="https://images.unsplash.com/photo-1488217820102-3ef7cfe8bb4e?dpr=1&auto=compress,format&fit=crop&w=1920&h=&q=80&cs=tinysrgb&crop=" alt="">
+          </div>
+          <div class="card">
+            <img class="container-overflow" src="https://images.unsplash.com/photo-1495548774443-1f50ef99b0d2?dpr=1&auto=compress,format&fit=crop&w=1268&h=&q=80&cs=tinysrgb&crop=" alt="">
+          </div>
+          <div class="card">
+            <img class="container-overflow" src="https://images.unsplash.com/photo-1481671703460-040cb8a2d909?dpr=1&auto=compress,format&fit=crop&w=668&h=&q=80&cs=tinysrgb&crop=" alt="">
+          </div>
+          <div class="card">
+            <img class="container-overflow" src="https://images.unsplash.com/photo-1496806195556-91bdded94209?dpr=1&auto=compress,format&fit=crop&w=1350&h=&q=80&cs=tinysrgb&crop=" alt="">
+          </div>
+        </div>
+      </div>
+
+      <h2>Usual demo</h2>
+
       <figure>
         <img
           id="zoom-default"
@@ -198,6 +226,8 @@
 
     <script>
       console.info('You\'re in preview environment 🖥')
+
+      mediumZoom('.container-overflow')
     </script>
     <script src="medium-zoom.min.js"></script>
     <script src="../demo.js"></script>

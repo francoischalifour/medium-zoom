@@ -216,3 +216,21 @@ pre {
     margin-left: -92px;
   }
 }
+
+.card {
+  vertical-align: middle;
+  display: inline-block;
+  box-sizing: border-box;
+  max-width: 350px;
+  width: 30%;
+  margin: 16px 4px;
+  background: #fff;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .24);
+}
+
+.card img {
+  width: 100%;
+  display: block;
+}
