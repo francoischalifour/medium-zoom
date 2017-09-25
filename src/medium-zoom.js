@@ -233,14 +233,11 @@ const mediumZoom = (selector, {
 
     const { naturalWidth = +Infinity, naturalHeight = +Infinity } = target.template
     const { top, left, width, height } = target.template.getBoundingClientRect()
-    const isCenterAligned = Math.abs((windowWidth / 2) - (left + (width / 2))) <= 10
 
     const scaleX = Math.min(naturalWidth, viewportWidth) / width
     const scaleY = Math.min(naturalHeight, viewportHeight) / height
     const scale = Math.min(scaleX, scaleY) || 1
-    const translateX = isCenterAligned
-      ? 0
-      : (-left + ((viewportWidth - width) / 2) + options.margin) / scale
+    const translateX = (-left + ((viewportWidth - width) / 2) + options.margin) / scale
     const translateY = (-top + ((viewportHeight - height) / 2) + options.margin) / scale
 
     target.zoomed.style.transform = `scale(${scale}) translate3d(${translateX}px, ${translateY}px, 0)`
