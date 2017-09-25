@@ -62,46 +62,63 @@ const mediumZoom = (selector, {
     return overlay
   }
 
+  const cloneTarget = template => {
+    const { top, left, width } = template.getBoundingClientRect()
+    const clone = template.cloneNode()
+    clone.removeAttribute('id')
+    clone.style.position = 'absolute'
+    clone.style.top = `${top + window.scrollY}px`
+    clone.style.left = `${left + window.scrollX}px`
+    clone.style.width = `${width}px`
+
+    return clone
+  }
+
   const zoom = () => {
-    if (!target) return
+    if (!target.template) return
 
     const event = new Event('show')
-    target.dispatchEvent(event)
+    target.template.dispatchEvent(event)
 
     scrollTop = document.documentElement.scrollTop || document.body.scrollTop
     isAnimating = true
+    target.zoomed = cloneTarget(target.template)
 
     document.body.appendChild(overlay)
+    document.body.appendChild(target.zoomed)
 
     requestAnimationFrame(() => {
       document.body.classList.add('medium-zoom--open')
     })
 
-    target.classList.add('medium-zoom-image--open')
+    target.template.style.visibility = 'hidden'
+    target.zoomed.classList.add('medium-zoom-image--open')
 
-    target.addEventListener('transitionend', onZoomEnd)
+    target.zoomed.addEventListener('click', zoomOut)
+    target.zoomed.addEventListener('transitionend', onZoomEnd)
 
     animateTarget()
   }
 
   const zoomOut = () => {
     setTimeout(() => {
-      if (!target) return
+      if (!target.template) return
 
       const event = new Event('hide')
-      target.dispatchEvent(event)
+      target.template.dispatchEvent(event)
 
       isAnimating = true
       document.body.classList.remove('medium-zoom--open')
-      target.style.transform = 'none'
+      target.zoomed.style.transform = 'none'
 
-      target.addEventListener('transitionend', onZoomOutEnd)
+      target.zoomed.removeEventListener('click', zoomOut)
+      target.zoomed.addEventListener('transitionend', onZoomOutEnd)
     }, 150)
   }
 
   const triggerZoom = event => {
-    if (!target) {
-      target = event ? event.target : images[0]
+    if (!target.template) {
+      target.template = event ? event.target : images[0]
       zoom()
     } else {
       zoomOut()
@@ -134,16 +151,16 @@ const mediumZoom = (selector, {
 
       images.splice(0, images.length)
 
-      if (target) {
-        target.removeEventListener('transitionend', doDetach)
+      if (target.zoomed) {
+        target.zoomed.removeEventListener('transitionend', doDetach)
       }
     }
 
-    if (!target) {
+    if (!target.zoomed) {
       doDetach()
     } else {
       zoomOut()
-      target.addEventListener('transitionend', doDetach)
+      target.zoomed.addEventListener('transitionend', doDetach)
     }
   }
 
@@ -165,29 +182,32 @@ const mediumZoom = (selector, {
 
   const onZoomEnd = () => {
     isAnimating = false
-    target.removeEventListener('transitionend', onZoomEnd)
+    target.zoomed.removeEventListener('transitionend', onZoomEnd)
 
     const event = new Event('shown')
-    target.dispatchEvent(event)
+    target.template.dispatchEvent(event)
   }
 
   const onZoomOutEnd = () => {
-    if (!target) return
+    if (!target.template) return
 
+    target.template.style.visibility = ''
+    document.body.removeChild(target.zoomed)
     document.body.removeChild(overlay)
-    target.classList.remove('medium-zoom-image--open')
+    target.zoomed.classList.remove('medium-zoom-image--open')
 
     isAnimating = false
-    target.removeEventListener('transitionend', onZoomOutEnd)
+    target.zoomed.removeEventListener('transitionend', onZoomOutEnd)
 
     const event = new Event('hidden')
-    target.dispatchEvent(event)
+    target.template.dispatchEvent(event)
 
-    target = null
+    target.template = null
+    target.zoomed = null
   }
 
   const onScroll = () => {
-    if (isAnimating || !target) return
+    if (isAnimating || !target.template) return
 
     const currentScroll = document.documentElement.scrollTop || document.body.scrollTop
 
@@ -203,7 +223,7 @@ const mediumZoom = (selector, {
   }
 
   const animateTarget = () => {
-    if (!target) return
+    if (!target.template) return
 
     const windowWidth = window.innerWidth
     const windowHeight = window.innerHeight
@@ -211,8 +231,8 @@ const mediumZoom = (selector, {
     const viewportWidth = windowWidth - (options.margin * 2)
     const viewportHeight = windowHeight - (options.margin * 2)
 
-    const { width, height, naturalWidth = +Infinity, naturalHeight = +Infinity } = target
-    const { top, left } = target.getBoundingClientRect()
+    const { naturalWidth = +Infinity, naturalHeight = +Infinity } = target.template
+    const { top, left, width, height } = target.template.getBoundingClientRect()
     const isCenterAligned = Math.abs((windowWidth / 2) - (left + (width / 2))) <= 10
 
     const scaleX = Math.min(naturalWidth, viewportWidth) / width
@@ -223,7 +243,7 @@ const mediumZoom = (selector, {
       : (-left + ((viewportWidth - width) / 2) + options.margin) / scale
     const translateY = (-top + ((viewportHeight - height) / 2) + options.margin) / scale
 
-    target.style.transform = `scale(${scale}) translate3d(${translateX}px, ${translateY}px, 0)`
+    target.zoomed.style.transform = `scale(${scale}) translate3d(${translateX}px, ${translateY}px, 0)`
   }
 
   const options = {
@@ -241,7 +261,10 @@ const mediumZoom = (selector, {
   const images = selectImages(selector)
   const overlay = createOverlay(options.background)
 
-  let target = null
+  let target = {
+    template: null,
+    zoomed: null
+  }
   let scrollTop = 0
   let isAnimating = false
 
