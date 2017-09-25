@@ -109,7 +109,7 @@ const mediumZoom = (selector, {
 
       isAnimating = true
       document.body.classList.remove('medium-zoom--open')
-      target.zoomed.style.transform = 'none'
+      target.zoomed.style.transform = ''
 
       target.zoomed.removeEventListener('click', zoomOut)
       target.zoomed.addEventListener('transitionend', onZoomOutEnd)
