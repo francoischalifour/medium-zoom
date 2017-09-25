@@ -3,25 +3,27 @@ const mediumZoom = require('../src/medium-zoom')
 
 global.requestAnimationFrame = cb => setTimeout(cb, 0)
 
+const root = document.body
+
+beforeEach(() => {
+  while (root.firstChild) {
+    root.removeChild(root.firstChild)
+  }
+})
+
 describe('click', () => {
-  const root = document.body
-
-  beforeEach(() => {
-    while (root.firstChild) {
-      root.removeChild(root.firstChild)
-    }
-  })
-
-  test('on an image adds classes', () => {
+  test('on an image renders correctly', () => {
     const image = document.createElement('img')
     root.appendChild(image)
 
     mediumZoom('img')
 
     image.click()
-    const classNames = [...image.classList]
 
-    expect(classNames).toEqual(['medium-zoom-image', 'medium-zoom-image--open'])
+    expect(image.className).toBe('medium-zoom-image')
+    expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom-overlay')).toBeTruthy()
+    expect(root).toMatchSnapshot()
   })
 
   test('on a detached image doesn’t add classes', () => {
@@ -34,5 +36,6 @@ describe('click', () => {
     image.click()
 
     expect(image.classList).toHaveLength(0)
+    expect(root).toMatchSnapshot()
   })
 })

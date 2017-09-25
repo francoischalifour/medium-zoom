@@ -22,11 +22,16 @@ exports[`hide renders correctly 1`] = `
 exports[`show renders correctly 1`] = `
 <body>
   <img
-    class="medium-zoom-image medium-zoom-image--open"
+    class="medium-zoom-image"
+    style="visibility: hidden;"
   />
   <div
     class="medium-zoom-overlay"
     style="background-color: rgb(255, 255, 255);"
+  />
+  <img
+    class="medium-zoom-image medium-zoom-image--open"
+    style="position: absolute; top: 0px; left: 0px; width: 0px;"
   />
 </body>
 `;
@@ -34,23 +39,16 @@ exports[`show renders correctly 1`] = `
 exports[`show renders correctly with options overlay background 1`] = `
 <body>
   <img
-    class="medium-zoom-image medium-zoom-image--open"
+    class="medium-zoom-image"
+    style="visibility: hidden;"
   />
   <div
     class="medium-zoom-overlay"
     style="background-color: rgb(186, 218, 85);"
   />
-</body>
-`;
-
-exports[`update with background updates the background option, returns all options and renders correctly 1`] = `
-<body>
   <img
     class="medium-zoom-image medium-zoom-image--open"
-  />
-  <div
-    class="medium-zoom-overlay"
-    style="background-color: rgb(0, 0, 0);"
+    style="position: absolute; top: 0px; left: 0px; width: 0px;"
   />
 </body>
 `;
