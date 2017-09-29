@@ -77,8 +77,7 @@ const mediumZoom = (selector, {
   const zoom = () => {
     if (!target.template) return
 
-    const event = new Event('show')
-    target.template.dispatchEvent(event)
+    target.template.dispatchEvent(new Event('show'))
 
     scrollTop = document.documentElement.scrollTop || document.body.scrollTop
     isAnimating = true
@@ -100,12 +99,11 @@ const mediumZoom = (selector, {
     animateTarget()
   }
 
-  const zoomOut = () => {
-    setTimeout(() => {
-      if (!target.template) return
+  const zoomOut = (timeout = 0) => {
+    const doZoomOut = () => {
+      if (isAnimating || !target.template) return
 
-      const event = new Event('hide')
-      target.template.dispatchEvent(event)
+      target.template.dispatchEvent(new Event('hide'))
 
       isAnimating = true
       document.body.classList.remove('medium-zoom--open')
@@ -113,7 +111,9 @@ const mediumZoom = (selector, {
 
       target.zoomed.removeEventListener('click', zoomOut)
       target.zoomed.addEventListener('transitionend', onZoomOutEnd)
-    }, 150)
+    }
+
+    (timeout > 0) ? setTimeout(doZoomOut, timeout) : doZoomOut()
   }
 
   const triggerZoom = event => {
@@ -126,9 +126,8 @@ const mediumZoom = (selector, {
   }
 
   const update = (newOptions = {}) => {
-    if (newOptions.background) {
-      overlay.style.backgroundColor = newOptions.background
-    }
+    newOptions.background &&
+      (overlay.style.backgroundColor = newOptions.background)
 
     return Object.assign(options, newOptions)
   }
@@ -151,9 +150,8 @@ const mediumZoom = (selector, {
 
       images.splice(0, images.length)
 
-      if (target.zoomed) {
+      target.zoomed &&
         target.zoomed.removeEventListener('transitionend', doDetach)
-      }
     }
 
     if (!target.zoomed) {
@@ -184,8 +182,7 @@ const mediumZoom = (selector, {
     isAnimating = false
     target.zoomed.removeEventListener('transitionend', onZoomEnd)
 
-    const event = new Event('shown')
-    target.template.dispatchEvent(event)
+    target.template.dispatchEvent(new Event('shown'))
   }
 
   const onZoomOutEnd = () => {
@@ -199,8 +196,7 @@ const mediumZoom = (selector, {
     isAnimating = false
     target.zoomed.removeEventListener('transitionend', onZoomOutEnd)
 
-    const event = new Event('hidden')
-    target.template.dispatchEvent(event)
+    target.template.dispatchEvent(new Event('hidden'))
 
     target.template = null
     target.zoomed = null
@@ -212,7 +208,7 @@ const mediumZoom = (selector, {
     const currentScroll = document.documentElement.scrollTop || document.body.scrollTop
 
     if (Math.abs(scrollTop - currentScroll) > options.scrollOffset) {
-      zoomOut()
+      zoomOut(150)
     }
   }
 
