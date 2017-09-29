@@ -65,10 +65,13 @@ const mediumZoom = (selector, {
   const cloneTarget = template => {
     const { top, left, width } = template.getBoundingClientRect()
     const clone = template.cloneNode()
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0
+
     clone.removeAttribute('id')
     clone.style.position = 'absolute'
-    clone.style.top = `${top + window.scrollY}px`
-    clone.style.left = `${left + window.scrollX}px`
+    clone.style.top = `${top + scrollTop}px`
+    clone.style.left = `${left + scrollLeft}px`
     clone.style.width = `${width}px`
 
     return clone
@@ -79,7 +82,7 @@ const mediumZoom = (selector, {
 
     target.template.dispatchEvent(new Event('show'))
 
-    scrollTop = document.documentElement.scrollTop || document.body.scrollTop
+    scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
     isAnimating = true
     target.zoomed = cloneTarget(target.template)
 
@@ -205,7 +208,7 @@ const mediumZoom = (selector, {
   const onScroll = () => {
     if (isAnimating || !target.template) return
 
-    const currentScroll = document.documentElement.scrollTop || document.body.scrollTop
+    const currentScroll = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
 
     if (Math.abs(scrollTop - currentScroll) > options.scrollOffset) {
       zoomOut(150)
