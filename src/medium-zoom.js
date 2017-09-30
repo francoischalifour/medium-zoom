@@ -74,6 +74,7 @@ const mediumZoom = (selector, {
     clone.style.left = `${left + scrollLeft}px`
     clone.style.width = `${width}px`
     clone.style.height = `${height}px`
+    clone.style.transform = ''
 
     return clone
   }
