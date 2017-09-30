@@ -8,9 +8,7 @@
 
   // Add a zoom to be detached
   var zoomToDetach = mediumZoom('#zoom-detach')
-  setTimeout(function () {
-    zoomToDetach.detach()
-  }, 5000)
+  zoomToDetach.addEventListeners('hidden', zoomToDetach.detach)
 
   // Add zooms to a container
   var containerZoom = [

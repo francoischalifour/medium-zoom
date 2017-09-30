@@ -226,7 +226,7 @@ describe('update', () => {
 
     expect(options).toEqual(expected)
     expect(zoom.options).toEqual(expected)
-    expect(root).toMatchSnapshot()
+    expect(document.querySelector('.medium-zoom-overlay').style.backgroundColor).toBe('rgb(0, 0, 0)')
   })
 
   test('with scroll offset updates the scroll offset option and returns all options', () => {
@@ -285,9 +285,10 @@ describe('show', () => {
 
     const zoom = mediumZoom('img')
     zoom.show()
-    const classNames = [...image.classList]
 
-    expect(classNames).toEqual(['medium-zoom-image', 'medium-zoom-image--open'])
+    expect(image.className).toBe('medium-zoom-image')
+    expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom-overlay')).toBeTruthy()
     expect(root).toMatchSnapshot()
   })
 
