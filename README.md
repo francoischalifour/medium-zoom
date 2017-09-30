@@ -62,13 +62,13 @@ npm install --save medium-zoom
 # yarn add medium-zoom
 ```
 
-Or download the [minified version](https://unpkg.com/medium-zoom@0/dist/medium-zoom.min.js).
-
 If you want to use the [CDN](https://en.wikipedia.org/wiki/Content_delivery_network) version:
 
 ```html
 <script src="https://unpkg.com/medium-zoom@0/dist/medium-zoom.min.js"></script>
 ```
+
+To use a local version, you can download the [minified version](https://unpkg.com/medium-zoom@0/dist/medium-zoom.min.js) of the module.
 
 ## Usage
 
