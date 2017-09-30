@@ -152,6 +152,10 @@ const mediumZoom = (selector, {
       })
 
       images.splice(0, images.length)
+      overlay.removeEventListener('click', zoomOut)
+      document.removeEventListener('scroll', onScroll)
+      document.removeEventListener('keyup', onDismiss)
+      window.removeEventListener('resize', zoomOut)
 
       target.zoomed &&
         target.zoomed.removeEventListener('transitionend', doDetach)
