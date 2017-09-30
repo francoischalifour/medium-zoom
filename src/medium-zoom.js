@@ -63,7 +63,7 @@ const mediumZoom = (selector, {
   }
 
   const cloneTarget = template => {
-    const { top, left, width } = template.getBoundingClientRect()
+    const { top, left, width, height } = template.getBoundingClientRect()
     const clone = template.cloneNode()
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
     const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0
@@ -73,6 +73,7 @@ const mediumZoom = (selector, {
     clone.style.top = `${top + scrollTop}px`
     clone.style.left = `${left + scrollLeft}px`
     clone.style.width = `${width}px`
+    clone.style.height = `${height}px`
 
     return clone
   }
@@ -99,7 +100,31 @@ const mediumZoom = (selector, {
     target.zoomed.addEventListener('click', zoomOut)
     target.zoomed.addEventListener('transitionend', onZoomEnd)
 
-    animateTarget()
+    if (target.template.getAttribute('data-zoom-target')) {
+      target.zoomedHd = target.zoomed.cloneNode()
+      target.zoomedHd.src = target.zoomed.getAttribute('data-zoom-target')
+
+      target.zoomedHd.onerror = () => {
+        clearInterval(getZoomTargetSize)
+        console.error(`Unable to reach the zoom image target ${target.zoomedHd.src}`)
+        target.zoomedHd = null
+        animateTarget()
+      }
+
+      // We need to access the natural size of the full HD
+      // target as fast as possible to compute the animation.
+      const getZoomTargetSize = setInterval(() => {
+        if (target.zoomedHd.naturalWidth) {
+          clearInterval(getZoomTargetSize)
+          target.zoomedHd.classList.add('medium-zoom-image--open')
+          target.zoomedHd.addEventListener('click', zoomOut)
+          document.body.appendChild(target.zoomedHd)
+          animateTarget()
+        }
+      }, 10)
+    } else {
+      animateTarget()
+    }
   }
 
   const zoomOut = (timeout = 0) => {
@@ -111,6 +136,11 @@ const mediumZoom = (selector, {
       isAnimating = true
       document.body.classList.remove('medium-zoom--open')
       target.zoomed.style.transform = ''
+
+      if (target.zoomedHd) {
+        target.zoomedHd.style.transform = ''
+        target.zoomedHd.removeEventListener('click', zoomOut)
+      }
 
       target.zoomed.removeEventListener('click', zoomOut)
       target.zoomed.addEventListener('transitionend', onZoomOutEnd)
@@ -197,6 +227,7 @@ const mediumZoom = (selector, {
 
     target.template.style.visibility = ''
     document.body.removeChild(target.zoomed)
+    target.zoomedHd && document.body.removeChild(target.zoomedHd)
     document.body.removeChild(overlay)
     target.zoomed.classList.remove('medium-zoom-image--open')
 
@@ -207,6 +238,7 @@ const mediumZoom = (selector, {
 
     target.template = null
     target.zoomed = null
+    target.zoomedHd = null
   }
 
   const onScroll = () => {
@@ -234,16 +266,19 @@ const mediumZoom = (selector, {
     const viewportWidth = windowWidth - (options.margin * 2)
     const viewportHeight = windowHeight - (options.margin * 2)
 
-    const { naturalWidth = +Infinity, naturalHeight = +Infinity } = target.template
-    const { top, left, width, height } = target.template.getBoundingClientRect()
+    const zoomTarget = target.zoomedHd || target.template
+    const { naturalWidth = viewportWidth, naturalHeight = viewportHeight } = zoomTarget
+    const { top, left, width, height } = zoomTarget.getBoundingClientRect()
 
     const scaleX = Math.min(naturalWidth, viewportWidth) / width
     const scaleY = Math.min(naturalHeight, viewportHeight) / height
     const scale = Math.min(scaleX, scaleY) || 1
     const translateX = (-left + ((viewportWidth - width) / 2) + options.margin) / scale
     const translateY = (-top + ((viewportHeight - height) / 2) + options.margin) / scale
+    const transform = `scale(${scale}) translate3d(${translateX}px, ${translateY}px, 0)`
 
-    target.zoomed.style.transform = `scale(${scale}) translate3d(${translateX}px, ${translateY}px, 0)`
+    target.zoomed.style.transform = transform
+    target.zoomedHd && (target.zoomedHd.style.transform = transform)
   }
 
   const options = {
@@ -263,7 +298,8 @@ const mediumZoom = (selector, {
 
   let target = {
     template: null,
-    zoomed: null
+    zoomed: null,
+    zoomedHd: null
   }
   let scrollTop = 0
   let isAnimating = false

@@ -31,7 +31,7 @@ exports[`show renders correctly 1`] = `
   />
   <img
     class="medium-zoom-image medium-zoom-image--open"
-    style="position: absolute; top: 0px; left: 0px; width: 0px;"
+    style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
   />
 </body>
 `;
@@ -48,7 +48,7 @@ exports[`show renders correctly with options overlay background 1`] = `
   />
   <img
     class="medium-zoom-image medium-zoom-image--open"
-    style="position: absolute; top: 0px; left: 0px; width: 0px;"
+    style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
   />
 </body>
 `;

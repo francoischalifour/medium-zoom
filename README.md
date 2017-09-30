@@ -43,45 +43,50 @@
 
 ## Features
 
+* 📱 **Responsive** — *scale on mobile and desktop*
+* 🚀 **Performant and lightweight** — *should be able to reach 60 [fps](https://en.wikipedia.org/wiki/Frame_rate)*
+* ⚡️ **High definition support** — *load the HD version of your image on zoom*
 * 🔎 **Image selection** — *apply the zoom to a selection of images*
 * 🖱 **Mouse, keyboard and gesture friendly** — *click anywhere, press a key or scroll away to dismiss the zoom*
-* 🎉 **Event handling** — *triggers events when the zoom enters a new state*
+* 🎉 **Event handling** — *trigger events when the zoom enters a new state*
 * 🔧 **Customization** — *set your own margin, background and scroll offset*
-* 🔗 **Link support** — *opens the link of the image in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)*
-* 🖼 **Image opener** — *when no link, opens the image source in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)*
-* 📱 **Responsive** — *scales on mobile and desktop*
-* 🚀 **Performant and lightweight** — *should be able to reach 60 fps*
+* 🔗 **Link support** — *open the link of the image in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)*
+* 🖼 **Image opener** — *when no link, open the image source in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)*
 
 ## Install
 
+This module is available on the [npm](https://www.npmjs.com) registry, with no dependencies.
+
 ```console
-$ npm install --save medium-zoom # yarn add medium-zoom
+npm install --save medium-zoom
+# yarn add medium-zoom
 ```
 
 Or download the [minified version](https://unpkg.com/medium-zoom@0/dist/medium-zoom.min.js).
 
-*No dependencies.*
-
-## Usage
-
-### 1. Import the script
-
-From a [CDN](https://en.wikipedia.org/wiki/Content_delivery_network):
+If you want to use the [CDN](https://en.wikipedia.org/wiki/Content_delivery_network) version:
 
 ```html
 <script src="https://unpkg.com/medium-zoom@0/dist/medium-zoom.min.js"></script>
 ```
 
-Or from your `node_modules`:
+## Usage
+
+### 1. Import the script
+
+*You can skip this step if you use the CDN version.*
+
+Import the script:
 
 ```html
 <script src="node_modules/medium-zoom/dist/medium-zoom.min.js"></script>
 ```
 
-Or:
+Or, using the module syntax:
 
 ```js
 const mediumZoom = require('medium-zoom')
+// import mediumZoom from 'medium-zoom'
 ```
 
 That's it! You don't need to import any CSS styles.
@@ -210,6 +215,20 @@ const zoom = mediumZoom('[data-action="zoom"]')
 zoom.addEventListeners('hidden', () => {
   // do something...
 })
+```
+
+### Data attributes
+
+#### `data-zoom-target`
+
+Specifies the high definition image to show on zoom. This image is loaded when the user clicks on the source image, only once.
+
+```html
+<img
+  src="image-thumb.jpg"
+  data-zoom-target="image-hd.jpg"
+  alt="My image"
+>
 ```
 
 ### Events
