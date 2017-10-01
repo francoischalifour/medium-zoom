@@ -10,6 +10,7 @@
     "url": "https://francoischalifour.com"
   },
   "main": "dist/medium-zoom.min.js",
+  "module": "dist/medium-zoom.es.js",
   "scripts": {
     "lint": "standard",
     "lint:fix": "standard --fix",
@@ -19,8 +20,8 @@
     "precommit": "lint-staged",
     "clean": "rimraf ./dist && mkdir dist",
     "prebuild": "npm run lint && npm run test && npm run clean",
-    "build": "webpack --progress --colors",
-    "dev": "webpack -d --progress --colors --watch",
+    "build": "NODE_ENV=build rollup --config",
+    "dev": "NODE_ENV=build rollup --config --watch",
     "preview": "npm run build && cp ./dist/* ./examples/javascript/preview/"
   },
   "lint-staged": {
@@ -33,14 +34,6 @@
     "> 1%",
     "last 2 versions"
   ],
-  "babel": {
-    "presets": [
-      "env"
-    ],
-    "plugins": [
-      "transform-object-assign"
-    ]
-  },
   "standard": {
     "ignore": [
       "/dist/",
@@ -58,32 +51,38 @@
   ],
   "keywords": [
     "medium",
-    "zoom",
-    "lightbox",
     "image",
+    "zoom",
     "picture",
+    "lightbox",
     "click",
     "scroll",
     "pure",
     "plain",
     "vanilla",
-    "javascript"
+    "javascript",
+    "ux",
+    "performance",
+    "event",
+    "medium-zoom",
+    "zoomable"
   ],
   "devDependencies": {
-    "autoprefixer": "^7.1.4",
-    "babel": "^6.23.0",
-    "babel-core": "^6.26.0",
-    "babel-loader": "^7.1.2",
+    "babel-plugin-external-helpers": "^6.22.0",
     "babel-plugin-transform-object-assign": "^6.22.0",
     "babel-preset-env": "^1.6.0",
-    "css-loader": "^0.28.7",
+    "cssnano": "^3.10.0",
     "husky": "^0.14.3",
-    "jest": "^21.1.0",
-    "lint-staged": "^4.2.1",
-    "postcss-loader": "^2.0.6",
+    "jest": "^21.2.1",
+    "lint-staged": "^4.2.3",
     "rimraf": "^2.6.2",
-    "standard": "^10.0.3",
-    "style-loader": "^0.18.2",
-    "webpack": "^3.6.0"
+    "rollup": "^0.50.0",
+    "rollup-plugin-babel": "^3.0.2",
+    "rollup-plugin-babel-minify": "^3.1.1",
+    "rollup-plugin-commonjs": "^8.2.1",
+    "rollup-plugin-postcss": "^0.5.5",
+    "rollup-plugin-uglify": "^2.0.1",
+    "rollup-watch": "^4.3.1",
+    "standard": "^10.0.3"
   }
 }
