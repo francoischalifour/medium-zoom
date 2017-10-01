@@ -17,11 +17,11 @@
     ]
   },
   "dependencies": {
-    "medium-zoom": "^0.1.8",
-    "react": "^15.6.1",
-    "react-dom": "^15.6.1",
+    "medium-zoom": "^0.2.0",
+    "react": "^16.0.0",
+    "react-dom": "^16.0.0",
     "react-markdown": "^2.5.0",
-    "react-scripts": "1.0.13"
+    "react-scripts": "1.0.14"
   },
   "devDependencies": {
     "standard": "^10.0.3"
