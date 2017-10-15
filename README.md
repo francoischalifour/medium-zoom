@@ -38,7 +38,10 @@
   </a>
   <br>
   <br>
-  <a href="https://medium-zoom.francoischalifour.com">View demo 🔎</a>
+  <strong>
+  <a href="https://codepen.io/francoischalifour/pen/MEPrpX">🔬 Playground</a> ・
+  <a href="https://medium-zoom.francoischalifour.com">🔎 Demo</a>
+  </strong>
 </p>
 
 ## Features
@@ -59,7 +62,8 @@ This module is available on the [npm](https://www.npmjs.com) registry, with no d
 
 ```sh
 npm install --save medium-zoom
-# yarn add medium-zoom
+# or
+yarn add medium-zoom
 ```
 
 If you want to use the [CDN](https://en.wikipedia.org/wiki/Content_delivery_network) version:
