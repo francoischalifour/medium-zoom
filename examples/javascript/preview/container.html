@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#00ab6c">
+
+    <link rel="shortcut icon" href="../favicon.ico">
+
+    <link href="https://fonts.googleapis.com/css?family=Varela+Round|Work+Sans" rel="stylesheet">
+    <link href="../reset.css" rel="stylesheet">
+    <link href="../style.css" rel="stylesheet">
+
+    <title>Medium Zoom | Demo</title>
+
+    <style>
+      .paper-wrapper {
+        position: fixed;
+        display: flex;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+      }
+      .facebook-wrapper {
+        position: fixed;
+        display: flex;
+        top: 4rem;
+        left: 4rem;
+        right: 4rem;
+        bottom: 4rem;
+      }
+      .container-main {
+        flex: 3;
+        height: 100%;
+      }
+      .container-main_dark {
+        background-color: #000;
+      }
+      .container-header {
+        padding: 16px;
+      }
+      .container-close {
+        width: 24px;
+        cursor: pointer;
+        fill: #637282;
+      }
+      .container-aside {
+        width: 300px;
+        padding: 24px;
+        flex: 1;
+        border-left: 1px solid #e6e8eb;
+        background-color: #fff;
+      }
+      .container-aside__title {
+        font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;
+        color: #637282;
+      }
+      .container-aside__content {
+        font-size: .9rem; padding-top: 1rem;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="header">
+      <h1 class="header__title">Medium Zoom</h1>
+      <div class="header__subtitle">Medium zoom on your images in vanilla JavaScript</div>
+
+      <div class="header__info">
+        <a href="https://github.com/francoischalifour/medium-zoom" class="button">View on GitHub</a>
+        <a href="https://francoischalifour.com/lab/medium-image-zoom" class="button">Read the article</a>
+      </div>
+    </header>
+
+    <article class="container">
+
+      <template id="template-paper">
+        <div class="paper-wrapper">
+          <section class="container-main" data-zoom-container>
+            <header class="container-header">
+              <svg class="container-close" data-zoom-close viewBox="0 0 24 24">
+                <path d="M8.817 7.403a1 1 0 0 0-1.414 1.414L10.586 12l-3.183 3.183a1 1 0 0 0 1.414 1.415L12 13.415l3.183 3.183a1 1 0 0 0 1.415-1.415L13.415 12l3.183-3.183a1 1 0 0 0-1.415-1.414L12 10.586 8.817 7.403z" fill-rule="evenodd"></path>
+              </svg>
+            </header>
+          </section>
+          <aside class="container-aside">
+            <h3 class="container-aside__title">Comments</h3>
+            <p class="container-aside__content">
+              Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+              Tempora praesentium cupiditate fugit voluptas.
+            </p>
+          </aside>
+        </div>
+      </template>
+
+      <template id="template-facebook">
+        <div class="facebook-wrapper">
+          <section class="container-main container-main_dark" data-zoom-container>
+            <header style="float:right; padding: 16px;">
+              <svg class="container-close" data-zoom-close viewBox="0 0 24 24">
+                <path d="M8.817 7.403a1 1 0 0 0-1.414 1.414L10.586 12l-3.183 3.183a1 1 0 0 0 1.414 1.415L12 13.415l3.183 3.183a1 1 0 0 0 1.415-1.415L13.415 12l3.183-3.183a1 1 0 0 0-1.415-1.414L12 10.586 8.817 7.403z" fill-rule="evenodd"></path>
+              </svg>
+            </header>
+          </section>
+          <aside class="container-aside">
+            <h3 class="container-aside__title">Comments</h3>
+            <p class="container-aside__content">
+              Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+              Tempora praesentium cupiditate fugit voluptas.
+            </p>
+          </aside>
+        </div>
+      </template>
+
+      <figure>
+        <img
+          class="zoom-paper"
+          src="../images/image-2.jpg"
+          alt="Zoom with Paper style"
+        >
+        <figcaption>Zoom with Paper style</figcaption>
+      </figure>
+
+      <figure>
+        <img
+          class="zoom-paper"
+          src="../images/image-3.jpg"
+          alt="Zoom with Paper style"
+        >
+        <figcaption>Zoom with Paper style #2</figcaption>
+      </figure>
+
+      <figure>
+        <img
+          id="zoom-facebook"
+          src="../images/image-6.jpg"
+          alt="Zoom with Facebook style"
+        >
+        <figcaption>Zoom with Facebook style</figcaption>
+      </figure>
+
+    </article>
+
+    <footer class="footer">
+      <div class="footer__links">
+        <a href="https://github.com/francoischalifour/medium-zoom" class="button">View on GitHub</a>
+        <a href="http://francoischalifour.com/lab/medium-image-zoom" class="button">Read the article</a>
+      </div>
+
+      <div class="footer__copyright">
+        Made by <a href="https://francoischalifour.com">François Chalifour</a>
+      </div>
+
+      <p><a href="#">Back to top</a></p>
+    </footer>
+
+    <script src="medium-zoom.min.js"></script>
+    <script>
+      console.info('You\'re in preview environment 🖥')
+
+      const zoomPaper = mediumZoom('.zoom-paper', {
+        background: 'rgba(247,249,250,0.97)',
+        margin: 24,
+        container: '#template-paper'
+      })
+
+      // You can start manipulating the DOM after the `shown` event has been triggered
+      zoomPaper.addEventListeners('shown', () => {
+        const closeButton = document.querySelector('[data-zoom-close]')
+        closeButton.addEventListener('click', () => zoomPaper.hide())
+      })
+
+      const zoomFacebook = mediumZoom('#zoom-facebook', {
+        background: 'rgba(0,0,0,0.9)',
+        container: document.querySelector('#template-facebook')
+      })
+
+      // Block scroll on zoom
+      zoomFacebook.addEventListeners('show', () => {
+        document.body.style.overflow = 'hidden'
+      })
+
+      zoomFacebook.addEventListeners('hide', () => {
+        document.body.style.overflow = ''
+      })
+
+      zoomFacebook.addEventListeners('shown', () => {
+        const closeButton = document.querySelector('[data-zoom-close]')
+        closeButton.addEventListener('click', () => zoomFacebook.hide())
+      })
+    </script>
+  </body>
+</html>
