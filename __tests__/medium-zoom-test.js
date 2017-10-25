@@ -303,6 +303,35 @@ describe('show', () => {
 
     expect(root).toMatchSnapshot()
   })
+
+  test('renders correctly with container as a Node', () => {
+    const container = document.createElement('template')
+    const image = document.createElement('img')
+    root.appendChild(container)
+    root.appendChild(image)
+
+    const zoom = mediumZoom('img', {
+      container
+    })
+    zoom.show()
+
+    expect(root).toMatchSnapshot()
+  })
+
+  test('renders correctly with container as a string', () => {
+    const container = document.createElement('template')
+    container.id = 'zoom-container'
+    const image = document.createElement('img')
+    root.appendChild(container)
+    root.appendChild(image)
+
+    const zoom = mediumZoom('img', {
+      container: '#zoom-container'
+    })
+    zoom.show()
+
+    expect(root).toMatchSnapshot()
+  })
 })
 
 describe('hide', () => {
