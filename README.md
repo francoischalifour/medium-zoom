@@ -53,6 +53,7 @@
 * 🖱 **Mouse, keyboard and gesture friendly** — *click anywhere, press a key or scroll away to dismiss the zoom*
 * 🎉 **Event handling** — *trigger events when the zoom enters a new state*
 * 🔧 **Customization** — *set your own margin, background and scroll offset*
+* 💎 **Custom renderer** — *extend the default look to match your UI*
 * 🔗 **Link support** — *open the link of the image in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)*
 * 🖼 **Image opener** — *when no link, open the image source in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)*
 
@@ -86,11 +87,12 @@ Import the script:
 <script src="node_modules/medium-zoom/dist/medium-zoom.min.js"></script>
 ```
 
-Or, using the module syntax:
+Or, using the module syntax or imports:
 
 ```js
 const mediumZoom = require('medium-zoom')
-// import mediumZoom from 'medium-zoom'
+// or
+import mediumZoom from 'medium-zoom'
 ```
 
 That's it! You don't need to import any CSS styles.
@@ -103,13 +105,13 @@ mediumZoom(<selector>, <options>)
 
 By default, the zoom is applied to all scaled images (with HTML or CSS properties). You can specify the zoomable images with a [CSS selector](http://www.w3schools.com/cssref/css_selectors.asp) and add [options](#options).
 
-Additionally, you can pass an [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element), a [NodeList](https://developer.mozilla.org/en-US/docs/Web/API/NodeList), an [HTMLCollection](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCollection) or an array of images to the plugin.
+Additionally, you can pass an [HTML Element](https://developer.mozilla.org/en-US/docs/Web/API/Element), a [NodeList](https://developer.mozilla.org/en-US/docs/Web/API/NodeList), an [HTMLCollection](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCollection) or an array of images to the plugin.
 
 ```js
 // CSS selector
 mediumZoom('#cover')
 
-// Element
+// HTML Element
 mediumZoom(document.getElementById('cover'))
 
 // NodeList
@@ -135,18 +137,35 @@ Options can be passed via a JavaScript object through the `mediumZoom` call.
 
 | Properties   | Type    | Default  | Description                                                         |
 |--------------|---------|----------|---------------------------------------------------------------------|
-| margin       | integer | `0`      | Space outside the zoomed image                                      |
-| background   | string  | `"#fff"` | Color of the overlay                                                |
-| scrollOffset | integer | `48`     | Number of pixels to scroll to dismiss the zoom                      |
-| metaClick    | boolean | `true`   | Enables the action on meta click (opens the link / image source)    |
+| `margin`       | integer | `0`      | Space outside the zoomed image                                      |
+| `background`   | string  | `"#fff"` | Color of the overlay                                                |
+| `scrollOffset` | integer | `48`     | Number of pixels to scroll to dismiss the zoom                      |
+| `metaClick`    | boolean | `true`   | Enables the action on [meta click](https://en.wikipedia.org/wiki/Meta_key) (opens the link / image source)    |
+| `container`    | string \| Element | `undefined`   | [Template element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template) to render the zoomed image in |
 
 ```js
 mediumZoom('[data-action="zoom"]', {
   margin: 24,
   background: '#000',
   scrollOffset: 0,
-  metaClick: false
+  metaClick: false,
+  container: '#zoom-container'
 })
+```
+
+#### Using a custom `container`
+
+You might want to render the zoom in your own container. You could reproduce zooms as seen on Facebook or Dropbox Paper. This is possible with the `container` option.
+
+1. Create a `template` element matching the `container` option value
+2. If you'd like your image to appear at a specific location in your template, specify the `data-zoom-container` attribute on the element
+
+```html
+<template id="zoom-container">
+  <header>My image zoom template</header>
+  <div data-zoom-container></div>
+  <aside>Comment on my image</aside>
+</template>
 ```
 
 ### Methods
@@ -237,13 +256,13 @@ Specifies the high definition image to show on zoom. This image is loaded when t
 
 ### Events
 
-| Event            | Description                                                         |
-|------------------|---------------------------------------------------------------------|
-| show             | Fired immediately when the `show` instance method is called         |
-| shown            | Fired when the zoom has finished being animated                     |
-| hide             | Fired immediately when the `hide` instance method is called         |
-| hidden           | Fired when the zoom out has finished being animated                 |
-| detach           | Fired when the `detach` instance method is called                   |
+| Event  | Description                                                 |
+|--------|-------------------------------------------------------------|
+| show   | Fired immediately when the `show` instance method is called |
+| shown  | Fired when the zoom has finished being animated             |
+| hide   | Fired immediately when the `hide` instance method is called |
+| hidden | Fired when the zoom out has finished being animated         |
+| detach | Fired when the `detach` instance method is called           |
 
 ```js
 const zoom = mediumZoom('#image-tracked')
