@@ -21,43 +21,99 @@
         left: 0;
         width: 100%;
         height: 100vh;
+        font-family: 'AtlasGrotesk-dmc', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
       }
-      .facebook-wrapper {
-        position: fixed;
+      .paper-container {
+        height: calc(100% - 80px);
+        width: calc(100% - 32px);
+        margin: 0 auto;
+      }
+      .paper-header {
         display: flex;
-        top: 4rem;
-        left: 4rem;
-        right: 4rem;
-        bottom: 4rem;
-      }
-      .container-main {
-        flex: 3;
-        height: 100%;
-      }
-      .container-main_dark {
-        background-color: #000;
-      }
-      .container-header {
+        align-items: center;
+        height: 64px;
         padding: 16px;
       }
-      .container-close {
+      .paper-main {
+        flex: 1;
+        height: 100%;
+      }
+      .paper-close {
         width: 24px;
         cursor: pointer;
         fill: #637282;
       }
-      .container-aside {
-        width: 300px;
-        padding: 24px;
-        flex: 1;
+      .paper-sidebar {
+        width: 290px;
         border-left: 1px solid #e6e8eb;
         background-color: #fff;
+        padding: 32px 0 16px 0;
       }
-      .container-aside__title {
-        font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;
+      @media (max-width: 800px) {
+        .paper-sidebar {
+          display: none;
+        }
+      }
+      .paper-sidebar__header,
+      .paper-sidebar__content {
+        padding: 16px;
+      }
+      .paper-sidebar__header {
+        border-bottom: 1px solid #e6e8eb;
+      }
+      .paper-sidebar__textarea {
+        outline: none;
+        width: 100%;
+        border: none;
+        background: none;
+        font: inherit;
+        font-size: .9rem;
         color: #637282;
       }
-      .container-aside__content {
-        font-size: .9rem; padding-top: 1rem;
+      .paper-sidebar__textarea::placeholder {
+        color: #c1c7cd;
+      }
+      .paper-sidebar__textarea_comment {
+        width: 100%;
+        padding: 16px;
+        border-radius: 5px;
+        border: 1px solid rgba(99,114,130,0.4);
+      }
+
+      .facebook-wrapper {
+        position: fixed;
+        display: flex;
+        top: 0;
+        height: 520px;
+        top: 0;
+        bottom: 0;
+        left: 4rem;
+        right: 4rem;
+        margin: auto;
+        box-shadow: 0 12px 24px rgba(0,0,0,.3);
+      }
+      .facebook-main {
+        flex: 1;
+        height: 100%;
+        background-color: #000;
+      }
+      .facebook-sidebar {
+        width: 360px;
+        background-color: #fff;
+        padding: 32px 0 16px 0;
+      }
+      @media (max-width: 800px) {
+        .facebook-sidebar {
+          display: none;
+        }
+      }
+      .facebook-close {
+        position: fixed;
+        top: 8px;
+        right: 8px;
+        width: 32px;
+        cursor: pointer;
+        fill: #ddd;
       }
     </style>
   </head>
@@ -77,46 +133,39 @@
 
       <template id="template-paper">
         <div class="paper-wrapper">
-          <section class="container-main" data-zoom-container>
-            <header class="container-header">
-              <svg class="container-close" data-zoom-close viewBox="0 0 24 24">
+          <section class="paper-main" data-zoom-close>
+            <header class="paper-header">
+              <svg class="paper-close" data-zoom-close viewBox="0 0 24 24">
                 <path d="M8.817 7.403a1 1 0 0 0-1.414 1.414L10.586 12l-3.183 3.183a1 1 0 0 0 1.414 1.415L12 13.415l3.183 3.183a1 1 0 0 0 1.415-1.415L13.415 12l3.183-3.183a1 1 0 0 0-1.415-1.414L12 10.586 8.817 7.403z" fill-rule="evenodd"></path>
               </svg>
             </header>
+            <div class="paper-container" data-zoom-container></div>
           </section>
-          <aside class="container-aside">
-            <h3 class="container-aside__title">Comments</h3>
-            <p class="container-aside__content">
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-              Tempora praesentium cupiditate fugit voluptas.
-            </p>
+          <aside class="paper-sidebar">
+            <header class="paper-sidebar__header">
+              <textarea class="paper-sidebar__textarea" rows="1" placeholder="Write a caption"></textarea>
+            </header>
+            <section class="paper-sidebar__content">
+              <textarea class="paper-sidebar__textarea paper-sidebar__textarea_comment" rows="1" placeholder="New comment"></textarea>
+            </section>
           </aside>
         </div>
       </template>
 
       <template id="template-facebook">
         <div class="facebook-wrapper">
-          <section class="container-main container-main_dark" data-zoom-container>
-            <header style="float:right; padding: 16px;">
-              <svg class="container-close" data-zoom-close viewBox="0 0 24 24">
-                <path d="M8.817 7.403a1 1 0 0 0-1.414 1.414L10.586 12l-3.183 3.183a1 1 0 0 0 1.414 1.415L12 13.415l3.183 3.183a1 1 0 0 0 1.415-1.415L13.415 12l3.183-3.183a1 1 0 0 0-1.415-1.414L12 10.586 8.817 7.403z" fill-rule="evenodd"></path>
-              </svg>
-            </header>
-          </section>
-          <aside class="container-aside">
-            <h3 class="container-aside__title">Comments</h3>
-            <p class="container-aside__content">
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-              Tempora praesentium cupiditate fugit voluptas.
-            </p>
-          </aside>
+          <svg class="facebook-close" data-zoom-close viewBox="0 0 24 24">
+            <path d="M8.817 7.403a1 1 0 0 0-1.414 1.414L10.586 12l-3.183 3.183a1 1 0 0 0 1.414 1.415L12 13.415l3.183 3.183a1 1 0 0 0 1.415-1.415L13.415 12l3.183-3.183a1 1 0 0 0-1.415-1.414L12 10.586 8.817 7.403z" fill-rule="evenodd"></path>
+          </svg>
+          <section class="facebook-main" data-zoom-container></section>
+          <aside class="facebook-sidebar"></aside>
         </div>
       </template>
 
       <figure>
         <img
           class="zoom-paper"
-          src="../images/image-2.jpg"
+          src="../images/image-1.jpg"
           alt="Zoom with Paper style"
         >
         <figcaption>Zoom with Paper style</figcaption>
@@ -133,11 +182,20 @@
 
       <figure>
         <img
-          id="zoom-facebook"
+          class="zoom-facebook"
           src="../images/image-6.jpg"
           alt="Zoom with Facebook style"
         >
         <figcaption>Zoom with Facebook style</figcaption>
+      </figure>
+
+      <figure>
+        <img
+          class="zoom-facebook"
+          src="../images/image-5.jpg"
+          alt="Zoom with Facebook style"
+        >
+        <figcaption>Zoom with Facebook style #2</figcaption>
       </figure>
 
     </article>
@@ -161,7 +219,6 @@
 
       const zoomPaper = mediumZoom('.zoom-paper', {
         background: 'rgba(247,249,250,0.97)',
-        margin: 24,
         container: '#template-paper'
       })
 
@@ -170,8 +227,15 @@
         const closeButton = document.querySelector('[data-zoom-close]')
         closeButton.addEventListener('click', () => zoomPaper.hide())
       })
+      // Block scroll on zoom
+      zoomPaper.addEventListeners('show', () => {
+        document.body.style.overflow = 'hidden'
+      })
+      zoomPaper.addEventListeners('hide', () => {
+        document.body.style.overflow = ''
+      })
 
-      const zoomFacebook = mediumZoom('#zoom-facebook', {
+      const zoomFacebook = mediumZoom('.zoom-facebook', {
         background: 'rgba(0,0,0,0.9)',
         container: document.querySelector('#template-facebook')
       })
