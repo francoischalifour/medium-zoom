@@ -261,6 +261,66 @@ describe('update', () => {
     expect(zoom.options).toEqual(expected)
   })
 
+  test('with container as an Element updates the container option and returns all options', () => {
+    const zoom = mediumZoom()
+    const options = zoom.update({
+      container: document.body
+    })
+    const expected = {
+      margin: 0,
+      background: '#fff',
+      scrollOffset: 48,
+      metaClick: true,
+      container: document.body
+    }
+
+    expect(options).toEqual(expected)
+    expect(zoom.options).toEqual(expected)
+  })
+
+  test('with container as a string updates the container option and returns all options', () => {
+    const zoom = mediumZoom()
+    const options = zoom.update({
+      container: 'body'
+    })
+    const expected = {
+      margin: 0,
+      background: '#fff',
+      scrollOffset: 48,
+      metaClick: true,
+      container: 'body'
+    }
+
+    expect(options).toEqual(expected)
+    expect(zoom.options).toEqual(expected)
+  })
+
+  test('with container as an object updates the container option and returns all options', () => {
+    const zoom = mediumZoom({
+      container: {
+        top: 64
+      }
+    })
+    const options = zoom.update({
+      container: {
+        left: 64
+      }
+    })
+    const expected = {
+      margin: 0,
+      background: '#fff',
+      scrollOffset: 48,
+      metaClick: true,
+      container: {
+        top: 64,
+        left: 64
+      }
+    }
+
+    expect(options).toEqual(expected)
+    expect(zoom.options).toEqual(expected)
+  })
+
   test('with all options updates all options and returns all options', () => {
     const expected = {
       margin: 24,
@@ -292,12 +352,41 @@ describe('show', () => {
     expect(root).toMatchSnapshot()
   })
 
-  test('renders correctly with options overlay background', () => {
+  test('renders correctly with background option', () => {
     const image = document.createElement('img')
     root.appendChild(image)
 
     const zoom = mediumZoom('img', {
       background: '#BADA55'
+    })
+    zoom.show()
+
+    expect(root).toMatchSnapshot()
+  })
+
+  test('renders correctly with template option as an HTML Element', () => {
+    const template = document.createElement('template')
+    const image = document.createElement('img')
+    root.appendChild(template)
+    root.appendChild(image)
+
+    const zoom = mediumZoom('img', {
+      template
+    })
+    zoom.show()
+
+    expect(root).toMatchSnapshot()
+  })
+
+  test('renders correctly with template option as a string', () => {
+    const template = document.createElement('template')
+    template.id = 'zoom-template'
+    const image = document.createElement('img')
+    root.appendChild(template)
+    root.appendChild(image)
+
+    const zoom = mediumZoom('img', {
+      template: '#zoom-template'
     })
     zoom.show()
 

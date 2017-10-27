@@ -23,7 +23,6 @@
 
 .medium-zoom-image--open {
   position: relative;
-  z-index: 999;
   cursor: pointer;
   cursor: zoom-out;
   will-change: transform;
