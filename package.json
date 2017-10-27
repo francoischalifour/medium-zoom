@@ -17,18 +17,11 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:verbose": "jest --verbose",
-    "precommit": "lint-staged",
     "clean": "rimraf ./dist && mkdir dist",
     "prebuild": "npm run lint && npm run test && npm run clean",
     "build": "NODE_ENV=build rollup --config",
     "dev": "NODE_ENV=build rollup --config --watch",
     "preview": "npm run build && cp ./dist/* ./examples/javascript/preview/"
-  },
-  "lint-staged": {
-    "src/**/*.js": [
-      "lint:fix",
-      "git add"
-    ]
   },
   "browserslist": [
     "> 1%",
@@ -72,9 +65,7 @@
     "babel-plugin-transform-object-assign": "^6.22.0",
     "babel-preset-env": "^1.6.0",
     "cssnano": "^3.10.0",
-    "husky": "^0.14.3",
     "jest": "^21.2.1",
-    "lint-staged": "^4.2.3",
     "rimraf": "^2.6.2",
     "rollup": "^0.50.0",
     "rollup-plugin-babel": "^3.0.2",
