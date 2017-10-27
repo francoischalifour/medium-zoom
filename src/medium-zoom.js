@@ -170,8 +170,13 @@ const mediumZoom = (selector, {
   }
 
   const triggerZoom = event => {
-    if (!target.template) {
-      target.template = event ? event.target : images[0]
+    if (event && event.target) {
+      // The zoom was triggered manually via a click
+      target.original = event.target
+      zoom()
+    } else if (!target.original) {
+      // The zoom was triggered programmatically, select the first image in the list
+      target.original = images[0]
       zoom()
     } else {
       zoomOut()
