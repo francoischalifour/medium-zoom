@@ -31,7 +31,8 @@ const mediumZoom = (selector, {
   background = '#fff',
   scrollOffset = 48,
   metaClick = true,
-  container
+  container,
+  template
 } = {}) => {
   const selectImages = selector => {
     try {
@@ -81,24 +82,24 @@ const mediumZoom = (selector, {
   }
 
   const zoom = () => {
-    if (!target.template) return
+    if (!target.original) return
 
-    target.template.dispatchEvent(new Event('show'))
+    target.original.dispatchEvent(new Event('show'))
 
     scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
     isAnimating = true
-    target.zoomed = cloneTarget(target.template)
+    target.zoomed = cloneTarget(target.original)
 
     document.body.appendChild(overlay)
 
-    if (options.container) {
-      const template = isNode(options.container)
-        ? options.container
-        : document.querySelector(options.container)
-      target.container = document.createElement('div')
-      target.container.appendChild(template.content.cloneNode(true))
+    if (options.template) {
+      const template = isNode(options.template)
+        ? options.template
+        : document.querySelector(options.template)
+      target.template = document.createElement('div')
+      target.template.appendChild(template.content.cloneNode(true))
 
-      document.body.appendChild(target.container)
+      document.body.appendChild(target.template)
     }
 
     document.body.appendChild(target.zoomed)
@@ -107,13 +108,13 @@ const mediumZoom = (selector, {
       document.body.classList.add('medium-zoom--open')
     })
 
-    target.template.style.visibility = 'hidden'
+    target.original.style.visibility = 'hidden'
     target.zoomed.classList.add('medium-zoom-image--open')
 
     target.zoomed.addEventListener('click', zoomOut)
     target.zoomed.addEventListener('transitionend', onZoomEnd)
 
-    if (target.template.getAttribute('data-zoom-target')) {
+    if (target.original.getAttribute('data-zoom-target')) {
       target.zoomedHd = target.zoomed.cloneNode()
       target.zoomedHd.src = target.zoomed.getAttribute('data-zoom-target')
 
@@ -142,9 +143,9 @@ const mediumZoom = (selector, {
 
   const zoomOut = (timeout = 0) => {
     const doZoomOut = () => {
-      if (isAnimating || !target.template) return
+      if (isAnimating || !target.original) return
 
-      target.template.dispatchEvent(new Event('hide'))
+      target.original.dispatchEvent(new Event('hide'))
 
       isAnimating = true
       document.body.classList.remove('medium-zoom--open')
@@ -156,9 +157,9 @@ const mediumZoom = (selector, {
       }
 
       // Fade out the template so it's not too abrupt
-      if (target.container) {
-        target.container.style.transition = 'opacity 150ms'
-        target.container.style.opacity = 0
+      if (target.template) {
+        target.template.style.transition = 'opacity 150ms'
+        target.template.style.opacity = 0
       }
 
       target.zoomed.removeEventListener('click', zoomOut)
@@ -180,6 +181,10 @@ const mediumZoom = (selector, {
   const update = (newOptions = {}) => {
     newOptions.background &&
       (overlay.style.backgroundColor = newOptions.background)
+
+    if (newOptions.container && newOptions.container instanceof Object) {
+      newOptions.container = Object.assign({}, options.container, newOptions.container)
+    }
 
     return Object.assign(options, newOptions)
   }
@@ -238,32 +243,32 @@ const mediumZoom = (selector, {
     isAnimating = false
     target.zoomed.removeEventListener('transitionend', onZoomEnd)
 
-    target.template.dispatchEvent(new Event('shown'))
+    target.original.dispatchEvent(new Event('shown'))
   }
 
   const onZoomOutEnd = () => {
-    if (!target.template) return
+    if (!target.original) return
 
-    target.template.style.visibility = ''
+    target.original.style.visibility = ''
     document.body.removeChild(target.zoomed)
     target.zoomedHd && document.body.removeChild(target.zoomedHd)
     document.body.removeChild(overlay)
     target.zoomed.classList.remove('medium-zoom-image--open')
-    target.container && document.body.removeChild(target.container)
+    target.template && document.body.removeChild(target.template)
 
     isAnimating = false
     target.zoomed.removeEventListener('transitionend', onZoomOutEnd)
 
-    target.template.dispatchEvent(new Event('hidden'))
+    target.original.dispatchEvent(new Event('hidden'))
 
-    target.template = null
+    target.original = null
     target.zoomed = null
     target.zoomedHd = null
-    target.container = null
+    target.template = null
   }
 
   const onScroll = () => {
-    if (isAnimating || !target.template) return
+    if (isAnimating || !target.original) return
 
     const currentScroll = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
 
@@ -279,38 +284,50 @@ const mediumZoom = (selector, {
   }
 
   const animateTarget = () => {
-    if (!target.template) return
+    if (!target.original) return
 
-    let containerWidth
-    let containerHeight
-    let containerLeft = 0
-    let containerTop = 0
+    const container = {
+      width: window.innerWidth,
+      height: window.innerHeight,
+      left: 0,
+      top: 0,
+      right: 0,
+      bottom: 0
+    }
+    let viewportWidth
+    let viewportHeight
 
-    if (target.container) {
-      const zoomContainer = document.querySelector('[data-zoom-container]') || target.container
+    if (options.container) {
+      if (options.container instanceof Object) {
+        // The container is given as an object with properties like width, height, left, top
+        Object.assign(container, options.container)
 
-      const containerClientRect = zoomContainer.getBoundingClientRect()
-      containerWidth = containerClientRect.width
-      containerHeight = containerClientRect.height
-      containerLeft = containerClientRect.left
-      containerTop = containerClientRect.top
-    } else {
-      containerWidth = window.innerWidth
-      containerHeight = window.innerHeight
+        // We need to adjust custom options like container.right or container.bottom
+        viewportWidth = container.width - container.left - container.right - (options.margin * 2)
+        viewportHeight = container.height - container.top - container.bottom - (options.margin * 2)
+      } else {
+        // The container is given as an element
+        const zoomContainer = isNode(options.container)
+          ? options.container
+          : document.querySelector(options.container)
+
+        const { width, height, left, top } = zoomContainer.getBoundingClientRect()
+        Object.assign(container, { width, height, left, top })
+      }
     }
 
-    const viewportWidth = containerWidth - (options.margin * 2)
-    const viewportHeight = containerHeight - (options.margin * 2)
+    viewportWidth = viewportWidth || container.width - (options.margin * 2)
+    viewportHeight = viewportHeight || container.height - (options.margin * 2)
 
-    const zoomTarget = target.zoomedHd || target.template
+    const zoomTarget = target.zoomedHd || target.original
     const { naturalWidth = viewportWidth, naturalHeight = viewportHeight } = zoomTarget
     const { top, left, width, height } = zoomTarget.getBoundingClientRect()
 
     const scaleX = Math.min(naturalWidth, viewportWidth) / width
     const scaleY = Math.min(naturalHeight, viewportHeight) / height
     const scale = Math.min(scaleX, scaleY) || 1
-    const translateX = (-left + ((viewportWidth - width) / 2) + options.margin + containerLeft) / scale
-    const translateY = (-top + ((viewportHeight - height) / 2) + options.margin + containerTop) / scale
+    const translateX = (-left + ((viewportWidth - width) / 2) + options.margin + container.left) / scale
+    const translateY = (-top + ((viewportHeight - height) / 2) + options.margin + container.top) / scale
     const transform = `scale(${scale}) translate3d(${translateX}px, ${translateY}px, 0)`
 
     target.zoomed.style.transform = transform
@@ -322,10 +339,11 @@ const mediumZoom = (selector, {
     background,
     scrollOffset,
     metaClick,
-    container
+    container,
+    template
   }
 
-  // If the selector is omitted, it represents the options
+  // If the selector is omitted, it becomes the options
   if (selector instanceof Object) {
     Object.assign(options, selector)
   }
@@ -334,10 +352,10 @@ const mediumZoom = (selector, {
   const overlay = createOverlay(options.background)
 
   let target = {
-    template: null,
+    original: null,
     zoomed: null,
     zoomedHd: null,
-    container: null
+    template: null
   }
   let scrollTop = 0
   let isAnimating = false

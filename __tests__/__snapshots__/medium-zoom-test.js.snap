@@ -36,7 +36,45 @@ exports[`show renders correctly 1`] = `
 </body>
 `;
 
-exports[`show renders correctly with container as a Node 1`] = `
+exports[`show renders correctly with background option 1`] = `
+<body>
+  <img
+    class="medium-zoom-image"
+    style="visibility: hidden;"
+  />
+  <div
+    class="medium-zoom-overlay"
+    style="background-color: rgb(186, 218, 85);"
+  />
+  <img
+    class="medium-zoom-image medium-zoom-image--open"
+    style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
+  />
+</body>
+`;
+
+exports[`show renders correctly with template option as a string 1`] = `
+<body>
+  <template
+    id="zoom-template"
+  />
+  <img
+    class="medium-zoom-image"
+    style="visibility: hidden;"
+  />
+  <div
+    class="medium-zoom-overlay"
+    style="background-color: rgb(255, 255, 255);"
+  />
+  <div />
+  <img
+    class="medium-zoom-image medium-zoom-image--open"
+    style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
+  />
+</body>
+`;
+
+exports[`show renders correctly with template option as an HTML Element 1`] = `
 <body>
   <template />
   <img
@@ -48,44 +86,6 @@ exports[`show renders correctly with container as a Node 1`] = `
     style="background-color: rgb(255, 255, 255);"
   />
   <div />
-  <img
-    class="medium-zoom-image medium-zoom-image--open"
-    style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
-  />
-</body>
-`;
-
-exports[`show renders correctly with container as a string 1`] = `
-<body>
-  <template
-    id="zoom-container"
-  />
-  <img
-    class="medium-zoom-image"
-    style="visibility: hidden;"
-  />
-  <div
-    class="medium-zoom-overlay"
-    style="background-color: rgb(255, 255, 255);"
-  />
-  <div />
-  <img
-    class="medium-zoom-image medium-zoom-image--open"
-    style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
-  />
-</body>
-`;
-
-exports[`show renders correctly with options overlay background 1`] = `
-<body>
-  <img
-    class="medium-zoom-image"
-    style="visibility: hidden;"
-  />
-  <div
-    class="medium-zoom-overlay"
-    style="background-color: rgb(186, 218, 85);"
-  />
   <img
     class="medium-zoom-image medium-zoom-image--open"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"

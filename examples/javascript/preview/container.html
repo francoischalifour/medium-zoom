@@ -24,8 +24,8 @@
         font-family: 'AtlasGrotesk-dmc', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
       }
       .paper-container {
-        height: calc(100% - 80px);
-        width: calc(100% - 32px);
+        width: 100%;
+        height: calc(100% - 64px);
         margin: 0 auto;
       }
       .paper-header {
@@ -198,6 +198,15 @@
         <figcaption>Zoom with Facebook style #2</figcaption>
       </figure>
 
+      <figure>
+        <img
+          class="zoom-header"
+          src="../images/image-6.jpg"
+          alt="Zoom with space for header"
+        >
+        <figcaption>Zoom with space for header</figcaption>
+      </figure>
+
     </article>
 
     <footer class="footer">
@@ -219,7 +228,9 @@
 
       const zoomPaper = mediumZoom('.zoom-paper', {
         background: 'rgba(247,249,250,0.97)',
-        container: '#template-paper'
+        margin: 16,
+        template: '#template-paper',
+        container: '[data-zoom-container]'
       })
 
       // You can start manipulating the DOM after the `shown` event has been triggered
@@ -237,7 +248,8 @@
 
       const zoomFacebook = mediumZoom('.zoom-facebook', {
         background: 'rgba(0,0,0,0.9)',
-        container: document.querySelector('#template-facebook')
+        template: document.querySelector('#template-facebook'),
+        container: '[data-zoom-container]'
       })
 
       // Block scroll on zoom
@@ -252,6 +264,12 @@
       zoomFacebook.addEventListeners('shown', () => {
         const closeButton = document.querySelector('[data-zoom-close]')
         closeButton.addEventListener('click', () => zoomFacebook.hide())
+      })
+
+      const zoomTopHeader = mediumZoom('.zoom-header', {
+        container: {
+          top: 64
+        }
       })
     </script>
   </body>

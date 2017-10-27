@@ -53,7 +53,7 @@
 * 🖱 **Mouse, keyboard and gesture friendly** — *click anywhere, press a key or scroll away to dismiss the zoom*
 * 🎉 **Event handling** — *trigger events when the zoom enters a new state*
 * 🔧 **Customization** — *set your own margin, background and scroll offset*
-* 💎 **Custom renderer** — *extend the default look to match your UI*
+* 💎 **Custom templates** — *extend the default look to match your UI*
 * 🔗 **Link support** — *open the link of the image in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)*
 * 🖼 **Image opener** — *when no link, open the image source in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)*
 
@@ -135,13 +135,14 @@ mediumZoom(imagesToZoom)
 
 Options can be passed via a JavaScript object through the `mediumZoom` call.
 
-| Properties   | Type    | Default  | Description                                                         |
-|--------------|---------|----------|---------------------------------------------------------------------|
-| `margin`       | integer | `0`      | Space outside the zoomed image                                      |
-| `background`   | string  | `"#fff"` | Color of the overlay                                                |
-| `scrollOffset` | integer | `48`     | Number of pixels to scroll to dismiss the zoom                      |
-| `metaClick`    | boolean | `true`   | Enables the action on [meta click](https://en.wikipedia.org/wiki/Meta_key) (opens the link / image source)    |
-| `container`    | string \| Element | `undefined`   | [Template element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template) to render the zoomed image in |
+| Property       | Type                        | Default  | Description                                                                                                |
+|----------------|-----------------------------|----------|------------------------------------------------------------------------------------------------------------|
+| `margin`       | `number`                    | `0`      | The space outside the zoomed image                                                                         |
+| `background`   | `string`                    | `"#fff"` | The color of the overlay                                                                                   |
+| `scrollOffset` | `number`                    | `48`     | The number of pixels to scroll to dismiss the zoom                                                         |
+| `metaClick`    | `boolean`                   | `true`   | Enables the action on [meta click](https://en.wikipedia.org/wiki/Meta_key) (opens the link / image source) |
+| `container`    | `string`/`Element`/`object` |          | The element to render the zoom in or a viewport object. [Read more →](#using-a-custom-container)           |
+| `template`     | `string`/`Element`          |          | The template element to show on zoom. [Read more →](#using-a-custom-template)                              |
 
 ```js
 mediumZoom('[data-action="zoom"]', {
@@ -149,23 +150,75 @@ mediumZoom('[data-action="zoom"]', {
   background: '#000',
   scrollOffset: 0,
   metaClick: false,
-  container: '#zoom-container'
+  container: '[data-zoom-container]',
+  template: '#zoom-template',
 })
 ```
 
 #### Using a custom `container`
 
-You might want to render the zoom in your own container. You could reproduce zooms as seen on Facebook or Dropbox Paper. This is possible with the `container` option.
+The zoom is by default rendered in the window viewport. You can also render your image in any element of the DOM, or any custom coordinates with the `container` option.
 
-1. Create a `template` element matching the `container` option value
-2. If you'd like your image to appear at a specific location in your template, specify the `data-zoom-container` attribute on the element
+##### Rendering in a DOM Element
 
 ```html
-<template id="zoom-container">
-  <header>My image zoom template</header>
-  <div data-zoom-container></div>
-  <aside>Comment on my image</aside>
+<article>
+  <p>My article...</p>
+  <img src="image.jpg" alt="My image">
+  <div data-zoom-container>
+</article>
+
+<script>
+  mediumZoom('img', {
+    container: '[data-zoom-container]' // or document.querySelector('[data-zoom-container]')
+  })
+</script>
+```
+
+##### Rendering with coordinates
+
+If you don't already have an element in your DOM to specify the position of the zoom, you can pass an object with the following `number` properties:
+
+```js
+
+mediumZoom('img', {
+  container: {
+    width: 720,
+    height: 480,
+    top: 64,
+    bottom: 64,
+    right: 0,
+    left: 0
+  }
+})
+```
+
+These properties behave very much like [Element.getBoundingClientRect()](https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect). They will get merged with the default ones so you don't need to specify all of them.
+
+The default `width` and `height` are `window.innerWidth` and `window.innerHeight`. Others are set to `0`.
+
+#### Using a custom `template`
+
+You might want to render the zoom in your own template. You could reproduce zooms as seen on Facebook or Dropbox Paper. This is possible with the `template` option.
+
+1. Create a [`template`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template) element matching the `template` option value
+2. If you'd like your image to appear at a specific position in your template, specify the `container` option and add it in your template (`data-zoom-container` here)
+
+```html
+<template id="zoom-template">
+  <div>
+    <header>My image zoom template</header>
+    <div data-zoom-container></div>
+    <aside>Comment on my image</aside>
+  </div>
 </template>
+
+<script>
+  mediumZoom('[data-action="zoom"]', {
+    template: '#zoom-template',
+    container: '[data-zoom-container]'
+  })
+</script>
 ```
 
 ### Methods
