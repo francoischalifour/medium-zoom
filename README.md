@@ -151,7 +151,7 @@ mediumZoom('[data-action="zoom"]', {
   scrollOffset: 0,
   metaClick: false,
   container: '[data-zoom-container]',
-  template: '#zoom-template',
+  template: '#zoom-template'
 })
 ```
 
