@@ -3,37 +3,40 @@ const KEY_ESC = 27
 const KEY_Q = 81
 const CANCEL_KEYS = [KEY_ESC, KEY_Q]
 
-const isSupported = img =>
-  SUPPORTED_FORMATS.includes(img.tagName)
+const isSupported = img => SUPPORTED_FORMATS.includes(img.tagName)
 
-const isScaled = img =>
-  img.naturalWidth !== img.width
+const isScaled = img => img.naturalWidth !== img.width
 
 const isListOrCollection = selector =>
   NodeList.prototype.isPrototypeOf(selector) ||
   HTMLCollection.prototype.isPrototypeOf(selector)
 
-const isNode = selector =>
-  (selector && selector.nodeType === 1)
+const isNode = selector => selector && selector.nodeType === 1
 
 /**
  * Attaches a zoom effect on a selection of images.
  *
- * @param {(string|Object[])} [selector] The images to attach the zoom to
+ * @param {(string|Element[])} selector The selector to target the images to attach the zoom to
+ * @param {object} options The options of the zoom
  * @param {number} [options.margin=0] The space outside the zoomed image
  * @param {string} [options.background="#fff"] The color of the overlay
  * @param {number} [options.scrollOffset=48] The number of pixels to scroll to dismiss the zoom
  * @param {boolean} [options.metaClick=true] A boolean to enable the default action on meta click
+ * @param {(string|Element|object)} [options.container] The element to render the zoom in or a viewport object
+ * @param {(string|Element)} [options.template] The template element to show on zoom
  * @return The zoom object
  */
-const mediumZoom = (selector, {
-  margin = 0,
-  background = '#fff',
-  scrollOffset = 48,
-  metaClick = true,
-  container,
-  template
-} = {}) => {
+const mediumZoom = (
+  selector,
+  {
+    margin = 0,
+    background = '#fff',
+    scrollOffset = 48,
+    metaClick = true,
+    container,
+    template
+  } = {}
+) => {
   const selectImages = selector => {
     try {
       return Array.isArray(selector)
@@ -44,9 +47,11 @@ const mediumZoom = (selector, {
             ? [selector].filter(isSupported)
             : typeof selector === 'string'
               ? [...document.querySelectorAll(selector)].filter(isSupported)
-              : [...document.querySelectorAll(
+              : [
+                ...document.querySelectorAll(
                   SUPPORTED_FORMATS.map(attr => attr.toLowerCase()).join(',')
-                )].filter(isScaled)
+                )
+              ].filter(isScaled)
     } catch (err) {
       throw new TypeError(
         'The provided selector is invalid.\n' +
@@ -67,8 +72,16 @@ const mediumZoom = (selector, {
   const cloneTarget = template => {
     const { top, left, width, height } = template.getBoundingClientRect()
     const clone = template.cloneNode()
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
-    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0
+    const scrollTop =
+      window.pageYOffset ||
+      document.documentElement.scrollTop ||
+      document.body.scrollTop ||
+      0
+    const scrollLeft =
+      window.pageXOffset ||
+      document.documentElement.scrollLeft ||
+      document.body.scrollLeft ||
+      0
 
     clone.removeAttribute('id')
     clone.style.position = 'absolute'
@@ -86,7 +99,11 @@ const mediumZoom = (selector, {
 
     target.original.dispatchEvent(new Event('show'))
 
-    scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
+    scrollTop =
+      window.pageYOffset ||
+      document.documentElement.scrollTop ||
+      document.body.scrollTop ||
+      0
     isAnimating = true
     target.zoomed = cloneTarget(target.original)
 
@@ -120,7 +137,9 @@ const mediumZoom = (selector, {
 
       target.zoomedHd.onerror = () => {
         clearInterval(getZoomTargetSize)
-        console.error(`Unable to reach the zoom image target ${target.zoomedHd.src}`)
+        console.error(
+          `Unable to reach the zoom image target ${target.zoomedHd.src}`
+        )
         target.zoomedHd = null
         animateTarget()
       }
@@ -166,7 +185,7 @@ const mediumZoom = (selector, {
       target.zoomed.addEventListener('transitionend', onZoomOutEnd)
     }
 
-    (timeout > 0) ? setTimeout(doZoomOut, timeout) : doZoomOut()
+    timeout > 0 ? setTimeout(doZoomOut, timeout) : doZoomOut()
   }
 
   const triggerZoom = event => {
@@ -188,7 +207,11 @@ const mediumZoom = (selector, {
       (overlay.style.backgroundColor = newOptions.background)
 
     if (newOptions.container && newOptions.container instanceof Object) {
-      newOptions.container = Object.assign({}, options.container, newOptions.container)
+      newOptions.container = Object.assign(
+        {},
+        options.container,
+        newOptions.container
+      )
     }
 
     return Object.assign(options, newOptions)
@@ -224,7 +247,10 @@ const mediumZoom = (selector, {
       doDetach()
     } else {
       zoomOut()
-      target.zoomed.addEventListener('transitionend', requestAnimationFrame(doDetach))
+      target.zoomed.addEventListener(
+        'transitionend',
+        requestAnimationFrame(doDetach)
+      )
     }
   }
 
@@ -232,10 +258,11 @@ const mediumZoom = (selector, {
     if (event.metaKey || event.ctrlKey) {
       if (options.metaClick) {
         return window.open(
-          (event.target.getAttribute('data-original') ||
-          event.target.parentNode.href ||
-          event.target.src),
-          '_blank')
+          event.target.getAttribute('data-original') ||
+            event.target.parentNode.href ||
+            event.target.src,
+          '_blank'
+        )
       }
     }
 
@@ -275,7 +302,11 @@ const mediumZoom = (selector, {
   const onScroll = () => {
     if (isAnimating || !target.original) return
 
-    const currentScroll = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
+    const currentScroll =
+      window.pageYOffset ||
+      document.documentElement.scrollTop ||
+      document.body.scrollTop ||
+      0
 
     if (Math.abs(scrollTop - currentScroll) > options.scrollOffset) {
       zoomOut(150)
@@ -308,31 +339,51 @@ const mediumZoom = (selector, {
         Object.assign(container, options.container)
 
         // We need to adjust custom options like container.right or container.bottom
-        viewportWidth = container.width - container.left - container.right - (options.margin * 2)
-        viewportHeight = container.height - container.top - container.bottom - (options.margin * 2)
+        viewportWidth =
+          container.width -
+          container.left -
+          container.right -
+          options.margin * 2
+        viewportHeight =
+          container.height -
+          container.top -
+          container.bottom -
+          options.margin * 2
       } else {
         // The container is given as an element
         const zoomContainer = isNode(options.container)
           ? options.container
           : document.querySelector(options.container)
 
-        const { width, height, left, top } = zoomContainer.getBoundingClientRect()
+        const {
+          width,
+          height,
+          left,
+          top
+        } = zoomContainer.getBoundingClientRect()
         Object.assign(container, { width, height, left, top })
       }
     }
 
-    viewportWidth = viewportWidth || container.width - (options.margin * 2)
-    viewportHeight = viewportHeight || container.height - (options.margin * 2)
+    viewportWidth = viewportWidth || container.width - options.margin * 2
+    viewportHeight = viewportHeight || container.height - options.margin * 2
 
     const zoomTarget = target.zoomedHd || target.original
-    const { naturalWidth = viewportWidth, naturalHeight = viewportHeight } = zoomTarget
+    const {
+      naturalWidth = viewportWidth,
+      naturalHeight = viewportHeight
+    } = zoomTarget
     const { top, left, width, height } = zoomTarget.getBoundingClientRect()
 
     const scaleX = Math.min(naturalWidth, viewportWidth) / width
     const scaleY = Math.min(naturalHeight, viewportHeight) / height
     const scale = Math.min(scaleX, scaleY) || 1
-    const translateX = (-left + ((viewportWidth - width) / 2) + options.margin + container.left) / scale
-    const translateY = (-top + ((viewportHeight - height) / 2) + options.margin + container.top) / scale
+    const translateX =
+      (-left + (viewportWidth - width) / 2 + options.margin + container.left) /
+      scale
+    const translateY =
+      (-top + (viewportHeight - height) / 2 + options.margin + container.top) /
+      scale
     const transform = `scale(${scale}) translate3d(${translateX}px, ${translateY}px, 0)`
 
     target.zoomed.style.transform = transform

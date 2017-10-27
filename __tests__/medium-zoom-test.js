@@ -226,7 +226,9 @@ describe('update', () => {
 
     expect(options).toEqual(expected)
     expect(zoom.options).toEqual(expected)
-    expect(document.querySelector('.medium-zoom-overlay').style.backgroundColor).toBe('rgb(0, 0, 0)')
+    expect(
+      document.querySelector('.medium-zoom-overlay').style.backgroundColor
+    ).toBe('rgb(0, 0, 0)')
   })
 
   test('with scroll offset updates the scroll offset option and returns all options', () => {
