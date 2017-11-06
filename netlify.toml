@@ -1,0 +1,27 @@
+[build]
+  command = "npm run preview"
+  publish = "examples"
+
+[[redirects]]
+  from = "/"
+  to = "/demo"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/preview"
+  to = "/demo/preview"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/react"
+  to = "/react/build"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/react-markdown"
+  to = "/react-markdown/build"
+  status = 200
+  force = true
