@@ -21,7 +21,7 @@
     "prebuild": "npm run lint && npm run test && npm run clean",
     "build": "NODE_ENV=build rollup --config",
     "dev": "NODE_ENV=build rollup --config --watch",
-    "preview": "npm run build && cp ./dist/* ./examples/javascript/preview/"
+    "preview": "npm run build && cp ./dist/* ./examples/demo/preview/"
   },
   "browserslist": [
     "> 1%",

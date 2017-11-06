@@ -1,5 +1,5 @@
 {
-  "name": "@medium-zoom/react",
+  "name": "@medium-zoom/react-markdown",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -12,6 +12,7 @@
     "medium-zoom": "^0.2.0",
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
+    "react-markdown": "^2.5.0",
     "react-scripts": "1.0.14"
   }
 }
