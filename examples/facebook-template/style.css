@@ -1,0 +1,76 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'AtlasGrotesk-dmc', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-size: 20px;
+  color: #212121;
+  background-color: #fff;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1 {
+  font-size: 2em;
+  margin-bottom: 2em;
+}
+
+p {
+  line-height: 1.5;
+  margin: 2em 0;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.container {
+  width: 100%;
+  max-width: 768px;
+  margin: 48px auto;
+  padding: 16px;
+}
+
+.facebook-wrapper {
+  position: fixed;
+  display: flex;
+  top: 0;
+  height: 520px;
+  top: 0;
+  bottom: 0;
+  left: 4rem;
+  right: 4rem;
+  margin: auto;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+}
+
+.facebook-main {
+  flex: 1;
+  height: 100%;
+  background-color: #000;
+}
+
+.facebook-sidebar {
+  width: 360px;
+  background-color: #fff;
+  padding: 32px 0 16px 0;
+}
+
+@media (max-width: 800px) {
+  .facebook-sidebar {
+    display: none;
+  }
+}
+
+.facebook-close {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  cursor: pointer;
+  fill: #ddd;
+}
