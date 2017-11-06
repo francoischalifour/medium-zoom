@@ -31,7 +31,7 @@ a {
   text-decoration: none;
 }
 
-p {
+.container p {
   line-height: 1.5;
   margin: 0 0 2em;
   word-break: break-all;
