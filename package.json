@@ -21,7 +21,7 @@
     "prebuild": "npm run lint && npm run test && npm run clean",
     "build": "NODE_ENV=build rollup --config",
     "dev": "NODE_ENV=build rollup --config --watch",
-    "preview": "npm run build && cp ./dist/* ./examples/demo/preview/"
+    "preview": "npm run build && cp ./dist/* ./examples/demo/preview/ && npm install --prefix examples/react && npm run build --prefix examples/react && npm install --prefix examples/react-markdown && npm run build --prefix examples/react-markdown"
   },
   "browserslist": [
     "> 1%",
