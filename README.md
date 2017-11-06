@@ -425,7 +425,7 @@ setTimeout(() => {
 ```
 </details>
 
-You can see [more examples](examples/) including [vanilla JavaScript](examples/javascript) and [React ⚛️](examples/react).
+You can see [more examples](examples/) including [vanilla JavaScript](examples/demo) and [React ⚛️](examples/react).
 
 ## Demo
 
@@ -435,7 +435,7 @@ You can see [more examples](examples/) including [vanilla JavaScript](examples/j
 
 * Run `npm install` to install Node dev dependencies
 * Run `npm run dev` to watch changes and rebuild the library
-* Open [`examples/javascript/development/index.html`](examples/javascript/development/index.html) to check your changes (it includes [`dist/medium-zoom.min.js`](dist/medium-zoom.min.js) which is watched with `npm run dev`)
+* Open [`examples/demo/development/index.html`](examples/demo/development/index.html) to check your changes (it includes [`dist/medium-zoom.min.js`](dist/medium-zoom.min.js) which is watched with `npm run dev`)
 
 ##### More commands
 
