@@ -33,7 +33,6 @@ a {
 
 .container p {
   line-height: 1.5;
-  margin: 0 0 2em;
   word-break: break-all;
   word-break: break-word;
   -webkit-hyphens: auto;
@@ -43,6 +42,7 @@ a {
 }
 
 .placeholder {
+  margin: 2em 0;
   text-align: justify;
   pointer-events: none;
   user-select: none;
@@ -53,7 +53,7 @@ a {
   background: #eee;
   border-radius: 3px;
   letter-spacing: 0.2em;
-  font-size: 0.8em;
+  font-size: 0.7em;
 }
 
 .header,
@@ -195,7 +195,7 @@ img {
 figcaption {
   font-size: 0.8em;
   font-weight: 300;
-  margin: 16px;
+  margin: 1em;
   text-align: center;
   color: #666;
 }
@@ -210,15 +210,11 @@ blockquote {
   background-color: #f7f7f7;
 }
 
-blockquote p {
-  margin-bottom: 1em;
-}
-
 pre {
   font-family: Monaco, Consolas, Menlo, monospace;
   font-size: 0.8em;
   padding: 24px;
-  margin: 1em 0;
+  margin: 2em 0;
   color: #fff;
   border-radius: 4px;
   background-color: #222;

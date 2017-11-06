@@ -46,20 +46,20 @@
     zoomToDetach
   ]
 
-  // Write in the journal every time an image is zoomed
-  var journal = document.querySelector('#journal')
+  // Log all interactions in the history
+  var history = document.querySelector('#history')
 
   containerZoom.forEach(function(zoom) {
     zoom.addEventListeners('show', function(event) {
       var time = new Date().toLocaleTimeString()
-      journal.innerHTML +=
-        '<p>❯ "' + event.target.alt + '" was zoomed at ' + time
+      history.innerHTML +=
+        '<p>▶ "' + event.target.alt + '" was zoomed at ' + time
     })
 
     zoom.addEventListeners('detach', function(event) {
       var time = new Date().toLocaleTimeString()
-      journal.innerHTML +=
-        '<p>❯ "' + event.target.alt + '" was detached at ' + time
+      history.innerHTML +=
+        '<p>▶ "' + event.target.alt + '" was detached at ' + time
     })
   })
 })()
