@@ -14,6 +14,8 @@ class Post extends Component {
   render () {
     return (
       <article className='container'>
+        <h1>React Markdown demo</h1>
+
         <ReactMarkdown source={this.props.post} />
       </article>
     )

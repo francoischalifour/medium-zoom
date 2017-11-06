@@ -9,6 +9,8 @@ class App extends Component {
   render() {
     return (
       <article className="container">
+        <h1>React demo</h1>
+
         <img src="images/image-1.jpg" alt="Image 1" ref={this.attachZoom} />
 
         <p>
