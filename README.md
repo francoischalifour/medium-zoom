@@ -193,13 +193,13 @@ mediumZoom('img', {
 })
 ```
 
-These properties behave very much like [Element.getBoundingClientRect()](https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect). They will get merged with the default ones so you don't need to specify all of them.
+These properties behave very much like [`Element.getBoundingClientRect()`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect). They will get merged with the default ones so you don't need to specify all of them.
 
 The default `width` and `height` are `window.innerWidth` and `window.innerHeight`. Others are set to `0`.
 
 #### Using a custom `template`
 
-You might want to render the zoom in your own template. You could reproduce zooms as seen on Facebook or Dropbox Paper. This is possible with the `template` option.
+You might want to render the zoom in your own template. You could reproduce zooms as seen on [Facebook](examples/facebook-template) or [Dropbox Paper](examples/dropbox-paper-template). This is possible with the `template` option.
 
 1. Create a [`template`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template) element matching the `template` option value
 2. If you'd like your image to appear at a specific position in your template, specify the `container` option and add it in your template (`data-zoom-container` here)
@@ -220,6 +220,8 @@ You might want to render the zoom in your own template. You could reproduce zoom
   })
 </script>
 ```
+
+Go to the [`examples/`](examples) folder for more details.
 
 ### Methods
 
