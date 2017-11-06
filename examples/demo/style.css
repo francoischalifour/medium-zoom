@@ -12,7 +12,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2 {
+h1,
+h2 {
   font-family: 'Varela Round';
 }
 
@@ -41,7 +42,22 @@ p {
   hyphens: auto;
 }
 
-.header, .footer {
+.placeholder {
+  text-align: justify;
+  pointer-events: none;
+  user-select: none;
+}
+
+.placeholder__word {
+  color: #eee;
+  background: #eee;
+  border-radius: 3px;
+  letter-spacing: 0.2em;
+  font-size: 0.8em;
+}
+
+.header,
+.footer {
   overflow: hidden;
   position: relative;
   display: -webkit-flex;
@@ -53,10 +69,10 @@ p {
   padding: 92px 24px;
   text-align: center;
   color: #fff;
-  background: #00AB6C;
-  background: -moz-linear-gradient(top, #00AB6C 0%, #13cc69 100%);
-  background: -webkit-linear-gradient(top, #00AB6C 0%,#13cc69 100%);
-  background: linear-gradient(to bottom, #00AB6C 0%,#13cc69 100%);
+  background: #00ab6c;
+  background: -moz-linear-gradient(top, #00ab6c 0%, #13cc69 100%);
+  background: -webkit-linear-gradient(top, #00ab6c 0%, #13cc69 100%);
+  background: linear-gradient(to bottom, #00ab6c 0%, #13cc69 100%);
   align-items: center;
   justify-content: center;
 }
@@ -66,7 +82,7 @@ p {
   position: absolute;
   top: calc(100% - 16px);
   width: 100%;
-  background-color: rgba(255,255,255,.3);
+  background-color: rgba(255, 255, 255, 0.3);
   height: 92px;
   transform: skewY(2deg);
 }
@@ -76,20 +92,20 @@ p {
   position: absolute;
   top: calc(100% - 16px);
   width: 100%;
-  background-color: rgba(255,255,255,.5);
+  background-color: rgba(255, 255, 255, 0.5);
   height: 92px;
   transform: skewY(-4deg);
 }
 
 .header__title {
   font-size: 3em;
-  margin-bottom: .4em;
+  margin-bottom: 0.4em;
 }
 
 .header__subtitle {
   font-size: 1.2em;
-  letter-spacing: -.02em;
-  color: rgba(255, 255, 255, .8);
+  letter-spacing: -0.02em;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .header__info {
@@ -99,7 +115,7 @@ p {
 
 .footer__copyright {
   margin: 2em 0;
-  color: rgba(255, 255, 255, .8);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .footer a {
@@ -122,12 +138,17 @@ p {
   min-width: 120px;
   margin: 4px;
   padding: 16px 24px;
-  transition: all .16s;
+  transition: all 0.16s;
   border: none;
   border-radius: 32px;
-  font-size: .8em;
+  font-size: 0.8em;
   color: #fff;
-  background-color: #13cc69;
+  background: #00ab6c;
+  background: -moz-linear-gradient(left, #13cc69 0%, #00ab6c 100%);
+  background: -webkit-linear-gradient(left, #13cc69 0%, #00ab6c 100%);
+  background: linear-gradient(to right, #13cc69 0%, #00ab6c 100%);
+  box-shadow: 0 2px 6px 0 rgba(0, 171, 108, 0.32);
+  transition: all 300ms;
 }
 
 button.button {
@@ -138,15 +159,19 @@ button.button {
 
 .button:hover,
 button.button:hover {
-  background-color: #00AB6C;
+  box-shadow: 0 2px 8px 0 rgba(0, 171, 108, 0.64);
 }
 
 .button.button--action {
-  background-color: #2196f3;
+  background: #7c4dff;
+  background: -moz-linear-gradient(left, #7c4dff 0%, #6200ea 100%);
+  background: -webkit-linear-gradient(left, #7c4dff 0%, #6200ea 100%);
+  background: linear-gradient(to right, #7c4dff 0%, #6200ea 100%);
+  box-shadow: 0 2px 6px 0 rgba(98, 0, 234, 0.32);
 }
 
 .button.button--action:hover {
-  background-color: #1976d2;
+  box-shadow: 0 2px 8px 0 rgba(98, 0, 234, 0.64);
 }
 
 .header .button,
@@ -158,7 +183,7 @@ button.button:hover {
 
 .header .button:hover,
 .footer .button:hover {
-  color: #13cc69;
+  color: #00ab6c;
   background-color: #fff;
 }
 
@@ -168,22 +193,21 @@ img {
 }
 
 figcaption {
-  font-size: .8em;
+  font-size: 0.8em;
   font-weight: 300;
   margin: 16px;
   text-align: center;
-  color: #999;
+  color: #666;
 }
 
 blockquote {
   font-family: Monaco, Consolas, Menlo, monospace;
-  font-size: .8em;
+  font-size: 0.8em;
   display: block;
   padding: 24px;
-  color: #777;
-  border-radius: 2px;
+  color: #666;
+  border-radius: 4px;
   background-color: #f7f7f7;
-  min-height: 128px; /* avoid the jump when the image is detached */
 }
 
 blockquote p {
@@ -192,16 +216,17 @@ blockquote p {
 
 pre {
   font-family: Monaco, Consolas, Menlo, monospace;
-  font-size: .8em;
+  font-size: 0.8em;
   padding: 24px;
   margin: 1em 0;
   color: #fff;
-  border-radius: 2px;
+  border-radius: 4px;
   background-color: #222;
 }
 
 @media (min-width: 900px) {
-  .pull-left, .pull-right {
+  .pull-left,
+  .pull-right {
     width: 400px;
     margin: 24px;
   }
@@ -215,22 +240,4 @@ pre {
     float: left;
     margin-left: -92px;
   }
-}
-
-.card {
-  vertical-align: middle;
-  display: inline-block;
-  box-sizing: border-box;
-  max-width: 350px;
-  width: 30%;
-  margin: 16px 4px;
-  background: #fff;
-  border-radius: 4px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .24);
-}
-
-.card img {
-  width: 100%;
-  display: block;
 }

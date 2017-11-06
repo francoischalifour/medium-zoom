@@ -1,17 +1,18 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#00ab6c">
 
-    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="shortcut icon" href="../icons/favicon.ico">
+    <link rel="manifest" href="../manifest.json">
 
     <link href="https://fonts.googleapis.com/css?family=Varela+Round|Work+Sans" rel="stylesheet">
     <link href="../reset.css" rel="stylesheet">
     <link href="../style.css" rel="stylesheet">
 
-    <title>Medium Zoom | Demo</title>
+    <title>Medium Zoom | Preview</title>
   </head>
 
   <body>
@@ -26,7 +27,6 @@
     </header>
 
     <article class="container">
-
       <figure>
         <img
           id="zoom-default"
@@ -36,7 +36,7 @@
         <figcaption>Zoom with default options</figcaption>
       </figure>
 
-      <p>
+      <p class="placeholder">
         Lorem ipsum dolor sit amet, consectetur adipisicing elit.
         Tempora praesentium cupiditate fugit voluptas, rem eligendi, voluptatem molestias pariatur atque amet,
         dicta, similique beatae optio quos! Hic necessitatibus dicta magni, tempore.
@@ -53,7 +53,7 @@
         <figcaption>Zoom with margin</figcaption>
       </figure>
 
-      <p>
+      <p class="placeholder">
         Lorem ipsum dolor sit amet, consectetur adipisicing elit.
         Ea dolores quaerat, quis modi nostrum sequi adipisci ratione esse
          blanditiis error beatae vel non vero dolor nemo. Animi nemo quisquam ducimus!
@@ -68,7 +68,7 @@
         <figcaption>Zoom with background color</figcaption>
       </figure>
 
-      <p>
+      <p class="placeholder">
         Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dignissimos magnam illo,
         quam iusto, autem ratione commodi deleniti vero magni fuga consectetur expedita,
         voluptatum enim quidem? Rem, minima laboriosam hic! Id.
@@ -83,25 +83,25 @@
         <figcaption>Zoom without scroll offset</figcaption>
       </figure>
 
-      <p>
+      <p class="placeholder">
         Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusamus cum nulla
         eligendi recusandae at quae odio, harum nesciunt ut temporibus vitae, laudantium minus.
         Iste officia aliquid, laborum ratione maxime beatae.
       </p>
 
-      <p>
+      <p class="placeholder">
         Lorem ipsum dolor sit amet, consectetur adipisicing elit. Enim asperiores totam fugiat
         repellendus laboriosam accusantium, possimus similique quos repellat molestias excepturi
         ad perspiciatis beatae! Qui repellat numquam incidunt, accusamus autem.
       </p>
 
-      <p>
+      <p class="placeholder">
         Lorem ipsum dolor sit amet, consectetur adipisicing elit.
         Corrupti provident sunt recusandae enim commodi ab dolorem ipsum dolor magni
         reprehenderit accusantium quasi a autem neque asperiores, tenetur impedit repudiandae quos.
       </p>
 
-      <p>
+      <p class="placeholder">
         Lorem ipsum dolor sit amet, consectetur adipisicing elit.
         Accusamus cum nulla eligendi recusandae at quae odio, harum nesciunt ut
         temporibus vitae, laudantium minus. Iste officia aliquid, laborum ratione maxime beatae.
@@ -116,25 +116,25 @@
         <figcaption>Zoom without meta click</figcaption>
       </figure>
 
-      <p>
+      <p class="placeholder">
         Lorem ipsum dolor sit amet, consectetur adipisicing elit.
         Accusamus cum nulla eligendi recusandae at quae odio, harum nesciunt ut
         temporibus vitae, laudantium minus. Iste officia aliquid, laborum ratione maxime beatae.
       </p>
 
-      <p>
+      <p class="placeholder">
         Lorem ipsum dolor sit amet, consectetur adipisicing elit.
         Corrupti provident sunt recusandae enim commodi ab dolorem ipsum dolor magni
         reprehenderit accusantium quasi a autem neque asperiores, tenetur impedit repudiandae quos.
       </p>
 
-      <p>
+      <p class="placeholder">
         Lorem ipsum dolor sit amet, consectetur adipisicing elit.
         Corporis veritatis cupiditate iure velit laboriosam eius nesciunt officiis
         odit cumque deleniti assumenda esse exercitationem ducimus, accusantium eligendi itaque dolorem molestias saepe!
       </p>
 
-      <p>
+      <p class="placeholder">
         Lorem ipsum dolor sit amet, consectetur adipisicing elit.
         Accusamus cum nulla eligendi recusandae at quae odio, harum nesciunt ut
         temporibus vitae, laudantium minus. Iste officia aliquid, laborum ratione maxime beatae.
@@ -151,7 +151,7 @@
         </figcaption>
       </figure>
 
-      <p>
+      <p class="placeholder">
         Lorem ipsum dolor sit amet, consectetur adipisicing elit.
         Corrupti provident sunt recusandae enim commodi ab dolorem ipsum dolor magni
         reprehenderit accusantium quasi a autem neque asperiores, tenetur impedit repudiandae quos.
@@ -165,77 +165,6 @@
         >
         <figcaption>Zoom detached after being zoomed once</figcaption>
       </figure>
-
-      <h2>Images in `overflow: hidden` containers</h2>
-
-      <div class="layout">
-        <div class="content">
-          <div class="card">
-            <figure>
-              <img
-                class="container-overflow"
-                src="https://images.unsplash.com/photo-1502508512528-19b6a9fa4e95?ixlib=rb-0.3.5&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1920&fit=max&s=3b05e061cf6220cd16eeed6adf3be515"
-                alt="No zoom target"
-              >
-              <figcaption>No zoom target</figcaption>
-            </figure>
-          </div>
-          <div class="card">
-            <figure>
-              <img
-                class="container-overflow"
-                src="https://images.unsplash.com/photo-1502772066658-3006ff41449b?ixlib=rb-0.3.5&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=640&fit=max&s=6fa8ec1e3b33dc527d677aa37e14661a"
-                data-zoom-target="https://images.unsplash.com"
-                alt="Broken zoom target"
-              >
-              <figcaption>Broken zoom target</figcaption>
-            </figure>
-          </div>
-          <div class="card">
-            <figure>
-                <img
-                  class="container-overflow"
-                  src="https://images.unsplash.com/photo-1488217820102-3ef7cfe8bb4e?dpr=1&auto=compress,format&fit=crop&w=150&h=&q=80&cs=tinysrgb&crop="
-                  data-zoom-target="https://images.unsplash.com/photo-1488217820102-3ef7cfe8bb4e?dpr=1&auto=compress,format&fit=crop&w=1920&h=&q=80&cs=tinysrgb&crop="
-                  alt="HD zoom target"
-                >
-                <figcaption>HD zoom target</figcaption>
-              </figure>
-          </div>
-          <div class="card">
-            <figure>
-              <img
-                class="container-overflow"
-                src="https://images.unsplash.com/photo-1495548774443-1f50ef99b0d2?dpr=1&auto=compress,format&fit=crop&w=1268&h=&q=80&cs=tinysrgb&crop="
-                alt="No zoom target"
-              >
-              <figcaption>No zoom target</figcaption>
-            </figure>
-          </div>
-          <div class="card">
-            <figure>
-              <img
-                class="container-overflow"
-                src="https://images.unsplash.com/photo-1481671703460-040cb8a2d909?dpr=1&auto=compress,format&fit=crop&w=350&h=&q=80&cs=tinysrgb&crop="
-                data-zoom-target="https://images.unsplash.com/photo-1504280317859-9c6cce36bca8?dpr=1&auto=compress,format&fit=crop&w=1920&h=&q=80&cs=tinysrgb&crop="
-                alt="Other zoom target"
-              >
-              <figcaption>Other zoom target</figcaption>
-            </figure>
-          </div>
-          <div class="card">
-            <figure>
-              <img
-                class="container-overflow"
-                src="https://images.unsplash.com/photo-1496806195556-91bdded94209?dpr=1&auto=compress,format&fit=crop&w=50&h=&q=80&cs=tinysrgb&crop="
-                data-zoom-target="https://images.unsplash.com/photo-1496806195556-91bdded94209?dpr=1&auto=compress,format&fit=crop&w=1350&h=&q=80&cs=tinysrgb&crop="
-                alt=""
-              >
-              <figcaption>HD zoom target</figcaption>
-            </figure>
-          </div>
-        </div>
-      </div>
 
       <h2>Journal</h2>
 
@@ -271,8 +200,6 @@
     <script src="medium-zoom.min.js"></script>
     <script>
       console.info('You\'re in preview environment 🖥')
-
-      mediumZoom('.container-overflow')
     </script>
     <script src="../demo.js"></script>
   </body>
