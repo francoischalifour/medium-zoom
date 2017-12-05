@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://medium-zoom.francoischalifour.com"><img src="logo.svg" width="64"></a>
+  <a href="https://medium-zoom.francoischalifour.com"><img src="logo.svg" alt="Demo" width="64"></a>
   <h3 align="center">medium-zoom</h3>
   <p align="center">Medium zoom on your images in vanilla JavaScript 🔎 🖼</p>
 </p>
@@ -141,8 +141,8 @@ Options can be passed via a JavaScript object through the `mediumZoom` call.
 | `background`   | `string`                    | `"#fff"` | The color of the overlay                                                                                   |
 | `scrollOffset` | `number`                    | `48`     | The number of pixels to scroll to dismiss the zoom                                                         |
 | `metaClick`    | `boolean`                   | `true`   | Enables the action on [meta click](https://en.wikipedia.org/wiki/Meta_key) (opens the link / image source) |
-| `container`    | `string`/`Element`/`object` |          | The element to render the zoom in or a viewport object. [Read more →](#using-a-custom-container)           |
-| `template`     | `string`/`Element`          |          | The template element to show on zoom. [Read more →](#using-a-custom-template)                              |
+| `container`    | `string`\|`Element`\|`object` |          | The element to render the zoom in or a viewport object. [Read more →](#using-a-custom-container)           |
+| `template`     | `string`\|`Element`          |          | The template element to show on zoom. [Read more →](#using-a-custom-template)                              |
 
 ```js
 mediumZoom('[data-action="zoom"]', {
@@ -150,7 +150,7 @@ mediumZoom('[data-action="zoom"]', {
   background: '#000',
   scrollOffset: 0,
   metaClick: false,
-  container: '[data-zoom-container]',
+  container: '#zoom-container',
   template: '#zoom-template'
 })
 ```
@@ -165,12 +165,12 @@ The zoom is by default rendered in the window viewport. You can also render your
 <article>
   <p>My article...</p>
   <img src="image.jpg" alt="My image">
-  <div data-zoom-container>
+  <div id="zoom-container"></div>
 </article>
 
 <script>
   mediumZoom('img', {
-    container: '[data-zoom-container]' // or document.querySelector('[data-zoom-container]')
+    container: '#zoom-container' // or document.querySelector('#zoom-container')
   })
 </script>
 ```
@@ -202,13 +202,13 @@ The default `width` and `height` are `window.innerWidth` and `window.innerHeight
 You might want to render the zoom in your own template. You could reproduce zooms as seen on [Facebook](examples/facebook-template) or [Dropbox Paper](examples/dropbox-paper-template). This is possible with the `template` option.
 
 1. Create a [`template`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template) element matching the `template` option value
-2. If you'd like your image to appear at a specific position in your template, specify the `container` option and add it in your template (`data-zoom-container` here)
+2. If you'd like your image to appear at a specific position in your template, specify the `container` option and add it in your template (`#zoom-container` here)
 
 ```html
 <template id="zoom-template">
   <div>
     <header>My image zoom template</header>
-    <div data-zoom-container></div>
+    <div id="zoom-container"></div>
     <aside>Comment on my image</aside>
   </div>
 </template>
@@ -216,7 +216,7 @@ You might want to render the zoom in your own template. You could reproduce zoom
 <script>
   mediumZoom('[data-action="zoom"]', {
     template: '#zoom-template',
-    container: '[data-zoom-container]'
+    container: '#zoom-container'
   })
 </script>
 ```
