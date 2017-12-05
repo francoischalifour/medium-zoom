@@ -1,5 +1,5 @@
 /* eslint-env jest */
-const mediumZoom = require('../src/medium-zoom')
+import mediumZoom from '../src/medium-zoom'
 
 global.requestAnimationFrame = cb => setTimeout(cb, 0)
 
