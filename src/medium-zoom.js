@@ -437,4 +437,4 @@ const mediumZoom = (
   }
 }
 
-module.exports = mediumZoom
+export default mediumZoom

@@ -4,7 +4,6 @@ import minify from 'rollup-plugin-babel-minify'
 import uglify from 'rollup-plugin-uglify'
 import postcss from 'rollup-plugin-postcss'
 import cssnano from 'cssnano'
-import { list as babelHelpersList } from 'babel-helpers' // TODO: Remove once rollup/rollup#1595 is fixed (https://github.com/rollup/rollup/issues/1595)
 
 import {
   name,
@@ -37,10 +36,8 @@ const plugins = [
   babel({
     exclude: 'node_modules/**',
     plugins: [
-      'transform-object-assign',
-      'external-helpers' // TODO: Remove once rollup/rollup#1595 is fixed
-    ],
-    externalHelpersWhitelist: babelHelpersList.filter(helperName => helperName !== 'asyncGenerator') // TODO: Remove once rollup/rollup#1595 is fixed
+      'transform-object-assign'
+    ]
   })
 ]
 
