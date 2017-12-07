@@ -16,12 +16,13 @@
     "lint:fix": "standard --fix",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:verbose": "jest --verbose",
-    "clean": "rimraf ./dist && mkdir dist",
-    "prebuild": "npm run lint && npm run test && npm run clean",
-    "build": "NODE_ENV=build rollup --config",
-    "dev": "NODE_ENV=build rollup --config --watch",
-    "preview": "npm run build && cp ./dist/* ./examples/demo/preview/"
+    "clear": "rimraf ./dist",
+    "prebuild": "npm run lint && npm run test && npm run clear",
+    "build": "cross-env NODE_ENV=build rollup --config",
+    "dev": "cross-env NODE_ENV=build rollup --config --watch",
+    "preview": "npm run build && cp ./dist/* ./examples/demo/preview/",
+    "prepare": "npm run clear && npm run build",
+    "prepublishOnly": "npm run test && npm run build"
   },
   "browserslist": [
     "> 1%",
@@ -64,6 +65,7 @@
     "babel-plugin-external-helpers": "^6.22.0",
     "babel-plugin-transform-object-assign": "^6.22.0",
     "babel-preset-env": "^1.6.1",
+    "cross-env": "^5.1.1",
     "cssnano": "^3.10.0",
     "jest": "^21.2.1",
     "rimraf": "^2.6.2",
