@@ -21,8 +21,7 @@
     "build": "cross-env NODE_ENV=build rollup --config",
     "dev": "cross-env NODE_ENV=build rollup --config --watch",
     "preview": "npm run build && cp ./dist/* ./examples/demo/preview/",
-    "prepare": "npm run clear && npm run build",
-    "prepublishOnly": "npm run test && npm run build"
+    "prepublishOnly": "npm run build"
   },
   "browserslist": [
     "> 1%",
