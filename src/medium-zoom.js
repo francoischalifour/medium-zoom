@@ -1,9 +1,11 @@
+/* global CustomEvent */
+
 const SUPPORTED_FORMATS = ['IMG']
 const KEY_ESC = 27
 const KEY_Q = 81
 const CANCEL_KEYS = [KEY_ESC, KEY_Q]
 
-const isSupported = img => SUPPORTED_FORMATS.includes(img.tagName)
+const isSupported = img => SUPPORTED_FORMATS.indexOf(img.tagName) > -1
 
 const isScaled = img => img.naturalWidth !== img.width
 
@@ -12,6 +14,23 @@ const isListOrCollection = selector =>
   HTMLCollection.prototype.isPrototypeOf(selector)
 
 const isNode = selector => selector && selector.nodeType === 1
+
+/**
+ * CustomEvent() polyfill for IE. Source modified for lint purposes.
+ *
+ * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent}
+ */
+if (typeof window.CustomEvent !== 'function') {
+  const CustomEvent = (event, params) => {
+    params = params || { bubbles: false, cancelable: false, detail: undefined }
+    const evt = document.createEvent('CustomEvent')
+    evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail)
+    return evt
+  }
+
+  CustomEvent.prototype = window.Event.prototype
+  window.CustomEvent = CustomEvent
+}
 
 /**
  * Attaches a zoom effect on a selection of images.
@@ -42,16 +61,16 @@ const mediumZoom = (
       return Array.isArray(selector)
         ? selector.filter(isSupported)
         : isListOrCollection(selector)
-          ? [...selector].filter(isSupported)
+          ? Array.apply(null, selector).filter(isSupported)
           : isNode(selector)
             ? [selector].filter(isSupported)
             : typeof selector === 'string'
-              ? [...document.querySelectorAll(selector)].filter(isSupported)
-              : [
-                ...document.querySelectorAll(
-                  SUPPORTED_FORMATS.map(attr => attr.toLowerCase()).join(',')
-                )
-              ].filter(isScaled)
+              ? Array.apply(null, document.querySelectorAll(selector)).filter(isSupported)
+              : Array.apply(null,
+                  document.querySelectorAll(
+                    SUPPORTED_FORMATS.map(attr => attr.toLowerCase()).join(',')
+                  )
+                ).filter(isScaled)
     } catch (err) {
       throw new TypeError(
         'The provided selector is invalid.\n' +
@@ -97,7 +116,7 @@ const mediumZoom = (
   const zoom = () => {
     if (!target.original) return
 
-    target.original.dispatchEvent(new Event('show'))
+    target.original.dispatchEvent(new CustomEvent('show'))
 
     scrollTop =
       window.pageYOffset ||
@@ -164,7 +183,7 @@ const mediumZoom = (
     const doZoomOut = () => {
       if (isAnimating || !target.original) return
 
-      target.original.dispatchEvent(new Event('hide'))
+      target.original.dispatchEvent(new CustomEvent('hide'))
 
       isAnimating = true
       document.body.classList.remove('medium-zoom--open')
@@ -225,7 +244,7 @@ const mediumZoom = (
 
   const detach = () => {
     const doDetach = () => {
-      const event = new Event('detach')
+      const event = new CustomEvent('detach')
 
       images.forEach(image => {
         image.classList.remove('medium-zoom-image')
@@ -275,7 +294,7 @@ const mediumZoom = (
     isAnimating = false
     target.zoomed.removeEventListener('transitionend', onZoomEnd)
 
-    target.original.dispatchEvent(new Event('shown'))
+    target.original.dispatchEvent(new CustomEvent('shown'))
   }
 
   const onZoomOutEnd = () => {
@@ -291,7 +310,7 @@ const mediumZoom = (
     isAnimating = false
     target.zoomed.removeEventListener('transitionend', onZoomOutEnd)
 
-    target.original.dispatchEvent(new Event('hidden'))
+    target.original.dispatchEvent(new CustomEvent('hidden'))
 
     target.original = null
     target.zoomed = null
@@ -314,7 +333,7 @@ const mediumZoom = (
   }
 
   const onDismiss = event => {
-    if (CANCEL_KEYS.includes(event.keyCode || event.which)) {
+    if (CANCEL_KEYS.indexOf(event.keyCode || event.which) > -1) {
       zoomOut()
     }
   }
