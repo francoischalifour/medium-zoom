@@ -327,6 +327,13 @@ zoom.addEventListeners('show', event => {
 })
 ```
 
+## Compatibility
+| IE | Edge | Chrome | Firefox | Safari |
+|----|------|--------|---------|--------|
+| No | 12   | 64     | 58      | 11     |
+
+Take a look at [#34](https://github.com/francoischalifour/medium-zoom/issues/34) to learn why IE is not supported.
+
 ## Examples
 
 <details>
