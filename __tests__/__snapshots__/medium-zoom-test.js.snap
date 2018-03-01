@@ -66,7 +66,6 @@ exports[`show renders correctly with template option as a string 1`] = `
     class="medium-zoom-overlay"
     style="background-color: rgb(255, 255, 255);"
   />
-  <div />
   <img
     class="medium-zoom-image medium-zoom-image--open"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
@@ -85,7 +84,6 @@ exports[`show renders correctly with template option as an HTML Element 1`] = `
     class="medium-zoom-overlay"
     style="background-color: rgb(255, 255, 255);"
   />
-  <div />
   <img
     class="medium-zoom-image medium-zoom-image--open"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
