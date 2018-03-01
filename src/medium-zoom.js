@@ -18,22 +18,22 @@ const isNode = selector => selector && selector.nodeType === 1
  *
  * @param {(string|Element[])} selector The selector to target the images to attach the zoom to
  * @param {object} options The options of the zoom
- * @param {number} [options.margin=0] The space outside the zoomed image
- * @param {string} [options.background="#fff"] The color of the overlay
  * @param {number} [options.scrollOffset=48] The number of pixels to scroll to dismiss the zoom
  * @param {boolean} [options.metaClick=true] A boolean to enable the default action on meta click
  * @param {(string|Element|object)} [options.container] The element to render the zoom in or a viewport object
+ * @param {(string|array)} [options.overlayStyles{background="#fff"}] To pass others css styles to overlay with default background-color=#fff
+ * @param {(string|array)} [options.imgStyles] To pass others css styles to image
  * @param {(string|Element)} [options.template] The template element to show on zoom
  * @return The zoom object
  */
 const mediumZoom = (
   selector,
   {
-    margin = 0,
-    background = '#fff',
     scrollOffset = 48,
     metaClick = true,
     container,
+    overlayStyles,
+    imgStyles,
     template
   } = {}
 ) => {
@@ -61,15 +61,18 @@ const mediumZoom = (
     }
   }
 
-  const createOverlay = background => {
+  const createOverlay = (overlayStyles) => {
     const overlay = document.createElement('div')
     overlay.classList.add('medium-zoom-overlay')
-    overlay.style.backgroundColor = background
+    const keys = Object.keys(overlayStyles)
+    keys.forEach(key => {
+      overlay.style[key] = overlayStyles[key]
+    })
 
     return overlay
   }
 
-  const cloneTarget = template => {
+  const cloneTarget = (template, imgStyles) => {
     const { top, left, width, height } = template.getBoundingClientRect()
     const clone = template.cloneNode()
     const scrollTop =
@@ -90,6 +93,10 @@ const mediumZoom = (
     clone.style.width = `${width}px`
     clone.style.height = `${height}px`
     clone.style.transform = ''
+    const keys = Object.keys(imgStyles)
+    keys.forEach(key => {
+      clone.style[key] = imgStyles[key]
+    })
 
     return clone
   }
@@ -391,8 +398,8 @@ const mediumZoom = (
   }
 
   const options = {
-    margin,
-    background,
+    overlayStyles,
+    imgStyles,
     scrollOffset,
     metaClick,
     container,
