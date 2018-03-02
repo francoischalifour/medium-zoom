@@ -224,8 +224,12 @@ const mediumZoom = (
   }
 
   const update = (newOptions = {}) => {
-    newOptions.background &&
-    (overlay.style.backgroundColor = newOptions.background)
+    if (newOptions.overlayStyles) {
+      addStyles(newOptions.overlayStyles, overlay)
+    }
+    if (newOptions.imgStyles && target.zoomed) {
+      addStyles(newOptions.imgStyles, target.zoomed)
+    }
     if (newOptions.container && newOptions.container instanceof Object) {
       newOptions.container = Object.assign(
         {},
