@@ -56,6 +56,15 @@
   var KEY_ESC = 27;
   var KEY_Q = 81;
   var CANCEL_KEYS = [ KEY_ESC, KEY_Q ];
+  var DEFAULT_OPTIONS = {
+    margin: 0,
+    scrollOffset: 48,
+    metaClick: true,
+    overlayStyles: {
+      backgroundColor: "#fff"
+    },
+    imgStyles: {}
+  };
   var isSupported = function isSupported(img) {
     return SUPPORTED_FORMATS.includes(img.tagName);
   };
@@ -73,23 +82,16 @@
  *
  * @param {(string|Element[])} selector The selector to target the images to attach the zoom to
  * @param {object} options The options of the zoom
+ * @param {number} [options.margin=0] The space outside the zoomed image
  * @param {number} [options.scrollOffset=48] The number of pixels to scroll to dismiss the zoom
  * @param {boolean} [options.metaClick=true] A boolean to enable the default action on meta click
  * @param {(string|Element|object)} [options.container] The element to render the zoom in or a viewport object
- * @param {(string|array)} [options.overlayStyles{background="#fff"}] To pass others css styles to overlay with default background-color=#fff
- * @param {(string|array)} [options.imgStyles] To pass others css styles to image
+ * @param {(object)} [options.overlayStyles{background="#fff"}] To pass others css styles to overlay with default background-color=#fff
+ * @param {(object)} [options.imgStyles] To pass others css styles to image
  * @param {(string|Element)} [options.template] The template element to show on zoom
  * @return The zoom object
  */  var mediumZoom = function mediumZoom(selector) {
-    var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
-      scrollOffset: 48,
-      metaClick: true,
-      overlayStyles: {
-        backgroundColor: "#fff"
-      }
-    }, _ref$scrollOffset = _ref.scrollOffset, scrollOffset = _ref$scrollOffset === undefined ? 48 : _ref$scrollOffset, _ref$metaClick = _ref.metaClick, metaClick = _ref$metaClick === undefined ? true : _ref$metaClick, container = _ref.container, _ref$overlayStyles = _ref.overlayStyles, overlayStyles = _ref$overlayStyles === undefined ? {
-      backgroundColor: "#fff"
-    } : _ref$overlayStyles, _ref$imgStyles = _ref.imgStyles, imgStyles = _ref$imgStyles === undefined ? {} : _ref$imgStyles, template = _ref.template;
+    var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : DEFAULT_OPTIONS, _ref$margin = _ref.margin, margin = _ref$margin === undefined ? DEFAULT_OPTIONS.margin : _ref$margin, _ref$scrollOffset = _ref.scrollOffset, scrollOffset = _ref$scrollOffset === undefined ? DEFAULT_OPTIONS.scrollOffset : _ref$scrollOffset, _ref$metaClick = _ref.metaClick, metaClick = _ref$metaClick === undefined ? DEFAULT_OPTIONS.metaClick : _ref$metaClick, _ref$container = _ref.container, container = _ref$container === undefined ? DEFAULT_OPTIONS.container : _ref$container, _ref$overlayStyles = _ref.overlayStyles, overlayStyles = _ref$overlayStyles === undefined ? DEFAULT_OPTIONS.overlayStyles : _ref$overlayStyles, _ref$imgStyles = _ref.imgStyles, imgStyles = _ref$imgStyles === undefined ? DEFAULT_OPTIONS.imgStyles : _ref$imgStyles, _ref$template = _ref.template, template = _ref$template === undefined ? DEFAULT_OPTIONS.template : _ref$template;
     var selectImages = function selectImages(selector) {
       try {
         return Array.isArray(selector) ? selector.filter(isSupported) : isListOrCollection(selector) ? [].concat(toConsumableArray(selector)).filter(isSupported) : isNode(selector) ? [ selector ].filter(isSupported) : typeof selector === "string" ? [].concat(toConsumableArray(document.querySelectorAll(selector))).filter(isSupported) : [].concat(toConsumableArray(document.querySelectorAll(SUPPORTED_FORMATS.map(function(attr) {
@@ -135,7 +137,7 @@
       target.original.dispatchEvent(new Event("show"));
       scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
       isAnimating = true;
-      target.zoomed = cloneTarget(target.original);
+      target.zoomed = cloneTarget(target.original, imgStyles);
       document.body.appendChild(overlay);
       if (options.template) {
         var _template = isNode(options.template) ? options.template : document.querySelector(options.template);
