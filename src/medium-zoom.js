@@ -100,10 +100,6 @@ const mediumZoom = (
       document.documentElement.scrollLeft ||
       document.body.scrollLeft ||
       0
-
-    if (imgStyles) {
-      addStyles(imgStyles, clone)
-    }
     clone.removeAttribute('id')
     clone.style.position = 'absolute'
     clone.style.top = `${top + scrollTop}px`
@@ -111,6 +107,10 @@ const mediumZoom = (
     clone.style.width = `${width}px`
     clone.style.height = `${height}px`
     clone.style.transform = ''
+
+    if (imgStyles) {
+      addStyles(imgStyles, clone)
+    }
 
     return clone
   }
@@ -414,7 +414,9 @@ const mediumZoom = (
     overlayStyles,
     imgStyles,
     scrollOffset,
-    metaClick
+    metaClick,
+    container,
+    template
   }
 
   // If the selector is omitted, it becomes the options
