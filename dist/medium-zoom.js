@@ -57,6 +57,8 @@
   var KEY_Q = 81;
   var CANCEL_KEYS = [ KEY_ESC, KEY_Q ];
   var DEFAULT_OPTIONS = {
+    container: "",
+    template: "",
     margin: 0,
     scrollOffset: 48,
     metaClick: true,
@@ -340,6 +342,7 @@
       target.zoomedHd && (target.zoomedHd.style.transform = transform);
     };
     var options = {
+      margin: margin,
       overlayStyles: overlayStyles,
       imgStyles: imgStyles,
       scrollOffset: scrollOffset,

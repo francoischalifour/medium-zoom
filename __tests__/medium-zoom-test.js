@@ -126,6 +126,9 @@ describe('constructor', () => {
     root.appendChild(p)
 
     const options = {
+      margin: 0,
+      container: '',
+      template: '',
       scrollOffset: 48,
       metaClick: true,
       overlayStyles: {
@@ -147,6 +150,9 @@ describe('options', () => {
   test('contains the correct default options', () => {
     const actual = mediumZoom().options
     const expected = {
+      margin: 0,
+      container: '',
+      template: '',
       overlayStyles: {
         backgroundColor: '#fff'
       },
@@ -185,6 +191,9 @@ describe('update', () => {
     const zoom = mediumZoom()
     const options = zoom.update()
     const expected = {
+      container: '',
+      template: '',
+      margin: 0,
       overlayStyles: {
         backgroundColor: '#fff'
       },
@@ -200,15 +209,17 @@ describe('update', () => {
   test('with margin updates the margin option and returns all options', () => {
     const zoom = mediumZoom()
     const options = zoom.update({
+      margin: 48,
       overlayStyles: {
-        backgroundColor: '#fff',
-        margin: 48
+        backgroundColor: '#fff'
       }
     })
     const expected = {
+      margin: 48,
+      container: '',
+      template: '',
       overlayStyles: {
-        backgroundColor: '#fff',
-        margin: 48
+        backgroundColor: '#fff'
       },
       imgStyles: {},
       scrollOffset: 48,
@@ -233,6 +244,9 @@ describe('update', () => {
     })
 
     const expected = {
+      margin: 0,
+      template: '',
+      container: '',
       overlayStyles: {
         backgroundColor: 'rgb(255, 255, 255)'
       },
@@ -254,6 +268,9 @@ describe('update', () => {
       scrollOffset: 0
     })
     const expected = {
+      margin: 0,
+      template: '',
+      container: '',
       overlayStyles: {
         backgroundColor: '#fff'
       },
@@ -272,6 +289,9 @@ describe('update', () => {
       metaClick: false
     })
     const expected = {
+      margin: 0,
+      template: '',
+      container: '',
       overlayStyles: {
         backgroundColor: '#fff'
       },
@@ -290,6 +310,8 @@ describe('update', () => {
       container: document.body
     })
     const expected = {
+      template: '',
+      margin: 0,
       overlayStyles: {
         backgroundColor: '#fff'
       },
@@ -309,6 +331,8 @@ describe('update', () => {
       container: 'body'
     })
     const expected = {
+      margin: 0,
+      template: '',
       overlayStyles: {
         backgroundColor: '#fff'
       },
@@ -334,6 +358,8 @@ describe('update', () => {
       }
     })
     const expected = {
+      margin: 0,
+      template: '',
       overlayStyles: {
         backgroundColor: '#fff'
       },
@@ -355,6 +381,9 @@ describe('update', () => {
       overlayStyles: {
         backgroundColor: '#BADA55'
       },
+      margin: 0,
+      container: '',
+      template: '',
       imgStyles: {},
       scrollOffset: 124,
       metaClick: true

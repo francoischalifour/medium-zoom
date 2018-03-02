@@ -3,6 +3,8 @@ const KEY_ESC = 27
 const KEY_Q = 81
 const CANCEL_KEYS = [KEY_ESC, KEY_Q]
 const DEFAULT_OPTIONS = {
+  container: '',
+  template: '',
   margin: 0,
   scrollOffset: 48,
   metaClick: true,
@@ -418,6 +420,7 @@ const mediumZoom = (
   }
 
   const options = {
+    margin,
     overlayStyles,
     imgStyles,
     scrollOffset,
