@@ -52,7 +52,7 @@
 * 🔎 **Image selection** — *apply the zoom to a selection of images*
 * 🖱 **Mouse, keyboard and gesture friendly** — *click anywhere, press a key or scroll away to dismiss the zoom*
 * 🎉 **Event handling** — *trigger events when the zoom enters a new state*
-* 🔧 **Customization** — *set your own margin, background and scroll offset*
+* 🔧 **Customization** — *set your own margin, styles and scroll offset*
 * 💎 **Custom templates** — *extend the default look to match your UI*
 * 🔗 **Link support** — *open the link of the image in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)*
 * 🖼 **Image opener** — *when no link, open the image source in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)*
@@ -138,7 +138,8 @@ Options can be passed via a JavaScript object through the `mediumZoom` call.
 | Property       | Type                        | Default  | Description                                                                                                |
 |----------------|-----------------------------|----------|------------------------------------------------------------------------------------------------------------|
 | `margin`       | `number`                    | `0`      | The space outside the zoomed image                                                                         |
-| `background`   | `string`                    | `"#fff"` | The color of the overlay                                                                                   |
+| `overlayStyles`   | `object`                    | `"#fff"` | The styles of the overlay                                                                                   |
+| `imgStyles`   | `object`                    | ` ` | The styles of the image                                                                                   |
 | `scrollOffset` | `number`                    | `48`     | The number of pixels to scroll to dismiss the zoom                                                         |
 | `metaClick`    | `boolean`                   | `true`   | Enables the action on [meta click](https://en.wikipedia.org/wiki/Meta_key) (opens the link / image source) |
 | `container`    | `string`\|`Element`\|`object` |          | The element to render the zoom in or a viewport object. [Read more →](#using-a-custom-container)           |
@@ -147,7 +148,13 @@ Options can be passed via a JavaScript object through the `mediumZoom` call.
 ```js
 mediumZoom('[data-action="zoom"]', {
   margin: 24,
-  background: '#000',
+  overlayStyles: {
+    zIndex: 10,
+    backgroundColor: '#FFBB11'
+  },
+  imgStyles: {
+    borderRadius: '2px'
+  },
   scrollOffset: 0,
   metaClick: false,
   container: '#zoom-container',
