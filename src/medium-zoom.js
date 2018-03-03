@@ -33,8 +33,8 @@ const isNode = selector => selector && selector.nodeType === 1
  * @param {number} [options.scrollOffset=48] The number of pixels to scroll to dismiss the zoom
  * @param {boolean} [options.metaClick=true] A boolean to enable the default action on meta click
  * @param {(string|Element|object)} [options.container] The element to render the zoom in or a viewport object
- * @param {(object)} [options.overlayStyles{background="#fff"}] To pass others css styles to overlay with default background-color=#fff
- * @param {(object)} [options.imgStyles] To pass others css styles to image
+ * @param {(object)} [options.overlayStyles{background="#fff"}] Additional styles to pass to the overlay.
+ * @param {(object)} [options.imgStyles] Additional styles to pass to the zoomed image
  * @param {(string|Element)} [options.template] The template element to show on zoom
  * @return The zoom object
  */
@@ -74,8 +74,7 @@ const mediumZoom = (
     }
   }
 
-  // This function take object with styles
-  // and the element where who applying this styles
+  // Merge the given styles with an HTML Element's inline style
   const addStyles = (styles, el) => {
     const keys = Object.keys(styles)
     keys.forEach(key => {
