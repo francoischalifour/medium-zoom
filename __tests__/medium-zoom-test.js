@@ -230,7 +230,7 @@ describe('update', () => {
     expect(zoom.options).toEqual(expected)
   })
 
-  test('with background updates the background option, returns all options and renders correctly', () => {
+  test('with overlayStyles.backgroundColor updates the overlayStyles option, returns all options and renders correctly', () => {
     const image = document.createElement('img')
     root.appendChild(image)
 
@@ -244,13 +244,48 @@ describe('update', () => {
     })
 
     const expected = {
-      margin: 0,
-      template: '',
-      container: '',
       overlayStyles: {
         backgroundColor: 'rgb(255, 255, 255)'
       },
       imgStyles: {},
+      scrollOffset: 48,
+      metaClick: true,
+      container: '',
+      template: '',
+      margin: 0
+    }
+
+    expect(options).toEqual(expected)
+    expect(zoom.options).toEqual(expected)
+    expect(document.querySelector('.medium-zoom-overlay').style.backgroundColor).toBe('rgb(255, 255, 255)')
+  })
+
+  test('with imgStyles.backgroundColor updates the overlayStyles option, returns all options and renders correctly', () => {
+    const image = document.createElement('img')
+    root.appendChild(image)
+
+    const zoom = mediumZoom('img')
+    zoom.show()
+
+    const options = zoom.update({
+      overlayStyles: {
+        backgroundColor: '#fff'
+      },
+      imgStyles: {
+        borderRadius: '5px'
+      }
+    })
+
+    const expected = {
+      margin: 0,
+      template: '',
+      container: '',
+      overlayStyles: {
+        backgroundColor: '#fff'
+      },
+      imgStyles: {
+        borderRadius: '5px'
+      },
       scrollOffset: 48,
       metaClick: true
     }
@@ -258,8 +293,8 @@ describe('update', () => {
     expect(options).toEqual(expected)
     expect(zoom.options).toEqual(expected)
     expect(
-      document.querySelector('.medium-zoom-overlay').style.backgroundColor
-    ).toBe('rgb(255, 255, 255)')
+            document.querySelector('.medium-zoom-overlay').style.backgroundColor
+        ).toBe('rgb(255, 255, 255)')
   })
 
   test('with scroll offset updates the scroll offset option and returns all options', () => {
