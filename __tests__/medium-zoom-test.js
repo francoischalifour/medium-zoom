@@ -126,10 +126,15 @@ describe('constructor', () => {
     root.appendChild(p)
 
     const options = {
-      margin: 24,
-      background: '#BADA55',
-      scrollOffset: 124,
-      metaClick: true
+      margin: 0,
+      container: '',
+      template: '',
+      scrollOffset: 48,
+      metaClick: true,
+      overlayStyles: {
+        background: '#fff'
+      },
+      imgStyles: {}
     }
     const zoom = mediumZoom(options)
 
@@ -146,7 +151,12 @@ describe('options', () => {
     const actual = mediumZoom().options
     const expected = {
       margin: 0,
-      background: '#fff',
+      container: '',
+      template: '',
+      overlayStyles: {
+        backgroundColor: '#fff'
+      },
+      imgStyles: {},
       scrollOffset: 48,
       metaClick: true
     }
@@ -181,8 +191,13 @@ describe('update', () => {
     const zoom = mediumZoom()
     const options = zoom.update()
     const expected = {
+      container: '',
+      template: '',
       margin: 0,
-      background: '#fff',
+      overlayStyles: {
+        backgroundColor: '#fff'
+      },
+      imgStyles: {},
       scrollOffset: 48,
       metaClick: true
     }
@@ -194,11 +209,19 @@ describe('update', () => {
   test('with margin updates the margin option and returns all options', () => {
     const zoom = mediumZoom()
     const options = zoom.update({
-      margin: 48
+      margin: 48,
+      overlayStyles: {
+        backgroundColor: '#fff'
+      }
     })
     const expected = {
       margin: 48,
-      background: '#fff',
+      container: '',
+      template: '',
+      overlayStyles: {
+        backgroundColor: '#fff'
+      },
+      imgStyles: {},
       scrollOffset: 48,
       metaClick: true
     }
@@ -207,7 +230,7 @@ describe('update', () => {
     expect(zoom.options).toEqual(expected)
   })
 
-  test('with background updates the background option, returns all options and renders correctly', () => {
+  test('with overlayStyles.backgroundColor updates the overlayStyles option, returns all options and renders correctly', () => {
     const image = document.createElement('img')
     root.appendChild(image)
 
@@ -215,11 +238,54 @@ describe('update', () => {
     zoom.show()
 
     const options = zoom.update({
-      background: '#000'
+      overlayStyles: {
+        backgroundColor: 'rgb(255, 255, 255)'
+      }
     })
+
+    const expected = {
+      overlayStyles: {
+        backgroundColor: 'rgb(255, 255, 255)'
+      },
+      imgStyles: {},
+      scrollOffset: 48,
+      metaClick: true,
+      container: '',
+      template: '',
+      margin: 0
+    }
+
+    expect(options).toEqual(expected)
+    expect(zoom.options).toEqual(expected)
+    expect(document.querySelector('.medium-zoom-overlay').style.backgroundColor).toBe('rgb(255, 255, 255)')
+  })
+
+  test('with imgStyles.backgroundColor updates the overlayStyles option, returns all options and renders correctly', () => {
+    const image = document.createElement('img')
+    root.appendChild(image)
+
+    const zoom = mediumZoom('img')
+    zoom.show()
+
+    const options = zoom.update({
+      overlayStyles: {
+        backgroundColor: '#fff'
+      },
+      imgStyles: {
+        borderRadius: '5px'
+      }
+    })
+
     const expected = {
       margin: 0,
-      background: '#000',
+      template: '',
+      container: '',
+      overlayStyles: {
+        backgroundColor: '#fff'
+      },
+      imgStyles: {
+        borderRadius: '5px'
+      },
       scrollOffset: 48,
       metaClick: true
     }
@@ -227,8 +293,8 @@ describe('update', () => {
     expect(options).toEqual(expected)
     expect(zoom.options).toEqual(expected)
     expect(
-      document.querySelector('.medium-zoom-overlay').style.backgroundColor
-    ).toBe('rgb(0, 0, 0)')
+            document.querySelector('.medium-zoom-overlay').style.backgroundColor
+        ).toBe('rgb(255, 255, 255)')
   })
 
   test('with scroll offset updates the scroll offset option and returns all options', () => {
@@ -238,7 +304,12 @@ describe('update', () => {
     })
     const expected = {
       margin: 0,
-      background: '#fff',
+      template: '',
+      container: '',
+      overlayStyles: {
+        backgroundColor: '#fff'
+      },
+      imgStyles: {},
       scrollOffset: 0,
       metaClick: true
     }
@@ -254,7 +325,12 @@ describe('update', () => {
     })
     const expected = {
       margin: 0,
-      background: '#fff',
+      template: '',
+      container: '',
+      overlayStyles: {
+        backgroundColor: '#fff'
+      },
+      imgStyles: {},
       scrollOffset: 48,
       metaClick: false
     }
@@ -269,8 +345,12 @@ describe('update', () => {
       container: document.body
     })
     const expected = {
+      template: '',
       margin: 0,
-      background: '#fff',
+      overlayStyles: {
+        backgroundColor: '#fff'
+      },
+      imgStyles: {},
       scrollOffset: 48,
       metaClick: true,
       container: document.body
@@ -287,7 +367,11 @@ describe('update', () => {
     })
     const expected = {
       margin: 0,
-      background: '#fff',
+      template: '',
+      overlayStyles: {
+        backgroundColor: '#fff'
+      },
+      imgStyles: {},
       scrollOffset: 48,
       metaClick: true,
       container: 'body'
@@ -310,7 +394,11 @@ describe('update', () => {
     })
     const expected = {
       margin: 0,
-      background: '#fff',
+      template: '',
+      overlayStyles: {
+        backgroundColor: '#fff'
+      },
+      imgStyles: {},
       scrollOffset: 48,
       metaClick: true,
       container: {
@@ -325,8 +413,13 @@ describe('update', () => {
 
   test('with all options updates all options and returns all options', () => {
     const expected = {
-      margin: 24,
-      background: '#BADA55',
+      overlayStyles: {
+        backgroundColor: '#BADA55'
+      },
+      margin: 0,
+      container: '',
+      template: '',
+      imgStyles: {},
       scrollOffset: 124,
       metaClick: true
     }
@@ -359,7 +452,9 @@ describe('show', () => {
     root.appendChild(image)
 
     const zoom = mediumZoom('img', {
-      background: '#BADA55'
+      overlayStyles: {
+        backgroundColor: '#BADA55'
+      }
     })
     zoom.show()
 
