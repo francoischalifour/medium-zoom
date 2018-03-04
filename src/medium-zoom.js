@@ -3,7 +3,7 @@ const KEY_ESC = 27
 const KEY_Q = 81
 const CANCEL_KEYS = [KEY_ESC, KEY_Q]
 
-const isSupported = img => SUPPORTED_FORMATS.includes(img.tagName)
+const isSupported = img => SUPPORTED_FORMATS.indexOf(img.tagName) > -1
 
 const isScaled = img => img.naturalWidth !== img.width
 
@@ -42,16 +42,16 @@ const mediumZoom = (
       return Array.isArray(selector)
         ? selector.filter(isSupported)
         : isListOrCollection(selector)
-          ? [...selector].filter(isSupported)
+          ? Array.apply(null, selector).filter(isSupported)
           : isNode(selector)
             ? [selector].filter(isSupported)
             : typeof selector === 'string'
-              ? [...document.querySelectorAll(selector)].filter(isSupported)
-              : [
-                ...document.querySelectorAll(
-                  SUPPORTED_FORMATS.map(attr => attr.toLowerCase()).join(',')
-                )
-              ].filter(isScaled)
+              ? Array.apply(null, document.querySelectorAll(selector)).filter(isSupported)
+              : Array.apply(null,
+                  document.querySelectorAll(
+                    SUPPORTED_FORMATS.map(attr => attr.toLowerCase()).join(',')
+                  )
+                ).filter(isScaled)
     } catch (err) {
       throw new TypeError(
         'The provided selector is invalid.\n' +
@@ -94,10 +94,20 @@ const mediumZoom = (
     return clone
   }
 
+  const createCustomEvent = (event, params = { bubbles: false, cancelable: false, detail: undefined }) => {
+    if (typeof window.CustomEvent === 'function') {
+      return new CustomEvent(event, params)
+    } else {
+      const customEvent = document.createEvent('CustomEvent')
+      customEvent.initCustomEvent(event, params.bubbles, params.cancelable, params.detail)
+      return customEvent
+    }
+  }
+
   const zoom = () => {
     if (!target.original) return
 
-    target.original.dispatchEvent(new Event('show'))
+    target.original.dispatchEvent(createCustomEvent('show'))
 
     scrollTop =
       window.pageYOffset ||
@@ -164,7 +174,7 @@ const mediumZoom = (
     const doZoomOut = () => {
       if (isAnimating || !target.original) return
 
-      target.original.dispatchEvent(new Event('hide'))
+      target.original.dispatchEvent(createCustomEvent('hide'))
 
       isAnimating = true
       document.body.classList.remove('medium-zoom--open')
@@ -225,7 +235,7 @@ const mediumZoom = (
 
   const detach = () => {
     const doDetach = () => {
-      const event = new Event('detach')
+      const event = createCustomEvent('detach')
 
       images.forEach(image => {
         image.classList.remove('medium-zoom-image')
@@ -275,7 +285,7 @@ const mediumZoom = (
     isAnimating = false
     target.zoomed.removeEventListener('transitionend', onZoomEnd)
 
-    target.original.dispatchEvent(new Event('shown'))
+    target.original.dispatchEvent(createCustomEvent('shown'))
   }
 
   const onZoomOutEnd = () => {
@@ -291,7 +301,7 @@ const mediumZoom = (
     isAnimating = false
     target.zoomed.removeEventListener('transitionend', onZoomOutEnd)
 
-    target.original.dispatchEvent(new Event('hidden'))
+    target.original.dispatchEvent(createCustomEvent('hidden'))
 
     target.original = null
     target.zoomed = null
@@ -314,7 +324,7 @@ const mediumZoom = (
   }
 
   const onDismiss = event => {
-    if (CANCEL_KEYS.includes(event.keyCode || event.which)) {
+    if (CANCEL_KEYS.indexOf(event.keyCode || event.which) > -1) {
       zoomOut()
     }
   }

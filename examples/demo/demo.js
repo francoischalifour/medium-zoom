@@ -1,6 +1,6 @@
 (function() {
   // Show placeholders for paragraphs
-  const paragraphs = Array.from(document.querySelectorAll('p.placeholder'))
+  var paragraphs = Array.apply(null, document.querySelectorAll('p.placeholder'))
   paragraphs.forEach(function(p) {
     var content = p.textContent
       .split(' ')
@@ -8,7 +8,7 @@
         return text.length > 4
       })
       .map(function(text) {
-        return `<span class="placeholder__word">${text}</span>`
+        return '<span class="placeholder__word">' + text + '</span>'
       })
       .join(' ')
 
