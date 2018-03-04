@@ -94,10 +94,20 @@ const mediumZoom = (
     return clone
   }
 
+  const customEvent = (event, params = { bubbles: false, cancelable: false, detail: undefined }) => {
+    if (typeof window.CustomEvent === 'function') {
+      return new CustomEvent(event, params)
+    } else {
+      const evt = document.createEvent('CustomEvent')
+      evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail)
+      return evt
+    }
+  }
+
   const zoom = () => {
     if (!target.original) return
 
-    target.original.dispatchEvent(new ZoomEvent('show'))
+    target.original.dispatchEvent(customEvent('show'))
 
     scrollTop =
       window.pageYOffset ||
@@ -164,7 +174,7 @@ const mediumZoom = (
     const doZoomOut = () => {
       if (isAnimating || !target.original) return
 
-      target.original.dispatchEvent(new ZoomEvent('hide'))
+      target.original.dispatchEvent(customEvent('hide'))
 
       isAnimating = true
       document.body.classList.remove('medium-zoom--open')
@@ -225,7 +235,7 @@ const mediumZoom = (
 
   const detach = () => {
     const doDetach = () => {
-      const event = new ZoomEvent('detach')
+      const event = customEvent('detach')
 
       images.forEach(image => {
         image.classList.remove('medium-zoom-image')
@@ -275,7 +285,7 @@ const mediumZoom = (
     isAnimating = false
     target.zoomed.removeEventListener('transitionend', onZoomEnd)
 
-    target.original.dispatchEvent(new ZoomEvent('shown'))
+    target.original.dispatchEvent(customEvent('shown'))
   }
 
   const onZoomOutEnd = () => {
@@ -291,7 +301,7 @@ const mediumZoom = (
     isAnimating = false
     target.zoomed.removeEventListener('transitionend', onZoomOutEnd)
 
-    target.original.dispatchEvent(new ZoomEvent('hidden'))
+    target.original.dispatchEvent(customEvent('hidden'))
 
     target.original = null
     target.zoomed = null
@@ -388,16 +398,6 @@ const mediumZoom = (
 
     target.zoomed.style.transform = transform
     target.zoomedHd && (target.zoomedHd.style.transform = transform)
-  }
-
-  const ZoomEvent = (event, params = { bubbles: false, cancelable: false, detail: undefined }) => {
-    if (typeof window.CustomEvent === 'function') {
-      return new CustomEvent(event, params)
-    } else {
-      const evt = document.createEvent('CustomEvent')
-      evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail)
-      return evt
-    }
   }
 
   const options = {
