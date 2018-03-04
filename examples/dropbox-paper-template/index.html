@@ -1,59 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#0070e0">
 
-    <link href="reset.css" rel="stylesheet">
-    <link href="style.css" rel="stylesheet">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0070e0">
 
-    <title>Medium Zoom | Dropbox Paper Demo</title>
-  </head>
+  <link href="src/reset.css" rel="stylesheet">
+  <link href="src/style.css" rel="stylesheet">
 
-  <body>
-    <template id="template-dropbox-paper">
-      <div class="paper-wrapper">
-        <section class="paper-main" data-zoom-close>
-          <header class="paper-header">
-            <svg class="paper-close" data-zoom-close viewBox="0 0 24 24">
-              <path d="M8.817 7.403a1 1 0 0 0-1.414 1.414L10.586 12l-3.183 3.183a1 1 0 0 0 1.414 1.415L12 13.415l3.183 3.183a1 1 0 0 0 1.415-1.415L13.415 12l3.183-3.183a1 1 0 0 0-1.415-1.414L12 10.586 8.817 7.403z" fill-rule="evenodd"></path>
-            </svg>
-          </header>
-          <div class="paper-container" data-zoom-container></div>
+  <title>Medium Zoom | Dropbox Paper Demo</title>
+</head>
+
+<body>
+  <template id="template-dropbox-paper">
+    <div class="paper-wrapper">
+      <section class="paper-main" data-zoom-close>
+        <header class="paper-header">
+          <svg class="paper-close" data-zoom-close viewBox="0 0 24 24">
+            <path d="M8.817 7.403a1 1 0 0 0-1.414 1.414L10.586 12l-3.183 3.183a1 1 0 0 0 1.414 1.415L12 13.415l3.183 3.183a1 1 0 0 0 1.415-1.415L13.415 12l3.183-3.183a1 1 0 0 0-1.415-1.414L12 10.586 8.817 7.403z"
+              fill-rule="evenodd"></path>
+          </svg>
+        </header>
+        <div class="paper-container" data-zoom-container></div>
+      </section>
+      <aside class="paper-sidebar">
+        <header class="paper-sidebar__header">
+          <textarea class="paper-sidebar__textarea" rows="1" placeholder="Write a caption"></textarea>
+        </header>
+        <section class="paper-sidebar__content">
+          <textarea class="paper-sidebar__textarea paper-sidebar__textarea_comment" rows="1" placeholder="New comment"></textarea>
         </section>
-        <aside class="paper-sidebar">
-          <header class="paper-sidebar__header">
-            <textarea class="paper-sidebar__textarea" rows="1" placeholder="Write a caption"></textarea>
-          </header>
-          <section class="paper-sidebar__content">
-            <textarea class="paper-sidebar__textarea paper-sidebar__textarea_comment" rows="1" placeholder="New comment"></textarea>
-          </section>
-        </aside>
-      </div>
-    </template>
+      </aside>
+    </div>
+  </template>
 
-    <article class="container">
-      <h1>Dropbox Paper Demo</h1>
+  <article class="container">
+    <h1>Dropbox Paper Demo</h1>
 
-      <img
-        src="images/image-1.jpg"
-        alt="Zoom 1 with Dropbox Paper template"
-      >
+    <img src="images/image-1.jpg" alt="Zoom 1 with Dropbox Paper template">
 
-      <p>
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-        Tempora praesentium cupiditate fugit voluptas, rem eligendi, voluptatem molestias pariatur atque amet,
-        dicta, similique beatae optio quos! Hic necessitatibus dicta magni, tempore.
-      </p>
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipisicing elit. Tempora praesentium cupiditate fugit voluptas, rem eligendi, voluptatem
+      molestias pariatur atque amet, dicta, similique beatae optio quos! Hic necessitatibus dicta magni, tempore.
+    </p>
 
-      <img
-        src="images/image-2.jpg"
-        alt="Zoom 2 with Dropbox Paper template"
-      >
-    </article>
+    <img src="images/image-2.jpg" alt="Zoom 2 with Dropbox Paper template">
+  </article>
 
-    <script src="https://unpkg.com/medium-zoom@0/dist/medium-zoom.min.js"></script>
-    <script src="app.js"></script>
-  </body>
+  <script src="src/index.js"></script>
+</body>
+
 </html>
