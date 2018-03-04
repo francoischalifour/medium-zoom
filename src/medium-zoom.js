@@ -390,6 +390,16 @@ const mediumZoom = (
     target.zoomedHd && (target.zoomedHd.style.transform = transform)
   }
 
+  const ZoomEvent = (event, params = { bubbles: false, cancelable: false, detail: undefined }) => {
+    if (typeof window.CustomEvent === 'function') {
+      return new CustomEvent(event, params)
+    } else {
+      const evt = document.createEvent('CustomEvent')
+      evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail)
+      return evt
+    }
+  }
+
   const options = {
     margin,
     background,
@@ -434,19 +444,6 @@ const mediumZoom = (
     detach,
     images,
     options
-  }
-}
-
-/**
- * Creates custom events using modern (CustomEvent) or legacy methods.
- */
-const ZoomEvent = (event, params = { bubbles: false, cancelable: false, detail: undefined }) => {
-  if (typeof window.CustomEvent === 'function') {
-    return new CustomEvent(event, params)
-  } else {
-    const evt = document.createEvent('CustomEvent')
-    evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail)
-    return evt
   }
 }
 
