@@ -94,20 +94,20 @@ const mediumZoom = (
     return clone
   }
 
-  const customEvent = (event, params = { bubbles: false, cancelable: false, detail: undefined }) => {
+  const createCustomEvent = (event, params = { bubbles: false, cancelable: false, detail: undefined }) => {
     if (typeof window.CustomEvent === 'function') {
       return new CustomEvent(event, params)
     } else {
-      const evt = document.createEvent('CustomEvent')
-      evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail)
-      return evt
+      const customEvent = document.createEvent('CustomEvent')
+      customEvent.initCustomEvent(event, params.bubbles, params.cancelable, params.detail)
+      return customEvent
     }
   }
 
   const zoom = () => {
     if (!target.original) return
 
-    target.original.dispatchEvent(customEvent('show'))
+    target.original.dispatchEvent(createCustomEvent('show'))
 
     scrollTop =
       window.pageYOffset ||
@@ -174,7 +174,7 @@ const mediumZoom = (
     const doZoomOut = () => {
       if (isAnimating || !target.original) return
 
-      target.original.dispatchEvent(customEvent('hide'))
+      target.original.dispatchEvent(createCustomEvent('hide'))
 
       isAnimating = true
       document.body.classList.remove('medium-zoom--open')
@@ -235,7 +235,7 @@ const mediumZoom = (
 
   const detach = () => {
     const doDetach = () => {
-      const event = customEvent('detach')
+      const event = createCustomEvent('detach')
 
       images.forEach(image => {
         image.classList.remove('medium-zoom-image')
@@ -285,7 +285,7 @@ const mediumZoom = (
     isAnimating = false
     target.zoomed.removeEventListener('transitionend', onZoomEnd)
 
-    target.original.dispatchEvent(customEvent('shown'))
+    target.original.dispatchEvent(createCustomEvent('shown'))
   }
 
   const onZoomOutEnd = () => {
@@ -301,7 +301,7 @@ const mediumZoom = (
     isAnimating = false
     target.zoomed.removeEventListener('transitionend', onZoomOutEnd)
 
-    target.original.dispatchEvent(customEvent('hidden'))
+    target.original.dispatchEvent(createCustomEvent('hidden'))
 
     target.original = null
     target.zoomed = null
