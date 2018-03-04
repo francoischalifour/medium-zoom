@@ -33,10 +33,11 @@
       "/examples/"
     ],
     "globals": [
-      "NodeList",
+      "CustomEvent",
+      "Event",
       "HTMLCollection",
-      "requestAnimationFrame",
-      "Event"
+      "NodeList",
+      "requestAnimationFrame"
     ]
   },
   "files": [

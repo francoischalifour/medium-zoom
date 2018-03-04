@@ -1,5 +1,3 @@
-/* global CustomEvent */
-
 const SUPPORTED_FORMATS = ['IMG']
 const KEY_ESC = 27
 const KEY_Q = 81
@@ -14,23 +12,6 @@ const isListOrCollection = selector =>
   HTMLCollection.prototype.isPrototypeOf(selector)
 
 const isNode = selector => selector && selector.nodeType === 1
-
-/**
- * CustomEvent() polyfill for IE. Source modified for lint purposes.
- *
- * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent}
- */
-if (typeof window.CustomEvent !== 'function') {
-  const CustomEvent = (event, params) => {
-    params = params || { bubbles: false, cancelable: false, detail: undefined }
-    const evt = document.createEvent('CustomEvent')
-    evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail)
-    return evt
-  }
-
-  CustomEvent.prototype = window.Event.prototype
-  window.CustomEvent = CustomEvent
-}
 
 /**
  * Attaches a zoom effect on a selection of images.
@@ -116,7 +97,7 @@ const mediumZoom = (
   const zoom = () => {
     if (!target.original) return
 
-    target.original.dispatchEvent(new CustomEvent('show'))
+    target.original.dispatchEvent(new ZoomEvent('show'))
 
     scrollTop =
       window.pageYOffset ||
@@ -183,7 +164,7 @@ const mediumZoom = (
     const doZoomOut = () => {
       if (isAnimating || !target.original) return
 
-      target.original.dispatchEvent(new CustomEvent('hide'))
+      target.original.dispatchEvent(new ZoomEvent('hide'))
 
       isAnimating = true
       document.body.classList.remove('medium-zoom--open')
@@ -244,7 +225,7 @@ const mediumZoom = (
 
   const detach = () => {
     const doDetach = () => {
-      const event = new CustomEvent('detach')
+      const event = new ZoomEvent('detach')
 
       images.forEach(image => {
         image.classList.remove('medium-zoom-image')
@@ -294,7 +275,7 @@ const mediumZoom = (
     isAnimating = false
     target.zoomed.removeEventListener('transitionend', onZoomEnd)
 
-    target.original.dispatchEvent(new CustomEvent('shown'))
+    target.original.dispatchEvent(new ZoomEvent('shown'))
   }
 
   const onZoomOutEnd = () => {
@@ -310,7 +291,7 @@ const mediumZoom = (
     isAnimating = false
     target.zoomed.removeEventListener('transitionend', onZoomOutEnd)
 
-    target.original.dispatchEvent(new CustomEvent('hidden'))
+    target.original.dispatchEvent(new ZoomEvent('hidden'))
 
     target.original = null
     target.zoomed = null
@@ -453,6 +434,19 @@ const mediumZoom = (
     detach,
     images,
     options
+  }
+}
+
+/**
+ * Creates custom events using modern (CustomEvent) or legacy methods.
+ */
+const ZoomEvent = (event, params = { bubbles: false, cancelable: false, detail: undefined }) => {
+  if (typeof window.CustomEvent === 'function') {
+    return new CustomEvent(event, params)
+  } else {
+    const evt = document.createEvent('CustomEvent')
+    evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail)
+    return evt
   }
 }
 
