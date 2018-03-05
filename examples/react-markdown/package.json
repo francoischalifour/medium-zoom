@@ -1,5 +1,5 @@
 {
-  "name": "@medium-zoom/react-markdown",
+  "name": "@medium-zoom/react-markdown-example",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,7 +9,7 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
-    "medium-zoom": "^0.2.0",
+    "medium-zoom": "latest",
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
     "react-markdown": "^2.5.0",

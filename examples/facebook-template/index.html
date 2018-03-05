@@ -1,48 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#3b5998">
 
-    <link href="reset.css" rel="stylesheet">
-    <link href="style.css" rel="stylesheet">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="theme-color" content="#3b5998">
 
-    <title>Medium Zoom | Facebook Demo</title>
-  </head>
+	<link href="src/reset.css" rel="stylesheet">
+	<link href="src/style.css" rel="stylesheet">
 
-  <body>
-    <template id="template-facebook">
-      <div class="facebook-wrapper">
-        <svg class="facebook-close" data-zoom-close viewBox="0 0 24 24">
-          <path d="M8.817 7.403a1 1 0 0 0-1.414 1.414L10.586 12l-3.183 3.183a1 1 0 0 0 1.414 1.415L12 13.415l3.183 3.183a1 1 0 0 0 1.415-1.415L13.415 12l3.183-3.183a1 1 0 0 0-1.415-1.414L12 10.586 8.817 7.403z" fill-rule="evenodd"></path>
-        </svg>
-        <section class="facebook-main" data-zoom-container></section>
-        <aside class="facebook-sidebar"></aside>
-      </div>
-    </template>
+	<title>Medium Zoom | Facebook Demo</title>
+</head>
 
-    <article class="container">
-      <h1>Facebook Demo</h1>
+<body>
+	<template id="template-facebook">
+		<div class="facebook-wrapper">
+			<svg class="facebook-close" data-zoom-close viewBox="0 0 24 24">
+				<path d="M8.817 7.403a1 1 0 0 0-1.414 1.414L10.586 12l-3.183 3.183a1 1 0 0 0 1.414 1.415L12 13.415l3.183 3.183a1 1 0 0 0 1.415-1.415L13.415 12l3.183-3.183a1 1 0 0 0-1.415-1.414L12 10.586 8.817 7.403z"
+				 fill-rule="evenodd"></path>
+			</svg>
+			<section class="facebook-main" data-zoom-container></section>
+			<aside class="facebook-sidebar"></aside>
+		</div>
+	</template>
 
-      <img
-        src="images/image-1.jpg"
-        alt="Zoom 1 with Facebook template"
-      >
+	<article class="container">
+		<h1>Facebook Demo</h1>
 
-      <p>
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-        Tempora praesentium cupiditate fugit voluptas, rem eligendi, voluptatem molestias pariatur atque amet,
-        dicta, similique beatae optio quos! Hic necessitatibus dicta magni, tempore.
-      </p>
+		<img src="images/image-1.jpg" alt="Zoom 1 with Facebook template">
 
-      <img
-        src="images/image-2.jpg"
-        alt="Zoom 2 with Facebook template"
-      >
-    </article>
+		<p>
+			Lorem ipsum dolor sit amet, consectetur adipisicing elit. Tempora praesentium cupiditate fugit voluptas, rem eligendi, voluptatem
+			molestias pariatur atque amet, dicta, similique beatae optio quos! Hic necessitatibus dicta magni, tempore.
+		</p>
 
-    <script src="https://unpkg.com/medium-zoom@0/dist/medium-zoom.min.js"></script>
-    <script src="app.js"></script>
-  </body>
+		<img src="images/image-2.jpg" alt="Zoom 2 with Facebook template">
+	</article>
+
+	<script src="src/index.js"></script>
+</body>
+
 </html>
