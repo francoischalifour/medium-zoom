@@ -328,11 +328,12 @@ zoom.addEventListeners('show', event => {
 ```
 
 ## Compatibility
+
 | IE | Edge | Chrome | Firefox | Safari |
 |----|------|--------|---------|--------|
-| No | 12   | 64     | 58      | 11     |
+| 10<sup>1</sup> | 12<sup>2</sup> | 36 | 34 | 9 |
 
-Take a look at [#34](https://github.com/francoischalifour/medium-zoom/issues/34) to learn why IE is not supported.
+<sup>1</sup> IE10+ and Edge 12 require a `<template>` [polyfill](https://github.com/webcomponents/template) when using [custom templates](#using-a-custom-template).
 
 ## Examples
 
