@@ -44,20 +44,41 @@
   </strong>
 </p>
 
+<details>
+  <summary><strong>Table of contents</strong></summary>
+
+* [Features](#features)
+* [Installation](#installation)
+* [Usage](#usage)
+  * [Import the script](#import-the-script)
+  * [Use the library](#use-the-library)
+* [API](#api)
+  * [Options](#options)
+  * [Methods](#methods)
+  * [Data attributes](#data-attributes)
+  * [Events](#events)
+* [Examples](#examples)
+* [Demo](#demo)
+* [Browser support](#browser-support)
+* [Dev](#dev)
+* [Contributing](#contributing)
+* [License](#license)
+  </details>
+
 ## Features
 
-* 📱 **Responsive** — *scale on mobile and desktop*
-* 🚀 **Performant and lightweight** — *should be able to reach 60 [fps](https://en.wikipedia.org/wiki/Frame_rate)*
-* ⚡️ **High definition support** — *load the HD version of your image on zoom*
-* 🔎 **Image selection** — *apply the zoom to a selection of images*
-* 🖱 **Mouse, keyboard and gesture friendly** — *click anywhere, press a key or scroll away to dismiss the zoom*
-* 🎉 **Event handling** — *trigger events when the zoom enters a new state*
-* 🔧 **Customization** — *set your own margin, background and scroll offset*
-* 💎 **Custom templates** — *extend the default look to match your UI*
-* 🔗 **Link support** — *open the link of the image in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)*
-* 🖼 **Image opener** — *when no link, open the image source in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)*
+* 📱 **Responsive** — _scale on mobile and desktop_
+* 🚀 **Performant and lightweight** — _should be able to reach 60 [fps](https://en.wikipedia.org/wiki/Frame_rate)_
+* ⚡️ **High definition support** — _load the HD version of your image on zoom_
+* 🔎 **Image selection** — _apply the zoom to a selection of images_
+* 🖱 **Mouse, keyboard and gesture friendly** — _click anywhere, press a key or scroll away to dismiss the zoom_
+* 🎉 **Event handling** — _trigger events when the zoom enters a new state_
+* 🔧 **Customization** — _set your own margin, background and scroll offset_
+* 💎 **Custom templates** — _extend the default look to match your UI_
+* 🔗 **Link support** — _open the link of the image in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)_
+* 🖼 **Image opener** — _when no link, open the image source in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)_
 
-## Install
+## Installation
 
 This module is available on the [npm](https://www.npmjs.com) registry, with no dependencies.
 
@@ -79,7 +100,7 @@ To use a local version, you can download the [minified version](https://unpkg.co
 
 ### 1. Import the script
 
-*You can skip this step if you use the CDN version.*
+_You can skip this step if you use the CDN version._
 
 Import the script:
 
@@ -87,11 +108,9 @@ Import the script:
 <script src="node_modules/medium-zoom/dist/medium-zoom.min.js"></script>
 ```
 
-Or, using the module syntax or imports:
+Or, using imports:
 
 ```js
-const mediumZoom = require('medium-zoom')
-// or
 import mediumZoom from 'medium-zoom'
 ```
 
@@ -135,14 +154,14 @@ mediumZoom(imagesToZoom)
 
 Options can be passed via a JavaScript object through the `mediumZoom` call.
 
-| Property       | Type                        | Default  | Description                                                                                                |
-|----------------|-----------------------------|----------|------------------------------------------------------------------------------------------------------------|
-| `margin`       | `number`                    | `0`      | The space outside the zoomed image                                                                         |
-| `background`   | `string`                    | `"#fff"` | The color of the overlay                                                                                   |
-| `scrollOffset` | `number`                    | `48`     | The number of pixels to scroll to dismiss the zoom                                                         |
-| `metaClick`    | `boolean`                   | `true`   | Enables the action on [meta click](https://en.wikipedia.org/wiki/Meta_key) (opens the link / image source) |
+| Property       | Type                          | Default  | Description                                                                                                |
+| -------------- | ----------------------------- | -------- | ---------------------------------------------------------------------------------------------------------- |
+| `margin`       | `number`                      | `0`      | The space outside the zoomed image                                                                         |
+| `background`   | `string`                      | `"#fff"` | The color of the overlay                                                                                   |
+| `scrollOffset` | `number`                      | `48`     | The number of pixels to scroll to dismiss the zoom                                                         |
+| `metaClick`    | `boolean`                     | `true`   | Enables the action on [meta click](https://en.wikipedia.org/wiki/Meta_key) (opens the link / image source) |
 | `container`    | `string`\|`Element`\|`object` |          | The element to render the zoom in or a viewport object. [Read more →](#using-a-custom-container)           |
-| `template`     | `string`\|`Element`          |          | The template element to show on zoom. [Read more →](#using-a-custom-template)                              |
+| `template`     | `string`\|`Element`           |          | The template element to show on zoom. [Read more →](#using-a-custom-template)                              |
 
 ```js
 mediumZoom('[data-action="zoom"]', {
@@ -180,7 +199,6 @@ The zoom is by default rendered in the window viewport. You can also render your
 If you don't already have an element in your DOM to specify the position of the zoom, you can pass an object with the following `number` properties:
 
 ```js
-
 mediumZoom('img', {
   container: {
     width: 720,
@@ -201,8 +219,8 @@ The default `width` and `height` are `window.innerWidth` and `window.innerHeight
 
 You might want to render the zoom in your own template. You could reproduce zooms as seen on [Facebook](examples/facebook-template) or [Dropbox Paper](examples/dropbox-paper-template). This is possible with the `template` option.
 
-1. Create a [`template`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template) element matching the `template` option value
-2. If you'd like your image to appear at a specific position in your template, specify the `container` option and add it in your template (`#zoom-container` here)
+1.  Create a [`template`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template) element matching the `template` option value
+2.  If you'd like your image to appear at a specific position in your template, specify the `container` option and add it in your template (`#zoom-container` here)
 
 ```html
 <template id="zoom-template">
@@ -235,7 +253,7 @@ const zoom = mediumZoom('#my-image')
 zoom.show()
 ```
 
-*Emits an event [`show`](#events) on animation start and [`shown`](#events) when completed.*
+_Emits an event [`show`](#events) on animation start and [`shown`](#events) when completed._
 
 #### `.hide()`
 
@@ -247,7 +265,7 @@ const zoom = mediumZoom('#my-image')
 zoom.hide()
 ```
 
-*Emits an event [`hide`](#events) on animation start and [`hidden`](#events) when completed.*
+_Emits an event [`hide`](#events) on animation start and [`hidden`](#events) when completed._
 
 #### `.toggle()`
 
@@ -281,7 +299,7 @@ const zoom = mediumZoom('#my-image')
 zoom.detach()
 ```
 
-*Emits an event [`detach`](#events).*
+_Emits an event [`detach`](#events)._
 
 #### `.addEventListeners(type, listener)`
 
@@ -312,7 +330,7 @@ Specifies the high definition image to show on zoom. This image is loaded when t
 ### Events
 
 | Event  | Description                                                 |
-|--------|-------------------------------------------------------------|
+| ------ | ----------------------------------------------------------- |
 | show   | Fired immediately when the `show` instance method is called |
 | shown  | Fired when the zoom has finished being animated             |
 | hide   | Fired immediately when the `hide` instance method is called |
@@ -327,14 +345,6 @@ zoom.addEventListeners('show', event => {
 })
 ```
 
-## Compatibility
-
-| IE | Edge | Chrome | Firefox | Safari |
-|----|------|--------|---------|--------|
-| 10<sup>1</sup> | 12<sup>2</sup> | 36 | 34 | 9 |
-
-<sup>1</sup> IE10+ and Edge 12 require a `<template>` [polyfill](https://github.com/webcomponents/template) when using [custom templates](#using-a-custom-template).
-
 ## Examples
 
 <details>
@@ -343,6 +353,7 @@ zoom.addEventListeners('show', event => {
 ```js
 mediumZoom('.post img')
 ```
+
 </details>
 
 <details>
@@ -351,6 +362,7 @@ mediumZoom('.post img')
 ```js
 mediumZoom('#cover')
 ```
+
 </details>
 
 <details>
@@ -359,6 +371,7 @@ mediumZoom('#cover')
 ```js
 mediumZoom('[data-action="zoom"]')
 ```
+
 </details>
 
 <details>
@@ -367,6 +380,7 @@ mediumZoom('[data-action="zoom"]')
 ```js
 mediumZoom('img[src^="http"]')
 ```
+
 </details>
 
 <details>
@@ -376,12 +390,14 @@ mediumZoom('img[src^="http"]')
 fetch(`https://myapi.com/posts/${postId}`)
   .then(response => response.json())
   .then(post => {
-    const imagesToZoom = post.images
-      .map(imgSrc => document.querySelector(`img[src=${imgSrc}]`))
+    const imagesToZoom = post.images.map(imgSrc =>
+      document.querySelector(`img[src=${imgSrc}]`)
+    )
 
     mediumZoom(imagesToZoom)
   })
 ```
+
 </details>
 
 <details>
@@ -395,6 +411,7 @@ mediumZoom({
   metaClick: false
 })
 ```
+
 </details>
 
 <details>
@@ -406,6 +423,7 @@ const zoom = mediumZoom('#image')
 
 button.addEventListener('click', () => zoom.show())
 ```
+
 </details>
 
 <details>
@@ -419,6 +437,7 @@ zoom.addEventListeners('show', event => {
   console.log(`"${event.target.alt}" has been zoomed ${++counter} times`)
 })
 ```
+
 </details>
 
 <details>
@@ -431,13 +450,22 @@ setTimeout(() => {
   zoom.detach()
 }, 5000)
 ```
+
 </details>
 
-You can see [more examples](examples/) including [vanilla JavaScript](examples/demo) and [React ⚛️](examples/react).
+You can see [more examples](examples/) including [vanilla JavaScript](examples/demo), [React ⚛️](examples/react) and [Vue](examples/vue).
 
 ## Demo
 
 [View demo 🔎](https://medium-zoom.francoischalifour.com), go to the [examples folder](examples/) or [read the article](https://francoischalifour.com/lab/medium-image-zoom).
+
+## Browser support
+
+| IE              | Edge            | Chrome | Firefox | Safari |
+| --------------- | --------------- | ------ | ------- | ------ |
+| 10<sup>\*</sup> | 12<sup>\*</sup> | 36     | 34      | 9      |
+
+<sup>\*</sup> _These browsers require a [`<template>` polyfill](https://github.com/webcomponents/template) when using [custom templates](#using-a-custom-template)_.
 
 ## Dev
 
@@ -450,15 +478,15 @@ You can see [more examples](examples/) including [vanilla JavaScript](examples/d
 * Lint code: `npm run lint:fix`
 * Test: `npm test`
 
-*You can also use [Yarn](https://github.com/yarnpkg/yarn).*
+_You can also use [Yarn](https://github.com/yarnpkg/yarn)._
 
 ## Contributing
 
 Need more options? Send a pull request!
 
-1. [Fork the repository](https://help.github.com/articles/fork-a-repo/)
-2. [Create a new branch](https://help.github.com/articles/creating-and-deleting-branches-within-your-repository/#creating-a-branch)
-3. [Send a pull request](https://help.github.com/articles/creating-a-pull-request/) 👌
+1.  [Fork the repository](https://help.github.com/articles/fork-a-repo/)
+2.  [Create a new branch](https://help.github.com/articles/creating-and-deleting-branches-within-your-repository/#creating-a-branch)
+3.  [Send a pull request](https://help.github.com/articles/creating-a-pull-request/) 👌
 
 ## License
 
