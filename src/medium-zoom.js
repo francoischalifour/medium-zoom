@@ -259,7 +259,7 @@ const mediumZoom = (
       zoomOut()
       target.zoomed.addEventListener(
         'transitionend',
-        requestAnimationFrame(doDetach)
+        () => requestAnimationFrame(doDetach)
       )
     }
   }
