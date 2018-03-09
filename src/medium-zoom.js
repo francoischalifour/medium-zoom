@@ -259,20 +259,10 @@ const mediumZoom = (
       document.removeEventListener('scroll', onScroll)
       document.removeEventListener('keyup', onDismiss)
       window.removeEventListener('resize', zoomOut)
-
-      target.zoomed &&
-        target.zoomed.removeEventListener('transitionend', doDetach)
     }
 
-    if (!target.zoomed) {
-      doDetach()
-    } else {
-      zoomOut()
-      target.zoomed.addEventListener(
-        'transitionend',
-        requestAnimationFrame(doDetach)
-      )
-    }
+    target.zoomed && zoomOut()
+    doDetach()
   }
 
   const onClick = event => {
