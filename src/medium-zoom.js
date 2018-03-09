@@ -46,17 +46,20 @@ const mediumZoom = (
           : isNode(selector)
             ? [selector].filter(isSupported)
             : typeof selector === 'string'
-              ? Array.apply(null, document.querySelectorAll(selector)).filter(isSupported)
-              : Array.apply(null,
-                  document.querySelectorAll(
-                    SUPPORTED_FORMATS.map(attr => attr.toLowerCase()).join(',')
-                  )
-                ).filter(isScaled)
+              ? Array.apply(null, document.querySelectorAll(selector)).filter(
+                isSupported
+              )
+              : Array.apply(
+                null,
+                document.querySelectorAll(
+                  SUPPORTED_FORMATS.map(attr => attr.toLowerCase()).join(',')
+                )
+              ).filter(isScaled)
     } catch (err) {
       throw new TypeError(
         'The provided selector is invalid.\n' +
-        'Expects a CSS selector, a Node element, a NodeList, an HTMLCollection or an array.\n' +
-        'See: https://github.com/francoischalifour/medium-zoom'
+          'Expects a CSS selector, a Node element, a NodeList, an HTMLCollection or an array.\n' +
+          'See: https://github.com/francoischalifour/medium-zoom'
       )
     }
   }
@@ -94,12 +97,20 @@ const mediumZoom = (
     return clone
   }
 
-  const createCustomEvent = (event, params = { bubbles: false, cancelable: false, detail: undefined }) => {
+  const createCustomEvent = (
+    event,
+    params = { bubbles: false, cancelable: false, detail: undefined }
+  ) => {
     if (typeof window.CustomEvent === 'function') {
       return new CustomEvent(event, params)
     } else {
       const customEvent = document.createEvent('CustomEvent')
-      customEvent.initCustomEvent(event, params.bubbles, params.cancelable, params.detail)
+      customEvent.initCustomEvent(
+        event,
+        params.bubbles,
+        params.cancelable,
+        params.detail
+      )
       return customEvent
     }
   }
