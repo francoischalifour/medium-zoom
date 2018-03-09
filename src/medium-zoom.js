@@ -245,24 +245,21 @@ const mediumZoom = (
   }
 
   const detach = () => {
-    const doDetach = () => {
-      const event = createCustomEvent('detach')
-
-      images.forEach(image => {
-        image.classList.remove('medium-zoom-image')
-        image.removeEventListener('click', onClick)
-        image.dispatchEvent(event)
-      })
-
-      images.splice(0, images.length)
-      overlay.removeEventListener('click', zoomOut)
-      document.removeEventListener('scroll', onScroll)
-      document.removeEventListener('keyup', onDismiss)
-      window.removeEventListener('resize', zoomOut)
-    }
-
     target.zoomed && zoomOut()
-    doDetach()
+
+    const event = createCustomEvent('detach')
+
+    images.forEach(image => {
+      image.classList.remove('medium-zoom-image')
+      image.removeEventListener('click', onClick)
+      image.dispatchEvent(event)
+    })
+
+    images.splice(0, images.length)
+    overlay.removeEventListener('click', zoomOut)
+    document.removeEventListener('scroll', onScroll)
+    document.removeEventListener('keyup', onDismiss)
+    window.removeEventListener('resize', zoomOut)
   }
 
   const onClick = event => {
