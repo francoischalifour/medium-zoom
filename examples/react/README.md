@@ -2,7 +2,7 @@
 
 > Medium Zoom example using React.
 
-[![Preview](https://user-images.githubusercontent.com/6137112/32423245-46d091d8-c273-11e7-9e2e-8b7921bac447.png)](https://codesandbox.io/s/github/francoischalifour/medium-zoom/tree/master/examples/react)
+[![Preview](https://user-images.githubusercontent.com/6137112/32423245-46d091d8-c273-11e7-9e2e-8b7921bac447.png)](https://codesandbox.io/s/github/francoischalifour/medium-zoom/tree/master/examples/react?view=preview)
 
 <p align="center">
   <a href="https://codesandbox.io/s/github/francoischalifour/medium-zoom/tree/master/examples/react">
