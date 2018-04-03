@@ -348,25 +348,9 @@ zoom.addEventListeners('show', event => {
 ## Examples
 
 <details>
- <summary>Images in post content</summary>
+ <summary>Declare zoomable images with data attributes</summary>
 
-```js
-mediumZoom('.post img')
-```
-
-</details>
-
-<details>
- <summary>One image by `id`</summary>
-
-```js
-mediumZoom('#cover')
-```
-
-</details>
-
-<details>
- <summary>Images with `data` attribute</summary>
+A common pattern to declare images as zoomable is to use [data attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/data-*).
 
 ```js
 mediumZoom('[data-action="zoom"]')
@@ -375,7 +359,18 @@ mediumZoom('[data-action="zoom"]')
 </details>
 
 <details>
- <summary>External images</summary>
+ <summary>Attach a zoom dynamically</summary>
+
+When using a framework that mounts your component several times, you don't want to apply a zoom multiple times to the same image. You can apply the CSS selector [`:not(.medium-zoom-image)`](https://developer.mozilla.org/en-US/docs/Web/CSS/:not) to your selection of images. The CSS class `.medium-zoom-image` is added to your image the first time `medium-zoom` is attached.
+
+```js
+mediumZoom('img:not(.medium-zoom-image)')
+```
+
+</details>
+
+<details>
+ <summary>Attach a zoom to external images</summary>
 
 ```js
 mediumZoom('img[src^="http"]')
@@ -384,7 +379,7 @@ mediumZoom('img[src^="http"]')
 </details>
 
 <details>
- <summary>Images from a database</summary>
+ <summary>Attach a zoom to images from a database</summary>
 
 ```js
 fetch(`https://myapi.com/posts/${postId}`)
@@ -401,21 +396,31 @@ fetch(`https://myapi.com/posts/${postId}`)
 </details>
 
 <details>
- <summary>Margins, overlay, scroll offset and click</summary>
+ <summary>Attach a zoom using React refs</summary>
 
 ```js
-mediumZoom({
-  margin: 16,
-  background: '#000',
-  scrollOffset: 0,
-  metaClick: false
-})
+import React, { Component } from 'react'
+import mediumZoom from 'medium-zoom'
+
+class App extends Component {
+  attachZoom = image => {
+    mediumZoom(image)
+  }
+
+  render() {
+    return (
+      <img src="image.jpg" alt="Image" ref={this.attachZoom} />
+    )
+  }
+}
 ```
 
 </details>
 
 <details>
- <summary>Trigger the zoom dynamically</summary>
+ <summary>Trigger a zoom from another element</summary>
+
+You sometimes want to trigger a zoom when the user clicks somewhere else.
 
 ```js
 const button = document.querySelector('#btn-zoom')
@@ -427,7 +432,9 @@ button.addEventListener('click', () => zoom.show())
 </details>
 
 <details>
- <summary>Zoom counter</summary>
+ <summary>Track an event (for analytics)</summary>
+
+You can use the `show` event to keep track of how many times a user interacts with your image. This can be useful if you want to gather some analytics on user engagement.
 
 ```js
 let counter = 0
@@ -441,7 +448,7 @@ zoom.addEventListeners('show', event => {
 </details>
 
 <details>
- <summary>Detach the zoom after a while</summary>
+ <summary>Detach a zoom after a while</summary>
 
 ```js
 const zoom = mediumZoom('#image-detach')
@@ -449,6 +456,17 @@ const zoom = mediumZoom('#image-detach')
 setTimeout(() => {
   zoom.detach()
 }, 5000)
+```
+
+</details>
+
+<details>
+ <summary>Make a zoom clickable only once</summary>
+
+```js
+const zoomToDetach = mediumZoom('#zoom-detach')
+
+zoomToDetach.addEventListeners('hidden', zoomToDetach.detach)
 ```
 
 </details>
