@@ -1,0 +1,16 @@
+{
+  "name": "@medium-zoom/vanilla-example",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.js",
+  "scripts": {
+    "start": "parcel index.html --open",
+    "build": "parcel build index.html --public-url ./"
+  },
+  "dependencies": {
+    "medium-zoom": "latest"
+  },
+  "devDependencies": {
+    "parcel-bundler": "^1.7.0"
+  }
+}
