@@ -78,12 +78,12 @@ const config = [{
     })
   ]
 }].map(({ file, format, plugins }) => ({
-  banner,
   input: 'src/index.js',
   output: {
+    name: 'mediumZoom',
     file,
     format,
-    name: 'mediumZoom'
+    banner
   },
   plugins
 }))

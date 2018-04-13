@@ -46,17 +46,20 @@ const mediumZoom = (
           : isNode(selector)
             ? [selector].filter(isSupported)
             : typeof selector === 'string'
-              ? Array.apply(null, document.querySelectorAll(selector)).filter(isSupported)
-              : Array.apply(null,
-                  document.querySelectorAll(
-                    SUPPORTED_FORMATS.map(attr => attr.toLowerCase()).join(',')
-                  )
-                ).filter(isScaled)
+              ? Array.apply(null, document.querySelectorAll(selector)).filter(
+                isSupported
+              )
+              : Array.apply(
+                null,
+                document.querySelectorAll(
+                  SUPPORTED_FORMATS.map(attr => attr.toLowerCase()).join(',')
+                )
+              ).filter(isScaled)
     } catch (err) {
       throw new TypeError(
         'The provided selector is invalid.\n' +
-        'Expects a CSS selector, a Node element, a NodeList, an HTMLCollection or an array.\n' +
-        'See: https://github.com/francoischalifour/medium-zoom'
+          'Expects a CSS selector, a Node element, a NodeList, an HTMLCollection or an array.\n' +
+          'See: https://github.com/francoischalifour/medium-zoom'
       )
     }
   }
@@ -94,12 +97,20 @@ const mediumZoom = (
     return clone
   }
 
-  const createCustomEvent = (event, params = { bubbles: false, cancelable: false, detail: undefined }) => {
+  const createCustomEvent = (
+    event,
+    params = { bubbles: false, cancelable: false, detail: undefined }
+  ) => {
     if (typeof window.CustomEvent === 'function') {
       return new CustomEvent(event, params)
     } else {
       const customEvent = document.createEvent('CustomEvent')
-      customEvent.initCustomEvent(event, params.bubbles, params.cancelable, params.detail)
+      customEvent.initCustomEvent(
+        event,
+        params.bubbles,
+        params.cancelable,
+        params.detail
+      )
       return customEvent
     }
   }
@@ -259,34 +270,21 @@ const mediumZoom = (
   }
 
   const detach = () => {
-    const doDetach = () => {
-      const event = createCustomEvent('detach')
+    target.zoomed && zoomOut()
 
-      images.forEach(image => {
-        image.classList.remove('medium-zoom-image')
-        image.removeEventListener('click', onClick)
-        image.dispatchEvent(event)
-      })
+    const event = createCustomEvent('detach')
 
-      images.splice(0, images.length)
-      overlay.removeEventListener('click', zoomOut)
-      document.removeEventListener('scroll', onScroll)
-      document.removeEventListener('keyup', onDismiss)
-      window.removeEventListener('resize', zoomOut)
+    images.forEach(image => {
+      image.classList.remove('medium-zoom-image')
+      image.removeEventListener('click', onClick)
+      image.dispatchEvent(event)
+    })
 
-      target.zoomed &&
-        target.zoomed.removeEventListener('transitionend', doDetach)
-    }
-
-    if (!target.zoomed) {
-      doDetach()
-    } else {
-      zoomOut()
-      target.zoomed.addEventListener(
-        'transitionend',
-        requestAnimationFrame(doDetach)
-      )
-    }
+    images.splice(0, images.length)
+    overlay.removeEventListener('click', zoomOut)
+    document.removeEventListener('scroll', onScroll)
+    document.removeEventListener('keyup', onDismiss)
+    window.removeEventListener('resize', zoomOut)
   }
 
   const onClick = event => {
