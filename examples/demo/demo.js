@@ -28,7 +28,7 @@
 
   // Add zooms to a container
   var containerZoom = [
-    mediumZoom('#zoom-default'),
+    mediumZoom('.zoom-default'),
     mediumZoom('#zoom-margin', {
       margin: 48
     }),
