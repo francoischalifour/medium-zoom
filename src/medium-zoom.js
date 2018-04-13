@@ -143,6 +143,11 @@ const mediumZoom = (
 
     if (target.original.getAttribute('data-zoom-target')) {
       target.zoomedHd = target.zoomed.cloneNode()
+
+      // Reset scrset props on zoomedHd, else the hd image will not load
+      target.zoomedHd.setAttribute('srcset', '')
+      target.zoomedHd.setAttribute('sizes', '')
+
       target.zoomedHd.src = target.zoomed.getAttribute('data-zoom-target')
 
       target.zoomedHd.onerror = () => {
