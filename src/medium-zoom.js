@@ -13,6 +13,11 @@ const isListOrCollection = selector =>
 
 const isNode = selector => selector && selector.nodeType === 1
 
+const isSvg = image => {
+  const source = image.currentSrc || image.src
+  return source.substr(-4).toLowerCase() === '.svg'
+}
+
 /**
  * Attaches a zoom effect on a selection of images.
  *
@@ -377,10 +382,12 @@ const mediumZoom = (
     viewportHeight = viewportHeight || container.height - options.margin * 2
 
     const zoomTarget = target.zoomedHd || target.original
-    const {
-      naturalWidth = viewportWidth,
-      naturalHeight = viewportHeight
-    } = zoomTarget
+    const naturalWidth = isSvg(zoomTarget)
+      ? viewportWidth
+      : zoomTarget.naturalWidth || viewportWidth
+    const naturalHeight = isSvg(zoomTarget)
+      ? viewportHeight
+      : zoomTarget.naturalHeight || viewportHeight
     const { top, left, width, height } = zoomTarget.getBoundingClientRect()
 
     const scaleX = Math.min(naturalWidth, viewportWidth) / width
