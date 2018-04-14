@@ -1,6 +1,6 @@
 <!--
   Thank you for submitting a pull request 🙌
-  This template helps you to create an effective feature report.
+  This template helps you create an effective feature report.
 -->
 
 <!--

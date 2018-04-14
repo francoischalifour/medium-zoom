@@ -1,6 +1,6 @@
 <!--
   Thank you for opening an issue 🙌
-  This template helps you to create an effective bug report.
+  This template helps you create an effective bug report.
   You can ignore this boilerplate if it is a feature request.
 -->
 
