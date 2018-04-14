@@ -1,11 +1,11 @@
 {
-  "name": "@medium-zoom/facebook-template-example",
+  "name": "@medium-zoom/vanilla-example",
   "version": "1.0.0",
   "private": true,
-  "main": "index.html",
+  "main": "src/index.js",
   "scripts": {
     "start": "parcel index.html --open",
-    "build": "parcel build index.html"
+    "build": "parcel build index.html --public-url ./"
   },
   "dependencies": {
     "medium-zoom": "latest"
