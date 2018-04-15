@@ -195,7 +195,7 @@ const mediumZoom = (
       // is already in cache
       const loadEventListener = target.zoomedHd.addEventListener('load', () => {
         // Clean up after ourselfes
-        target.zoomedHd.removeEventListener('load', loadEventListener);
+        target.zoomedHd.removeEventListener('load', loadEventListener)
         target.zoomedHd.classList.add('medium-zoom-image--open')
         target.zoomedHd.addEventListener('click', zoomOut)
         document.body.appendChild(target.zoomedHd)
