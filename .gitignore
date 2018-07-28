@@ -2,5 +2,6 @@ node_modules
 dist
 .DS_Store
 package-lock.json
-examples/**/yarn.lock
+/examples/**/yarn.lock
 *.log
+/storybook

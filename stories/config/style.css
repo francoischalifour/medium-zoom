@@ -1,0 +1,26 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol';
+}
+
+#wrapper {
+  position: relative;
+  min-height: 200vh;
+  text-align: center;
+}
+
+img {
+  max-width: 500px;
+}
+
+button {
+  outline: none;
+  margin: 24px;
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  padding: 12px 24px;
+  font: inherit;
+}

@@ -12,16 +12,17 @@
   "main": "dist/medium-zoom.min.js",
   "module": "dist/medium-zoom.es.js",
   "scripts": {
+    "start": "yarn run dev",
+    "build:storybook": "build-storybook -o ./storybook -c ./stories/config -s ./dist,./stories/images",
+    "storybook": "start-storybook -p 9001 -c ./stories/config -s ./dist,./stories/images",
     "lint": "eslint .",
-    "lint:fix": "yarn run lint --fix",
     "format": "prettier --write 'src/**/*.{js,json,css}' && yarn run lint --fix",
     "test": "jest",
-    "test:watch": "yarn run test --watch",
     "clean": "rimraf ./dist",
     "prebuild": "yarn run test && yarn run clean",
     "build": "cross-env NODE_ENV=build rollup --config",
     "dev": "cross-env NODE_ENV=build rollup --config --watch",
-    "preview": "yarn run build && cp ./dist/* ./examples/demo/preview/",
+    "preview": "yarn run build && cp ./dist/* ./examples/demo/preview/ && yarn run build:storybook",
     "prepublishOnly": "yarn run build"
   },
   "browserslist": [
@@ -62,8 +63,16 @@
     "zoomable"
   ],
   "devDependencies": {
+    "@storybook/addon-notes": "4.0.0-alpha.14",
+    "@storybook/addon-options": "4.0.0-alpha.14",
+    "@storybook/addon-storyshots": "4.0.0-alpha.14",
+    "@storybook/addon-storyshots-puppeteer": "4.0.0-alpha.14",
+    "@storybook/addon-storysource": "4.0.0-alpha.14",
+    "@storybook/html": "4.0.0-alpha.14",
+    "babel-core": "6.26.3",
     "babel-eslint": "8.2.6",
     "babel-plugin-external-helpers": "6.22.0",
+    "babel-plugin-require-context-hook": "1.0.0",
     "babel-plugin-transform-object-assign": "6.22.0",
     "babel-preset-env": "1.7.0",
     "cross-env": "5.2.0",

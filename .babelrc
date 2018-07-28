@@ -9,14 +9,10 @@
           }
         ]
       ],
-      "plugins": [
-        "external-helpers"
-      ]
+      "plugins": ["external-helpers"]
     },
     "test": {
-      "presets": [
-        "env"
-      ]
+      "presets": ["env"]
     }
   }
 }
