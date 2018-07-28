@@ -159,6 +159,11 @@ const mediumZoom = (
 
     if (target.original.getAttribute('data-zoom-target')) {
       target.zoomedHd = target.zoomed.cloneNode()
+
+      // Reset scrset props on zoomedHd, else the hd image will not load
+      target.zoomedHd.setAttribute('srcset', '')
+      target.zoomedHd.setAttribute('sizes', '')
+
       target.zoomedHd.src = target.zoomed.getAttribute('data-zoom-target')
 
       target.zoomedHd.onerror = () => {
@@ -181,6 +186,26 @@ const mediumZoom = (
           animateTarget()
         }
       }, 10)
+    } else if (target.original.hasAttribute('srcset')) {
+      // If an image has a srcset, we don't know the dimensions of the
+      // zoomed (hd) image, like when data-zoom-target is specified.
+      // Therefore the approach is quite similar.
+      target.zoomedHd = target.zoomed.cloneNode()
+
+      // Resetting the sizes attribute tells the browser to load the
+      // image best fitting the current viewport size, respecting the srcset
+      target.zoomedHd.setAttribute('sizes', '')
+
+      // Wait for the load event of the hd image. This will fire if the image
+      // is already in cache
+      const loadEventListener = target.zoomedHd.addEventListener('load', () => {
+        // Clean up after ourselfes
+        target.zoomedHd.removeEventListener('load', loadEventListener)
+        target.zoomedHd.classList.add('medium-zoom-image--open')
+        target.zoomedHd.addEventListener('click', zoomOut)
+        document.body.appendChild(target.zoomedHd)
+        animateTarget()
+      })
     } else {
       animateTarget()
     }

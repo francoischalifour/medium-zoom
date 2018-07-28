@@ -26,6 +26,8 @@
   var zoomToDetach = mediumZoom('#zoom-detach')
   zoomToDetach.addEventListeners('hidden', zoomToDetach.detach)
 
+  mediumZoom('.zoom-srcset')
+
   // Add zooms to a container
   var containerZoom = [
     mediumZoom('#zoom-default'),
