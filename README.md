@@ -8,14 +8,11 @@
   <a href="https://www.npmjs.com/package/medium-zoom">
     <img src="https://img.shields.io/npm/v/medium-zoom.svg?style=flat-square" alt="version">
   </a>
-  <a href="http://npmcharts.com/compare/medium-zoom">
-    <img src="https://img.shields.io/npm/dm/medium-zoom.svg?style=flat-square" alt="downloads">
-  </a>
   <a href="https://github.com/francoischalifour/medium-zoom/blob/master/LICENSE">
     <img src="https://img.shields.io/npm/l/medium-zoom.svg?style=flat-square" alt="MIT license">
   </a>
-  <a href="https://github.com/francoischalifour/medium-zoom/blob/master/package.json">
-    <img src="https://img.shields.io/badge/dependencies-none-lightgrey.svg?style=flat-square" alt="no dependencies">
+  <a href="http://npmcharts.com/compare/medium-zoom">
+    <img src="https://img.shields.io/npm/dm/medium-zoom.svg?style=flat-square" alt="downloads">
   </a>
   <br>
   <a href="https://unpkg.com/medium-zoom/dist/">
@@ -24,11 +21,8 @@
   <a href="https://unpkg.com/medium-zoom/dist/">
     <img src="http://img.badgesize.io/https://unpkg.com/medium-zoom/dist/medium-zoom.min.js?compression=gzip&label=gzip%20size&style=flat-square" alt="gzip size">
   </a>
-  <a href="https://github.com/facebook/jest">
-    <img src="https://img.shields.io/badge/tested_with-jest-99424f.svg?style=flat-square" alt="tested with Jest">
-  </a>
-  <a href="https://github.com/feross/standard">
-    <img src="https://img.shields.io/badge/code%20style-standard-yellow.svg?style=flat-square" alt="js-standard-style">
+  <a href="https://github.com/francoischalifour/medium-zoom/blob/master/package.json">
+    <img src="https://img.shields.io/badge/dependencies-none-lightgrey.svg?style=flat-square" alt="no dependencies">
   </a>
 </p>
 

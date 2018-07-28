@@ -52,14 +52,14 @@ const mediumZoom = (
             ? [selector].filter(isSupported)
             : typeof selector === 'string'
               ? Array.apply(null, document.querySelectorAll(selector)).filter(
-                isSupported
-              )
-              : Array.apply(
-                null,
-                document.querySelectorAll(
-                  SUPPORTED_FORMATS.map(attr => attr.toLowerCase()).join(',')
+                  isSupported
                 )
-              ).filter(isScaled)
+              : Array.apply(
+                  null,
+                  document.querySelectorAll(
+                    SUPPORTED_FORMATS.map(attr => attr.toLowerCase()).join(',')
+                  )
+                ).filter(isScaled)
     } catch (err) {
       throw new TypeError(
         'The provided selector is invalid.\n' +
