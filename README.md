@@ -77,7 +77,7 @@
 This module is available on the [npm](https://www.npmjs.com) registry, with no dependencies.
 
 ```sh
-npm install --save medium-zoom
+npm install medium-zoom
 # or
 yarn add medium-zoom
 ```
