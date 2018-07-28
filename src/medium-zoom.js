@@ -39,7 +39,7 @@ const mediumZoom = (
     scrollOffset = 48,
     metaClick = true,
     container,
-    template
+    template,
   } = {}
 ) => {
   const selectImages = selector => {
@@ -365,7 +365,7 @@ const mediumZoom = (
       left: 0,
       top: 0,
       right: 0,
-      bottom: 0
+      bottom: 0,
     }
     let viewportWidth
     let viewportHeight
@@ -396,7 +396,7 @@ const mediumZoom = (
           width,
           height,
           left,
-          top
+          top,
         } = zoomContainer.getBoundingClientRect()
         Object.assign(container, { width, height, left, top })
       }
@@ -435,7 +435,7 @@ const mediumZoom = (
     scrollOffset,
     metaClick,
     container,
-    template
+    template,
   }
 
   // If the selector is omitted, it becomes the options
@@ -450,7 +450,7 @@ const mediumZoom = (
     original: null,
     zoomed: null,
     zoomedHd: null,
-    template: null
+    template: null,
   }
   let scrollTop = 0
   let isAnimating = false
@@ -472,7 +472,7 @@ const mediumZoom = (
     addEventListeners,
     detach,
     images,
-    options
+    options,
   }
 }
 
