@@ -114,7 +114,7 @@ That's it! You don't need to import any CSS styles.
 ### 2. Use the library
 
 ```js
-mediumZoom(<selector>, <options>)
+mediumZoom(selector?, options?)
 ```
 
 By default, the zoom is applied to all scaled images (with HTML or CSS properties). You can specify the zoomable images with a [CSS selector](http://www.w3schools.com/cssref/css_selectors.asp) and add [options](#options).
@@ -147,7 +147,7 @@ mediumZoom(imagesToZoom)
 
 ### Options
 
-Options can be passed via a JavaScript object through the `mediumZoom` call.
+Options can be passed as an object to the second argument of the `mediumZoom` function.
 
 | Property       | Type                          | Default  | Description                                                                                                |
 | -------------- | ----------------------------- | -------- | ---------------------------------------------------------------------------------------------------------- |
