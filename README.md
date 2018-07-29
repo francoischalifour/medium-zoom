@@ -42,36 +42,36 @@
 <details>
   <summary><strong>Contents</strong></summary>
 
-* [Features](#features)
-* [Installation](#installation)
-* [Usage](#usage)
-  * [Import the library](#1-import-the-library)
-  * [Use the library](#2-use-the-library)
-* [API](#api)
-  * [Options](#options)
-  * [Methods](#methods)
-  * [Data attributes](#data-attributes)
-  * [Events](#events)
-* [Examples](#examples)
-* [Demo](#demo)
-* [Browser support](#browser-support)
-* [Development](#development)
-* [Contributing](#contributing)
-* [License](#license)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Import the library](#1-import-the-library)
+  - [Use the library](#2-use-the-library)
+- [API](#api)
+  - [Options](#options)
+  - [Methods](#methods)
+  - [Data attributes](#data-attributes)
+  - [Events](#events)
+- [Examples](#examples)
+- [Demo](#demo)
+- [Browser support](#browser-support)
+- [Development](#development)
+- [Contributing](#contributing)
+- [License](#license)
   </details>
 
 ## Features
 
-* 📱 **Responsive** — _scale on mobile and desktop_
-* 🚀 **Performant and lightweight** — _should be able to reach 60 [fps](https://en.wikipedia.org/wiki/Frame_rate)_
-* ⚡️ **High definition support** — _load the HD version of your image on zoom_
-* 🔎 **Image selection** — _apply the zoom to a selection of images_
-* 🖱 **Mouse, keyboard and gesture friendly** — _click anywhere, press a key or scroll away to dismiss the zoom_
-* 🎉 **Event handling** — _trigger events when the zoom enters a new state_
-* 🔧 **Customization** — _set your own margin, background and scroll offset_
-* 💎 **Custom templates** — _extend the default look to match your app UI_
-* 🔗 **Link support** — _open the link of the image in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)_
-* 🖼 **Image opener** — _when no link, open the image source in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)_
+- 📱 **Responsive** — _scale on mobile and desktop_
+- 🚀 **Performant and lightweight** — _should be able to reach 60 [fps](https://en.wikipedia.org/wiki/Frame_rate)_
+- ⚡️ **High definition support** — _load the HD version of your image on zoom_
+- 🔎 **Image selection** — _apply the zoom to a selection of images_
+- 🖱 **Mouse, keyboard and gesture friendly** — _click anywhere, press a key or scroll away to dismiss the zoom_
+- 🎉 **Event handling** — _trigger events when the zoom enters a new state_
+- 🔧 **Customization** — _set your own margin, background and scroll offset_
+- 💎 **Custom templates** — _extend the default look to match your app UI_
+- 🔗 **Link support** — _open the link of the image in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)_
+- 🖼 **Image opener** — _when no link, open the image source in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)_
 
 ## Installation
 
@@ -137,7 +137,7 @@ mediumZoom(document.images)
 // Array
 const imagesToZoom = [
   document.querySelector('#cover'),
-  ...document.querySelectorAll('[data-action="zoom"]')
+  ...document.querySelectorAll('[data-action="zoom"]'),
 ]
 
 mediumZoom(imagesToZoom)
@@ -165,7 +165,7 @@ mediumZoom('[data-action="zoom"]', {
   scrollOffset: 0,
   metaClick: false,
   container: '#zoom-container',
-  template: '#zoom-template'
+  template: '#zoom-template',
 })
 ```
 
@@ -201,8 +201,8 @@ mediumZoom('img', {
     top: 64,
     bottom: 64,
     right: 0,
-    left: 0
-  }
+    left: 0,
+  },
 })
 ```
 
@@ -280,7 +280,7 @@ Updates and returns the options.
 const zoom = mediumZoom('#my-image')
 
 zoom.update({
-  background: '#000'
+  background: '#000',
 })
 ```
 
@@ -327,9 +327,9 @@ Specifies the high definition image to show on zoom. This image is loaded when t
 | Event  | Description                                                 |
 | ------ | ----------------------------------------------------------- |
 | show   | Fired immediately when the `show` instance method is called |
-| shown  | Fired when the zoom has finished being animated             |
+| shown  | Fired when the zoom has finished being animated              |
 | hide   | Fired immediately when the `hide` instance method is called |
-| hidden | Fired when the zoom out has finished being animated         |
+| hidden | Fired when the zoom out has finished being animated          |
 | detach | Fired when the `detach` instance method is called           |
 
 ```js
@@ -403,9 +403,7 @@ class App extends Component {
   }
 
   render() {
-    return (
-      <img src="image.jpg" alt="Image" ref={this.attachZoom} />
-    )
+    return <img src="image.jpg" alt="Image" ref={this.attachZoom} />
   }
 }
 ```
@@ -482,11 +480,11 @@ You can see [more examples](examples/) including [React](examples/react) and [Vu
 
 ## Development
 
-* Run `yarn` to install Node dev dependencies
-* Run `yarn run dev` to build the `medium-zoom` library in watch mode
-* Run `yarn run storybook` to see your changes at http://localhost:9001
-* Add a story in the [storybook](stories) when you add a new feature
-* Add your tests and run `yarn run test` to make sure it works
+- Run `yarn` to install Node dev dependencies
+- Run `yarn run dev` to build the `medium-zoom` library in watch mode
+- Run `yarn run storybook` to see your changes at http://localhost:9001
+- Add a story in the [storybook](stories) when you add a new feature
+- Add your tests and run `yarn run test` to make sure it works
 
 _You can also use [npm](https://www.npmjs.com)._
 
@@ -494,9 +492,9 @@ _You can also use [npm](https://www.npmjs.com)._
 
 Need more options? Send a pull request!
 
-1. [Fork the repository](https://help.github.com/articles/fork-a-repo/)
-2. [Create a new branch](https://help.github.com/articles/creating-and-deleting-branches-within-your-repository/#creating-a-branch)
-3. [Send a pull request](https://help.github.com/articles/creating-a-pull-request/) 👌
+1.  [Fork the repository](https://help.github.com/articles/fork-a-repo/)
+2.  [Create a new branch](https://help.github.com/articles/creating-and-deleting-branches-within-your-repository/#creating-a-branch)
+3.  [Send a pull request](https://help.github.com/articles/creating-a-pull-request/) 👌
 
 ## License
 
