@@ -23,7 +23,7 @@
     "prepublishOnly": "yarn run build",
     "build:storybook": "build-storybook -o ./website/dist/storybook -c ./stories/config -s ./dist,./stories/images",
     "storybook": "start-storybook -p 9001 -c ./stories/config -s ./dist,./stories/images",
-    "build:website": "(cd website && yarn run build) && yarn run build && yarn run build:storybook"
+    "build:website": "(cd website && yarn && yarn run build) && yarn run build && yarn run build:storybook"
   },
   "browserslist": [
     "> 1%",
