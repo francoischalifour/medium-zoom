@@ -4,3 +4,4 @@ dist
 package-lock.json
 /examples/**/yarn.lock
 *.log
+/storybook
