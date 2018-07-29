@@ -28,7 +28,7 @@
 
 <p align="center">
   <a href="https://medium-zoom.francoischalifour.com">
-    <img src="https://user-images.githubusercontent.com/6137112/30665292-87c012c8-9e1e-11e7-9456-3d94ee73ce98.gif" alt="medium-zoom demo">
+    <img src="https://user-images.githubusercontent.com/6137112/43369906-7623239a-9376-11e8-978b-6e089be499fb.gif" alt="Medium Zoom Demo">
   </a>
   <br>
   <br>
