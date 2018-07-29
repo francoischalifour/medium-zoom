@@ -103,7 +103,7 @@ Using imports:
 import mediumZoom from 'medium-zoom'
 ```
 
-Using a script tag:
+Using script tags:
 
 ```html
 <script src="node_modules/medium-zoom/dist/medium-zoom.min.js"></script>
