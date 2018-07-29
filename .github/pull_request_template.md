@@ -3,19 +3,10 @@
   This template helps you create an effective feature report.
 -->
 
-<!--
-  ✏️ Summary
+## Summary
 
-  - Explain why you are making this change
-  - Link related issues (#ISSUE_NUMBER)
--->
+<!-- Explain why you are making this change and link related issues (#ISSUE_NUMBER) -->
 
-<!--
-  ⭐️ Result
+## Result
 
-  - Make the changes to the source code
-  - Write the appropriate documentation in the README
-  - Run the tests: `yarn test`
-  - Format the code: `yarn format`
-  - Preview your changes at: https://deploy-preview-PR_NUMBER--medium-zoom.netlify.com/preview (`PR_NUMBER` being the ID of the PR you're opening)
--->
+<!-- Explain what you've changed and what's the result! -->
