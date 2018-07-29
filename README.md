@@ -481,24 +481,21 @@ You can see [more examples](examples/) including [vanilla JavaScript](examples/d
 
 ## Dev
 
-* Run `npm install` to install Node dev dependencies
-* Run `npm run dev` to watch changes and rebuild the library
-* Open [`examples/demo/development/index.html`](examples/demo/development/index.html) to check your changes (it includes [`dist/medium-zoom.min.js`](dist/medium-zoom.min.js) which is watched with `npm run dev`)
+* Run `yarn` to install Node dev dependencies
+* Run `yarn run dev` to build the `medium-zoom` library in watch mode
+* Run `yarn run storybook` to see your changes at http://localhost:9001
+* Add a story in the [Storybook](stories) when you add a new feature
+* Add your tests and run `yarn run test` to make sure it works
 
-##### More commands
-
-* Lint code: `npm run lint:fix`
-* Test: `npm test`
-
-_You can also use [Yarn](https://github.com/yarnpkg/yarn)._
+_You can also use [npm](https://www.npmjs.com)._
 
 ## Contributing
 
 Need more options? Send a pull request!
 
-1.  [Fork the repository](https://help.github.com/articles/fork-a-repo/)
-2.  [Create a new branch](https://help.github.com/articles/creating-and-deleting-branches-within-your-repository/#creating-a-branch)
-3.  [Send a pull request](https://help.github.com/articles/creating-a-pull-request/) 👌
+1. [Fork the repository](https://help.github.com/articles/fork-a-repo/)
+2. [Create a new branch](https://help.github.com/articles/creating-and-deleting-branches-within-your-repository/#creating-a-branch)
+3. [Send a pull request](https://help.github.com/articles/creating-a-pull-request/) 👌
 
 ## License
 
