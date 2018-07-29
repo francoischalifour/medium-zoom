@@ -34,7 +34,8 @@
   <br>
   <strong>
   <a href="https://codesandbox.io/s/github/francoischalifour/medium-zoom/tree/master/website">🔬 Playground</a> ・
-  <a href="https://medium-zoom.francoischalifour.com">🔎 Demo</a>
+  <a href="https://medium-zoom.francoischalifour.com">🔎 Demo</a> ・
+  <a href="https://medium-zoom.francoischalifour.com/storybook">📚 Storybook</a>
   </strong>
 </p>
 
@@ -71,8 +72,6 @@
 * 💎 **Custom templates** — _extend the default look to match your UI_
 * 🔗 **Link support** — _open the link of the image in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)_
 * 🖼 **Image opener** — _when no link, open the image source in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)_
-
-> Check all the features in the [storybook](https://medium-zoom.francoischalifour.com/storybook).
 
 ## Installation
 
@@ -467,7 +466,7 @@ zoomToDetach.addEventListeners('hidden', zoomToDetach.detach)
 
 </details>
 
-You can see [more examples](examples/) including [vanilla JavaScript](examples/demo), [React ⚛️](examples/react) and [Vue](examples/vue).
+You can see [more examples](examples/) including [React](examples/react) and [Vue](examples/vue), or check out the [storybook](https://medium-zoom.francoischalifour.com/storybook).
 
 ## Demo
 
