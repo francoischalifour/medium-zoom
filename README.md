@@ -33,7 +33,7 @@
   <br>
   <br>
   <strong>
-  <a href="https://codesandbox.io/s/github/francoischalifour/medium-zoom/website">🔬 Playground</a> ・
+  <a href="https://codesandbox.io/s/github/francoischalifour/medium-zoom/tree/master/website">🔬 Playground</a> ・
   <a href="https://medium-zoom.francoischalifour.com">🔎 Demo</a>
   </strong>
 </p>
