@@ -11,6 +11,6 @@
     "medium-zoom": "latest"
   },
   "devDependencies": {
-    "parcel-bundler": "^1.7.0"
+    "parcel-bundler": "1.9.7"
   }
 }

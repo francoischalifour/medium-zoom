@@ -1,10 +1,10 @@
-![Image 1](images/image-1.jpg)
+![Zoom 1](images/image-1.jpg)
 
 Lorem ipsum dolor sit amet, consectetur adipisicing elit. Tempora praesentium cupiditate fugit voluptas, rem eligendi, voluptatem molestias. Doloremque sit voluptatum odio maiores provident consequuntur accusantium saepe.
 
-![Image 2](images/image-2.jpg)
+![Zoom 2](images/image-2.jpg)
 
 Lorem ipsum dolor sit amet, consectetur adipisicing elit.
 Ea dolores quaerat, quis modi nostrum sequi adipisci ratione esse blanditiis error beatae vel non vero dolor nemo. Animi nemo quisquam ducimus!
 
-![Image 3](images/image-3.jpg)
+![Zoom 3](images/image-3.jpg)

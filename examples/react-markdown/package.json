@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "medium-zoom": "latest",
-    "react": "^16.0.0",
-    "react-dom": "^16.0.0",
-    "react-markdown": "^2.5.0",
-    "react-scripts": "1.0.14"
+    "react": "16.4.1",
+    "react-dom": "16.4.1",
+    "react-markdown": "3.4.1",
+    "react-scripts": "1.1.4"
   }
 }

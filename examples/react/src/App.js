@@ -11,7 +11,7 @@ class App extends Component {
       <article className="container">
         <h1>React demo</h1>
 
-        <img src="images/image-1.jpg" alt="Image 1" ref={this.attachZoom} />
+        <img src="images/image-1.jpg" alt="Zoom 1" ref={this.attachZoom} />
 
         <p>
           Lorem ipsum dolor sit amet, consectetur adipisicing elit. Tempora
@@ -20,7 +20,7 @@ class App extends Component {
           consequuntur accusantium saepe.
         </p>
 
-        <img src="images/image-2.jpg" alt="Image 2" ref={this.attachZoom} />
+        <img src="images/image-2.jpg" alt="Zoom 2" ref={this.attachZoom} />
 
         <p>
           Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ea dolores
@@ -28,7 +28,7 @@ class App extends Component {
           error beatae vel non vero dolor nemo. Animi nemo quisquam ducimus!
         </p>
 
-        <img src="images/image-3.jpg" alt="Image 3" ref={this.attachZoom} />
+        <img src="images/image-3.jpg" alt="Zoom 3" ref={this.attachZoom} />
       </article>
     )
   }
