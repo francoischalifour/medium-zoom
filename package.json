@@ -13,17 +13,17 @@
   "module": "dist/medium-zoom.es.js",
   "scripts": {
     "start": "yarn run dev",
-    "build:storybook": "build-storybook -o ./storybook -c ./stories/config -s ./dist,./stories/images",
-    "storybook": "start-storybook -p 9001 -c ./stories/config -s ./dist,./stories/images",
+    "prebuild": "yarn run test && yarn run clean",
+    "build": "cross-env NODE_ENV=build rollup --config",
+    "dev": "cross-env NODE_ENV=build rollup --config --watch",
     "lint": "eslint .",
     "format": "prettier --write 'src/**/*.{js,json,css}' && yarn run lint --fix",
     "test": "jest",
     "clean": "rimraf ./dist",
-    "prebuild": "yarn run test && yarn run clean",
-    "build": "cross-env NODE_ENV=build rollup --config",
-    "dev": "cross-env NODE_ENV=build rollup --config --watch",
-    "preview": "yarn run build && cp ./dist/* ./examples/demo/preview/ && yarn run build:storybook",
-    "prepublishOnly": "yarn run build"
+    "prepublishOnly": "yarn run build",
+    "build:storybook": "build-storybook -o ./website/dist/storybook -c ./stories/config -s ./dist,./stories/images",
+    "storybook": "start-storybook -p 9001 -c ./stories/config -s ./dist,./stories/images",
+    "build:website": "(cd website && yarn && yarn run build) && yarn run build && yarn run build:storybook"
   },
   "browserslist": [
     "> 1%",

@@ -4,21 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#00ab6c">
+    <meta name="description" content="Medium zoom on your images in vanilla JavaScript">
 
-    <link rel="shortcut icon" href="../icons/favicon.ico">
-    <link rel="manifest" href="../manifest.json">
+    <link rel="shortcut icon" href="icons/favicon.ico">
+    <link rel="manifest" href="manifest.webmanifest">
 
     <link href="https://fonts.googleapis.com/css?family=Varela+Round|Work+Sans" rel="stylesheet">
-    <link href="../reset.css" rel="stylesheet">
-    <link href="../style.css" rel="stylesheet">
+    <link href="src/reset.css" rel="stylesheet">
+    <link href="src/style.css" rel="stylesheet">
 
-    <title>Medium Zoom | Preview</title>
+    <title>Medium Zoom | Demo</title>
   </head>
 
   <body>
     <header class="header">
       <h1 class="header__title">Medium Zoom</h1>
-      <div class="header__subtitle">Medium zoom on your images in vanilla JavaScript</div>
+      <p class="header__subtitle">Medium zoom on your images in vanilla JavaScript</p>
 
       <div class="header__info">
         <a href="https://github.com/francoischalifour/medium-zoom" class="button">View on GitHub</a>
@@ -30,7 +31,7 @@
       <figure>
         <img
           id="zoom-default"
-          src="../images/image-1.jpg"
+          src="src/images/image-1.jpg"
           alt="Zoom with default options"
         >
         <figcaption>Zoom with default options</figcaption>
@@ -47,7 +48,7 @@
       <figure>
         <img
           id="zoom-margin"
-          src="../images/image-2.jpg"
+          src="src/images/image-2.jpg"
           alt="Zoom with margin"
         >
         <figcaption>Zoom with margin</figcaption>
@@ -62,7 +63,7 @@
       <figure>
         <img
           id="zoom-background"
-          src="../images/image-3.jpg"
+          src="src/images/image-3.jpg"
           alt="Zoom with background color"
         >
         <figcaption>Zoom with background color</figcaption>
@@ -77,7 +78,7 @@
       <figure class="pull-right">
         <img
           id="zoom-scrollOffset"
-          src="../images/image-4.jpg"
+          src="src/images/image-4.jpg"
           alt="Zoom without scroll effect"
         >
         <figcaption>Zoom without scroll offset</figcaption>
@@ -109,8 +110,8 @@
 
       <figure class="pull-left">
         <img
-          id="zoom-metaClick"
-          src="../images/image-5.jpg"
+          id="zoom-noMetaClick"
+          src="src/images/image-5.jpg"
           alt="Zoom without meta click"
         >
         <figcaption>Zoom without meta click</figcaption>
@@ -131,7 +132,8 @@
       <p class="placeholder">
         Lorem ipsum dolor sit amet, consectetur adipisicing elit.
         Corporis veritatis cupiditate iure velit laboriosam eius nesciunt officiis
-        odit cumque deleniti assumenda esse exercitationem ducimus, accusantium eligendi itaque dolorem molestias saepe!
+        odit cumque deleniti assumenda esse exercitationem ducimus, accusantium
+        eligendi itaque dolorem molestias saepe!
       </p>
 
       <p class="placeholder">
@@ -143,7 +145,7 @@
       <figure>
         <img
           id="zoom-trigger"
-          src="../images/image-6.jpg"
+          src="src/images/image-6.jpg"
           alt="Zoom to trigger"
         >
         <figcaption>
@@ -160,7 +162,7 @@
       <figure>
         <img
           id="zoom-detach"
-          src="../images/image-7.jpg"
+          src="src/images/image-7.jpg"
           alt="Zoom detached after being zoomed once"
         >
         <figcaption>Zoom detached after being zoomed once</figcaption>
@@ -175,7 +177,7 @@
       <aside>
         <h2>Getting started</h2>
 
-        <pre><code>npm install --save medium-zoom</code></pre>
+        <pre><code>npm install medium-zoom</code></pre>
 
         <p class="text-center">
           <a href="https://github.com/francoischalifour/medium-zoom#usage" class="button button--action">Learn how to use the library →</a>
@@ -197,10 +199,6 @@
       <p><a href="#">Back to top</a></p>
     </footer>
 
-    <script src="medium-zoom.min.js"></script>
-    <script>
-      console.info('You\'re in preview environment 🖥')
-    </script>
-    <script src="../demo.js"></script>
+    <script src="src/app.js"></script>
   </body>
 </html>

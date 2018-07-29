@@ -1,8 +1,8 @@
 {
   "short_name": "medium-zoom",
-  "name": "Medium Zoom Demo",
+  "name": "Medium Zoom Website",
   "description": "Medium zoom on your images in vanilla JavaScript",
-  "start_url": "./index.html",
+  "start_url": "index.html",
   "display": "standalone",
   "theme_color": "#00ab6c",
   "background_color": "#ffffff",

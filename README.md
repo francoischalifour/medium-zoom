@@ -33,7 +33,7 @@
   <br>
   <br>
   <strong>
-  <a href="https://codepen.io/francoischalifour/pen/MEPrpX">🔬 Playground</a> ・
+  <a href="https://codesandbox.io/s/github/francoischalifour/medium-zoom/tree/master/website">🔬 Playground</a> ・
   <a href="https://medium-zoom.francoischalifour.com">🔎 Demo</a>
   </strong>
 </p>
@@ -71,6 +71,8 @@
 * 💎 **Custom templates** — _extend the default look to match your UI_
 * 🔗 **Link support** — _open the link of the image in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)_
 * 🖼 **Image opener** — _when no link, open the image source in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)_
+
+> Check all the features in the [storybook](https://medium-zoom.francoischalifour.com/storybook).
 
 ## Installation
 
