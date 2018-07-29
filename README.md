@@ -40,12 +40,12 @@
 </p>
 
 <details>
-  <summary><strong>Table of contents</strong></summary>
+  <summary><strong>Contents</strong></summary>
 
 * [Features](#features)
 * [Installation](#installation)
 * [Usage](#usage)
-  * [Import the script](#1-import-the-script)
+  * [Import the library](#1-import-the-library)
   * [Use the library](#2-use-the-library)
 * [API](#api)
   * [Options](#options)
@@ -55,7 +55,7 @@
 * [Examples](#examples)
 * [Demo](#demo)
 * [Browser support](#browser-support)
-* [Dev](#dev)
+* [Development](#development)
 * [Contributing](#contributing)
 * [License](#license)
   </details>
@@ -69,7 +69,7 @@
 * 🖱 **Mouse, keyboard and gesture friendly** — _click anywhere, press a key or scroll away to dismiss the zoom_
 * 🎉 **Event handling** — _trigger events when the zoom enters a new state_
 * 🔧 **Customization** — _set your own margin, background and scroll offset_
-* 💎 **Custom templates** — _extend the default look to match your UI_
+* 💎 **Custom templates** — _extend the default look to match your app UI_
 * 🔗 **Link support** — _open the link of the image in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)_
 * 🖼 **Image opener** — _when no link, open the image source in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)_
 
@@ -83,30 +83,30 @@ npm install medium-zoom
 yarn add medium-zoom
 ```
 
-If you want to use the [CDN](https://en.wikipedia.org/wiki/Content_delivery_network) version:
+###### Download
 
-```html
-<script src="https://unpkg.com/medium-zoom@0/dist/medium-zoom.min.js"></script>
-```
+- [Normal](https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.js)
+- [Minified](https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js)
 
-To use a local version, you can download the [minified version](https://unpkg.com/medium-zoom@0/dist/medium-zoom.min.js) of the module.
+###### CDN
+
+- [jsDelivr](https://www.jsdelivr.com/package/npm/medium-zoom)
+- [unpkg](https://unpkg.com/medium-zoom/)
 
 ## Usage
 
-### 1. Import the script
+### 1. Import the library
 
-_You can skip this step if you use the CDN version._
-
-Import the script:
-
-```html
-<script src="node_modules/medium-zoom/dist/medium-zoom.min.js"></script>
-```
-
-Or, using imports:
+Using imports:
 
 ```js
 import mediumZoom from 'medium-zoom'
+```
+
+Using a script tag:
+
+```html
+<script src="node_modules/medium-zoom/dist/medium-zoom.min.js"></script>
 ```
 
 That's it! You don't need to import any CSS styles.
@@ -470,7 +470,7 @@ You can see [more examples](examples/) including [React](examples/react) and [Vu
 
 ## Demo
 
-[View demo 🔎](https://medium-zoom.francoischalifour.com), go to the [examples folder](examples/) or [read the article](https://francoischalifour.com/lab/medium-image-zoom).
+[Check out the demo](https://medium-zoom.francoischalifour.com), go to the [examples folder](examples/), see the [storybook](https://medium-zoom.francoischalifour.com/storybook) or [read the article](https://francoischalifour.com/lab/medium-image-zoom).
 
 ## Browser support
 
@@ -480,12 +480,12 @@ You can see [more examples](examples/) including [React](examples/react) and [Vu
 
 <sup>\*</sup> _These browsers require a [`<template>` polyfill](https://github.com/webcomponents/template) when using [custom templates](#using-a-custom-template)_.
 
-## Dev
+## Development
 
 * Run `yarn` to install Node dev dependencies
 * Run `yarn run dev` to build the `medium-zoom` library in watch mode
 * Run `yarn run storybook` to see your changes at http://localhost:9001
-* Add a story in the [Storybook](stories) when you add a new feature
+* Add a story in the [storybook](stories) when you add a new feature
 * Add your tests and run `yarn run test` to make sure it works
 
 _You can also use [npm](https://www.npmjs.com)._
