@@ -1,7 +1,7 @@
 {
   "short_name": "medium-zoom",
   "name": "Medium Zoom Website",
-  "description": "Medium zoom on your images in vanilla JavaScript",
+  "description": "A JavaScript library for zooming images like Medium",
   "start_url": "index.html",
   "display": "standalone",
   "theme_color": "#00ab6c",
