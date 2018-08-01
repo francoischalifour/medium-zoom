@@ -71,7 +71,7 @@
 - 🔧 **Customization** — _set your own margin, background and scroll offset_
 - 💎 **Custom templates** — _extend the default look to match your app UI_
 - 🔗 **Link support** — _hold the meta key (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>) to open the link of the image in a new tab_
-- 🖼 **Image opener** — _when no link, hold the meta key (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>) to open the image source in a new tab)_
+- 🖼 **Image opener** — _when no link, hold the meta key (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>) to open the image source in a new tab_
 
 ## Installation
 
