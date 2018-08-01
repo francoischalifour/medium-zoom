@@ -70,8 +70,8 @@
 - 🎉 **Event handling** — _trigger events when the zoom enters a new state_
 - 🔧 **Customization** — _set your own margin, background and scroll offset_
 - 💎 **Custom templates** — _extend the default look to match your app UI_
-- 🔗 **Link support** — _open the link of the image in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)_
-- 🖼 **Image opener** — _when no link, open the image source in a new tab when a meta key is held (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>)_
+- 🔗 **Link support** — _hold the meta key (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>) to open the link of the image in a new tab_
+- 🖼 **Image opener** — _when no link, hold the meta key (<kbd>⌘</kbd> or <kbd>Ctrl</kbd>) to open the image source in a new tab)_
 
 ## Installation
 
@@ -117,9 +117,9 @@ That's it! You don't need to import any CSS styles.
 mediumZoom(selector?, options?)
 ```
 
-By default, the zoom is applied to all scaled images (with HTML or CSS properties). You can specify the zoomable images with a [CSS selector](http://www.w3schools.com/cssref/css_selectors.asp) and add [options](#options).
+By default, the library attaches the zoom to all scaled images (via HTML or CSS properties). You can specify the zoomable images with a [CSS selector](http://www.w3schools.com/cssref/css_selectors.asp) and add [options](#options).
 
-Additionally, you can pass an [HTML Element](https://developer.mozilla.org/en-US/docs/Web/API/Element), a [NodeList](https://developer.mozilla.org/en-US/docs/Web/API/NodeList), an [HTMLCollection](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCollection) or an array of images to the plugin.
+Additionally, the selector can be an [HTML Element](https://developer.mozilla.org/en-US/docs/Web/API/Element), a [NodeList](https://developer.mozilla.org/en-US/docs/Web/API/NodeList), an [HTMLCollection](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCollection) or an array of images.
 
 ```js
 // CSS selector
@@ -149,14 +149,14 @@ mediumZoom(imagesToZoom)
 
 Options can be passed as an object to the second argument of the `mediumZoom` function.
 
-| Property       | Type                          | Default  | Description                                                                                                |
-| -------------- | ----------------------------- | -------- | ---------------------------------------------------------------------------------------------------------- |
-| `margin`       | `number`                      | `0`      | The space outside the zoomed image                                                                         |
-| `background`   | `string`                      | `"#fff"` | The color of the overlay                                                                                   |
-| `scrollOffset` | `number`                      | `48`     | The number of pixels to scroll to dismiss the zoom                                                         |
-| `metaClick`    | `boolean`                     | `true`   | Enables the action on [meta click](https://en.wikipedia.org/wiki/Meta_key) (opens the link / image source) |
-| `container`    | `string`\|`Element`\|`object` |          | The element to render the zoom in or a viewport object. [Read more →](#using-a-custom-container)           |
-| `template`     | `string`\|`Element`           |          | The template element to show on zoom. [Read more →](#using-a-custom-template)                              |
+| Property       | Type                          | Default  | Description                                                                                              |
+| -------------- | ----------------------------- | -------- | -------------------------------------------------------------------------------------------------------- |
+| `margin`       | `number`                      | `0`      | The space outside the zoomed image                                                                       |
+| `background`   | `string`                      | `"#fff"` | The color of the overlay                                                                                 |
+| `scrollOffset` | `number`                      | `48`     | The number of pixels to scroll to dismiss the zoom                                                       |
+| `metaClick`    | `boolean`                     | `true`   | Enables the action on [meta click](https://en.wikipedia.org/wiki/Meta_key) (opens the link/image source) |
+| `container`    | `string`\|`Element`\|`object` |          | The element to render the zoom in or a viewport object. [Read more →](#using-a-custom-container)         |
+| `template`     | `string`\|`Element`           |          | The template element to show on zoom. [Read more →](#using-a-custom-template)                            |
 
 ```js
 mediumZoom('[data-action="zoom"]', {
@@ -312,7 +312,7 @@ zoom.addEventListeners('hidden', () => {
 
 #### `data-zoom-target`
 
-Specifies the high definition image to show on zoom. This image is loaded when the user clicks on the source image, only once.
+Specifies the high definition image to show on zoom. This image loads when the user clicks on the source image, only once.
 
 ```html
 <img
@@ -327,9 +327,9 @@ Specifies the high definition image to show on zoom. This image is loaded when t
 | Event  | Description                                                 |
 | ------ | ----------------------------------------------------------- |
 | show   | Fired immediately when the `show` instance method is called |
-| shown  | Fired when the zoom has finished being animated              |
+| shown  | Fired when the zoom has finished being animated             |
 | hide   | Fired immediately when the `hide` instance method is called |
-| hidden | Fired when the zoom out has finished being animated          |
+| hidden | Fired when the zoom out has finished being animated         |
 | detach | Fired when the `detach` instance method is called           |
 
 ```js
@@ -463,6 +463,7 @@ zoomToDetach.addEventListeners('hidden', zoomToDetach.detach)
 ```
 
 </details>
+<br>
 
 You can see [more examples](examples/) including [React](examples/react) and [Vue](examples/vue), or check out the [storybook](https://medium-zoom.francoischalifour.com/storybook).
 
