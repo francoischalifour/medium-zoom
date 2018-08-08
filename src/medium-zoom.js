@@ -38,6 +38,7 @@ const mediumZoom = (
     background = '#fff',
     scrollOffset = 48,
     metaClick = true,
+    enablePushState = false,
     container,
     template,
   } = {}
@@ -429,11 +430,98 @@ const mediumZoom = (
     target.zoomedHd && (target.zoomedHd.style.transform = transform)
   }
 
+  /**
+   * Attach navigational features to the zoom images.
+   * ALlows the user to navigate in/out of images using the system navigation keys
+   **/
+  const setupPushState = images => {
+    //Function to create unique ids
+    const hashCode = s => {
+      return s.split("").reduce((a,b) => { a=((a<<5)-a)+b.charCodeAt(0); return a&a },0);
+    }
+    //Param which references the current zoom on the URL
+    const zoomIdParam = 'z'
+
+    //Get current zoom param from URL
+    const getZoomId = _ => {
+      const url = new URL(window.location)
+      return url.searchParams.get(zoomIdParam)
+    }
+
+    //Is the currentl URL referencing a zoom
+    const isZoomableState = _ => !!getZoomId()
+
+    //Zoom in the image referenced in the URL if such image exists
+    const zoomStateImage = _ => {
+      const target = document.querySelector(`[data-zoom-id="${getZoomId()}"]`)
+      if (target) {
+        triggerZoom({target})
+      }
+    }
+
+    //Make sure that current state is not zooming anything
+    const clearZoomState = _ => {
+      const url = new URL(window.location)
+      url.searchParams.delete(zoomIdParam)
+      history.replaceState(null, null, url.pathname + url.search)
+    }
+
+    //Push zoomable state to the navigation stack.
+    const pushZoomState = id => {
+      const url = new URL(window.location)
+      url.searchParams.append(zoomIdParam, id)
+      history.pushState("zooming", null, url.pathname + url.search)
+    }
+
+    //Listen to system navigation change and synchronize
+    //zoom state accordingly
+    window.addEventListener('popstate', _ => {
+      if (isZoomableState()) { zoomStateImage() }
+      else { zoomOut() }
+    })
+
+    //For each image found in the page
+    images.forEach(image => {
+      //Attach a unique zoom id based on the image HTML markup
+      image.dataset.zoomId = hashCode(image.outerHTML)
+
+      //Listen to when image receives a zoom
+      image.addEventListener('show', ({ currentTarget }) => {
+        //Push new zoomable state to navigation stack if necessary
+        if (!isZoomableState()) {
+          pushZoomState(currentTarget.dataset.zoomId)
+        }
+      })
+
+      //Listen to when zoom ends
+      image.addEventListener('hide', () => {
+        //If history stack is pointing to zoomable state
+        if (isZoomableState()) {
+          //Navigate back to previous entry on the history
+          history.back()
+        }
+      })
+    })
+
+    //If loading the plugin into a already zoomable state
+    if (isZoomableState()) {
+      //extract the intented zoom id
+      const zoomId = getZoomId()
+      //make sure the browser has one state to go back to
+      clearZoomState()
+      //push the new zoom state into the navigation stack
+      pushZoomState(zoomId)
+      //zoom in the state's image
+      zoomStateImage()
+    }
+  }
+
   const options = {
     margin,
     background,
     scrollOffset,
     metaClick,
+    enablePushState,
     container,
     template,
   }
@@ -463,6 +551,10 @@ const mediumZoom = (
   document.addEventListener('scroll', onScroll)
   document.addEventListener('keyup', onDismiss)
   window.addEventListener('resize', zoomOut)
+
+  if (options.enablePushState) {
+    setupPushState(images)
+  }
 
   return {
     show: triggerZoom,

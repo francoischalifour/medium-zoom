@@ -129,7 +129,8 @@ describe('constructor', () => {
       margin: 24,
       background: '#BADA55',
       scrollOffset: 124,
-      metaClick: true
+      metaClick: true,
+      enablePushState: false
     }
     const zoom = mediumZoom(options)
 
@@ -148,7 +149,8 @@ describe('options', () => {
       margin: 0,
       background: '#fff',
       scrollOffset: 48,
-      metaClick: true
+      metaClick: true,
+      enablePushState: false
     }
 
     expect(actual).toEqual(expected)
@@ -184,7 +186,8 @@ describe('update', () => {
       margin: 0,
       background: '#fff',
       scrollOffset: 48,
-      metaClick: true
+      metaClick: true,
+      enablePushState: false
     }
 
     expect(options).toEqual(expected)
@@ -200,7 +203,8 @@ describe('update', () => {
       margin: 48,
       background: '#fff',
       scrollOffset: 48,
-      metaClick: true
+      metaClick: true,
+      enablePushState: false
     }
 
     expect(options).toEqual(expected)
@@ -221,7 +225,8 @@ describe('update', () => {
       margin: 0,
       background: '#000',
       scrollOffset: 48,
-      metaClick: true
+      metaClick: true,
+      enablePushState: false
     }
 
     expect(options).toEqual(expected)
@@ -240,7 +245,8 @@ describe('update', () => {
       margin: 0,
       background: '#fff',
       scrollOffset: 0,
-      metaClick: true
+      metaClick: true,
+      enablePushState: false
     }
 
     expect(options).toEqual(expected)
@@ -256,7 +262,8 @@ describe('update', () => {
       margin: 0,
       background: '#fff',
       scrollOffset: 48,
-      metaClick: false
+      metaClick: false,
+      enablePushState: false
     }
 
     expect(options).toEqual(expected)
@@ -273,6 +280,7 @@ describe('update', () => {
       background: '#fff',
       scrollOffset: 48,
       metaClick: true,
+      enablePushState: false,
       container: document.body
     }
 
@@ -290,6 +298,7 @@ describe('update', () => {
       background: '#fff',
       scrollOffset: 48,
       metaClick: true,
+      enablePushState: false,
       container: 'body'
     }
 
@@ -313,6 +322,7 @@ describe('update', () => {
       background: '#fff',
       scrollOffset: 48,
       metaClick: true,
+      enablePushState: false,
       container: {
         top: 64,
         left: 64
@@ -328,7 +338,8 @@ describe('update', () => {
       margin: 24,
       background: '#BADA55',
       scrollOffset: 124,
-      metaClick: true
+      metaClick: true,
+      enablePushState: false,
     }
     const zoom = mediumZoom()
     const options = zoom.update(expected)
