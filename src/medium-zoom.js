@@ -1,21 +1,95 @@
-const SUPPORTED_FORMATS = ['IMG']
-const KEY_ESC = 27
-const KEY_Q = 81
-const CANCEL_KEYS = [KEY_ESC, KEY_Q]
+const isSupported = node => node.tagName === 'IMG'
 
-const isSupported = img => SUPPORTED_FORMATS.indexOf(img.tagName) > -1
-
-const isScaled = img => img.naturalWidth !== img.width
-
+/* eslint-disable no-prototype-builtins */
 const isListOrCollection = selector =>
   NodeList.prototype.isPrototypeOf(selector) ||
   HTMLCollection.prototype.isPrototypeOf(selector)
+/* eslint-enable no-prototype-builtins */
 
 const isNode = selector => selector && selector.nodeType === 1
 
 const isSvg = image => {
   const source = image.currentSrc || image.src
   return source.substr(-4).toLowerCase() === '.svg'
+}
+
+const getImagesFromSelector = selector => {
+  try {
+    if (Array.isArray(selector)) {
+      return selector.filter(isSupported)
+    }
+
+    if (isListOrCollection(selector)) {
+      return [...selector].filter(isSupported)
+    }
+
+    if (isNode(selector)) {
+      return [selector].filter(isSupported)
+    }
+
+    if (typeof selector === 'string') {
+      return [...document.querySelectorAll(selector)].filter(isSupported)
+    }
+
+    return []
+  } catch (err) {
+    throw new TypeError(
+      'The provided selector is invalid.\n' +
+        'Expects a CSS selector, a Node element, a NodeList, an HTMLCollection or an array.\n' +
+        'See: https://github.com/francoischalifour/medium-zoom'
+    )
+  }
+}
+
+const createOverlay = background => {
+  const overlay = document.createElement('div')
+  overlay.classList.add('medium-zoom-overlay')
+  overlay.style.backgroundColor = background
+
+  return overlay
+}
+
+const cloneTarget = template => {
+  const { top, left, width, height } = template.getBoundingClientRect()
+  const clone = template.cloneNode()
+  const scrollTop =
+    window.pageYOffset ||
+    document.documentElement.scrollTop ||
+    document.body.scrollTop ||
+    0
+  const scrollLeft =
+    window.pageXOffset ||
+    document.documentElement.scrollLeft ||
+    document.body.scrollLeft ||
+    0
+
+  clone.removeAttribute('id')
+  clone.style.position = 'absolute'
+  clone.style.top = `${top + scrollTop}px`
+  clone.style.left = `${left + scrollLeft}px`
+  clone.style.width = `${width}px`
+  clone.style.height = `${height}px`
+  clone.style.transform = ''
+
+  return clone
+}
+
+const createCustomEvent = (
+  type,
+  params = { bubbles: false, cancelable: false, detail: undefined }
+) => {
+  if (typeof window.CustomEvent === 'function') {
+    return new CustomEvent(type, params)
+  }
+
+  const customEvent = document.createEvent('CustomEvent')
+  customEvent.initCustomEvent(
+    type,
+    params.bubbles,
+    params.cancelable,
+    params.detail
+  )
+  return customEvent
 }
 
 /**
@@ -25,319 +99,28 @@ const isSvg = image => {
  * @param {object} options The options of the zoom
  * @param {number} [options.margin=0] The space outside the zoomed image
  * @param {string} [options.background="#fff"] The color of the overlay
- * @param {number} [options.scrollOffset=48] The number of pixels to scroll to dismiss the zoom
- * @param {boolean} [options.metaClick=true] A boolean to enable the default action on meta click
- * @param {(string|Element|object)} [options.container] The element to render the zoom in or a viewport object
- * @param {(string|Element)} [options.template] The template element to show on zoom
+ * @param {number} [options.scrollOffset=48] The number of pixels to scroll to close the zoom
+ * @param {(string|Element|object)} [options.container=null] The element to render the zoom in or a viewport object
+ * @param {(string|Element)} [options.template=null] The template element to show on zoom
  * @return The zoom object
  */
-const mediumZoom = (
-  selector,
-  {
-    margin = 0,
-    background = '#fff',
-    scrollOffset = 48,
-    metaClick = true,
-    container,
-    template,
-  } = {}
-) => {
-  const selectImages = selector => {
-    try {
-      return Array.isArray(selector)
-        ? selector.filter(isSupported)
-        : isListOrCollection(selector)
-          ? Array.apply(null, selector).filter(isSupported)
-          : isNode(selector)
-            ? [selector].filter(isSupported)
-            : typeof selector === 'string'
-              ? Array.apply(null, document.querySelectorAll(selector)).filter(
-                  isSupported
-                )
-              : Array.apply(
-                  null,
-                  document.querySelectorAll(
-                    SUPPORTED_FORMATS.map(attr => attr.toLowerCase()).join(',')
-                  )
-                ).filter(isScaled)
-    } catch (err) {
-      throw new TypeError(
-        'The provided selector is invalid.\n' +
-          'Expects a CSS selector, a Node element, a NodeList, an HTMLCollection or an array.\n' +
-          'See: https://github.com/francoischalifour/medium-zoom'
-      )
-    }
-  }
-
-  const createOverlay = background => {
-    const overlay = document.createElement('div')
-    overlay.classList.add('medium-zoom-overlay')
-    overlay.style.backgroundColor = background
-
-    return overlay
-  }
-
-  const cloneTarget = template => {
-    const { top, left, width, height } = template.getBoundingClientRect()
-    const clone = template.cloneNode()
-    const scrollTop =
-      window.pageYOffset ||
-      document.documentElement.scrollTop ||
-      document.body.scrollTop ||
-      0
-    const scrollLeft =
-      window.pageXOffset ||
-      document.documentElement.scrollLeft ||
-      document.body.scrollLeft ||
-      0
-
-    clone.removeAttribute('id')
-    clone.style.position = 'absolute'
-    clone.style.top = `${top + scrollTop}px`
-    clone.style.left = `${left + scrollLeft}px`
-    clone.style.width = `${width}px`
-    clone.style.height = `${height}px`
-    clone.style.transform = ''
-
-    return clone
-  }
-
-  const createCustomEvent = (
-    event,
-    params = { bubbles: false, cancelable: false, detail: undefined }
-  ) => {
-    if (typeof window.CustomEvent === 'function') {
-      return new CustomEvent(event, params)
-    } else {
-      const customEvent = document.createEvent('CustomEvent')
-      customEvent.initCustomEvent(
-        event,
-        params.bubbles,
-        params.cancelable,
-        params.detail
-      )
-      return customEvent
-    }
-  }
-
-  const zoom = () => {
-    if (!target.original) return
-
-    target.original.dispatchEvent(createCustomEvent('show'))
-
-    scrollTop =
-      window.pageYOffset ||
-      document.documentElement.scrollTop ||
-      document.body.scrollTop ||
-      0
-    isAnimating = true
-    target.zoomed = cloneTarget(target.original)
-
-    document.body.appendChild(overlay)
-
-    if (options.template) {
-      const template = isNode(options.template)
-        ? options.template
-        : document.querySelector(options.template)
-      target.template = document.createElement('div')
-      target.template.appendChild(template.content.cloneNode(true))
-
-      document.body.appendChild(target.template)
-    }
-
-    document.body.appendChild(target.zoomed)
-
-    requestAnimationFrame(() => {
-      document.body.classList.add('medium-zoom--open')
-    })
-
-    target.original.style.visibility = 'hidden'
-    target.zoomed.classList.add('medium-zoom-image--open')
-
-    target.zoomed.addEventListener('click', zoomOut)
-    target.zoomed.addEventListener('transitionend', onZoomEnd)
-
-    if (target.original.getAttribute('data-zoom-target')) {
-      target.zoomedHd = target.zoomed.cloneNode()
-
-      // Reset the `scrset` property or the HD image won't load.
-      target.zoomedHd.removeAttribute('srcset')
-      target.zoomedHd.removeAttribute('sizes')
-
-      target.zoomedHd.src = target.zoomed.getAttribute('data-zoom-target')
-
-      target.zoomedHd.onerror = () => {
-        clearInterval(getZoomTargetSize)
-        console.error(
-          `Unable to reach the zoom image target ${target.zoomedHd.src}`
-        )
-        target.zoomedHd = null
-        animateTarget()
-      }
-
-      // We need to access the natural size of the full HD
-      // target as fast as possible to compute the animation.
-      const getZoomTargetSize = setInterval(() => {
-        if (target.zoomedHd.naturalWidth) {
-          clearInterval(getZoomTargetSize)
-          target.zoomedHd.classList.add('medium-zoom-image--open')
-          target.zoomedHd.addEventListener('click', zoomOut)
-          document.body.appendChild(target.zoomedHd)
-          animateTarget()
-        }
-      }, 10)
-    } else if (target.original.hasAttribute('srcset')) {
-      // If an image has a `srcset` attribuet, we don't know the dimensions of the
-      // zoomed (HD) image (like when `data-zoom-target` is specified).
-      // Therefore the approach is quite similar.
-      target.zoomedHd = target.zoomed.cloneNode()
-
-      // Resetting the sizes attribute tells the browser to load the
-      // image best fitting the current viewport size, respecting the `srcset`.
-      target.zoomedHd.removeAttribute('sizes')
-
-      // Wait for the load event of the hd image. This will fire if the image
-      // is already cached.
-      const loadEventListener = target.zoomedHd.addEventListener('load', () => {
-        target.zoomedHd.removeEventListener('load', loadEventListener)
-        target.zoomedHd.classList.add('medium-zoom-image--open')
-        target.zoomedHd.addEventListener('click', zoomOut)
-        document.body.appendChild(target.zoomedHd)
-        animateTarget()
-      })
-    } else {
-      animateTarget()
-    }
-  }
-
-  const zoomOut = (timeout = 0) => {
-    const doZoomOut = () => {
-      if (isAnimating || !target.original) return
-
-      target.original.dispatchEvent(createCustomEvent('hide'))
-
-      isAnimating = true
-      document.body.classList.remove('medium-zoom--open')
-      target.zoomed.style.transform = ''
-
-      if (target.zoomedHd) {
-        target.zoomedHd.style.transform = ''
-        target.zoomedHd.removeEventListener('click', zoomOut)
-      }
-
-      // Fade out the template so it's not too abrupt
-      if (target.template) {
-        target.template.style.transition = 'opacity 150ms'
-        target.template.style.opacity = 0
-      }
-
-      target.zoomed.removeEventListener('click', zoomOut)
-      target.zoomed.addEventListener('transitionend', onZoomOutEnd)
-    }
-
-    timeout > 0 ? setTimeout(doZoomOut, timeout) : doZoomOut()
-  }
-
-  const triggerZoom = event => {
-    if (event && event.target) {
-      // The zoom was triggered manually via a click
-      target.original = event.target
-      zoom()
-    } else if (!target.original) {
-      // The zoom was triggered programmatically, select the first image in the list
-      target.original = images[0]
-      zoom()
-    } else {
-      zoomOut()
-    }
-  }
-
-  const update = (newOptions = {}) => {
-    newOptions.background &&
-      (overlay.style.backgroundColor = newOptions.background)
-
-    if (newOptions.container && newOptions.container instanceof Object) {
-      newOptions.container = Object.assign(
-        {},
-        options.container,
-        newOptions.container
-      )
-    }
-
-    return Object.assign(options, newOptions)
-  }
-
-  const addEventListeners = (type, listener) => {
-    images.forEach(image => {
-      image.addEventListener(type, listener)
-    })
-  }
-
-  const detach = () => {
-    target.zoomed && zoomOut()
-
-    const event = createCustomEvent('detach')
-
-    images.forEach(image => {
-      image.classList.remove('medium-zoom-image')
-      image.removeEventListener('click', onClick)
-      image.dispatchEvent(event)
-    })
-
-    images.splice(0, images.length)
-    overlay.removeEventListener('click', zoomOut)
-    document.removeEventListener('scroll', onScroll)
-    document.removeEventListener('keyup', onDismiss)
-    window.removeEventListener('resize', zoomOut)
-  }
-
-  const onClick = event => {
-    if (event.metaKey || event.ctrlKey) {
-      if (options.metaClick) {
-        return window.open(
-          event.target.getAttribute('data-original') ||
-            event.target.parentNode.href ||
-            event.target.src,
-          '_blank'
-        )
-      }
-    }
-
+const mediumZoom = (selector, options = {}) => {
+  function _handleClick(event) {
     event.preventDefault()
 
-    triggerZoom(event)
+    const { target } = event
+
+    if (images.indexOf(target) === -1) {
+      return
+    }
+
+    toggle({ target })
   }
 
-  const onZoomEnd = () => {
-    isAnimating = false
-    target.zoomed.removeEventListener('transitionend', onZoomEnd)
-
-    target.original.dispatchEvent(createCustomEvent('shown'))
-  }
-
-  const onZoomOutEnd = () => {
-    if (!target.original) return
-
-    target.original.style.visibility = ''
-    document.body.removeChild(target.zoomed)
-    target.zoomedHd && document.body.removeChild(target.zoomedHd)
-    document.body.removeChild(overlay)
-    target.zoomed.classList.remove('medium-zoom-image--open')
-    target.template && document.body.removeChild(target.template)
-
-    isAnimating = false
-    target.zoomed.removeEventListener('transitionend', onZoomOutEnd)
-
-    target.original.dispatchEvent(createCustomEvent('hidden'))
-
-    target.original = null
-    target.zoomed = null
-    target.zoomedHd = null
-    target.template = null
-  }
-
-  const onScroll = () => {
-    if (isAnimating || !target.original) return
+  function _handleScroll() {
+    if (isAnimating || !active.original) {
+      return
+    }
 
     const currentScroll =
       window.pageYOffset ||
@@ -345,135 +128,479 @@ const mediumZoom = (
       document.body.scrollTop ||
       0
 
-    if (Math.abs(scrollTop - currentScroll) > options.scrollOffset) {
-      zoomOut(150)
+    if (Math.abs(scrollTop - currentScroll) > zoomOptions.scrollOffset) {
+      setTimeout(close, 150)
     }
   }
 
-  const onDismiss = event => {
-    if (CANCEL_KEYS.indexOf(event.keyCode || event.which) > -1) {
-      zoomOut()
+  function _handleKeyUp(event) {
+    // Close if escape key is pressed
+    if ((event.keyCode || event.which) === 27) {
+      close()
     }
   }
 
-  const animateTarget = () => {
-    if (!target.original) return
+  function update(options = {}) {
+    const newOptions = options
 
-    const container = {
-      width: window.innerWidth,
-      height: window.innerHeight,
-      left: 0,
-      top: 0,
-      right: 0,
-      bottom: 0,
+    if (options.background) {
+      overlay.style.backgroundColor = options.background
     }
-    let viewportWidth
-    let viewportHeight
 
-    if (options.container) {
-      if (options.container instanceof Object) {
-        // The container is given as an object with properties like width, height, left, top
-        Object.assign(container, options.container)
-
-        // We need to adjust custom options like container.right or container.bottom
-        viewportWidth =
-          container.width -
-          container.left -
-          container.right -
-          options.margin * 2
-        viewportHeight =
-          container.height -
-          container.top -
-          container.bottom -
-          options.margin * 2
-      } else {
-        // The container is given as an element
-        const zoomContainer = isNode(options.container)
-          ? options.container
-          : document.querySelector(options.container)
-
-        const {
-          width,
-          height,
-          left,
-          top,
-        } = zoomContainer.getBoundingClientRect()
-        Object.assign(container, { width, height, left, top })
+    if (options.container && options.container instanceof Object) {
+      newOptions.container = {
+        ...zoomOptions.container,
+        ...options.container,
       }
     }
 
-    viewportWidth = viewportWidth || container.width - options.margin * 2
-    viewportHeight = viewportHeight || container.height - options.margin * 2
+    if (options.template) {
+      const template = isNode(options.template)
+        ? options.template
+        : document.querySelector(options.template)
 
-    const zoomTarget = target.zoomedHd || target.original
-    const naturalWidth = isSvg(zoomTarget)
-      ? viewportWidth
-      : zoomTarget.naturalWidth || viewportWidth
-    const naturalHeight = isSvg(zoomTarget)
-      ? viewportHeight
-      : zoomTarget.naturalHeight || viewportHeight
-    const { top, left, width, height } = zoomTarget.getBoundingClientRect()
+      newOptions.template = template
+    }
 
-    const scaleX = Math.min(naturalWidth, viewportWidth) / width
-    const scaleY = Math.min(naturalHeight, viewportHeight) / height
-    const scale = Math.min(scaleX, scaleY) || 1
-    const translateX =
-      (-left + (viewportWidth - width) / 2 + options.margin + container.left) /
-      scale
-    const translateY =
-      (-top + (viewportHeight - height) / 2 + options.margin + container.top) /
-      scale
-    const transform = `scale(${scale}) translate3d(${translateX}px, ${translateY}px, 0)`
+    zoomOptions = { ...zoomOptions, ...newOptions }
 
-    target.zoomed.style.transform = transform
-    target.zoomedHd && (target.zoomedHd.style.transform = transform)
+    images.forEach(image => {
+      image.dispatchEvent(
+        createCustomEvent('medium-zoom:update', {
+          detail: { zoom },
+        })
+      )
+    })
+
+    return zoom
   }
 
-  const options = {
-    margin,
-    background,
-    scrollOffset,
-    metaClick,
-    container,
-    template,
+  function extend(options = {}) {
+    return mediumZoom({ ...zoomOptions, ...options })
   }
 
-  // If the selector is omitted, it becomes the options
-  if (selector instanceof Object) {
-    Object.assign(options, selector)
+  function attach(...selectors) {
+    const newImages = selectors.reduce(
+      (imagesAccumulator, currentSelector) => [
+        ...imagesAccumulator,
+        ...getImagesFromSelector(currentSelector),
+      ],
+      []
+    )
+
+    newImages
+      .filter(newImage => images.indexOf(newImage) === -1)
+      .forEach(newImage => {
+        images.push(newImage)
+        newImage.classList.add('medium-zoom-image')
+      })
+
+    return zoom
   }
 
-  const images = selectImages(selector)
-  const overlay = createOverlay(options.background)
+  function detach(...selectors) {
+    if (active.zoomed) {
+      close()
+    }
 
-  let target = {
+    const imagesToDetach =
+      selectors.length > 0
+        ? selectors.reduce(
+            (imagesAccumulator, currentSelector) => [
+              ...imagesAccumulator,
+              ...getImagesFromSelector(currentSelector),
+            ],
+            []
+          )
+        : images
+
+    imagesToDetach.forEach(image => {
+      image.classList.remove('medium-zoom-image')
+      image.dispatchEvent(
+        createCustomEvent('medium-zoom:detach', {
+          detail: { zoom },
+        })
+      )
+    })
+
+    images = images.filter(image => imagesToDetach.indexOf(image) === -1)
+
+    return zoom
+  }
+
+  function on(type, listener, options = {}) {
+    images.forEach(image => {
+      image.addEventListener(`medium-zoom:${type}`, listener, options)
+    })
+
+    return zoom
+  }
+
+  function off(type, listener, options = {}) {
+    images.forEach(image => {
+      image.removeEventListener(`medium-zoom:${type}`, listener, options)
+    })
+
+    return zoom
+  }
+
+  function open({ target } = {}) {
+    const _animate = () => {
+      if (!active.original) {
+        return
+      }
+
+      let container = {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+      }
+      let viewportWidth
+      let viewportHeight
+
+      if (zoomOptions.container) {
+        if (zoomOptions.container instanceof Object) {
+          // The container is given as an object with properties like width, height, left, top
+          container = {
+            ...container,
+            ...zoomOptions.container,
+          }
+
+          // We need to adjust custom options like container.right or container.bottom
+          viewportWidth =
+            container.width -
+            container.left -
+            container.right -
+            zoomOptions.margin * 2
+          viewportHeight =
+            container.height -
+            container.top -
+            container.bottom -
+            zoomOptions.margin * 2
+        } else {
+          // The container is given as an element
+          const zoomContainer = isNode(zoomOptions.container)
+            ? zoomOptions.container
+            : document.querySelector(zoomOptions.container)
+
+          const {
+            width,
+            height,
+            left,
+            top,
+          } = zoomContainer.getBoundingClientRect()
+
+          container = {
+            ...container,
+            width,
+            height,
+            left,
+            top,
+          }
+        }
+      }
+
+      viewportWidth = viewportWidth || container.width - zoomOptions.margin * 2
+      viewportHeight =
+        viewportHeight || container.height - zoomOptions.margin * 2
+
+      const zoomTarget = active.zoomedHd || active.original
+      const naturalWidth = isSvg(zoomTarget)
+        ? viewportWidth
+        : zoomTarget.naturalWidth || viewportWidth
+      const naturalHeight = isSvg(zoomTarget)
+        ? viewportHeight
+        : zoomTarget.naturalHeight || viewportHeight
+      const { top, left, width, height } = zoomTarget.getBoundingClientRect()
+
+      const scaleX = Math.min(naturalWidth, viewportWidth) / width
+      const scaleY = Math.min(naturalHeight, viewportHeight) / height
+      const scale = Math.min(scaleX, scaleY) || 1
+      const translateX =
+        (-left +
+          (viewportWidth - width) / 2 +
+          zoomOptions.margin +
+          container.left) /
+        scale
+      const translateY =
+        (-top +
+          (viewportHeight - height) / 2 +
+          zoomOptions.margin +
+          container.top) /
+        scale
+      const transform = `scale(${scale}) translate3d(${translateX}px, ${translateY}px, 0)`
+
+      active.zoomed.style.transform = transform
+
+      if (active.zoomedHd) {
+        active.zoomedHd.style.transform = transform
+      }
+    }
+
+    return new Promise(resolve => {
+      const _handleOpenEnd = () => {
+        isAnimating = false
+        active.zoomed.removeEventListener('transitionend', _handleOpenEnd)
+        active.original.dispatchEvent(
+          createCustomEvent('medium-zoom:opened', {
+            detail: { zoom },
+          })
+        )
+
+        resolve(zoom)
+      }
+
+      if (active.zoomed) {
+        resolve(zoom)
+      }
+
+      if (target) {
+        // The zoom was triggered manually via a click
+        active.original = target
+      } else if (images.length > 0) {
+        // The zoom was triggered programmatically, select the first image in the list
+        ;[active.original] = images
+      } else {
+        resolve(zoom)
+      }
+
+      active.original.dispatchEvent(
+        createCustomEvent('medium-zoom:open', {
+          detail: { zoom },
+        })
+      )
+
+      scrollTop =
+        window.pageYOffset ||
+        document.documentElement.scrollTop ||
+        document.body.scrollTop ||
+        0
+      isAnimating = true
+      active.zoomed = cloneTarget(active.original)
+
+      document.body.appendChild(overlay)
+
+      if (zoomOptions.template) {
+        const template = isNode(zoomOptions.template)
+          ? zoomOptions.template
+          : document.querySelector(zoomOptions.template)
+        active.template = document.createElement('div')
+        active.template.appendChild(template.content.cloneNode(true))
+
+        document.body.appendChild(active.template)
+      }
+
+      document.body.appendChild(active.zoomed)
+
+      window.requestAnimationFrame(() => {
+        document.body.classList.add('medium-zoom--open')
+      })
+
+      active.original.style.visibility = 'hidden'
+      active.zoomed.classList.add('medium-zoom-image--open')
+
+      active.zoomed.addEventListener('click', close)
+      active.zoomed.addEventListener('transitionend', _handleOpenEnd)
+
+      if (active.original.getAttribute('data-zoom-target')) {
+        active.zoomedHd = active.zoomed.cloneNode()
+
+        // Reset the `scrset` property or the HD image won't load.
+        active.zoomedHd.removeAttribute('srcset')
+        active.zoomedHd.removeAttribute('sizes')
+
+        active.zoomedHd.src = active.zoomed.getAttribute('data-zoom-target')
+
+        active.zoomedHd.onerror = () => {
+          clearInterval(getZoomTargetSize)
+          console.warn(
+            `Unable to reach the zoom image target ${active.zoomedHd.src}`
+          )
+          active.zoomedHd = null
+          _animate()
+        }
+
+        // We need to access the natural size of the full HD
+        // target as fast as possible to compute the animation.
+        const getZoomTargetSize = setInterval(() => {
+          if (active.zoomedHd.naturalWidth) {
+            clearInterval(getZoomTargetSize)
+            active.zoomedHd.classList.add('medium-zoom-image--open')
+            active.zoomedHd.addEventListener('click', close)
+            document.body.appendChild(active.zoomedHd)
+            _animate()
+          }
+        }, 10)
+      } else if (active.original.hasAttribute('srcset')) {
+        // If an image has a `srcset` attribuet, we don't know the dimensions of the
+        // zoomed (HD) image (like when `data-zoom-target` is specified).
+        // Therefore the approach is quite similar.
+        active.zoomedHd = active.zoomed.cloneNode()
+
+        // Resetting the sizes attribute tells the browser to load the
+        // image best fitting the current viewport size, respecting the `srcset`.
+        active.zoomedHd.removeAttribute('sizes')
+
+        // Wait for the load event of the hd image. This will fire if the image
+        // is already cached.
+        const loadEventListener = active.zoomedHd.addEventListener(
+          'load',
+          () => {
+            active.zoomedHd.removeEventListener('load', loadEventListener)
+            active.zoomedHd.classList.add('medium-zoom-image--open')
+            active.zoomedHd.addEventListener('click', close)
+            document.body.appendChild(active.zoomedHd)
+            _animate()
+          }
+        )
+      } else {
+        _animate()
+      }
+    })
+  }
+
+  function close() {
+    return new Promise(resolve => {
+      if (isAnimating || !active.original) {
+        resolve(zoom)
+      }
+
+      const _handleCloseEnd = () => {
+        if (!active.original) {
+          resolve(zoom)
+          return
+        }
+
+        active.original.style.visibility = ''
+        document.body.removeChild(active.zoomed)
+        if (active.zoomedHd) {
+          document.body.removeChild(active.zoomedHd)
+        }
+        document.body.removeChild(overlay)
+        active.zoomed.classList.remove('medium-zoom-image--open')
+        if (active.template) {
+          document.body.removeChild(active.template)
+        }
+
+        isAnimating = false
+        active.zoomed.removeEventListener('transitionend', _handleCloseEnd)
+
+        active.original.dispatchEvent(
+          createCustomEvent('medium-zoom:closed', {
+            detail: { zoom },
+          })
+        )
+
+        active.original = null
+        active.zoomed = null
+        active.zoomedHd = null
+        active.template = null
+
+        resolve(zoom)
+      }
+
+      isAnimating = true
+      document.body.classList.remove('medium-zoom--open')
+      active.zoomed.style.transform = ''
+
+      if (active.zoomedHd) {
+        active.zoomedHd.style.transform = ''
+      }
+
+      // Fade out the template so it's not too abrupt
+      if (active.template) {
+        active.template.style.transition = 'opacity 150ms'
+        active.template.style.opacity = 0
+      }
+
+      active.original.dispatchEvent(
+        createCustomEvent('medium-zoom:close', {
+          detail: { zoom },
+        })
+      )
+
+      active.zoomed.addEventListener('transitionend', _handleCloseEnd)
+    })
+  }
+
+  // TODO: should return promises after close and open are called
+  function toggle({ target } = {}) {
+    if (active.original) {
+      return close()
+    }
+
+    return open({ target })
+  }
+
+  const getOptions = () => zoomOptions
+
+  const getImages = () => images
+
+  const getActive = () => active.original
+
+  let images = []
+  let isAnimating = false
+  let scrollTop = 0
+  let active = {
     original: null,
     zoomed: null,
     zoomedHd: null,
     template: null,
   }
-  let scrollTop = 0
-  let isAnimating = false
+  let zoomOptions = options
 
-  images.forEach(elem => {
-    elem.classList.add('medium-zoom-image')
-    elem.addEventListener('click', onClick)
-  })
-  overlay.addEventListener('click', zoomOut)
-  document.addEventListener('scroll', onScroll)
-  document.addEventListener('keyup', onDismiss)
-  window.addEventListener('resize', zoomOut)
-
-  return {
-    show: triggerZoom,
-    hide: zoomOut,
-    toggle: triggerZoom,
-    update,
-    addEventListeners,
-    detach,
-    images,
-    options,
+  // If the selector is omitted, it's replaced by the options
+  if (
+    selector instanceof Object &&
+    !Array.isArray(selector) &&
+    !isNode(selector) &&
+    !isListOrCollection(selector)
+  ) {
+    zoomOptions = selector
+  } else if (
+    selector ||
+    typeof selector === 'string' // to process empty string as a selector
+  ) {
+    attach(selector)
   }
+
+  // Apply the default option values
+  zoomOptions = {
+    margin: 0,
+    background: '#fff',
+    scrollOffset: 48,
+    container: null,
+    template: null,
+    ...zoomOptions,
+  }
+
+  const overlay = createOverlay(zoomOptions.background)
+
+  overlay.addEventListener('click', close)
+  document.addEventListener('click', _handleClick)
+  document.addEventListener('scroll', _handleScroll)
+  document.addEventListener('keyup', _handleKeyUp)
+  window.addEventListener('resize', close)
+
+  const zoom = {
+    open,
+    close,
+    toggle,
+    update,
+    extend,
+    attach,
+    detach,
+    on,
+    off,
+    getOptions,
+    getImages,
+    getActive,
+  }
+
+  return zoom
 }
 
 export default mediumZoom
