@@ -13,33 +13,20 @@
   "module": "dist/medium-zoom.es.js",
   "scripts": {
     "start": "yarn run dev",
-    "prebuild": "yarn run test && yarn run clean",
+    "prebuild": "yarn run clean",
     "build": "cross-env NODE_ENV=build rollup --config",
     "dev": "cross-env NODE_ENV=build rollup --config --watch",
     "lint": "eslint .",
     "format": "prettier --write *.{js,json,css,md} && yarn run lint --fix",
-    "test": "jest",
+    "test": "jest ./src",
+    "test:e2e": "jest ./test/**.e2e.**",
+    "test:size": "bundlesize",
     "clean": "rimraf ./dist",
-    "prepublishOnly": "yarn run build",
     "build:storybook": "build-storybook -o ./website/dist/storybook -c ./stories/config -s ./dist,./stories/images",
     "storybook": "start-storybook -p 9001 -c ./stories/config -s ./dist,./stories/images",
-    "build:website": "(cd website && yarn && yarn run build) && yarn run build && yarn run build:storybook"
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions"
-  ],
-  "standard": {
-    "ignore": [
-      "/dist/",
-      "/examples/"
-    ],
-    "globals": [
-      "CustomEvent",
-      "HTMLCollection",
-      "NodeList",
-      "requestAnimationFrame"
-    ]
+    "build:website": "(cd website && yarn && yarn run build) && yarn run build && yarn run build:storybook",
+    "release": "release-it",
+    "release:next": "release-it --preRelease=next"
   },
   "files": [
     "dist"
@@ -74,13 +61,18 @@
     "babel-plugin-external-helpers": "6.22.0",
     "babel-plugin-require-context-hook": "1.0.0",
     "babel-plugin-transform-object-assign": "6.22.0",
+    "babel-plugin-transform-object-rest-spread": "6.26.0",
     "babel-preset-env": "1.7.0",
+    "bundlesize": "0.17.0",
     "cross-env": "5.2.0",
     "cssnano": "4.0.4",
     "eslint": "5.2.0",
+    "eslint-config-airbnb-base": "13.1.0",
     "eslint-config-prettier": "2.9.0",
-    "jest": "23.4.2",
+    "eslint-plugin-import": "2.14.0",
+    "jest": "23.5.0",
     "prettier": "1.14.0",
+    "release-it": "7.5.0",
     "rimraf": "2.6.2",
     "rollup": "0.63.4",
     "rollup-plugin-babel": "3.0.7",
@@ -89,5 +81,17 @@
     "rollup-plugin-postcss": "1.6.2",
     "rollup-plugin-uglify": "4.0.0",
     "rollup-watch": "4.3.1"
-  }
+  },
+  "bundlesize": [
+    {
+      "path": "dist/medium-zoom.min.js",
+      "compression": "none",
+      "maxSize": "10 kB"
+    },
+    {
+      "path": "dist/medium-zoom.min.js",
+      "compression": "gzip",
+      "maxSize": "3 kB"
+    }
+  ]
 }

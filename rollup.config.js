@@ -19,12 +19,12 @@ import {
 const banner = `/*
  * ${name} v${version}
  * ${description}
- * Copyright ${new Date().getFullYear()} ${author.name}
+ * Copyright 2016-present ${author.name}
  * https://github.com/${repository}
  * ${license} License
  */`
 
-const plugins = [
+const sharedPlugins = [
   postcss({
     extensions: ['.css'],
     plugins: [cssnano()],
@@ -32,7 +32,20 @@ const plugins = [
   commonjs(),
   babel({
     exclude: 'node_modules/**',
-    plugins: ['transform-object-assign'],
+    comments: false,
+    plugins: ['transform-object-rest-spread'],
+    presets: [
+      [
+        'env',
+        {
+          modules: false,
+          loose: true,
+          targets: {
+            browsers: ['last 2 versions', 'IE >= 11'],
+          },
+        },
+      ],
+    ],
   }),
 ]
 
@@ -41,7 +54,7 @@ const config = [
     file: modulePath,
     format: 'es',
     plugins: [
-      ...plugins,
+      ...sharedPlugins,
       minify({
         comments: false,
         banner,
@@ -52,7 +65,7 @@ const config = [
     file: mainPath.replace('.min', ''),
     format: 'umd',
     plugins: [
-      ...plugins,
+      ...sharedPlugins,
       uglify({
         compress: false,
         mangle: false,
@@ -68,7 +81,7 @@ const config = [
     file: mainPath,
     format: 'umd',
     plugins: [
-      ...plugins,
+      ...sharedPlugins,
       uglify({
         output: {
           preamble: banner,

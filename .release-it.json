@@ -1,0 +1,8 @@
+{
+  "requireUpstream": false,
+  "increment": "conventional:angular",
+  "src": {
+    "commitMessage": "chore(release): %s",
+    "beforeStartCommand": "yarn run lint && yarn run test && npm run test -- --colors && npm run test:e2e -- --colors && yarn run test:size && yarn run build"
+  }
+}
