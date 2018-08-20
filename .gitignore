@@ -1,6 +1,7 @@
 node_modules
 dist
+/storybook
 .DS_Store
 package-lock.json
 *.log
-/storybook
+.vscode
