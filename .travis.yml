@@ -10,7 +10,7 @@ script:
   - "${SCRIPT}"
 env:
   matrix:
-  - SCRIPT="yarn lint"
-  - SCRIPT="yarn test"
-  - SCRIPT="yarn test:e2e"
-  - SCRIPT="yarn test:size"
+  - SCRIPT="yarn run lint"
+  - SCRIPT="yarn run test"
+  - SCRIPT="yarn run test:e2e"
+  - SCRIPT="yarn run test:size"
