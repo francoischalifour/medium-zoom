@@ -84,9 +84,7 @@ storybook.forEach(category => {
           .map(param => param.join('='))
           .join('&')
 
-        await page.goto(`${STORYBOOK_ENDPOINT}?${urlParams}`, {
-          waitUntil: 'networkidle0',
-        })
+        await page.goto(`${STORYBOOK_ENDPOINT}?${urlParams}`)
 
         const container = (await page.frames()).find(
           frame => frame.name() === 'storybook-preview-iframe'
