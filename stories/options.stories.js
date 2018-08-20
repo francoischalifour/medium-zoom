@@ -1,8 +1,174 @@
 import { storiesOf } from '@storybook/html'
 
-storiesOf('template', module)
+storiesOf('options', module)
   .add(
-    'Dropbox Paper style',
+    'default',
+    () => `
+      <img src="image-1.jpg">
+
+      <script>
+        const zoom = mediumZoom('img');
+      </script>
+    `,
+    {
+      notes: `
+        This is the default zoom.
+      `,
+    }
+  )
+  .add(
+    'background (dark)',
+    () =>
+      `
+      <img src="image-3.jpg">
+
+      <script>
+        const zoom = mediumZoom('img', {
+          background: '#212530',
+        });
+      </script>
+    `,
+    {
+      notes: `
+        This is a zoom with a dark background.
+      `,
+    }
+  )
+  .add(
+    'background (transparent)',
+    () =>
+      `
+      <img src="image-4.jpg">
+
+      <script>
+        const zoom = mediumZoom('img', {
+          background: 'rgba(25, 18, 25, .5)',
+        });
+      </script>
+
+      <style>
+        #wrapper::before {
+          content: '';
+          width: 100%;
+          height: 100%;
+          background-image: url(image-4.jpg);
+          background-size: cover;
+          background-position: center center;
+          filter: blur(5px);
+          transform: scale(2);
+          position: absolute;
+          z-index: -1;
+        }
+      </style>
+    `,
+    {
+      notes: `
+        This is a zoom with a transparent background.
+      `,
+    }
+  )
+  .add(
+    'margin',
+    () => `
+      <img src="image-2.jpg">
+
+      <script>
+        const zoom = mediumZoom('img', {
+          margin: 80,
+        });
+      </script>
+      `,
+    {
+      notes: `
+          This is a zoom with a margin of 80px.
+        `,
+    }
+  )
+  .add(
+    'scrollOffset',
+    () => `
+      <img src="image-1.jpg">
+
+      <script>
+        const zoom = mediumZoom('img', {
+          scrollOffset: 0,
+        });
+      </script>
+    `,
+    {
+      notes: `
+        This is a zoom without scroll offset.
+        It closes as soon as you start scrolling.
+      `,
+    }
+  )
+  .add(
+    'container (DOM element)',
+    () => `
+      <img src="image-1.jpg">
+
+      <div id="zoom-container"></div>
+
+      <script>
+        const zoom = mediumZoom('img', {
+          container: '#zoom-container',
+          background: 'transparent',
+        });
+      </script>
+
+      <style>
+        #zoom-container {
+          position: absolute;
+          top: 300px;
+          right: 0;
+          height: 300px;
+          width: 500px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.16);
+          background: rgba(0, 0, 0, 0.1);
+        }
+
+        #zoom-container::before {
+          content: 'container';
+          height: 100%;
+          margin: auto;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-size: 2rem;
+          color: #fff;
+        }
+      </style>
+    `,
+    {
+      notes: `
+        This is a zoom in a container specified as a DOM element.
+      `,
+    }
+  )
+  .add(
+    'container (coordinates object)',
+    () => `
+      <img src="image-1.jpg">
+
+      <script>
+        const zoom = mediumZoom('img', {
+          container: {
+            width: 500,
+            height: 300,
+            top: 300,
+            right: 0,
+          }
+        });
+      </script>
+    `,
+    {
+      notes: `
+        This is a zoom in a container specified as coordinates.
+      `,
+    }
+  )
+  .add(
+    'template (Dropbox Paper)',
     () => `
       <template id="template-dropbox-paper">
         <div class="paper-wrapper">
@@ -36,17 +202,17 @@ storiesOf('template', module)
           container: '[data-zoom-container]',
         });
 
-        // You can start manipulating the DOM after the \`shown\` event has been triggered
-        zoom.addEventListeners('shown', () => {
+        // You can start manipulating the DOM after the \`opened\` event has been triggered
+        zoom.on('opened', () => {
           const closeButton = document.querySelector('[data-zoom-close]');
-          closeButton.addEventListener('click', zoom.hide);
+          closeButton.addEventListener('click', () => zoom.close());
         });
 
         // Block scroll on zoom
-        zoom.addEventListeners('show', () => {
+        zoom.on('open', () => {
           document.body.style.overflow = 'hidden';
         });
-        zoom.addEventListeners('hide', () => {
+        zoom.on('close', () => {
           document.body.style.overflow = '';
         });
       </script>
@@ -156,7 +322,7 @@ storiesOf('template', module)
     }
   )
   .add(
-    'Facebook style',
+    'template (Facebook)',
     () => `
       <template id="template-facebook">
         <div class="facebook-wrapper">
@@ -180,18 +346,18 @@ storiesOf('template', module)
           container: '[data-zoom-container]',
         });
 
-        // You can start manipulating the DOM after the \`shown\` event has been triggered
-        zoom.addEventListeners('shown', () => {
+        // You can start manipulating the DOM after the \`opened\` event has been triggered
+        zoom.on('opened', () => {
           const closeButton = document.querySelector('[data-zoom-close]');
-          closeButton.addEventListener('click', zoom.hide);
+          closeButton.addEventListener('click', () => zoom.close());
         });
 
         // Block scroll on zoom
-        zoom.addEventListeners('show', () => {
+        zoom.on('open', () => {
           document.body.style.overflow = 'hidden';
         });
 
-        zoom.addEventListeners('hide', () => {
+        zoom.on('close', () => {
           document.body.style.overflow = '';
         });
       </script>

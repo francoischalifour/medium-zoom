@@ -1,4 +1,4 @@
-import { configure, addDecorator } from '@storybook/html'
+import { configure, addDecorator, getStorybook } from '@storybook/html'
 import { setOptions } from '@storybook/addon-options'
 import { withNotes } from '@storybook/addon-notes'
 
@@ -20,3 +20,6 @@ function loadStories() {
 }
 
 configure(loadStories, module)
+
+console.log(getStorybook())
+console.log(JSON.stringify(getStorybook()))

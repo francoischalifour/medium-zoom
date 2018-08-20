@@ -8,9 +8,11 @@ module.exports = {
     jest: true,
   },
   rules: {
-    'no-underscore-dangle': 'off',
-    'no-use-before-define': 'off',
-    'no-shadow': 'off',
+    'no-underscore-dangle': 0,
+    'no-use-before-define': 0,
+    'no-shadow': 0,
     'no-console': ['error', { allow: ['warn', 'error'] }],
+    'prefer-spread': 0,
+    'no-plusplus': 0,
   },
 }
