@@ -7,22 +7,14 @@ import cssnano from 'cssnano'
 
 import {
   name,
-  description,
   version,
-  author,
   repository,
   license,
   main as mainPath,
   module as modulePath,
 } from './package.json'
 
-const banner = `/*
- * ${name} v${version}
- * ${description}
- * Copyright 2016-present ${author.name}
- * https://github.com/${repository}
- * ${license} License
- */`
+const banner = `/*! ${name} ${version} | ${license} License | https://github.com/${repository} */`
 
 const sharedPlugins = [
   postcss({
