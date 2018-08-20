@@ -19,7 +19,7 @@
     "lint": "eslint .",
     "format": "prettier --write *.{js,json,css,md} && yarn run lint --fix",
     "test": "jest ./src",
-    "test:e2e": "jest ./test/**.e2e.**",
+    "test:e2e": "jest ./test/**.e2e.** --config ./test/jest.config.js",
     "test:size": "bundlesize",
     "clean": "rimraf ./dist",
     "build:storybook": "build-storybook -o ./website/dist/storybook -c ./stories/config -s ./dist,./stories/images",

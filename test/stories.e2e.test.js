@@ -84,7 +84,9 @@ storybook.forEach(category => {
           .map(param => param.join('='))
           .join('&')
 
-        await page.goto(`${STORYBOOK_ENDPOINT}?${urlParams}`)
+        await page.goto(`${STORYBOOK_ENDPOINT}?${urlParams}`, {
+          waitUntil: 'networkidle0',
+        })
 
         const container = (await page.frames()).find(
           frame => frame.name() === 'storybook-preview-iframe'
@@ -106,6 +108,9 @@ storybook.forEach(category => {
               story.name.toLowerCase().replace(/\s/g, '-'),
               index + 1,
             ].join('-'),
+            customDiffConfig: {
+              threshold: 0.1,
+            },
           })
         }
       })
