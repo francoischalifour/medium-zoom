@@ -1,5 +1,6 @@
 **/node_modules/**
-dist
-examples
-stories
-website
+/coverage
+/dist
+/examples
+/stories
+/website

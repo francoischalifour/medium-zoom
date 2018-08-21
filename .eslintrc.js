@@ -7,6 +7,9 @@ module.exports = {
     node: true,
     jest: true,
   },
+  globals: {
+    __TEST__: false,
+  },
   rules: {
     'no-underscore-dangle': 0,
     'no-use-before-define': 0,

@@ -1,6 +1,7 @@
 import babel from 'rollup-plugin-babel'
 import commonjs from 'rollup-plugin-commonjs'
 import minify from 'rollup-plugin-babel-minify'
+import replace from 'rollup-plugin-replace'
 import { uglify } from 'rollup-plugin-uglify'
 import postcss from 'rollup-plugin-postcss'
 import cssnano from 'cssnano'
@@ -20,6 +21,9 @@ const sharedPlugins = [
   postcss({
     extensions: ['.css'],
     plugins: [cssnano()],
+  }),
+  replace({
+    __TEST__: process.env.NODE_ENV === 'test' ? 'true' : 'false',
   }),
   commonjs(),
   babel({

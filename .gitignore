@@ -1,6 +1,7 @@
 node_modules
-dist
+/dist
 /storybook
+/coverage
 .DS_Store
 package-lock.json
 *.log
