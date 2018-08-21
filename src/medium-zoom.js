@@ -20,7 +20,7 @@ const getImagesFromSelector = selector => {
     }
 
     if (isListOrCollection(selector)) {
-      return [...selector].filter(isSupported)
+      return Array.apply(null, selector).filter(isSupported)
     }
 
     if (isNode(selector)) {
@@ -28,7 +28,9 @@ const getImagesFromSelector = selector => {
     }
 
     if (typeof selector === 'string') {
-      return [...document.querySelectorAll(selector)].filter(isSupported)
+      return Array.apply(null, document.querySelectorAll(selector)).filter(
+        isSupported
+      )
     }
 
     return []
@@ -74,21 +76,26 @@ const cloneTarget = template => {
   return clone
 }
 
-const createCustomEvent = (
-  type,
-  params = { bubbles: false, cancelable: false, detail: undefined }
-) => {
+const createCustomEvent = (type, params = {}) => {
+  const eventParams = {
+    bubbles: false,
+    cancelable: false,
+    detail: undefined,
+    ...params,
+  }
+
   if (typeof window.CustomEvent === 'function') {
-    return new CustomEvent(type, params)
+    return new CustomEvent(type, eventParams)
   }
 
   const customEvent = document.createEvent('CustomEvent')
   customEvent.initCustomEvent(
     type,
-    params.bubbles,
-    params.cancelable,
-    params.detail
+    eventParams.bubbles,
+    eventParams.cancelable,
+    eventParams.detail
   )
+
   return customEvent
 }
 
@@ -355,6 +362,7 @@ const mediumZoom = (selector, options = {}) => {
 
       if (active.zoomed) {
         resolve(zoom)
+        return
       }
 
       if (target) {
@@ -365,6 +373,7 @@ const mediumZoom = (selector, options = {}) => {
         ;[active.original] = images
       } else {
         resolve(zoom)
+        return
       }
 
       active.original.dispatchEvent(
@@ -466,6 +475,7 @@ const mediumZoom = (selector, options = {}) => {
     return new Promise(resolve => {
       if (isAnimating || !active.original) {
         resolve(zoom)
+        return
       }
 
       const _handleCloseEnd = () => {
@@ -526,7 +536,6 @@ const mediumZoom = (selector, options = {}) => {
     })
   }
 
-  // TODO: should return promises after close and open are called
   function toggle({ target } = {}) {
     if (active.original) {
       return close()
