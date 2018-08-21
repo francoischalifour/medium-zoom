@@ -76,7 +76,7 @@ const cloneTarget = template => {
   return clone
 }
 
-const createCustomEvent = (type, params = {}) => {
+const createCustomEvent = (type, params) => {
   const eventParams = {
     bubbles: false,
     cancelable: false,
@@ -325,7 +325,7 @@ const mediumZoom = (selector, options = {}) => {
 
       const scaleX = Math.min(naturalWidth, viewportWidth) / width
       const scaleY = Math.min(naturalHeight, viewportHeight) / height
-      const scale = Math.min(scaleX, scaleY) || 1
+      const scale = Math.min(scaleX, scaleY)
       const translateX =
         (-left +
           (viewportWidth - width) / 2 +
@@ -435,7 +435,7 @@ const mediumZoom = (selector, options = {}) => {
         // We need to access the natural size of the full HD
         // target as fast as possible to compute the animation.
         const getZoomTargetSize = setInterval(() => {
-          if (active.zoomedHd.naturalWidth) {
+          if (__TEST__ ? true : active.zoomedHd.naturalWidth) {
             clearInterval(getZoomTargetSize)
             active.zoomedHd.classList.add('medium-zoom-image--open')
             active.zoomedHd.addEventListener('click', close)
@@ -467,6 +467,12 @@ const mediumZoom = (selector, options = {}) => {
         )
       } else {
         _animate()
+      }
+
+      if (__TEST__) {
+        // The event `transitionend` is not triggered in test environment.
+        // Calling this function manually makes testing the open() function possible.
+        _handleOpenEnd()
       }
     })
   }

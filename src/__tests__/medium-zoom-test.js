@@ -34,6 +34,15 @@ describe('mediumZoom()', () => {
         expect(zoom.getImages()).toEqual([])
       })
 
+      test('mediumZoom(Number) does not attach any zoom', () => {
+        const image1 = document.createElement('img')
+        root.appendChild(image1)
+
+        const zoom = mediumZoom(42)
+
+        expect(zoom.getImages()).toEqual([])
+      })
+
       test('mediumZoom("") throws', () => {
         const image1 = document.createElement('img')
         root.appendChild(image1)
@@ -258,6 +267,18 @@ describe('attach()', () => {
     expect(zoom.getImages()).toEqual([])
   })
 
+  test('attach(Number) does not attach any zoom', () => {
+    const image1 = document.createElement('img')
+    const image2 = document.createElement('img')
+    root.appendChild(image1)
+    root.appendChild(image2)
+
+    const zoom = mediumZoom(42)
+    zoom.attach()
+
+    expect(zoom.getImages()).toEqual([])
+  })
+
   test('attach("") throws error', () => {
     const image1 = document.createElement('img')
     const image2 = document.createElement('img')
@@ -356,7 +377,7 @@ describe('detach()', () => {
     expect(zoom.detach()).toEqual(zoom)
   })
 
-  test('detach() detaches all images from the zoom', () => {
+  test('detach() detaches all images', () => {
     const image1 = document.createElement('img')
     const image2 = document.createElement('img')
     root.appendChild(image1)
@@ -370,7 +391,7 @@ describe('detach()', () => {
     expect(image2.classList).toHaveLength(0)
   })
 
-  test('detach(string) detaches images from the zoom', () => {
+  test('detach(string) detaches images', () => {
     const image1 = document.createElement('img')
     const image2 = document.createElement('img')
     root.appendChild(image1)
@@ -384,7 +405,7 @@ describe('detach()', () => {
     expect(image2.classList).toHaveLength(0)
   })
 
-  test('detach(Node) detaches images from the zoom', () => {
+  test('detach(Node) detaches images', () => {
     const image1 = document.createElement('img')
     const image2 = document.createElement('img')
     root.appendChild(image1)
@@ -398,7 +419,7 @@ describe('detach()', () => {
     expect(image2.classList).toHaveLength(1)
   })
 
-  test('detach(Node, Node) detaches images from the zoom', () => {
+  test('detach(Node, Node) detaches images', () => {
     const image1 = document.createElement('img')
     const image2 = document.createElement('img')
     root.appendChild(image1)
@@ -412,7 +433,7 @@ describe('detach()', () => {
     expect(image2.classList).toHaveLength(0)
   })
 
-  test('detach(NodeList) detaches images from the zoom', () => {
+  test('detach(NodeList) detaches images', () => {
     const image1 = document.createElement('img')
     const image2 = document.createElement('img')
     root.appendChild(image1)
@@ -426,7 +447,7 @@ describe('detach()', () => {
     expect(image2.classList).toHaveLength(0)
   })
 
-  test('detach(HTMLCollection) detaches images from the zoom', () => {
+  test('detach(HTMLCollection) detaches images', () => {
     const image1 = document.createElement('img')
     const image2 = document.createElement('img')
     root.appendChild(image1)
@@ -438,6 +459,19 @@ describe('detach()', () => {
     expect(zoom.getImages()).toEqual([])
     expect(image1.classList).toHaveLength(0)
     expect(image2.classList).toHaveLength(0)
+  })
+
+  test.skip('detach() an opened zoom closes the zoom and detaches images', async () => {
+    const image = document.createElement('img')
+    root.appendChild(image)
+
+    const zoom = mediumZoom('img')
+
+    await zoom.open()
+    zoom.detach()
+    jest.runAllTimers()
+
+    expect(root).toMatchSnapshot()
   })
 })
 
@@ -699,17 +733,17 @@ describe('getImages()', () => {
   })
 })
 
-describe('getActive()', () => {
+describe('getZoomedTarget()', () => {
   const root = emptyRootBeforeEach()
 
   test('is defined and returns null by default', () => {
     const zoom = mediumZoom()
 
-    expect(zoom.getActive).toBeDefined()
-    expect(zoom.getActive()).toBe(null)
+    expect(zoom.getZoomedTarget).toBeDefined()
+    expect(zoom.getZoomedTarget()).toBe(null)
   })
 
-  test('getActive() once zoomed is the target', () => {
+  test('getZoomedTarget() once zoomed is the target', () => {
     expect.assertions(1)
 
     const image = document.createElement('img')
@@ -718,7 +752,7 @@ describe('getActive()', () => {
     const zoom = mediumZoom(image)
     zoom.open()
 
-    expect(zoom.getActive()).toBe(image)
+    expect(zoom.getZoomedTarget()).toBe(image)
   })
 })
 
@@ -737,8 +771,8 @@ describe.skip('open()', () => {
 
     const zoom = mediumZoom()
 
-    expect(() => {
-      zoom.open()
+    expect(async () => {
+      await zoom.open()
     }).not.toThrow()
   })
 
@@ -763,7 +797,7 @@ describe.skip('open()', () => {
     const zoom = mediumZoom(image)
     await zoom.open()
 
-    expect(zoom.getActive()).toBe(image)
+    expect(zoom.getZoomedTarget()).toBe(image)
   })
 
   test('open({ target }) sets the active target', async () => {
@@ -775,9 +809,9 @@ describe.skip('open()', () => {
     root.appendChild(image2)
 
     const zoom = mediumZoom('img')
-    zoom.open({ target: image2 })
+    await zoom.open({ target: image2 })
 
-    expect(zoom.getActive()).toBe(image2)
+    expect(zoom.getZoomedTarget()).toBe(image2)
   })
 
   test('open() renders correctly', async () => {
@@ -790,6 +824,7 @@ describe.skip('open()', () => {
 
     const zoom = mediumZoom('img')
     await zoom.open()
+    jest.runAllTimers()
 
     expect(image1.className).toBe('medium-zoom-image')
     expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
@@ -797,15 +832,17 @@ describe.skip('open()', () => {
     expect(root).toMatchSnapshot()
   })
 
-  test('open().open() does not open twice', async () => {
+  test('open() twice does not zoom twice', async () => {
     expect.assertions(4)
 
     const image = document.createElement('img')
     root.appendChild(image)
 
     const zoom = mediumZoom('img')
-    await zoom.open()
-    await zoom.open()
+    const openedZoom = await zoom.open()
+    jest.runAllTimers()
+    await openedZoom.open()
+    jest.runAllTimers()
 
     expect(image.className).toBe('medium-zoom-image')
     expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
@@ -813,20 +850,21 @@ describe.skip('open()', () => {
     expect(root).toMatchSnapshot()
   })
 
-  test.skip('open() with `data-zoom-target` renders correctly', async () => {
+  test('open() with `data-zoom-target` renders correctly', async () => {
     expect.assertions(4)
 
     const image = document.createElement('img')
-    image.src = '../fixtures/image-1.jpg'
-    image.dataset.zoomTarget = '../fixtures/image-2.jpg'
+    image.src = 'image.jpg'
+    image.dataset.zoomTarget = 'image-hd.jpg'
 
     const zoomedImage = document.createElement('img')
-    zoomedImage.src = '../fixtures/image-2.jpg'
+    zoomedImage.src = 'image-hd.jpg'
 
     root.appendChild(image)
 
     const zoom = mediumZoom(image)
     await zoom.open()
+    jest.runAllTimers()
 
     expect(image.className).toBe('medium-zoom-image')
     expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
@@ -863,6 +901,51 @@ describe.skip('open()', () => {
     expect(root).toMatchSnapshot()
   })
 
+  test('mediumZoom({ container: Node }).open() renders correctly', async () => {
+    expect.assertions(1)
+
+    const container = document.createElement('div')
+    const image = document.createElement('img')
+    root.appendChild(container)
+    root.appendChild(image)
+
+    const zoom = mediumZoom('img', { container })
+    await zoom.open()
+
+    expect(root).toMatchSnapshot()
+  })
+
+  test('mediumZoom({ container: String }).open() renders correctly', async () => {
+    expect.assertions(1)
+
+    const container = document.createElement('div')
+    const image = document.createElement('img')
+    root.appendChild(container)
+    root.appendChild(image)
+
+    const zoom = mediumZoom('img', { container: 'div' })
+    await zoom.open()
+
+    expect(root).toMatchSnapshot()
+  })
+
+  test('mediumZoom({ container: Object }).open() renders correctly', async () => {
+    expect.assertions(1)
+
+    const image = document.createElement('img')
+    root.appendChild(image)
+
+    const zoom = mediumZoom('img', {
+      container: {
+        top: 46,
+        left: 64,
+      },
+    })
+    await zoom.open()
+
+    expect(root).toMatchSnapshot()
+  })
+
   test('mediumZoom({ template: Node }).open() renders correctly', async () => {
     expect.assertions(1)
 
@@ -877,7 +960,7 @@ describe.skip('open()', () => {
     expect(root).toMatchSnapshot()
   })
 
-  test('mediumZoom({ template: string }).open() renders correctly', async () => {
+  test('mediumZoom({ template: String }).open() renders correctly', async () => {
     expect.assertions(1)
 
     const template = document.createElement('template')
@@ -892,7 +975,7 @@ describe.skip('open()', () => {
   })
 })
 
-describe('close()', () => {
+describe.skip('close()', () => {
   const root = emptyRootBeforeEach()
 
   test('is defined and returns a Promise', () => {
@@ -902,14 +985,15 @@ describe('close()', () => {
     expect(zoom.close()).toBeInstanceOf(Promise)
   })
 
-  test('mediumZoom(Node).close() renders correctly', () => {
+  test('mediumZoom(Node).close() renders correctly', async () => {
     expect.assertions(4)
 
     const image = document.createElement('img')
     root.appendChild(image)
 
     const zoom = mediumZoom(image)
-    zoom.close()
+    await zoom.close()
+    jest.runAllTimers()
 
     expect(image.className).toBe('medium-zoom-image')
     expect(document.querySelector('.medium-zoom-image--open')).toBeFalsy()
@@ -917,7 +1001,7 @@ describe('close()', () => {
     expect(root).toMatchSnapshot()
   })
 
-  test('mediumZoom(String).close() renders correctly', () => {
+  test('mediumZoom(String).close() renders correctly', async () => {
     expect.assertions(5)
 
     const image1 = document.createElement('img')
@@ -926,10 +1010,29 @@ describe('close()', () => {
     root.appendChild(image2)
 
     const zoom = mediumZoom('img')
-    zoom.close()
+    await zoom.close()
+    jest.runAllTimers()
 
     expect(image1.className).toBe('medium-zoom-image')
     expect(image2.className).toBe('medium-zoom-image')
+    expect(document.querySelector('.medium-zoom-image--open')).toBeFalsy()
+    expect(document.querySelector('.medium-zoom-overlay')).toBeFalsy()
+    expect(root).toMatchSnapshot()
+  })
+
+  test('close() twice does not throw and renders correctly', async () => {
+    expect.assertions(4)
+
+    const image = document.createElement('img')
+    root.appendChild(image)
+
+    const zoom = mediumZoom('img')
+    const closedZoom = await zoom.close()
+    jest.runAllTimers()
+    await closedZoom.close()
+    jest.runAllTimers()
+
+    expect(image.className).toBe('medium-zoom-image')
     expect(document.querySelector('.medium-zoom-image--open')).toBeFalsy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeFalsy()
     expect(root).toMatchSnapshot()
@@ -946,14 +1049,33 @@ describe.skip('toggle()', () => {
     expect(zoom.toggle()).toBeInstanceOf(Promise)
   })
 
-  test('toggle() renders correctly', async () => {
+  test('toggle() once renders correctly', async () => {
+    expect.assertions(4)
+
+    const image = document.createElement('img')
+    root.appendChild(image)
+
+    const zoom = mediumZoom(image)
+
+    await zoom.toggle()
+    jest.runAllTimers()
+
+    expect(image.className).toBe('medium-zoom-image')
+    expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom-overlay')).toBeTruthy()
+    expect(root).toMatchSnapshot()
+  })
+
+  test.skip('toggle() twice renders correctly', async () => {
     expect.assertions(8)
 
     const image = document.createElement('img')
     root.appendChild(image)
 
     const zoom = mediumZoom(image)
+
     await zoom.toggle()
+    jest.runAllTimers()
 
     expect(image.className).toBe('medium-zoom-image')
     expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
@@ -961,6 +1083,7 @@ describe.skip('toggle()', () => {
     expect(root).toMatchSnapshot('opened')
 
     await zoom.toggle()
+    jest.runAllTimers()
 
     expect(image.className).toBe('medium-zoom-image')
     expect(document.querySelector('.medium-zoom-image--open')).toBeFalsy()
@@ -1109,7 +1232,26 @@ describe('on()', () => {
     )
   })
 
-  test('"open" is called once with the `once` option', () => {
+  test('event is called when `CustomEvent` is undefined', () => {
+    const image = document.createElement('img')
+    root.appendChild(image)
+
+    global.CustomEvent = undefined
+
+    const zoom = mediumZoom(image)
+    const onOpen = jest.fn()
+
+    zoom.on('open', onOpen)
+
+    zoom.open()
+
+    expect(onOpen).toHaveBeenCalledTimes(1)
+    expect(onOpen).toHaveBeenCalledWith(
+      expect.objectContaining({ target: image, detail: { zoom } })
+    )
+  })
+
+  test('event is called once with the `once` option', () => {
     const image = document.createElement('img')
     root.appendChild(image)
 
@@ -1155,5 +1297,41 @@ describe('off()', () => {
     zoom.open()
 
     expect(onOpen).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe.skip('browser events', () => {
+  const root = emptyRootBeforeEach()
+
+  test('closes on escape', async () => {
+    const image = document.createElement('img')
+    root.appendChild(image)
+
+    const zoom = mediumZoom(image)
+
+    await zoom.open()
+    document.dispatchEvent(new KeyboardEvent('keyup', { keyCode: 27 }))
+    jest.runAllTimers()
+
+    expect(image.className).toBe('medium-zoom-image')
+    expect(document.querySelector('.medium-zoom-image--open')).toBeFalsy()
+    expect(document.querySelector('.medium-zoom-overlay')).toBeFalsy()
+    expect(root).toMatchSnapshot()
+  })
+
+  test('does not close on other keys', async () => {
+    const image = document.createElement('img')
+    root.appendChild(image)
+
+    const zoom = mediumZoom(image)
+
+    await zoom.open()
+    document.dispatchEvent(new KeyboardEvent('keyup', { keyCode: 12 }))
+    jest.runAllTimers()
+
+    expect(image.className).toBe('medium-zoom-image')
+    expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom-overlay')).toBeTruthy()
+    expect(root).toMatchSnapshot()
   })
 })

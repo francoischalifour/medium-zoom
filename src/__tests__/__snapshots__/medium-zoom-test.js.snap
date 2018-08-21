@@ -6,6 +6,33 @@ Expects a CSS selector, a Node element, a NodeList, an HTMLCollection or an arra
 See: https://github.com/francoischalifour/medium-zoom"
 `;
 
+exports[`browser events does not close on other keys 1`] = `
+<body
+  class="medium-zoom--open"
+>
+  <img
+    class="medium-zoom-image"
+    style="visibility: hidden;"
+  />
+  <div
+    class="medium-zoom-overlay"
+    style="background-color: rgb(255, 255, 255);"
+  />
+  <img
+    class="medium-zoom-image medium-zoom-image--open"
+    style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
+  />
+</body>
+`;
+
+exports[`close() close() twice does not throw and renders correctly 1`] = `
+<body>
+  <img
+    class="medium-zoom-image"
+  />
+</body>
+`;
+
 exports[`close() mediumZoom(Node).close() renders correctly 1`] = `
 <body>
   <img
@@ -114,12 +141,12 @@ exports[`open() open() renders correctly 1`] = `
 </body>
 `;
 
-exports[`open() open() with \`data-zoom-target\` renders correctly 1`] = `
-<body>
+exports[`open() open() twice does not zoom twice 1`] = `
+<body
+  class="medium-zoom--open"
+>
   <img
     class="medium-zoom-image"
-    data-zoom-target="../fixtures/image-2.jpg"
-    src="../fixtures/image-1.jpg"
     style="visibility: hidden;"
   />
   <div
@@ -128,8 +155,35 @@ exports[`open() open() with \`data-zoom-target\` renders correctly 1`] = `
   />
   <img
     class="medium-zoom-image medium-zoom-image--open"
-    data-zoom-target="../fixtures/image-2.jpg"
-    src="../fixtures/image-1.jpg"
+    style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
+  />
+</body>
+`;
+
+exports[`open() open() with \`data-zoom-target\` renders correctly 1`] = `
+<body
+  class="medium-zoom--open"
+>
+  <img
+    class="medium-zoom-image"
+    data-zoom-target="image-hd.jpg"
+    src="image.jpg"
+    style="visibility: hidden;"
+  />
+  <div
+    class="medium-zoom-overlay"
+    style="background-color: rgb(255, 255, 255);"
+  />
+  <img
+    class="medium-zoom-image medium-zoom-image--open"
+    data-zoom-target="image-hd.jpg"
+    src="image.jpg"
+    style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
+  />
+  <img
+    class="medium-zoom-image medium-zoom-image--open"
+    data-zoom-target="image-hd.jpg"
+    src="image-hd.jpg"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
   />
 </body>
@@ -158,31 +212,10 @@ exports[`open() open() with \`srcset\` renders correctly 1`] = `
 </body>
 `;
 
-exports[`open() open().open() does not open twice 1`] = `
+exports[`toggle() toggle() once renders correctly 1`] = `
 <body
   class="medium-zoom--open"
 >
-  <img
-    class="medium-zoom-image"
-    style="visibility: hidden;"
-  />
-  <img
-    class="medium-zoom-image medium-zoom-image--open"
-    style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
-  />
-  <div
-    class="medium-zoom-overlay"
-    style="background-color: rgb(255, 255, 255);"
-  />
-  <img
-    class="medium-zoom-image medium-zoom-image--open"
-    style="visibility: hidden; position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
-  />
-</body>
-`;
-
-exports[`toggle() toggle() renders correctly 1`] = `
-<body>
   <img
     class="medium-zoom-image"
     style="visibility: hidden;"
