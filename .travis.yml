@@ -17,5 +17,5 @@ env:
   matrix:
   - SCRIPT="yarn run lint"
   - SCRIPT="yarn run test"
-  - SCRIPT="yarn run test:cypress --record"
+  - SCRIPT="yarn run test:cypress"
   - SCRIPT="yarn run test:size"
