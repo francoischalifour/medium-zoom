@@ -548,7 +548,7 @@ const mediumZoom = (selector, options = {}) => {
 
   const getImages = () => images
 
-  const getActive = () => active.original
+  const getZoomedTarget = () => active.original
 
   let images = []
   let isAnimating = false
@@ -606,7 +606,7 @@ const mediumZoom = (selector, options = {}) => {
     off,
     getOptions,
     getImages,
-    getActive,
+    getZoomedTarget,
   }
 
   return zoom

@@ -1,6 +1,6 @@
 import { storiesOf } from '@storybook/html'
 
-storiesOf('getActive()', module).add(
+storiesOf('getZoomedTarget()', module).add(
   'default',
   () => `
     <img src="image-2.jpg">
@@ -8,9 +8,9 @@ storiesOf('getActive()', module).add(
     <script>
       const zoom = mediumZoom('img');
 
-      console.group('getActive()');
-      console.log(zoom.getActive());
-      zoom.on('open', () => console.log(zoom.getActive()))
+      console.group('getZoomedTarget()');
+      console.log(zoom.getZoomedTarget());
+      zoom.on('open', () => console.log(zoom.getZoomedTarget()))
       console.groupEnd();
     </script>
   `,
