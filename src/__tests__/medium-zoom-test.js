@@ -1,5 +1,7 @@
 import mediumZoom from '../medium-zoom'
 
+global.requestAnimationFrame = callback => setTimeout(callback)
+
 /**
  * Returns an empty `document.body` before each test.
  */

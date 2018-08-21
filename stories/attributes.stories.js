@@ -5,8 +5,8 @@ storiesOf('attributes', module)
     'data-zoom-target',
     () => `
       <img
-        src="https://placehold.it/300x500?text=default-image"
-        data-zoom-target="https://placehold.it/1440x1920?text=data-zoom-target"
+        src="image-1.thumbnail.jpg"
+        data-zoom-target="image-1.jpg"
       >
 
       <script>
@@ -24,11 +24,11 @@ storiesOf('attributes', module)
     () => `
     <img
       srcset="
-        https://placehold.it/300x200?text=300x200 300w,
-        https://placehold.it/600x400?text=600x400 600w,
-        https://placehold.it/800x500?text=800x500 800w,
-        https://placehold.it/1000x650?text=1000x650 1000w,
-        https://placehold.it/1200x800?text=1200x800 1200w
+        image-1x300.jpg 300w,
+        image-1x600.jpg 600w,
+        image-1x800.jpg 800w,
+        image-1x1000.jpg 1000w,
+        image-1x1200.jpg 1200w
       "
     >
 
@@ -48,15 +48,13 @@ Zoom on an image having \`srcset\` attributes.
     'srcset and data-zoom-target',
     () => `
     <img
-      src="https://placehold.it/1200x800?text=fallback_src"
+      src="image-1x300.jpg"
       srcset="
-        https://placehold.it/200x300?text=200x300 200w,
-        https://placehold.it/400x600?text=400x600 400w,
-        https://placehold.it/500x800?text=500x800 500w,
-        https://placehold.it/650x1000?text=650x1000 650w,
-        https://placehold.it/800x1200?text=800x1200 800w"
+        image-1x300.jpg 300w,
+        image-1x600.jpg 600w,
+      "
       sizes="(max-width: 400px) 100vw, 400px"
-      data-zoom-target="https://placehold.it/1440x1920?text=data-zoom-target"
+      data-zoom-target="image-1.jpg"
     >
 
     <script>

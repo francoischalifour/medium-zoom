@@ -20,6 +20,3 @@ function loadStories() {
 }
 
 configure(loadStories, module)
-
-console.log(getStorybook())
-console.log(JSON.stringify(getStorybook()))

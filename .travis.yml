@@ -3,14 +3,19 @@ node_js:
   - 9
 cache:
   - yarn: true
+cache:
+  directories:
+    - ~/.cache
 before_install:
  - curl -o- -L yarnpkg.com/install.sh | bash -s -- --version 1.9.4
  - export PATH=$HOME/.yarn/bin:$PATH
+install:
+  yarn install --frozen-lockfile
 script:
   - "${SCRIPT}"
 env:
   matrix:
   - SCRIPT="yarn run lint"
   - SCRIPT="yarn run test"
-  - SCRIPT="yarn run test:e2e"
+  - SCRIPT="yarn run test:cypress --record"
   - SCRIPT="yarn run test:size"

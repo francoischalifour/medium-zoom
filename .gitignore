@@ -1,7 +1,10 @@
-node_modules
+/node_modules
+/coverage
+/cypress/screenshots
+/cypress/videos
 /dist
 /storybook
-/coverage
+
 .DS_Store
 package-lock.json
 *.log
