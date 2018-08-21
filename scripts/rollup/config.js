@@ -1,3 +1,5 @@
+/* eslint-disable import/no-extraneous-dependencies */
+
 import babel from 'rollup-plugin-babel'
 import commonjs from 'rollup-plugin-commonjs'
 import minify from 'rollup-plugin-babel-minify'
@@ -13,7 +15,7 @@ import {
   license,
   main as mainPath,
   module as modulePath,
-} from './package.json'
+} from '../../package.json'
 
 const banner = `/*! ${name} ${version} | ${license} License | https://github.com/${repository} */`
 

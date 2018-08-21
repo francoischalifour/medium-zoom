@@ -13,9 +13,9 @@
   "module": "dist/medium-zoom.es.js",
   "scripts": {
     "start": "yarn run dev",
-    "dev": "cross-env NODE_ENV=build rollup --config --watch",
+    "dev": "cross-env NODE_ENV=build rollup --config ./scripts/rollup/config.js --watch",
     "prebuild": "yarn run clean",
-    "build": "cross-env NODE_ENV=build rollup --config",
+    "build": "cross-env NODE_ENV=build rollup --config ./scripts/rollup/config.js",
     "lint": "eslint .",
     "format": "prettier --write *.{js,json,css,md} && yarn run lint --fix",
     "test": "jest --config ./scripts/jest/config.base.js",
