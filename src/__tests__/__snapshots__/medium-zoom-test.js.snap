@@ -98,27 +98,6 @@ exports[`open() mediumZoom({ template: Node }).open() renders correctly 1`] = `
 </body>
 `;
 
-exports[`open() mediumZoom({ template: string }).open() renders correctly 1`] = `
-<body
-  class="medium-zoom--open"
->
-  <template />
-  <img
-    class="medium-zoom-image"
-    style="visibility: hidden;"
-  />
-  <div
-    class="medium-zoom-overlay"
-    style="background-color: rgb(255, 255, 255);"
-  />
-  <div />
-  <img
-    class="medium-zoom-image medium-zoom-image--open"
-    style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
-  />
-</body>
-`;
-
 exports[`open() open() renders correctly 1`] = `
 <body
   class="medium-zoom--open"
