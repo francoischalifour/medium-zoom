@@ -1,4 +1,4 @@
-const mediumZoom = require('./medium-zoom')
-require('./medium-zoom.css')
+import mediumZoom from './medium-zoom'
+import './medium-zoom.css'
 
-module.exports = mediumZoom
+export default mediumZoom
