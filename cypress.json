@@ -1,3 +1,5 @@
 {
-  "baseUrl": "http://localhost:9001"
+  "baseUrl": "http://localhost:9001",
+  "viewportWidth": 720,
+  "viewportHeight": 480
 }
