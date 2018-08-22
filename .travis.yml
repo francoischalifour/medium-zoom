@@ -2,8 +2,6 @@ language: node_js
 node_js:
   - 9
 cache:
-  - yarn: true
-cache:
   directories:
     - ~/.cache
 before_install:
