@@ -117,6 +117,11 @@ const mediumZoom = (selector, options = {}) => {
 
     const { target } = event
 
+    if (target === overlay) {
+      close()
+      return
+    }
+
     if (images.indexOf(target) === -1) {
       return
     }
@@ -594,7 +599,6 @@ const mediumZoom = (selector, options = {}) => {
 
   const overlay = createOverlay(zoomOptions.background)
 
-  overlay.addEventListener('click', close)
   document.addEventListener('click', _handleClick)
   document.addEventListener('scroll', _handleScroll)
   document.addEventListener('keyup', _handleKeyUp)
