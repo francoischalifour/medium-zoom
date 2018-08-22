@@ -6,4 +6,7 @@ module.exports = {
     __TEST__: true,
   },
   timers: 'fake',
+  moduleNameMapper: {
+    '\\.css$': '<rootDir>/src/__mocks__/styleMock.js',
+  },
 }
