@@ -2,5 +2,6 @@
   "projectId": "w2qxb8",
   "baseUrl": "http://localhost:9001",
   "viewportWidth": 720,
-  "viewportHeight": 480
+  "viewportHeight": 480,
+  "fixturesFolder": false
 }
