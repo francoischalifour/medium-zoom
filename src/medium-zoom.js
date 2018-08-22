@@ -490,11 +490,6 @@ const mediumZoom = (selector, options = {}) => {
       }
 
       const _handleCloseEnd = () => {
-        if (!active.original) {
-          resolve(zoom)
-          return
-        }
-
         active.original.style.visibility = ''
         document.body.removeChild(active.zoomed)
         if (active.zoomedHd) {
