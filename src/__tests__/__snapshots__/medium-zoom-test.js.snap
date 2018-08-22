@@ -23,14 +23,13 @@ exports[`browser events closes zoom on click on the overlay 1`] = `
 >
   <img
     class="medium-zoom-image"
-    style=""
   />
 </body>
 `;
 
 exports[`browser events does not close on other keys 1`] = `
 <body
-  class="medium-zoom--open"
+  class="medium-zoom--opened"
 >
   <img
     class="medium-zoom-image"
@@ -41,7 +40,7 @@ exports[`browser events does not close on other keys 1`] = `
     style="background-color: rgb(255, 255, 255);"
   />
   <img
-    class="medium-zoom-image medium-zoom-image--open"
+    class="medium-zoom-image medium-zoom-image--opened"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
   />
 </body>
@@ -49,18 +48,17 @@ exports[`browser events does not close on other keys 1`] = `
 
 exports[`browser events opens zoom on click on the image 1`] = `
 <body
-  class="medium-zoom--open"
+  class="medium-zoom--opened"
 >
   <img
-    class="medium-zoom-image"
-    style="visibility: hidden;"
+    class="medium-zoom-image medium-zoom-image--hidden"
   />
   <div
     class="medium-zoom-overlay"
     style="background-color: rgb(255, 255, 255);"
   />
   <img
-    class="medium-zoom-image medium-zoom-image--open"
+    class="medium-zoom-image medium-zoom-image--opened"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
   />
 </body>
@@ -72,7 +70,6 @@ exports[`close() close() twice does not throw and renders correctly 1`] = `
 >
   <img
     class="medium-zoom-image"
-    style=""
   />
 </body>
 `;
@@ -84,7 +81,6 @@ exports[`close() close() with \`data-zoom-target\` renders correctly 1`] = `
   <img
     class="medium-zoom-image"
     data-zoom-target="image-hd.jpg"
-    style=""
   />
 </body>
 `;
@@ -96,7 +92,6 @@ exports[`close() mediumZoom({ template }).close() renders correctly 1`] = `
   <template />
   <img
     class="medium-zoom-image"
-    style=""
   />
 </body>
 `;
@@ -107,7 +102,6 @@ exports[`close() mediumZoom(Node).close() renders correctly 1`] = `
 >
   <img
     class="medium-zoom-image"
-    style=""
   />
 </body>
 `;
@@ -118,7 +112,6 @@ exports[`close() mediumZoom(String).close() renders correctly 1`] = `
 >
   <img
     class="medium-zoom-image"
-    style=""
   />
   <img
     class="medium-zoom-image"
@@ -132,7 +125,6 @@ exports[`detach() detach() an opened zoom closes the zoom and detaches images 1`
 >
   <img
     class=""
-    style=""
   />
 </body>
 `;
@@ -145,18 +137,17 @@ See: https://github.com/francoischalifour/medium-zoom"
 
 exports[`open() mediumZoom({ background }).open() renders correctly 1`] = `
 <body
-  class="medium-zoom--open"
+  class="medium-zoom--opened"
 >
   <img
-    class="medium-zoom-image"
-    style="visibility: hidden;"
+    class="medium-zoom-image medium-zoom-image--hidden"
   />
   <div
     class="medium-zoom-overlay"
     style="background-color: rgb(186, 218, 85);"
   />
   <img
-    class="medium-zoom-image medium-zoom-image--open"
+    class="medium-zoom-image medium-zoom-image--opened"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
   />
 </body>
@@ -164,19 +155,18 @@ exports[`open() mediumZoom({ background }).open() renders correctly 1`] = `
 
 exports[`open() mediumZoom({ container: Node }).open() renders correctly 1`] = `
 <body
-  class="medium-zoom--open"
+  class="medium-zoom--opened"
 >
   <div />
   <img
-    class="medium-zoom-image"
-    style="visibility: hidden;"
+    class="medium-zoom-image medium-zoom-image--hidden"
   />
   <div
     class="medium-zoom-overlay"
     style="background-color: rgb(255, 255, 255);"
   />
   <img
-    class="medium-zoom-image medium-zoom-image--open"
+    class="medium-zoom-image medium-zoom-image--opened"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
   />
 </body>
@@ -184,18 +174,17 @@ exports[`open() mediumZoom({ container: Node }).open() renders correctly 1`] = `
 
 exports[`open() mediumZoom({ container: Object }).open() renders correctly 1`] = `
 <body
-  class="medium-zoom--open"
+  class="medium-zoom--opened"
 >
   <img
-    class="medium-zoom-image"
-    style="visibility: hidden;"
+    class="medium-zoom-image medium-zoom-image--hidden"
   />
   <div
     class="medium-zoom-overlay"
     style="background-color: rgb(255, 255, 255);"
   />
   <img
-    class="medium-zoom-image medium-zoom-image--open"
+    class="medium-zoom-image medium-zoom-image--opened"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
   />
 </body>
@@ -203,19 +192,18 @@ exports[`open() mediumZoom({ container: Object }).open() renders correctly 1`] =
 
 exports[`open() mediumZoom({ container: String }).open() renders correctly 1`] = `
 <body
-  class="medium-zoom--open"
+  class="medium-zoom--opened"
 >
   <div />
   <img
-    class="medium-zoom-image"
-    style="visibility: hidden;"
+    class="medium-zoom-image medium-zoom-image--hidden"
   />
   <div
     class="medium-zoom-overlay"
     style="background-color: rgb(255, 255, 255);"
   />
   <img
-    class="medium-zoom-image medium-zoom-image--open"
+    class="medium-zoom-image medium-zoom-image--opened"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
   />
 </body>
@@ -223,12 +211,11 @@ exports[`open() mediumZoom({ container: String }).open() renders correctly 1`] =
 
 exports[`open() mediumZoom({ template: Node }).open() renders correctly 1`] = `
 <body
-  class="medium-zoom--open"
+  class="medium-zoom--opened"
 >
   <template />
   <img
-    class="medium-zoom-image"
-    style="visibility: hidden;"
+    class="medium-zoom-image medium-zoom-image--hidden"
   />
   <div
     class="medium-zoom-overlay"
@@ -236,7 +223,7 @@ exports[`open() mediumZoom({ template: Node }).open() renders correctly 1`] = `
   />
   <div />
   <img
-    class="medium-zoom-image medium-zoom-image--open"
+    class="medium-zoom-image medium-zoom-image--opened"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
   />
 </body>
@@ -244,12 +231,11 @@ exports[`open() mediumZoom({ template: Node }).open() renders correctly 1`] = `
 
 exports[`open() mediumZoom({ template: String }).open() renders correctly 1`] = `
 <body
-  class="medium-zoom--open"
+  class="medium-zoom--opened"
 >
   <template />
   <img
-    class="medium-zoom-image"
-    style="visibility: hidden;"
+    class="medium-zoom-image medium-zoom-image--hidden"
   />
   <div
     class="medium-zoom-overlay"
@@ -257,7 +243,7 @@ exports[`open() mediumZoom({ template: String }).open() renders correctly 1`] = 
   />
   <div />
   <img
-    class="medium-zoom-image medium-zoom-image--open"
+    class="medium-zoom-image medium-zoom-image--opened"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
   />
 </body>
@@ -265,19 +251,18 @@ exports[`open() mediumZoom({ template: String }).open() renders correctly 1`] = 
 
 exports[`open() open() a SVG renders correctly 1`] = `
 <body
-  class="medium-zoom--open"
+  class="medium-zoom--opened"
 >
   <img
-    class="medium-zoom-image"
+    class="medium-zoom-image medium-zoom-image--hidden"
     src="vector.svg"
-    style="visibility: hidden;"
   />
   <div
     class="medium-zoom-overlay"
     style="background-color: rgb(255, 255, 255);"
   />
   <img
-    class="medium-zoom-image medium-zoom-image--open"
+    class="medium-zoom-image medium-zoom-image--opened"
     src="vector.svg"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
   />
@@ -286,11 +271,10 @@ exports[`open() open() a SVG renders correctly 1`] = `
 
 exports[`open() open() renders correctly 1`] = `
 <body
-  class="medium-zoom--open"
+  class="medium-zoom--opened"
 >
   <img
-    class="medium-zoom-image"
-    style="visibility: hidden;"
+    class="medium-zoom-image medium-zoom-image--hidden"
   />
   <img
     class="medium-zoom-image"
@@ -300,7 +284,7 @@ exports[`open() open() renders correctly 1`] = `
     style="background-color: rgb(255, 255, 255);"
   />
   <img
-    class="medium-zoom-image medium-zoom-image--open"
+    class="medium-zoom-image medium-zoom-image--opened"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
   />
 </body>
@@ -308,18 +292,17 @@ exports[`open() open() renders correctly 1`] = `
 
 exports[`open() open() twice does not zoom twice 1`] = `
 <body
-  class="medium-zoom--open"
+  class="medium-zoom--opened"
 >
   <img
-    class="medium-zoom-image"
-    style="visibility: hidden;"
+    class="medium-zoom-image medium-zoom-image--hidden"
   />
   <div
     class="medium-zoom-overlay"
     style="background-color: rgb(255, 255, 255);"
   />
   <img
-    class="medium-zoom-image medium-zoom-image--open"
+    class="medium-zoom-image medium-zoom-image--opened"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
   />
 </body>
@@ -327,26 +310,25 @@ exports[`open() open() twice does not zoom twice 1`] = `
 
 exports[`open() open() with \`data-zoom-target\` renders correctly 1`] = `
 <body
-  class="medium-zoom--open"
+  class="medium-zoom--opened"
 >
   <img
-    class="medium-zoom-image"
+    class="medium-zoom-image medium-zoom-image--hidden"
     data-zoom-target="image-hd.jpg"
     src="image.jpg"
-    style="visibility: hidden;"
   />
   <div
     class="medium-zoom-overlay"
     style="background-color: rgb(255, 255, 255);"
   />
   <img
-    class="medium-zoom-image medium-zoom-image--open"
+    class="medium-zoom-image medium-zoom-image--opened"
     data-zoom-target="image-hd.jpg"
     src="image.jpg"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
   />
   <img
-    class="medium-zoom-image medium-zoom-image--open"
+    class="medium-zoom-image medium-zoom-image--opened"
     data-zoom-target="image-hd.jpg"
     src="image-hd.jpg"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
@@ -356,20 +338,19 @@ exports[`open() open() with \`data-zoom-target\` renders correctly 1`] = `
 
 exports[`open() open() with \`srcset\` renders correctly 1`] = `
 <body
-  class="medium-zoom--open"
+  class="medium-zoom--opened"
 >
   <img
-    class="medium-zoom-image"
+    class="medium-zoom-image medium-zoom-image--hidden"
     src="image.jpg"
     srcset="image-300x200.jpg 300w, image-600x400.jpg 600w, image-800x500.jpg 800w, image-1000x650.jpg 1000w, image-1200x800.jpg 1200w"
-    style="visibility: hidden;"
   />
   <div
     class="medium-zoom-overlay"
     style="background-color: rgb(255, 255, 255);"
   />
   <img
-    class="medium-zoom-image medium-zoom-image--open"
+    class="medium-zoom-image medium-zoom-image--opened"
     src="image.jpg"
     srcset="image-300x200.jpg 300w, image-600x400.jpg 600w, image-800x500.jpg 800w, image-1000x650.jpg 1000w, image-1200x800.jpg 1200w"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
@@ -379,18 +360,17 @@ exports[`open() open() with \`srcset\` renders correctly 1`] = `
 
 exports[`toggle() toggle() once renders correctly 1`] = `
 <body
-  class="medium-zoom--open"
+  class="medium-zoom--opened"
 >
   <img
-    class="medium-zoom-image"
-    style="visibility: hidden;"
+    class="medium-zoom-image medium-zoom-image--hidden"
   />
   <div
     class="medium-zoom-overlay"
     style="background-color: rgb(255, 255, 255);"
   />
   <img
-    class="medium-zoom-image medium-zoom-image--open"
+    class="medium-zoom-image medium-zoom-image--opened"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
   />
 </body>
@@ -402,25 +382,23 @@ exports[`toggle() toggle() twice renders correctly: closed 1`] = `
 >
   <img
     class="medium-zoom-image"
-    style=""
   />
 </body>
 `;
 
 exports[`toggle() toggle() twice renders correctly: opened 1`] = `
 <body
-  class="medium-zoom--open"
+  class="medium-zoom--opened"
 >
   <img
-    class="medium-zoom-image"
-    style="visibility: hidden;"
+    class="medium-zoom-image medium-zoom-image--hidden"
   />
   <div
     class="medium-zoom-overlay"
     style="background-color: rgb(255, 255, 255);"
   />
   <img
-    class="medium-zoom-image medium-zoom-image--open"
+    class="medium-zoom-image medium-zoom-image--opened"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
   />
 </body>

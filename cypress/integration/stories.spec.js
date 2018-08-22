@@ -62,7 +62,7 @@ storybook.forEach(category => {
             }
           )
 
-          const $zoomedImage = cy.getInStory('.medium-zoom-image--open')
+          const $zoomedImage = cy.getInStory('.medium-zoom-image--opened')
 
           if ($zoomedImage.length) {
             $zoomedImage.click()

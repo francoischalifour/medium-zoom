@@ -832,10 +832,13 @@ describe('open()', () => {
     await zoom.open()
     jest.runAllTimers()
 
-    expect(image1.className).toBe('medium-zoom-image')
-    expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
+    expect([...image1.classList]).toEqual([
+      'medium-zoom-image',
+      'medium-zoom-image--hidden',
+    ])
+    expect(document.querySelector('.medium-zoom-image--opened')).toBeTruthy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeTruthy()
-    expect(document.querySelector('.medium-zoom--open')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom--opened')).toBeTruthy()
     expect(root).toMatchSnapshot()
   })
 
@@ -850,10 +853,13 @@ describe('open()', () => {
     await zoom.open()
     jest.runAllTimers()
 
-    expect(image.className).toBe('medium-zoom-image')
-    expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
+    expect([...image.classList]).toEqual([
+      'medium-zoom-image',
+      'medium-zoom-image--hidden',
+    ])
+    expect(document.querySelector('.medium-zoom-image--opened')).toBeTruthy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeTruthy()
-    expect(document.querySelector('.medium-zoom--open')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom--opened')).toBeTruthy()
     expect(root).toMatchSnapshot()
   })
 
@@ -869,10 +875,13 @@ describe('open()', () => {
     await openedZoom.open()
     jest.runAllTimers()
 
-    expect(image.className).toBe('medium-zoom-image')
-    expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
+    expect([...image.classList]).toEqual([
+      'medium-zoom-image',
+      'medium-zoom-image--hidden',
+    ])
+    expect(document.querySelector('.medium-zoom-image--opened')).toBeTruthy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeTruthy()
-    expect(document.querySelector('.medium-zoom--open')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom--opened')).toBeTruthy()
     expect(root).toMatchSnapshot()
   })
 
@@ -892,10 +901,13 @@ describe('open()', () => {
     await zoom.open()
     jest.runAllTimers()
 
-    expect(image.className).toBe('medium-zoom-image')
-    expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
+    expect([...image.classList]).toEqual([
+      'medium-zoom-image',
+      'medium-zoom-image--hidden',
+    ])
+    expect(document.querySelector('.medium-zoom-image--opened')).toBeTruthy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeTruthy()
-    expect(document.querySelector('.medium-zoom--open')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom--opened')).toBeTruthy()
     expect(root).toMatchSnapshot()
   })
 
@@ -910,10 +922,13 @@ describe('open()', () => {
     const zoom = mediumZoom('img')
     await zoom.open()
 
-    expect(image.className).toBe('medium-zoom-image')
-    expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
+    expect([...image.classList]).toEqual([
+      'medium-zoom-image',
+      'medium-zoom-image--hidden',
+    ])
+    expect(document.querySelector('.medium-zoom-image--opened')).toBeTruthy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeTruthy()
-    expect(document.querySelector('.medium-zoom--open')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom--opened')).toBeTruthy()
     expect(root).toMatchSnapshot()
   })
 
@@ -1025,10 +1040,10 @@ describe('close()', () => {
     jest.runAllTimers()
     await zoom.close()
 
-    expect(image.className).toBe('medium-zoom-image')
-    expect(document.querySelector('.medium-zoom-image--open')).toBeFalsy()
+    expect([...image.classList]).toEqual(['medium-zoom-image'])
+    expect(document.querySelector('.medium-zoom-image--opened')).toBeFalsy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeFalsy()
-    expect(document.querySelector('.medium-zoom--open')).toBeFalsy()
+    expect(document.querySelector('.medium-zoom--opened')).toBeFalsy()
     expect(root).toMatchSnapshot()
   })
 
@@ -1046,11 +1061,11 @@ describe('close()', () => {
     jest.runAllTimers()
     await zoom.close()
 
-    expect(image1.className).toBe('medium-zoom-image')
-    expect(image2.className).toBe('medium-zoom-image')
-    expect(document.querySelector('.medium-zoom-image--open')).toBeFalsy()
+    expect([...image1.classList]).toEqual(['medium-zoom-image'])
+    expect([...image2.classList]).toEqual(['medium-zoom-image'])
+    expect(document.querySelector('.medium-zoom-image--opened')).toBeFalsy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeFalsy()
-    expect(document.querySelector('.medium-zoom--open')).toBeFalsy()
+    expect(document.querySelector('.medium-zoom--opened')).toBeFalsy()
     expect(root).toMatchSnapshot()
   })
 
@@ -1067,10 +1082,10 @@ describe('close()', () => {
     jest.runAllTimers()
     await zoom.close()
 
-    expect(image.className).toBe('medium-zoom-image')
-    expect(document.querySelector('.medium-zoom-image--open')).toBeFalsy()
+    expect([...image.classList]).toEqual(['medium-zoom-image'])
+    expect(document.querySelector('.medium-zoom-image--opened')).toBeFalsy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeFalsy()
-    expect(document.querySelector('.medium-zoom--open')).toBeFalsy()
+    expect(document.querySelector('.medium-zoom--opened')).toBeFalsy()
     expect(root).toMatchSnapshot()
   })
 
@@ -1088,10 +1103,10 @@ describe('close()', () => {
     jest.runAllTimers()
     await zoom.close()
 
-    expect(image.className).toBe('medium-zoom-image')
-    expect(document.querySelector('.medium-zoom-image--open')).toBeFalsy()
+    expect([...image.classList]).toEqual(['medium-zoom-image'])
+    expect(document.querySelector('.medium-zoom-image--opened')).toBeFalsy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeFalsy()
-    expect(document.querySelector('.medium-zoom--open')).toBeFalsy()
+    expect(document.querySelector('.medium-zoom--opened')).toBeFalsy()
     expect(root).toMatchSnapshot()
   })
 
@@ -1108,10 +1123,10 @@ describe('close()', () => {
     await zoom.close()
     await zoom.close()
 
-    expect(image.className).toBe('medium-zoom-image')
-    expect(document.querySelector('.medium-zoom-image--open')).toBeFalsy()
+    expect([...image.classList]).toEqual(['medium-zoom-image'])
+    expect(document.querySelector('.medium-zoom-image--opened')).toBeFalsy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeFalsy()
-    expect(document.querySelector('.medium-zoom--open')).toBeFalsy()
+    expect(document.querySelector('.medium-zoom--opened')).toBeFalsy()
     expect(root).toMatchSnapshot()
   })
 })
@@ -1137,10 +1152,13 @@ describe('toggle()', () => {
     await zoom.toggle()
     jest.runAllTimers()
 
-    expect(image.className).toBe('medium-zoom-image')
-    expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
+    expect([...image.classList]).toEqual([
+      'medium-zoom-image',
+      'medium-zoom-image--hidden',
+    ])
+    expect(document.querySelector('.medium-zoom-image--opened')).toBeTruthy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeTruthy()
-    expect(document.querySelector('.medium-zoom--open')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom--opened')).toBeTruthy()
     expect(root).toMatchSnapshot()
   })
 
@@ -1155,19 +1173,22 @@ describe('toggle()', () => {
     await zoom.toggle()
     jest.runAllTimers()
 
-    expect(image.className).toBe('medium-zoom-image')
-    expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
+    expect([...image.classList]).toEqual([
+      'medium-zoom-image',
+      'medium-zoom-image--hidden',
+    ])
+    expect(document.querySelector('.medium-zoom-image--opened')).toBeTruthy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeTruthy()
-    expect(document.querySelector('.medium-zoom--open')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom--opened')).toBeTruthy()
     expect(root).toMatchSnapshot('opened')
 
     await zoom.toggle()
     jest.runAllTimers()
 
-    expect(image.className).toBe('medium-zoom-image')
-    expect(document.querySelector('.medium-zoom-image--open')).toBeFalsy()
+    expect([...image.classList]).toEqual(['medium-zoom-image'])
+    expect(document.querySelector('.medium-zoom-image--opened')).toBeFalsy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeFalsy()
-    expect(document.querySelector('.medium-zoom--open')).toBeFalsy()
+    expect(document.querySelector('.medium-zoom--opened')).toBeFalsy()
     expect(root).toMatchSnapshot('closed')
   })
 })
@@ -1392,10 +1413,13 @@ describe('browser events', () => {
     image.click()
     jest.runAllTimers()
 
-    expect(image.className).toBe('medium-zoom-image')
-    expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
+    expect([...image.classList]).toEqual([
+      'medium-zoom-image',
+      'medium-zoom-image--hidden',
+    ])
+    expect(document.querySelector('.medium-zoom-image--opened')).toBeTruthy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeTruthy()
-    expect(document.querySelector('.medium-zoom--open')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom--opened')).toBeTruthy()
     expect(root).toMatchSnapshot()
   })
 
@@ -1411,10 +1435,10 @@ describe('browser events', () => {
     const overlay = document.querySelector('.medium-zoom-overlay')
     overlay.click()
 
-    expect(image.className).toBe('medium-zoom-image')
-    expect(document.querySelector('.medium-zoom-image--open')).toBeFalsy()
+    expect([...image.classList]).toEqual(['medium-zoom-image'])
+    expect(document.querySelector('.medium-zoom-image--opened')).toBeFalsy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeFalsy()
-    expect(document.querySelector('.medium-zoom--open')).toBeFalsy()
+    expect(document.querySelector('.medium-zoom--opened')).toBeFalsy()
     expect(root).toMatchSnapshot()
   })
 
@@ -1429,10 +1453,13 @@ describe('browser events', () => {
 
     document.dispatchEvent(new KeyboardEvent('keyup', { keyCode: 27 }))
 
-    expect(image.className).toBe('medium-zoom-image')
-    expect(document.querySelector('.medium-zoom-image--open')).toBeFalsy()
+    expect([...image.classList]).toEqual([
+      'medium-zoom-image',
+      'medium-zoom-image--hidden',
+    ])
+    expect(document.querySelector('.medium-zoom-image--opened')).toBeFalsy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeFalsy()
-    expect(document.querySelector('.medium-zoom--open')).toBeFalsy()
+    expect(document.querySelector('.medium-zoom--opened')).toBeFalsy()
     expect(root).toMatchSnapshot()
   })
 
@@ -1447,10 +1474,13 @@ describe('browser events', () => {
 
     document.dispatchEvent(new KeyboardEvent('keyup', { keyCode: 65 }))
 
-    expect(image.className).toBe('medium-zoom-image')
-    expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
+    expect([...image.classList]).toEqual([
+      'medium-zoom-image',
+      'medium-zoom-image--hidden',
+    ])
+    expect(document.querySelector('.medium-zoom-image--opened')).toBeTruthy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeTruthy()
-    expect(document.querySelector('.medium-zoom--open')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom--opened')).toBeTruthy()
     expect(root).toMatchSnapshot()
   })
 })

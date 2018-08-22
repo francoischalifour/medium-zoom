@@ -415,11 +415,11 @@ const mediumZoom = (selector, options = {}) => {
       document.body.appendChild(active.zoomed)
 
       window.requestAnimationFrame(() => {
-        document.body.classList.add('medium-zoom--open')
+        document.body.classList.add('medium-zoom--opened')
       })
 
-      active.original.style.visibility = 'hidden'
-      active.zoomed.classList.add('medium-zoom-image--open')
+      active.original.classList.add('medium-zoom-image--hidden')
+      active.zoomed.classList.add('medium-zoom-image--opened')
 
       active.zoomed.addEventListener('click', close)
       active.zoomed.addEventListener('transitionend', _handleOpenEnd)
@@ -447,7 +447,7 @@ const mediumZoom = (selector, options = {}) => {
         const getZoomTargetSize = setInterval(() => {
           if (__TEST__ ? true : active.zoomedHd.naturalWidth) {
             clearInterval(getZoomTargetSize)
-            active.zoomedHd.classList.add('medium-zoom-image--open')
+            active.zoomedHd.classList.add('medium-zoom-image--opened')
             active.zoomedHd.addEventListener('click', close)
             document.body.appendChild(active.zoomedHd)
             _animate()
@@ -469,7 +469,7 @@ const mediumZoom = (selector, options = {}) => {
           'load',
           () => {
             active.zoomedHd.removeEventListener('load', loadEventListener)
-            active.zoomedHd.classList.add('medium-zoom-image--open')
+            active.zoomedHd.classList.add('medium-zoom-image--opened')
             active.zoomedHd.addEventListener('click', close)
             document.body.appendChild(active.zoomedHd)
             _animate()
@@ -495,13 +495,13 @@ const mediumZoom = (selector, options = {}) => {
       }
 
       const _handleCloseEnd = () => {
-        active.original.style.visibility = ''
+        active.original.classList.remove('medium-zoom-image--hidden')
         document.body.removeChild(active.zoomed)
         if (active.zoomedHd) {
           document.body.removeChild(active.zoomedHd)
         }
         document.body.removeChild(overlay)
-        active.zoomed.classList.remove('medium-zoom-image--open')
+        active.zoomed.classList.remove('medium-zoom-image--opened')
         if (active.template) {
           document.body.removeChild(active.template)
         }
@@ -524,7 +524,7 @@ const mediumZoom = (selector, options = {}) => {
       }
 
       isAnimating = true
-      document.body.classList.remove('medium-zoom--open')
+      document.body.classList.remove('medium-zoom--opened')
       active.zoomed.style.transform = ''
 
       if (active.zoomedHd) {

@@ -9,7 +9,7 @@
   will-change: opacity;
 }
 
-.medium-zoom--open .medium-zoom-overlay {
+.medium-zoom--opened .medium-zoom-overlay {
   cursor: pointer;
   cursor: zoom-out;
   opacity: 1;
@@ -21,7 +21,11 @@
   transition: transform 300ms;
 }
 
-.medium-zoom-image--open {
+.medium-zoom-image--hidden {
+  visibility: hidden;
+}
+
+.medium-zoom-image--opened {
   position: relative;
   cursor: pointer;
   cursor: zoom-out;
