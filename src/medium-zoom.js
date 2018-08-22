@@ -539,6 +539,12 @@ const mediumZoom = (selector, options = {}) => {
       )
 
       active.zoomed.addEventListener('transitionend', _handleCloseEnd)
+
+      if (__TEST__) {
+        // The event `transitionend` is not triggered in test environment.
+        // Calling this function manually makes testing the close() function possible.
+        _handleCloseEnd()
+      }
     })
   }
 
