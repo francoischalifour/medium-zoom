@@ -758,7 +758,7 @@ describe('getZoomedTarget()', () => {
   })
 })
 
-describe.skip('open()', () => {
+describe('open()', () => {
   const root = emptyRootBeforeEach()
 
   test('is defined and returns a Promise', () => {
@@ -817,7 +817,7 @@ describe.skip('open()', () => {
   })
 
   test('open() renders correctly', async () => {
-    expect.assertions(4)
+    expect.assertions(5)
 
     const image1 = document.createElement('img')
     const image2 = document.createElement('img')
@@ -831,11 +831,12 @@ describe.skip('open()', () => {
     expect(image1.className).toBe('medium-zoom-image')
     expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom--open')).toBeTruthy()
     expect(root).toMatchSnapshot()
   })
 
   test('open() twice does not zoom twice', async () => {
-    expect.assertions(4)
+    expect.assertions(5)
 
     const image = document.createElement('img')
     root.appendChild(image)
@@ -849,11 +850,12 @@ describe.skip('open()', () => {
     expect(image.className).toBe('medium-zoom-image')
     expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom--open')).toBeTruthy()
     expect(root).toMatchSnapshot()
   })
 
   test('open() with `data-zoom-target` renders correctly', async () => {
-    expect.assertions(4)
+    expect.assertions(5)
 
     const image = document.createElement('img')
     image.src = 'image.jpg'
@@ -871,11 +873,12 @@ describe.skip('open()', () => {
     expect(image.className).toBe('medium-zoom-image')
     expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom--open')).toBeTruthy()
     expect(root).toMatchSnapshot()
   })
 
   test('open() with `srcset` renders correctly', async () => {
-    expect.assertions(4)
+    expect.assertions(5)
 
     const image = document.createElement('img')
     image.src = 'image.jpg'
@@ -888,6 +891,7 @@ describe.skip('open()', () => {
     expect(image.className).toBe('medium-zoom-image')
     expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom--open')).toBeTruthy()
     expect(root).toMatchSnapshot()
   })
 
@@ -977,7 +981,7 @@ describe.skip('open()', () => {
   })
 })
 
-describe.skip('close()', () => {
+describe('close()', () => {
   const root = emptyRootBeforeEach()
 
   test('is defined and returns a Promise', () => {
@@ -988,23 +992,26 @@ describe.skip('close()', () => {
   })
 
   test('mediumZoom(Node).close() renders correctly', async () => {
-    expect.assertions(4)
+    expect.assertions(5)
 
     const image = document.createElement('img')
     root.appendChild(image)
 
     const zoom = mediumZoom(image)
-    await zoom.close()
+
+    await zoom.open()
     jest.runAllTimers()
+    await zoom.close()
 
     expect(image.className).toBe('medium-zoom-image')
     expect(document.querySelector('.medium-zoom-image--open')).toBeFalsy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeFalsy()
+    expect(document.querySelector('.medium-zoom--open')).toBeFalsy()
     expect(root).toMatchSnapshot()
   })
 
   test('mediumZoom(String).close() renders correctly', async () => {
-    expect.assertions(5)
+    expect.assertions(6)
 
     const image1 = document.createElement('img')
     const image2 = document.createElement('img')
@@ -1012,36 +1019,41 @@ describe.skip('close()', () => {
     root.appendChild(image2)
 
     const zoom = mediumZoom('img')
-    await zoom.close()
+
+    await zoom.open()
     jest.runAllTimers()
+    await zoom.close()
 
     expect(image1.className).toBe('medium-zoom-image')
     expect(image2.className).toBe('medium-zoom-image')
     expect(document.querySelector('.medium-zoom-image--open')).toBeFalsy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeFalsy()
+    expect(document.querySelector('.medium-zoom--open')).toBeFalsy()
     expect(root).toMatchSnapshot()
   })
 
   test('close() twice does not throw and renders correctly', async () => {
-    expect.assertions(4)
+    expect.assertions(5)
 
     const image = document.createElement('img')
     root.appendChild(image)
 
     const zoom = mediumZoom('img')
-    const closedZoom = await zoom.close()
+
+    await zoom.open()
     jest.runAllTimers()
-    await closedZoom.close()
-    jest.runAllTimers()
+    await zoom.close()
+    await zoom.close()
 
     expect(image.className).toBe('medium-zoom-image')
     expect(document.querySelector('.medium-zoom-image--open')).toBeFalsy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeFalsy()
+    expect(document.querySelector('.medium-zoom--open')).toBeFalsy()
     expect(root).toMatchSnapshot()
   })
 })
 
-describe.skip('toggle()', () => {
+describe('toggle()', () => {
   const root = emptyRootBeforeEach()
 
   test('is defined and returns a Promise', () => {
@@ -1052,7 +1064,7 @@ describe.skip('toggle()', () => {
   })
 
   test('toggle() once renders correctly', async () => {
-    expect.assertions(4)
+    expect.assertions(5)
 
     const image = document.createElement('img')
     root.appendChild(image)
@@ -1065,11 +1077,12 @@ describe.skip('toggle()', () => {
     expect(image.className).toBe('medium-zoom-image')
     expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom--open')).toBeTruthy()
     expect(root).toMatchSnapshot()
   })
 
-  test.skip('toggle() twice renders correctly', async () => {
-    expect.assertions(8)
+  test('toggle() twice renders correctly', async () => {
+    expect.assertions(10)
 
     const image = document.createElement('img')
     root.appendChild(image)
@@ -1082,6 +1095,7 @@ describe.skip('toggle()', () => {
     expect(image.className).toBe('medium-zoom-image')
     expect(document.querySelector('.medium-zoom-image--open')).toBeTruthy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom--open')).toBeTruthy()
     expect(root).toMatchSnapshot('opened')
 
     await zoom.toggle()
@@ -1090,6 +1104,7 @@ describe.skip('toggle()', () => {
     expect(image.className).toBe('medium-zoom-image')
     expect(document.querySelector('.medium-zoom-image--open')).toBeFalsy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeFalsy()
+    expect(document.querySelector('.medium-zoom--open')).toBeFalsy()
     expect(root).toMatchSnapshot('closed')
   })
 })
