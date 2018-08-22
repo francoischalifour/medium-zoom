@@ -119,7 +119,7 @@ storiesOf('options', module)
       <style>
         #zoom-container {
           position: absolute;
-          top: 300px;
+          top: 0;
           right: 0;
           height: 300px;
           width: 500px;
@@ -155,8 +155,7 @@ storiesOf('options', module)
           container: {
             width: 500,
             height: 300,
-            top: 300,
-            right: 0,
+            top: 0,
           }
         });
       </script>
