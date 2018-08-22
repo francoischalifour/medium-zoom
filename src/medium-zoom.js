@@ -100,6 +100,11 @@ const createCustomEvent = (type, params) => {
 }
 
 /**
+ * Ensure the compatibility with IE11 if no Promise polyfill are used.
+ */
+const Promise = window.Promise || function Promise() {}
+
+/**
  * Attaches a zoom effect on a selection of images.
  *
  * @param {(string|Element[])} selector The selector to target the images to attach the zoom to
