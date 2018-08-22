@@ -595,8 +595,8 @@ const mediumZoom = (selector, options = {}) => {
   const overlay = createOverlay(zoomOptions.background)
 
   document.addEventListener('click', _handleClick)
-  document.addEventListener('scroll', _handleScroll)
   document.addEventListener('keyup', _handleKeyUp)
+  window.addEventListener('scroll', _handleScroll)
   window.addEventListener('resize', close)
 
   const zoom = {
