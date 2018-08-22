@@ -23,6 +23,7 @@
     "test:cypress:open": "cypress open",
     "test:cypress:update": "cypress run --env updateSnapshots=true",
     "test:cypress": "npm-run-all --parallel --race storybook test:cypress:run",
+    "test:cypress:record": "npm-run-all --parallel --race storybook 'test:cypress:run -- --record --key {1}' --",
     "test:size": "bundlesize",
     "clean": "rimraf ./dist",
     "build:storybook": "build-storybook -o ./website/dist/storybook -c ./stories/config -s ./dist,./stories/images",
