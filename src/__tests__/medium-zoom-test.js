@@ -1383,7 +1383,7 @@ describe('off()', () => {
 describe('browser events', () => {
   const root = emptyRootBeforeEach()
 
-  test('click on image', () => {
+  test('opens zoom on click on the image', () => {
     const image = document.createElement('img')
     root.appendChild(image)
 
@@ -1399,7 +1399,7 @@ describe('browser events', () => {
     expect(root).toMatchSnapshot()
   })
 
-  test('click on overlay', () => {
+  test('closes zoom on click on the overlay', () => {
     const image = document.createElement('img')
     root.appendChild(image)
 
