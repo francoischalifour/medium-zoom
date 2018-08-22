@@ -18,6 +18,6 @@ script:
 env:
   matrix:
   - SCRIPT="yarn run lint"
-  - SCRIPT="yarn run test"
+  - SCRIPT="yarn run test --coverage"
   - SCRIPT="yarn run test:cypress"
   - SCRIPT="yarn run test:size"
