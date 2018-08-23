@@ -114,7 +114,7 @@ const Promise = window.Promise || function Promise() {}
  * @return The zoom object
  */
 const mediumZoom = (selector, options = {}) => {
-  function _handleClick(event) {
+  const _handleClick = event => {
     event.preventDefault()
 
     const { target } = event
@@ -131,7 +131,7 @@ const mediumZoom = (selector, options = {}) => {
     toggle({ target })
   }
 
-  function _handleScroll() {
+  const _handleScroll = () => {
     if (isAnimating || !active.original) {
       return
     }
@@ -147,14 +147,14 @@ const mediumZoom = (selector, options = {}) => {
     }
   }
 
-  function _handleKeyUp(event) {
+  const _handleKeyUp = event => {
     // Close if escape key is pressed
     if ((event.keyCode || event.which) === 27) {
       close()
     }
   }
 
-  function update(options = {}) {
+  const update = (options = {}) => {
     const newOptions = options
 
     if (options.background) {
@@ -189,11 +189,9 @@ const mediumZoom = (selector, options = {}) => {
     return zoom
   }
 
-  function extend(options = {}) {
-    return mediumZoom({ ...zoomOptions, ...options })
-  }
+  const extend = (options = {}) => mediumZoom({ ...zoomOptions, ...options })
 
-  function attach(...selectors) {
+  const attach = (...selectors) => {
     const newImages = selectors.reduce(
       (imagesAccumulator, currentSelector) => [
         ...imagesAccumulator,
@@ -212,7 +210,7 @@ const mediumZoom = (selector, options = {}) => {
     return zoom
   }
 
-  function detach(...selectors) {
+  const detach = (...selectors) => {
     if (active.zoomed) {
       close()
     }
@@ -242,7 +240,7 @@ const mediumZoom = (selector, options = {}) => {
     return zoom
   }
 
-  function on(type, listener, options = {}) {
+  const on = (type, listener, options = {}) => {
     images.forEach(image => {
       image.addEventListener(`medium-zoom:${type}`, listener, options)
     })
@@ -250,7 +248,7 @@ const mediumZoom = (selector, options = {}) => {
     return zoom
   }
 
-  function off(type, listener, options = {}) {
+  const off = (type, listener, options = {}) => {
     images.forEach(image => {
       image.removeEventListener(`medium-zoom:${type}`, listener, options)
     })
@@ -258,7 +256,7 @@ const mediumZoom = (selector, options = {}) => {
     return zoom
   }
 
-  function open({ target } = {}) {
+  const open = ({ target } = {}) => {
     const _animate = () => {
       if (!active.original) {
         return
@@ -478,14 +476,14 @@ const mediumZoom = (selector, options = {}) => {
 
       if (__TEST__) {
         // The event `transitionend` is not triggered in test environment.
-        // Calling this function manually makes testing the open() function possible.
+        // Calling = this const manually makes testing the open() const possible=> .
         _handleOpenEnd()
       }
     })
   }
 
-  function close() {
-    return new Promise(resolve => {
+  const close = () =>
+    new Promise(resolve => {
       if (isAnimating || !active.original) {
         resolve(zoom)
         return
@@ -548,9 +546,8 @@ const mediumZoom = (selector, options = {}) => {
         _handleCloseEnd()
       }
     })
-  }
 
-  function toggle({ target } = {}) {
+  const toggle = ({ target } = {}) => {
     if (active.original) {
       return close()
     }
