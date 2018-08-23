@@ -16,6 +16,7 @@
     "dev": "cross-env NODE_ENV=build rollup --config --watch",
     "prebuild": "yarn run clean",
     "build": "cross-env NODE_ENV=build rollup --config",
+    "prepublishOnly": "npm run build",
     "lint": "eslint .",
     "format": "prettier --write *.{js,json,css,md} && yarn run lint --fix",
     "test": "jest",
