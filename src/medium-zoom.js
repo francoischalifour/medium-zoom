@@ -1,10 +1,7 @@
 const isSupported = node => node.tagName === 'IMG'
 
-/* eslint-disable no-prototype-builtins */
-const isListOrCollection = selector =>
-  NodeList.prototype.isPrototypeOf(selector) ||
-  HTMLCollection.prototype.isPrototypeOf(selector)
-/* eslint-enable no-prototype-builtins */
+/* eslint-disable-next-line no-prototype-builtins */
+const isNodeList = selector => NodeList.prototype.isPrototypeOf(selector)
 
 const isNode = selector => selector && selector.nodeType === 1
 
@@ -19,8 +16,8 @@ const getImagesFromSelector = selector => {
       return selector.filter(isSupported)
     }
 
-    if (isListOrCollection(selector)) {
-      return Array.apply(null, selector).filter(isSupported)
+    if (isNodeList(selector)) {
+      return Array.prototype.slice.call(selector).filter(isSupported)
     }
 
     if (isNode(selector)) {
@@ -28,16 +25,16 @@ const getImagesFromSelector = selector => {
     }
 
     if (typeof selector === 'string') {
-      return Array.apply(null, document.querySelectorAll(selector)).filter(
-        isSupported
-      )
+      return Array.prototype.slice
+        .call(document.querySelectorAll(selector))
+        .filter(isSupported)
     }
 
     return []
   } catch (err) {
     throw new TypeError(
       'The provided selector is invalid.\n' +
-        'Expects a CSS selector, a Node element, a NodeList, an HTMLCollection or an array.\n' +
+        'Expects a CSS selector, a Node element, a NodeList or an array.\n' +
         'See: https://github.com/francoischalifour/medium-zoom'
     )
   }
@@ -579,12 +576,7 @@ const mediumZoom = (selector, options = {}) => {
   let zoomOptions = options
 
   // If the selector is omitted, it's replaced by the options
-  if (
-    selector instanceof Object &&
-    !Array.isArray(selector) &&
-    !isNode(selector) &&
-    !isListOrCollection(selector)
-  ) {
+  if (Object.prototype.toString.call(selector) === '[object Object]') {
     zoomOptions = selector
   } else if (
     selector ||

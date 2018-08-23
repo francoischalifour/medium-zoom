@@ -2,7 +2,7 @@
 
 exports[`attach() attach("") throws error 1`] = `
 "The provided selector is invalid.
-Expects a CSS selector, a Node element, a NodeList, an HTMLCollection or an array.
+Expects a CSS selector, a Node element, a NodeList or an array.
 See: https://github.com/francoischalifour/medium-zoom"
 `;
 
@@ -131,7 +131,7 @@ exports[`detach() detach() an opened zoom closes the zoom and detaches images 1`
 
 exports[`mediumZoom() mediumZoom(selector) selector mediumZoom("") throws 1`] = `
 "The provided selector is invalid.
-Expects a CSS selector, a Node element, a NodeList, an HTMLCollection or an array.
+Expects a CSS selector, a Node element, a NodeList or an array.
 See: https://github.com/francoischalifour/medium-zoom"
 `;
 

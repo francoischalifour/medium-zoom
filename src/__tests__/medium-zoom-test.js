@@ -85,7 +85,7 @@ describe('mediumZoom()', () => {
         expect(zoom.getImages()).toEqual([image1, image2])
       })
 
-      test('mediumZoom(HTMLCollection) attaches images', () => {
+      test('mediumZoom(HTMLCollection) does not attach images', () => {
         const image1 = document.createElement('img')
         const image2 = document.createElement('img')
         root.appendChild(image1)
@@ -93,7 +93,7 @@ describe('mediumZoom()', () => {
 
         const zoom = mediumZoom(document.images)
 
-        expect(zoom.getImages()).toEqual([image1, image2])
+        expect(zoom.getImages()).toEqual([])
       })
 
       test('mediumZoom(Array) attaches images', () => {
@@ -344,7 +344,7 @@ describe('attach()', () => {
     expect(zoom.getImages()).toEqual([image1, image2])
   })
 
-  test('attach(HTMLCollection) attaches images', () => {
+  test('attach(HTMLCollection) does not attach images', () => {
     const image1 = document.createElement('img')
     const image2 = document.createElement('img')
     root.appendChild(image1)
@@ -353,7 +353,7 @@ describe('attach()', () => {
     const zoom = mediumZoom()
     zoom.attach(document.images)
 
-    expect(zoom.getImages()).toEqual([image1, image2])
+    expect(zoom.getImages()).toEqual([])
   })
 
   test('attach(Array) attaches images', () => {
@@ -449,7 +449,7 @@ describe('detach()', () => {
     expect(image2.classList).toHaveLength(0)
   })
 
-  test('detach(HTMLCollection) detaches images', () => {
+  test('detach(HTMLCollection) does not detach images', () => {
     const image1 = document.createElement('img')
     const image2 = document.createElement('img')
     root.appendChild(image1)
@@ -458,9 +458,7 @@ describe('detach()', () => {
     const zoom = mediumZoom('img')
     zoom.detach(document.images)
 
-    expect(zoom.getImages()).toEqual([])
-    expect(image1.classList).toHaveLength(0)
-    expect(image2.classList).toHaveLength(0)
+    expect(zoom.getImages()).toEqual([image1, image2])
   })
 
   test('detach() an opened zoom closes the zoom and detaches images', async () => {
