@@ -6,42 +6,12 @@ Expects a CSS selector, a Node element, a NodeList or an array.
 See: https://github.com/francoischalifour/medium-zoom"
 `;
 
-exports[`browser events closes on escape 1`] = `
-<body
-  class=""
->
-  <img
-    class="medium-zoom-image"
-    style=""
-  />
-</body>
-`;
-
 exports[`browser events closes zoom on click on the overlay 1`] = `
 <body
   class=""
 >
   <img
     class="medium-zoom-image"
-  />
-</body>
-`;
-
-exports[`browser events does not close on other keys 1`] = `
-<body
-  class="medium-zoom--opened"
->
-  <img
-    class="medium-zoom-image"
-    style="visibility: hidden;"
-  />
-  <div
-    class="medium-zoom-overlay"
-    style="background-color: rgb(255, 255, 255);"
-  />
-  <img
-    class="medium-zoom-image medium-zoom-image--opened"
-    style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
   />
 </body>
 `;
