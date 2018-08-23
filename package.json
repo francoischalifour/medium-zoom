@@ -11,11 +11,13 @@
   },
   "main": "dist/medium-zoom.min.js",
   "module": "dist/medium-zoom.es.js",
+  "types": "dist/medium-zoom.d.ts",
   "scripts": {
     "start": "yarn run dev",
     "dev": "cross-env NODE_ENV=build rollup --config --watch",
     "prebuild": "yarn run clean",
     "build": "cross-env NODE_ENV=build rollup --config",
+    "postbuild": "cp ./src/medium-zoom.d.ts ./dist",
     "prepublishOnly": "npm run build",
     "lint": "eslint .",
     "format": "prettier --write *.{js,json,css,md} && yarn run lint --fix",
