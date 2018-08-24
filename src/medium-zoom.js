@@ -17,7 +17,7 @@ const getImagesFromSelector = selector => {
     }
 
     if (isNodeList(selector)) {
-      return Array.prototype.slice.call(selector).filter(isSupported)
+      return [].slice.call(selector).filter(isSupported)
     }
 
     if (isNode(selector)) {
@@ -25,7 +25,7 @@ const getImagesFromSelector = selector => {
     }
 
     if (typeof selector === 'string') {
-      return Array.prototype.slice
+      return [].slice
         .call(document.querySelectorAll(selector))
         .filter(isSupported)
     }
