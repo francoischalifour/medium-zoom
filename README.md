@@ -540,6 +540,17 @@ You can see [more examples](examples/) including [React](examples/react) and [Vu
 
 <sup>\*</sup> _These browsers require a [`template` polyfill](https://github.com/webcomponents/template) when using [custom templates](#using-a-custom-template)_.
 
+<blockquote>
+  <p align="center">
+    Cross-browser testing is sponsored by
+  </p>
+  <p align="center">
+    <a href="https://www.browserstack.com">
+      <img src="https://user-images.githubusercontent.com/6137112/44587083-35987000-a7b2-11e8-8e0d-8ba15de83802.png" alt="BrowserStack" height="35">
+    </a>
+  </p>
+</blockquote>
+
 ## Contributing
 
 - Run `yarn` to install Node dev dependencies
