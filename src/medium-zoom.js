@@ -99,7 +99,12 @@ const createCustomEvent = (type, params) => {
 /**
  * Ensure the compatibility with IE11 if no Promise polyfill are used.
  */
-const Promise = window.Promise || function Promise() {}
+const Promise =
+  window.Promise ||
+  function Promise(fn) {
+    function noop() {}
+    fn(noop, noop)
+  }
 
 /**
  * Attaches a zoom effect on a selection of images.
