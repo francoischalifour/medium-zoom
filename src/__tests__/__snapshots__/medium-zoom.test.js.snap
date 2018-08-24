@@ -44,13 +44,13 @@ exports[`close() close() twice does not throw and renders correctly 1`] = `
 </body>
 `;
 
-exports[`close() close() with \`data-zoom-target\` renders correctly 1`] = `
+exports[`close() close() with \`data-zoom-src\` renders correctly 1`] = `
 <body
   class=""
 >
   <img
     class="medium-zoom-image"
-    data-zoom-target="image-hd.jpg"
+    data-zoom-src="image-hd.jpg"
   />
 </body>
 `;
@@ -278,13 +278,13 @@ exports[`open() open() twice does not zoom twice 1`] = `
 </body>
 `;
 
-exports[`open() open() with \`data-zoom-target\` renders correctly 1`] = `
+exports[`open() open() with \`data-zoom-src\` renders correctly 1`] = `
 <body
   class="medium-zoom--opened"
 >
   <img
     class="medium-zoom-image medium-zoom-image--hidden"
-    data-zoom-target="image-hd.jpg"
+    data-zoom-src="image-hd.jpg"
     src="image.jpg"
   />
   <div
@@ -293,13 +293,13 @@ exports[`open() open() with \`data-zoom-target\` renders correctly 1`] = `
   />
   <img
     class="medium-zoom-image medium-zoom-image--opened"
-    data-zoom-target="image-hd.jpg"
+    data-zoom-src="image-hd.jpg"
     src="image.jpg"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
   />
   <img
     class="medium-zoom-image medium-zoom-image--opened"
-    data-zoom-target="image-hd.jpg"
+    data-zoom-src="image-hd.jpg"
     src="image-hd.jpg"
     style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
   />

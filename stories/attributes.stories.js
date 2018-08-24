@@ -2,11 +2,11 @@ import { storiesOf } from '@storybook/html'
 
 storiesOf('attributes', module)
   .add(
-    'data-zoom-target',
+    'data-zoom-src',
     () => `
       <img
         src="image-1.thumbnail.jpg"
-        data-zoom-target="image-1.jpg"
+        data-zoom-src="image-1.jpg"
       >
 
       <script>
@@ -15,7 +15,7 @@ storiesOf('attributes', module)
   `,
     {
       notes: {
-        markdown: `Zoom on an image having a \`data-zoom-target\` attribute.`,
+        markdown: `Zoom on an image having a \`data-zoom-src\` attribute.`,
       },
     }
   )
@@ -45,7 +45,7 @@ Zoom on an image having \`srcset\` attributes.
     }
   )
   .add(
-    'srcset and data-zoom-target',
+    'srcset and data-zoom-src',
     () => `
     <img
       src="image-1x300.jpg"
@@ -54,7 +54,7 @@ Zoom on an image having \`srcset\` attributes.
         image-1x600.jpg 600w,
       "
       sizes="(max-width: 400px) 100vw, 400px"
-      data-zoom-target="image-1.jpg"
+      data-zoom-src="image-1.jpg"
     >
 
     <script>
@@ -62,7 +62,7 @@ Zoom on an image having \`srcset\` attributes.
     </script>
 `,
     {
-      notes: `Zoom with srcset and data-zoom-target defined (zoom-target wins).`,
+      notes: `Zoom with srcset and data-zoom-src defined (zoom-target wins).`,
     }
   )
   .add(

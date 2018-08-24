@@ -883,12 +883,12 @@ describe('open()', () => {
     expect(root).toMatchSnapshot()
   })
 
-  test('open() with `data-zoom-target` renders correctly', async () => {
+  test('open() with `data-zoom-src` renders correctly', async () => {
     expect.assertions(5)
 
     const image = document.createElement('img')
     image.src = 'image.jpg'
-    image.dataset.zoomTarget = 'image-hd.jpg'
+    image.dataset.zoomSrc = 'image-hd.jpg'
 
     const zoomedImage = document.createElement('img')
     zoomedImage.src = 'image-hd.jpg'
@@ -1067,11 +1067,11 @@ describe('close()', () => {
     expect(root).toMatchSnapshot()
   })
 
-  test('close() with `data-zoom-target` renders correctly', async () => {
+  test('close() with `data-zoom-src` renders correctly', async () => {
     expect.assertions(5)
 
     const image = document.createElement('img')
-    image.dataset.zoomTarget = 'image-hd.jpg'
+    image.dataset.zoomSrc = 'image-hd.jpg'
     root.appendChild(image)
 
     const zoom = mediumZoom(image)

@@ -424,14 +424,14 @@ const mediumZoom = (selector, options = {}) => {
       active.zoomed.addEventListener('click', close)
       active.zoomed.addEventListener('transitionend', _handleOpenEnd)
 
-      if (active.original.getAttribute('data-zoom-target')) {
+      if (active.original.getAttribute('data-zoom-src')) {
         active.zoomedHd = active.zoomed.cloneNode()
 
         // Reset the `scrset` property or the HD image won't load.
         active.zoomedHd.removeAttribute('srcset')
         active.zoomedHd.removeAttribute('sizes')
 
-        active.zoomedHd.src = active.zoomed.getAttribute('data-zoom-target')
+        active.zoomedHd.src = active.zoomed.getAttribute('data-zoom-src')
 
         active.zoomedHd.onerror = () => {
           clearInterval(getZoomTargetSize)
@@ -455,7 +455,7 @@ const mediumZoom = (selector, options = {}) => {
         }, 10)
       } else if (active.original.hasAttribute('srcset')) {
         // If an image has a `srcset` attribuet, we don't know the dimensions of the
-        // zoomed (HD) image (like when `data-zoom-target` is specified).
+        // zoomed (HD) image (like when `data-zoom-src` is specified).
         // Therefore the approach is quite similar.
         active.zoomedHd = active.zoomed.cloneNode()
 

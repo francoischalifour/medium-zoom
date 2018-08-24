@@ -419,14 +419,14 @@ zoom.getZoomedTarget() // → HTML Element
 
 ### Attributes
 
-#### `data-zoom-target`
+#### `data-zoom-src`
 
 Specifies the high definition image to show on zoom. This image loads the first time the user clicks on the source image.
 
 ```html
 <img
-  src="image-thumb.jpg"
-  data-zoom-target="image-hd.jpg"
+  src="image-thumbnail.jpg"
+  data-zoom-src="image-hd.jpg"
   alt="My image"
 >
 ```
