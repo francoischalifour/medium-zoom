@@ -445,7 +445,7 @@ const mediumZoom = (selector, options = {}) => {
         // We need to access the natural size of the full HD
         // target as fast as possible to compute the animation.
         const getZoomTargetSize = setInterval(() => {
-          if (__TEST__ ? true : active.zoomedHd.naturalWidth) {
+          if (__TEST__ ? true : active.zoomedHd.complete) {
             clearInterval(getZoomTargetSize)
             active.zoomedHd.classList.add('medium-zoom-image--opened')
             active.zoomedHd.addEventListener('click', close)
