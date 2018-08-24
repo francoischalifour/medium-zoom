@@ -81,6 +81,7 @@ a {
   content: '';
   position: absolute;
   top: calc(100% - 16px);
+  left: 0;
   width: 100%;
   background-color: rgba(255, 255, 255, 0.3);
   height: 92px;
