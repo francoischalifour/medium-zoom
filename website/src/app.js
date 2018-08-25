@@ -7,11 +7,10 @@ const zoomScrollOffset = mediumZoom('#zoom-scrollOffset', {
   scrollOffset: 0,
   background: 'rgba(25, 18, 25, .9)',
 })
-const zoomNoMetaClick = mediumZoom('#zoom-noMetaClick', { metaClick: false })
 
 // Trigger the zoom when the button is clicked
 const zoomToTrigger = mediumZoom('#zoom-trigger')
-const button = document.querySelector('#btn-trigger')
+const button = document.querySelector('#button-trigger')
 button.addEventListener('click', () => zoomToTrigger.show())
 
 // Detach the zoom after having been zoomed once
@@ -24,7 +23,6 @@ const observedZooms = [
   zoomMargin,
   zoomBackground,
   zoomScrollOffset,
-  zoomNoMetaClick,
   zoomToTrigger,
   zoomToDetach,
 ]
@@ -35,13 +33,15 @@ const history = document.querySelector('#history')
 observedZooms.forEach(zoom => {
   zoom.addEventListeners('show', event => {
     const time = new Date().toLocaleTimeString()
-    history.innerHTML += `<p>▶ "${event.target.alt}" was zoomed at ${time}</p>`
+    history.innerHTML += `<li>Image "<em>${
+      event.target.alt
+    }</em>" was zoomed at ${time}</li>`
   })
 
   zoom.addEventListeners('detach', event => {
     const time = new Date().toLocaleTimeString()
-    history.innerHTML += `<p>▶ "${
+    history.innerHTML += `<li>Image <em>"${
       event.target.alt
-    }" was detached at ${time}</p>`
+    }"</em> was detached at ${time}</li>`
   })
 })
