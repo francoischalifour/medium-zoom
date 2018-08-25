@@ -113,7 +113,7 @@ const Promise =
  * @param {object} options The options of the zoom
  * @param {number} [options.margin=0] The space outside the zoomed image
  * @param {string} [options.background="#fff"] The color of the overlay
- * @param {number} [options.scrollOffset=48] The number of pixels to scroll to close the zoom
+ * @param {number} [options.scrollOffset=40] The number of pixels to scroll to close the zoom
  * @param {(string|Element|object)} [options.container=null] The element to render the zoom in or a viewport object
  * @param {(string|Element)} [options.template=null] The template element to show on zoom
  * @return The zoom object
@@ -591,7 +591,7 @@ const mediumZoom = (selector, options = {}) => {
   zoomOptions = {
     margin: 0,
     background: '#fff',
-    scrollOffset: 48,
+    scrollOffset: 40,
     container: null,
     template: null,
     ...zoomOptions,

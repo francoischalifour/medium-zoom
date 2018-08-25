@@ -118,7 +118,7 @@ describe('mediumZoom()', () => {
         expect(zoom.getOptions()).toEqual({
           margin: 0,
           background: '#fff',
-          scrollOffset: 48,
+          scrollOffset: 40,
           container: null,
           template: null,
         })
@@ -139,7 +139,7 @@ describe('mediumZoom()', () => {
       expect(zoom.getOptions()).toEqual({
         margin: 0,
         background: '#fff',
-        scrollOffset: 48,
+        scrollOffset: 40,
         container: null,
         template: null,
       })
@@ -155,7 +155,7 @@ describe('mediumZoom()', () => {
       expect(zoom.getOptions()).toEqual({
         margin: 0,
         background: '#fff',
-        scrollOffset: 48,
+        scrollOffset: 40,
         container: null,
         template: null,
       })
@@ -199,7 +199,7 @@ describe('mediumZoom()', () => {
         expect(zoom.getOptions()).toEqual({
           margin: 0,
           background: '#BADA55',
-          scrollOffset: 48,
+          scrollOffset: 40,
           container: null,
           template: null,
         })
@@ -217,7 +217,7 @@ describe('mediumZoom()', () => {
         expect(zoom.getOptions()).toEqual({
           margin: 0,
           background: '#fff',
-          scrollOffset: 48,
+          scrollOffset: 40,
           container: null,
           template: null,
         })
@@ -696,7 +696,7 @@ describe('getOptions()', () => {
     expect(zoom.getOptions()).toEqual({
       background: '#fff',
       margin: 0,
-      scrollOffset: 48,
+      scrollOffset: 40,
       container: null,
       template: null,
     })
@@ -708,7 +708,7 @@ describe('getOptions()', () => {
     expect(zoom.getOptions()).toEqual({
       background: '#000',
       margin: 0,
-      scrollOffset: 48,
+      scrollOffset: 40,
       container: null,
       template: null,
     })

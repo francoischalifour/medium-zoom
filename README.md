@@ -171,7 +171,7 @@ The options are defined as an object with the following properties:
 | -------------- | ----------------------------- | -------- | ------------------------------------------------------------------------------------------------ |
 | `margin`       | `number`                      | `0`      | The space outside the zoomed image                                                               |
 | `background`   | `string`                      | `"#fff"` | The color of the overlay                                                                         |
-| `scrollOffset` | `number`                      | `48`     | The number of pixels to scroll to close the zoom                                                 |
+| `scrollOffset` | `number`                      | `40`     | The number of pixels to scroll to close the zoom                                                 |
 | `container`    | `string`\|`Element`\|`object` | `null`   | The element to render the zoom in or a viewport object. [Read more →](#using-a-custom-container) |
 | `template`     | `string`\|`Element`           | `null`   | The template element to show on zoom. [Read more →](#using-a-custom-template)                    |
 
