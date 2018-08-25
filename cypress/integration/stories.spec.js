@@ -56,6 +56,8 @@ storybook.forEach(category => {
               index + 1,
             ].join('-')}`,
             {
+              failureThreshold: 0.25, // threshold for entire image to accept scrollbars depending on the OS (especially for Travis)
+              failureThresholdType: 'percent',
               customDiffConfig: {
                 threshold: 0.1,
               },
