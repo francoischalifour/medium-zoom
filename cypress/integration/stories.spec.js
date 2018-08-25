@@ -5,9 +5,9 @@ const storybook = [
   {
     kind: 'attributes',
     stories: [
-      { name: 'data-zoom-target' },
+      { name: 'data-zoom-src' },
       { name: 'srcset' },
-      { name: 'srcset and data-zoom-target' },
+      { name: 'srcset and data-zoom-src' },
       { name: 'SVG' },
     ],
   },
