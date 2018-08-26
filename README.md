@@ -18,11 +18,11 @@
   <a href="https://unpkg.com/medium-zoom/dist/">
     <img src="http://img.badgesize.io/https://unpkg.com/medium-zoom/dist/medium-zoom.min.js?compression=gzip&label=gzip%20size&style=flat-square" alt="gzip size">
   </a>
-  <a href="https://travis-ci.org/francoischalifour/medium-zoom">
-    <img src="https://img.shields.io/travis/francoischalifour/medium-zoom.svg?style=flat-square" alt="travis">
-  </a>
   <a href="https://github.com/francoischalifour/medium-zoom/blob/master/package.json">
     <img src="https://img.shields.io/badge/dependencies-none-lightgrey.svg?style=flat-square" alt="no dependencies">
+  </a>
+  <a href="https://travis-ci.org/francoischalifour/medium-zoom">
+    <img src="https://img.shields.io/travis/francoischalifour/medium-zoom.svg?style=flat-square" alt="travis">
   </a>
 </p>
 
@@ -56,8 +56,6 @@ npx doctoc README.md --maxlevel 3
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
-  - [Import the library](#import-the-library)
-  - [Use the library](#use-the-library)
 - [API](#api)
   - [Selectors](#selectors)
   - [Options](#options)
@@ -83,11 +81,11 @@ npx doctoc README.md --maxlevel 3
 - 🎂 **Event handling** — _trigger events when the zoom enters a new state_
 - 📦 **Customization** — _set your own margin, background and scroll offset_
 - 🔧 **Pluggable** — _add your own features to the zoom_
-- 💎 **Custom templates** — _extend the default look to match your app UI_
+- 💎 **Custom templates** — _extend the default look to match the UI of your app_
 
 ## Installation
 
-This module is available on the [npm](https://www.npmjs.com) registry, with no dependencies.
+The module is available on the [npm](https://www.npmjs.com) registry.
 
 ```sh
 npm install medium-zoom
@@ -109,15 +107,13 @@ yarn add medium-zoom
 
 > [Try it out in the browser](https://codesandbox.io/s/github/francoischalifour/medium-zoom/tree/master/website)
 
-### Import the library
-
-Using imports:
+Import the library as a module:
 
 ```js
 import mediumZoom from 'medium-zoom'
 ```
 
-Using script tags:
+Or import the library with a script tag:
 
 ```html
 <script src="node_modules/medium-zoom/dist/medium-zoom.min.js"></script>
@@ -125,19 +121,19 @@ Using script tags:
 
 That's it! You don't need to import any CSS styles.
 
-### Use the library
-
 ```js
-mediumZoom(selector?, options?)
+mediumZoom('[data-zoom]')
 ```
-
-The [selector](#selectors) allows attaching the zoom to selected images. The [options](#options) enable the customization of the zoom.
 
 ## API
 
+```
+mediumZoom(selector?: string|Element|NodeList|Array, options?: object) => Zoom
+```
+
 ### Selectors
 
-The selector can be of the following types:
+The selector allows attaching images to the zoom. It can be of the following types:
 
 - [CSS selectors](https://developer.mozilla.org/docs/Web/CSS/CSS_Selectors)
 - [`Element`](https://developer.mozilla.org/docs/Web/API/Element)
@@ -165,15 +161,15 @@ mediumZoom(images)
 
 ### Options
 
-The options are defined as an object with the following properties:
+The options enable the customization of the zoom. They are defined as an object with the following properties:
 
-| Property       | Type                          | Default  | Description                                                                                      |
-| -------------- | ----------------------------- | -------- | ------------------------------------------------------------------------------------------------ |
-| `margin`       | `number`                      | `0`      | The space outside the zoomed image                                                               |
-| `background`   | `string`                      | `"#fff"` | The color of the overlay                                                                         |
-| `scrollOffset` | `number`                      | `40`     | The number of pixels to scroll to close the zoom                                                 |
-| `container`    | `string`\|`Element`\|`object` | `null`   | The element to render the zoom in or a viewport object. [Read more →](#using-a-custom-container) |
-| `template`     | `string`\|`Element`           | `null`   | The template element to show on zoom. [Read more →](#using-a-custom-template)                    |
+| Property       | Type                          | Default  | Description                                                                                         |
+| -------------- | ----------------------------- | -------- | --------------------------------------------------------------------------------------------------- |
+| `margin`       | `number`                      | `0`      | The space outside the zoomed image                                                                  |
+| `background`   | `string`                      | `"#fff"` | The color of the overlay                                                                            |
+| `scrollOffset` | `number`                      | `40`     | The number of pixels to scroll to close the zoom                                                    |
+| `container`    | `string`\|`Element`\|`object` | `null`   | The element to render the zoom in or a viewport object<br> [Read more →](docs/options/container.md) |
+| `template`     | `string`\|`Element`           | `null`   | The template element to display on zoom<br> [Read more →](docs/options/template.md)                 |
 
 ```js
 mediumZoom('[data-zoom]', {
@@ -185,110 +181,43 @@ mediumZoom('[data-zoom]', {
 })
 ```
 
-#### Using a custom `container`
-
-The zoom is by default rendered in the window viewport. You can also render your image in any element of the DOM, or any custom coordinates with the `container` option.
-
-##### Rendering in a DOM Element
-
-```html
-<article>
-  <p>My article...</p>
-  <img src="image.jpg" alt="My image">
-  <div id="zoom-container"></div>
-</article>
-
-<script>
-  mediumZoom('img', {
-    container: '#zoom-container'
-  })
-</script>
-```
-
-##### Rendering with coordinates
-
-If you don't already have an element in your DOM to specify the position of the zoom, you can pass an object with the following `number` properties:
-
-```js
-mediumZoom('img', {
-  container: {
-    width: 720,
-    height: 480,
-    top: 64,
-    bottom: 64,
-    right: 0,
-    left: 0,
-  },
-})
-```
-
-These properties behave very much like [`Element.getBoundingClientRect()`](https://developer.mozilla.org/docs/Web/API/Element/getBoundingClientRect). They will get merged with the default ones so you don't need to specify all of them.
-
-The default `width` and `height` are `window.innerWidth` and `window.innerHeight`. Others are set to `0`.
-
-#### Using a custom `template`
-
-You might want to render the zoom in your own template. You could reproduce zooms as seen on [Facebook](examples/facebook-template) or [Dropbox Paper](examples/dropbox-paper-template). This is possible with the `template` option.
-
-1.  Create a [`template`](https://developer.mozilla.org/docs/Web/HTML/Element/template) element matching the `template` option value
-2.  If you'd like your image to appear at a specific position in your template, specify the `container` option and add it in your template (`#zoom-container` here)
-
-```html
-<template id="zoom-template">
-  <div>
-    <header>My image zoom template</header>
-    <div id="zoom-container"></div>
-    <aside>Comment on my image</aside>
-  </div>
-</template>
-
-<script>
-  mediumZoom('[data-zoom]', {
-    template: '#zoom-template',
-    container: '#zoom-container'
-  })
-</script>
-```
-
-Go to the [`examples/`](examples) folder for more details.
-
 ### Methods
 
-#### `open({ target? })`
+#### `open({ target?: Element }) => Promise<Zoom>`
 
-Opens the zoom and returns a promise resolving the zoom.
+Opens the zoom and returns a promise resolving with the zoom.
 
 ```js
-const zoom = mediumZoom('#my-image')
+const zoom = mediumZoom('[data-zoom]')
 
 zoom.open()
 ```
 
 _Emits an event [`open`](#events) on animation start and [`opened`](#events) when completed._
 
-#### `close()`
+#### `close() => Promise<Zoom>`
 
-Closes the zoom and returns a promise resolving the zoom.
+Closes the zoom and returns a promise resolving with the zoom.
 
 ```js
-const zoom = mediumZoom('#my-image')
+const zoom = mediumZoom('[data-zoom]')
 
 zoom.close()
 ```
 
 _Emits an event [`close`](#events) on animation start and [`closed`](#events) when completed._
 
-#### `toggle({ target? })`
+#### `toggle({ target?: Element }) => Promise<Zoom>`
 
-Opens the zoom when closed / dismisses the zoom when opened, and returns a promise resolving the zoom.
+Opens the zoom when closed / dismisses the zoom when opened, and returns a promise resolving with the zoom.
 
 ```js
-const zoom = mediumZoom('#my-image')
+const zoom = mediumZoom('[data-zoom]')
 
 zoom.toggle()
 ```
 
-#### `attach(...selectors)`
+#### `attach(...selectors: string[]|Element[]|NodeList[]|Array[]) => Zoom`
 
 Attaches the images to the zoom and returns the zoom.
 
@@ -298,16 +227,16 @@ const zoom = mediumZoom()
 zoom.attach('#image-1', '#image-2')
 zoom.attach(
   document.querySelector('#image-3'),
-  document.querySelectorAll('aside img')
+  document.querySelectorAll('[data-zoom]')
 )
 ```
 
-#### `detach(...selectors)`
+#### `detach(...selectors: string[]|Element[]|NodeList[]|Array[]) => Zoom`
 
 Releases the images attached to the zoom and returns the zoom.
 
 ```js
-const zoom = mediumZoom('.content img')
+const zoom = mediumZoom('[data-zoom]')
 
 zoom.detach('#image-1', document.querySelector('#image-2')) // detach two images
 zoom.detach() // detach all images
@@ -315,12 +244,12 @@ zoom.detach() // detach all images
 
 _Emits an event [`detach`](#events) on the image._
 
-#### `update(options)`
+#### `update(options: object) => Zoom`
 
 Updates the options and returns the zoom.
 
 ```js
-const zoom = mediumZoom('#my-image')
+const zoom = mediumZoom('[data-zoom]')
 
 zoom.update({
   background: '#BADA55',
@@ -329,25 +258,25 @@ zoom.update({
 
 _Emits an event [`update`](#events) on each image of the zoom._
 
-#### `extend(options?)`
+#### `extend(options?: object) => Zoom`
 
 Clones the zoom with new options merged with the current ones and returns the zoom.
 
 ```js
-const zoom = mediumZoom('#my-image', { background: '#BADA55' })
+const zoom = mediumZoom('[data-zoom]', { background: '#BADA55' })
 
 const clonedZoom = zoom.extend({
   margin: 48,
 })
 
-clonedZoom.getOptions() // → { background: '#BADA55', margin: 48, ... }
+clonedZoom.getOptions() // => { background: '#BADA55', margin: 48, ... }
 ```
 
-#### `on(type, listener, options?)`
+#### `on(type: string, listener: Function, options?: object) => Zoom`
 
-Registers the specified listener on each target of the zoom.
+Registers the listener on each target of the zoom.
 
-You can use the same `options` as the [`addEventListener`](https://developer.mozilla.org/docs/Web/API/EventTarget/addEventListener#Parameters) method.
+The same `options` as [`addEventListener`](https://developer.mozilla.org/docs/Web/API/EventTarget/addEventListener#Parameters) are used.
 
 ```js
 const zoom = mediumZoom('[data-zoom]')
@@ -367,11 +296,11 @@ zoom.on(
 
 The zoom object is accessible in `event.detail.zoom`.
 
-#### `off(type, listener, options?)`
+#### `off(type: string, listener: Function, options?: object) => Zoom`
 
 Removes the previously registered listener on each target of the zoom.
 
-You can use the same `options` as the [`removeEventListener`](https://developer.mozilla.org/docs/Web/API/EventTarget/removeEventListener#Parameters) method.
+The same `options` as [`removeEventListener`](https://developer.mozilla.org/docs/Web/API/EventTarget/removeEventListener#Parameters) are used.
 
 ```js
 const zoom = mediumZoom('[data-zoom]')
@@ -387,41 +316,44 @@ zoom.off('open', listener)
 
 The zoom object is accessible in `event.detail.zoom`.
 
-#### `getOptions()`
+#### `getOptions() => object`
 
 Returns the zoom options as an object.
 
 ```js
 const zoom = mediumZoom({ background: '#BADA55' })
 
-zoom.getOptions() // → { background: '#BADA55', ... }
+zoom.getOptions() // => { background: '#BADA55', ... }
 ```
 
-#### `getImages()`
+#### `getImages() => Element[]`
 
-Returns the images attached to the zoom as an array of [HTML Elements](https://developer.mozilla.org/docs/Web/API/Element).
+Returns the images attached to the zoom as an array of [`Element`s](https://developer.mozilla.org/docs/Web/API/Element).
 
 ```js
-const zoom = mediumZoom('img')
+const zoom = mediumZoom('[data-zoom]')
 
-zoom.getImages() // → [HTML Element, HTML Element]
+zoom.getImages() // => [Element, Element]
 ```
 
-#### `getZoomedTarget()`
+#### `getZoomedTarget() => Element`
 
-Returns the current zoomed target as an [HTML Element](https://developer.mozilla.org/docs/Web/API/Element).
+Returns the current zoomed target as an [`Element`](https://developer.mozilla.org/docs/Web/API/Element) or `null` if none.
 
 ```js
-const zoom = mediumZoom('img')
+const zoom = mediumZoom('[data-zoom]')
 
-zoom.getZoomedTarget() // → HTML Element
+zoom.getZoomedTarget() // => null
+zoom.open().then(() => {
+  zoom.getZoomedTarget() // => Element
+})
 ```
 
 ### Attributes
 
 #### `data-zoom-src`
 
-Specifies the high definition image to show on zoom. This image loads the first time the user clicks on the source image.
+Specifies the high definition image to open on zoom. This image loads when the user clicks on the source image.
 
 ```html
 <img
@@ -443,7 +375,7 @@ Specifies the high definition image to show on zoom. This image loads the first 
 | update | Fired when the `update` method is called            |
 
 ```js
-const zoom = mediumZoom('#image-tracked')
+const zoom = mediumZoom('[data-zoom]')
 
 zoom.on('open', event => {
   // track when the image is zoomed
@@ -486,9 +418,20 @@ zoom.on('open', event => {
  <summary>Detach a zoom once closed</summary>
 
 ```js
-const zoom = mediumZoom('#image-detach')
+const zoom = mediumZoom('[data-zoom]')
 
 zoom.on('closed', () => zoom.detach(), { once: true })
+```
+
+</details>
+
+<details>
+ <summary>Attach jQuery elements</summary>
+
+jQuery elements are compatible with `medium-zoom` once converted to array.
+
+```js
+mediumZoom($('[data-zoom]').toArray())
 ```
 
 </details>
