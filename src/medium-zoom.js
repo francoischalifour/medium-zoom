@@ -194,7 +194,7 @@ const mediumZoom = (selector, options = {}) => {
     return zoom
   }
 
-  const extend = (options = {}) => mediumZoom({ ...zoomOptions, ...options })
+  const clone = (options = {}) => mediumZoom({ ...zoomOptions, ...options })
 
   const attach = (...selectors) => {
     const newImages = selectors.reduce(
@@ -609,7 +609,7 @@ const mediumZoom = (selector, options = {}) => {
     close,
     toggle,
     update,
-    extend,
+    clone,
     attach,
     detach,
     on,

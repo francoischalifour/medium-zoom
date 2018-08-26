@@ -256,14 +256,14 @@ zoom.update({ background: '#BADA55' })
 
 _Emits an event [`update`](#events) on each image of the zoom._
 
-#### `extend(options?: object) => Zoom`
+#### `clone(options?: object) => Zoom`
 
-Clones the zoom with new options merged with the current ones and returns the zoom.
+Clones the zoom with provided options merged with the current ones and returns the zoom.
 
 ```js
 const zoom = mediumZoom('[data-zoom]', { background: '#BADA55' })
 
-const clonedZoom = zoom.extend({ margin: 48 })
+const clonedZoom = zoom.clone({ margin: 48 })
 
 clonedZoom.getOptions() // => { background: '#BADA55', margin: 48, ... }
 ```
@@ -440,7 +440,7 @@ import React, { Component } from 'react'
 import mediumZoom from 'medium-zoom'
 
 class ImageZoom extends Component {
-  zoom = this.props.zoom.extend({
+  zoom = this.props.zoom.clone({
     background: this.props.color,
   })
 

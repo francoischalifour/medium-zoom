@@ -638,44 +638,44 @@ describe('update()', () => {
   })
 })
 
-describe('extend()', () => {
+describe('clone()', () => {
   test('is defined and returns a new zoom', () => {
     const zoom = mediumZoom()
 
-    expect(zoom.extend).toBeDefined()
-    expect(zoom).not.toEqual(zoom.extend())
-    expect(Object.keys(zoom.extend())).toEqual(Object.keys(mediumZoom()))
+    expect(zoom.clone).toBeDefined()
+    expect(zoom).not.toEqual(zoom.clone())
+    expect(Object.keys(zoom.clone())).toEqual(Object.keys(mediumZoom()))
   })
 
-  test('extend() clones the options', () => {
+  test('clone() clones the options', () => {
     const zoom = mediumZoom({ background: '#000' })
-    const extendedZoom = zoom.extend()
+    const clonedZoom = zoom.clone()
 
-    expect(extendedZoom.getOptions()).toEqual(zoom.getOptions())
+    expect(clonedZoom.getOptions()).toEqual(zoom.getOptions())
   })
 
-  test('extend({}) clones the options', () => {
+  test('clone({}) clones the options', () => {
     const zoom = mediumZoom({ background: '#000' })
-    const extendedZoom = zoom.extend({})
+    const clonedZoom = zoom.clone({})
 
-    expect(extendedZoom.getOptions()).toEqual(zoom.getOptions())
+    expect(clonedZoom.getOptions()).toEqual(zoom.getOptions())
   })
 
-  test('mediumZoom({ background }).extend({ background }) overrides the options', () => {
+  test('mediumZoom({ background }).clone({ background }) overrides the options', () => {
     const zoom = mediumZoom({ background: '#000' })
-    const extendedZoom = zoom.extend({ background: 'yellow' })
+    const clonedZoom = zoom.clone({ background: 'yellow' })
 
-    expect(extendedZoom.getOptions()).toEqual({
+    expect(clonedZoom.getOptions()).toEqual({
       ...zoom.getOptions(),
       background: 'yellow',
     })
   })
 
-  test('mediumZoom({ background }).extend({ margin }) extends the options', () => {
+  test('mediumZoom({ background }).clone({ margin }) extends the options', () => {
     const zoom = mediumZoom({ background: '#000' })
-    const extendedZoom = zoom.extend({ margin: 48 })
+    const clonedZoom = zoom.clone({ margin: 48 })
 
-    expect(extendedZoom.getOptions()).toEqual({
+    expect(clonedZoom.getOptions()).toEqual({
       ...zoom.getOptions(),
       margin: 48,
     })

@@ -29,7 +29,7 @@ declare namespace mediumZoom {
     attach(...selectors: ZoomSelector[]): Zoom
     detach(...selectors: ZoomSelector[]): Zoom
     update(options: ZoomOptions): Zoom
-    extend(options?: ZoomOptions): Zoom
+    clone(options?: ZoomOptions): Zoom
     on(type: string, listener: () => void, options?: object): Zoom
     off(type: string, listener: () => void, options?: object): Zoom
     getOptions(): ZoomOptions
