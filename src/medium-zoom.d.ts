@@ -23,9 +23,9 @@ declare namespace mediumZoom {
   }
 
   interface Zoom {
-    open(ZoomOpenOptions?): Promise<Zoom>
+    open(options?: ZoomOpenOptions): Promise<Zoom>
     close(): Promise<Zoom>
-    toggle(ZoomOpenOptions?): Promise<Zoom>
+    toggle(options?: ZoomOpenOptions): Promise<Zoom>
     attach(...selectors: ZoomSelector[]): Zoom
     detach(...selectors: ZoomSelector[]): Zoom
     update(options: ZoomOptions): Zoom
