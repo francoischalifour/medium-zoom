@@ -251,9 +251,7 @@ Updates the options and returns the zoom.
 ```js
 const zoom = mediumZoom('[data-zoom]')
 
-zoom.update({
-  background: '#BADA55',
-})
+zoom.update({ background: '#BADA55' })
 ```
 
 _Emits an event [`update`](#events) on each image of the zoom._
@@ -265,9 +263,7 @@ Clones the zoom with new options merged with the current ones and returns the zo
 ```js
 const zoom = mediumZoom('[data-zoom]', { background: '#BADA55' })
 
-const clonedZoom = zoom.extend({
-  margin: 48,
-})
+const clonedZoom = zoom.extend({ margin: 48 })
 
 clonedZoom.getOptions() // => { background: '#BADA55', margin: 48, ... }
 ```
@@ -305,7 +301,7 @@ The same `options` as [`removeEventListener`](https://developer.mozilla.org/docs
 ```js
 const zoom = mediumZoom('[data-zoom]')
 
-const listener = event => {
+function listener(event) {
   // ...
 }
 
