@@ -44,9 +44,7 @@ declare function mediumZoom(
 ): mediumZoom.Zoom
 
 // Seems needed for `mediumZoom(options)` autocomplete on VS Code
-declare function mediumZoom(
-  options: mediumZoom.ZoomOptions
-): mediumZoom.Zoom
+declare function mediumZoom(options: mediumZoom.ZoomOptions): mediumZoom.Zoom
 
 export = mediumZoom
 export as namespace mediumZoom
