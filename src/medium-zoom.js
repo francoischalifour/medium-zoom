@@ -601,7 +601,7 @@ const mediumZoom = (selector, options = {}) => {
 
   document.addEventListener('click', _handleClick)
   document.addEventListener('keyup', _handleKeyUp)
-  window.addEventListener('scroll', _handleScroll)
+  document.addEventListener('scroll', _handleScroll)
   window.addEventListener('resize', close)
 
   const zoom = {
