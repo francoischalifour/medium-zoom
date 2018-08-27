@@ -1,5 +1,6 @@
 {
   "requireUpstream": false,
+  "requireCleanWorkingDir": false,
   "increment": "conventional:angular",
   "src": {
     "commitMessage": "chore(release): %s",
