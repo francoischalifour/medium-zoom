@@ -266,15 +266,19 @@ const mediumZoom = (selector, options = {}) => {
       image.removeEventListener(`medium-zoom:${type}`, listener, options)
     })
 
+    eventListeners = eventListeners.filter(
+      eventListener =>
+        !(
+          eventListener.type === `medium-zoom:${type}` &&
+          eventListener.listener.toString() === listener.toString()
+        )
+    )
+
     return zoom
   }
 
   const open = ({ target } = {}) => {
     const _animate = () => {
-      if (!active.original) {
-        return
-      }
-
       let container = {
         width: window.innerWidth,
         height: window.innerHeight,
