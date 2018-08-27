@@ -183,6 +183,7 @@ img {
 
 figure {
   margin: 3rem -16px;
+  text-align: center;
 }
 
 figcaption {
