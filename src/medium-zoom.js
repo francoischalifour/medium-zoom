@@ -587,13 +587,13 @@ const mediumZoom = (selector, options = {}) => {
   let eventListeners = []
   let isAnimating = false
   let scrollTop = 0
-  let active = {
+  let zoomOptions = options
+  const active = {
     original: null,
     zoomed: null,
     zoomedHd: null,
     template: null,
   }
-  let zoomOptions = options
 
   // If the selector is omitted, it's replaced by the options
   if (Object.prototype.toString.call(selector) === '[object Object]') {
