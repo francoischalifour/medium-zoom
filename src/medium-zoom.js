@@ -212,6 +212,12 @@ const mediumZoom = (selector, options = {}) => {
         newImage.classList.add('medium-zoom-image')
       })
 
+    eventListeners.forEach(({ type, listener, options }) => {
+      newImages.forEach(image => {
+        image.addEventListener(type, listener, options)
+      })
+    })
+
     return zoom
   }
 
@@ -249,6 +255,8 @@ const mediumZoom = (selector, options = {}) => {
     images.forEach(image => {
       image.addEventListener(`medium-zoom:${type}`, listener, options)
     })
+
+    eventListeners.push({ type: `medium-zoom:${type}`, listener, options })
 
     return zoom
   }
@@ -567,6 +575,7 @@ const mediumZoom = (selector, options = {}) => {
   const getZoomedTarget = () => active.original
 
   let images = []
+  let eventListeners = []
   let isAnimating = false
   let scrollTop = 0
   let active = {

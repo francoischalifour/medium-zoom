@@ -1331,7 +1331,35 @@ describe('on()', () => {
     )
   })
 
-  test('event is called when `CustomEvent` is undefined', () => {
+  test('event is attached to dynamically attached images', () => {
+    const image1 = document.createElement('img')
+    root.appendChild(image1)
+
+    const zoom = mediumZoom(image1)
+    const onUpdate = jest.fn()
+
+    zoom.on('update', onUpdate)
+
+    const image2 = document.createElement('img')
+    root.appendChild(image2)
+
+    zoom.attach(image2)
+    zoom.update({ margin: 24 })
+
+    expect(onUpdate).toHaveBeenCalledTimes(2)
+    expect(onUpdate).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ target: image1, detail: { zoom } })
+    )
+    expect(onUpdate).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ target: image2, detail: { zoom } })
+    )
+  })
+
+  test('event is called when `CustomEvent` is undefined', async () => {
+    expect.assertions(2)
+
     const image = document.createElement('img')
     root.appendChild(image)
 
@@ -1342,7 +1370,8 @@ describe('on()', () => {
 
     zoom.on('open', onOpen)
 
-    zoom.open()
+    await zoom.open()
+    jest.runAllTimers()
 
     expect(onOpen).toHaveBeenCalledTimes(1)
     expect(onOpen).toHaveBeenCalledWith(
@@ -1350,7 +1379,9 @@ describe('on()', () => {
     )
   })
 
-  test('event is called once with the `once` option', () => {
+  test('event is called once with the `once` option', async () => {
+    expect.assertions(2)
+
     const image = document.createElement('img')
     root.appendChild(image)
 
@@ -1359,9 +1390,11 @@ describe('on()', () => {
 
     zoom.on('open', onOpen, { once: true })
 
-    zoom.open()
-    zoom.close()
-    zoom.open()
+    await zoom.open()
+    jest.runAllTimers()
+    await zoom.close()
+    await zoom.open()
+    jest.runAllTimers()
 
     expect(onOpen).toHaveBeenCalledTimes(1)
     expect(onOpen).toHaveBeenCalledWith(
@@ -1396,6 +1429,63 @@ describe('off()', () => {
     zoom.open()
 
     expect(onOpen).toHaveBeenCalledTimes(1)
+  })
+
+  test('stops calling event handlers when the listener is removed', () => {
+    const image1 = document.createElement('img')
+    root.appendChild(image1)
+
+    const zoom = mediumZoom(image1)
+    const onUpdate = jest.fn()
+
+    zoom.on('update', onUpdate)
+
+    const image2 = document.createElement('img')
+    root.appendChild(image2)
+
+    zoom.attach(image2)
+    zoom.update({ margin: 24 })
+
+    expect(onUpdate).toHaveBeenCalledTimes(2)
+
+    zoom.off('update', onUpdate)
+
+    const image3 = document.createElement('img')
+    root.appendChild(image3)
+
+    zoom.attach(image3)
+    zoom.update({ margin: 24 })
+
+    expect(onUpdate).toHaveBeenCalledTimes(2)
+  })
+
+  test('keeps calling event handlers when a different listener is removed', () => {
+    const image1 = document.createElement('img')
+    root.appendChild(image1)
+
+    const zoom = mediumZoom(image1)
+    const onUpdate = jest.fn()
+
+    zoom.on('update', onUpdate)
+
+    const image2 = document.createElement('img')
+    root.appendChild(image2)
+
+    zoom.attach(image2)
+    zoom.update({ margin: 24 })
+
+    expect(onUpdate).toHaveBeenCalledTimes(2)
+
+    function anotherUpdateFunction() {}
+    zoom.off('update', anotherUpdateFunction)
+
+    const image3 = document.createElement('img')
+    root.appendChild(image3)
+
+    zoom.attach(image3)
+    zoom.update({ margin: 24 })
+
+    expect(onUpdate).toHaveBeenCalledTimes(5)
   })
 })
 
