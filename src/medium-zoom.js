@@ -366,6 +366,11 @@ const mediumZoom = (selector, options = {}) => {
     }
 
     return new Promise(resolve => {
+      if (target && images.indexOf(target) === -1) {
+        resolve(zoom)
+        return
+      }
+
       const _handleOpenEnd = () => {
         isAnimating = false
         active.zoomed.removeEventListener('transitionend', _handleOpenEnd)

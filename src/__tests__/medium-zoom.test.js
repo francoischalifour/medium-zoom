@@ -800,6 +800,7 @@ describe('open()', () => {
 
     const zoom = mediumZoom(image)
     await zoom.open()
+    jest.runAllTimers()
 
     expect(zoom.getZoomedTarget()).toBe(image)
   })
@@ -814,8 +815,24 @@ describe('open()', () => {
 
     const zoom = mediumZoom('img')
     await zoom.open({ target: image2 })
+    jest.runAllTimers()
 
     expect(zoom.getZoomedTarget()).toBe(image2)
+  })
+
+  test('open({ target }) with unknown target cancels', async () => {
+    expect.assertions(1)
+
+    const image1 = document.createElement('img')
+    const image2 = document.createElement('img')
+    root.appendChild(image1)
+    root.appendChild(image2)
+
+    const zoom = mediumZoom(image1)
+    await zoom.open({ target: image2 })
+    jest.runAllTimers()
+
+    expect(zoom.getZoomedTarget()).toBe(null)
   })
 
   test('open() renders correctly', async () => {
@@ -1201,7 +1218,9 @@ describe('on()', () => {
     expect(zoom.on()).toEqual(zoom)
   })
 
-  test('"open" is called', () => {
+  test('"open" is called', async () => {
+    expect.assertions(2)
+
     const image = document.createElement('img')
     root.appendChild(image)
 
@@ -1210,7 +1229,8 @@ describe('on()', () => {
 
     zoom.on('open', onOpen)
 
-    zoom.open()
+    await zoom.open()
+    jest.runAllTimers()
 
     expect(onOpen).toHaveBeenCalledTimes(1)
     expect(onOpen).toHaveBeenCalledWith(
@@ -1218,7 +1238,9 @@ describe('on()', () => {
     )
   })
 
-  test('"opened" is called', () => {
+  test('"opened" is called', async () => {
+    expect.assertions(2)
+
     const image = document.createElement('img')
     root.appendChild(image)
 
@@ -1227,15 +1249,18 @@ describe('on()', () => {
 
     zoom.on('opened', onOpened)
 
-    zoom.open().then(zoom => {
-      expect(onOpened).toHaveBeenCalledTimes(1)
-      expect(onOpened).toHaveBeenCalledWith(
-        expect.objectContaining({ target: image, detail: { zoom } })
-      )
-    })
+    await zoom.open()
+    jest.runAllTimers()
+
+    expect(onOpened).toHaveBeenCalledTimes(1)
+    expect(onOpened).toHaveBeenCalledWith(
+      expect.objectContaining({ target: image, detail: { zoom } })
+    )
   })
 
-  test('"close" is called', () => {
+  test('"close" is called', async () => {
+    expect.assertions(2)
+
     const image = document.createElement('img')
     root.appendChild(image)
 
@@ -1244,17 +1269,19 @@ describe('on()', () => {
 
     zoom.on('close', onClose)
 
-    zoom.open().then(zoom =>
-      zoom.close().then(zoom => {
-        expect(onClose).toHaveBeenCalledTimes(1)
-        expect(onClose).toHaveBeenCalledWith(
-          expect.objectContaining({ target: image, detail: { zoom } })
-        )
-      })
+    await zoom.open()
+    jest.runAllTimers()
+    await zoom.close()
+
+    expect(onClose).toHaveBeenCalledTimes(1)
+    expect(onClose).toHaveBeenCalledWith(
+      expect.objectContaining({ target: image, detail: { zoom } })
     )
   })
 
-  test('"closed" is called', () => {
+  test('"closed" is called', async () => {
+    expect.assertions(2)
+
     const image = document.createElement('img')
     root.appendChild(image)
 
@@ -1263,17 +1290,19 @@ describe('on()', () => {
 
     zoom.on('closed', onClosed)
 
-    zoom.open().then(zoom =>
-      zoom.close().then(zoom => {
-        expect(onClosed).toHaveBeenCalledTimes(1)
-        expect(onClosed).toHaveBeenCalledWith(
-          expect.objectContaining({ target: image, detail: { zoom } })
-        )
-      })
+    await zoom.open()
+    jest.runAllTimers()
+    await zoom.close()
+
+    expect(onClosed).toHaveBeenCalledTimes(1)
+    expect(onClosed).toHaveBeenCalledWith(
+      expect.objectContaining({ target: image, detail: { zoom } })
     )
   })
 
   test('"update" is called', () => {
+    expect.assertions(2)
+
     const image = document.createElement('img')
     root.appendChild(image)
 
@@ -1291,6 +1320,8 @@ describe('on()', () => {
   })
 
   test('"detach" is called for detach(image)', () => {
+    expect.assertions(2)
+
     const image = document.createElement('img')
     root.appendChild(image)
 
