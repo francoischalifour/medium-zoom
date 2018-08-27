@@ -18,7 +18,7 @@
 .medium-zoom-image {
   cursor: pointer;
   cursor: zoom-in;
-  transition: transform 300ms;
+  transition: transform 300ms cubic-bezier(0.2, 0, 0.2, 1);
 }
 
 .medium-zoom-image--hidden {
