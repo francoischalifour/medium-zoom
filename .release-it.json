@@ -3,6 +3,6 @@
   "increment": "conventional:angular",
   "src": {
     "commitMessage": "chore(release): %s",
-    "beforeStartCommand": "yarn run lint && yarn run test --colors && yarn run test:cypress:run --colors && yarn run build && yarn run test:size"
+    "beforeStartCommand": "yarn run lint && yarn run build && yarn run test --colors && yarn run test:cypress && yarn run test:size"
   }
 }
