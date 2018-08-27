@@ -477,7 +477,7 @@ You can see [more examples](examples/) including [React](examples/react) and [Vu
 | --------------- | --------------- | ------ | ------- | ------ |
 | 10<sup>\*</sup> | 12<sup>\*</sup> | 36     | 34      | 9      |
 
-<sup>\*</sup> _These browsers require a [`template` polyfill](https://github.com/webcomponents/template) when using [custom templates](#using-a-custom-template)_.
+<sup>\*</sup> _These browsers require a [`template` polyfill](https://github.com/webcomponents/template) when using [custom templates](docs/options/template.md)_.
 
 <blockquote>
   <p align="center">
