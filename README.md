@@ -163,13 +163,13 @@ mediumZoom(images)
 
 The options enable the customization of the zoom. They are defined as an object with the following properties:
 
-| Property       | Type                          | Default  | Description                                                                                         |
-| -------------- | ----------------------------- | -------- | --------------------------------------------------------------------------------------------------- |
-| `margin`       | `number`                      | `0`      | The space outside the zoomed image                                                                  |
-| `background`   | `string`                      | `"#fff"` | The color of the overlay                                                                            |
-| `scrollOffset` | `number`                      | `40`     | The number of pixels to scroll to close the zoom                                                    |
-| `container`    | `string`\|`Element`\|`object` | `null`   | The element to render the zoom in or a viewport object<br> [Read more →](docs/options/container.md) |
-| `template`     | `string`\|`Element`           | `null`   | The template element to display on zoom<br> [Read more →](docs/options/template.md)                 |
+| Property       | Type                          | Default  | Description                                                                         |
+| -------------- | ----------------------------- | -------- | ----------------------------------------------------------------------------------- |
+| `margin`       | `number`                      | `0`      | The space outside the zoomed image                                                  |
+| `background`   | `string`                      | `"#fff"` | The background of the overlay                                                       |
+| `scrollOffset` | `number`                      | `40`     | The number of pixels to scroll to close the zoom                                    |
+| `container`    | `string`\|`Element`\|`object` | `null`   | The viewport to render the zoom in<br> [Read more →](docs/options/container.md)     |
+| `template`     | `string`\|`Element`           | `null`   | The template element to display on zoom<br> [Read more →](docs/options/template.md) |
 
 ```js
 mediumZoom('[data-zoom]', {
