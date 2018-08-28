@@ -11,11 +11,11 @@ const zoomScrollOffset = mediumZoom('#zoom-scrollOffset', {
 // Trigger the zoom when the button is clicked
 const zoomToTrigger = mediumZoom('#zoom-trigger')
 const button = document.querySelector('#button-trigger')
-button.addEventListener('click', () => zoomToTrigger.show())
+button.addEventListener('click', () => zoomToTrigger.open())
 
 // Detach the zoom after having been zoomed once
 const zoomToDetach = mediumZoom('#zoom-detach')
-zoomToDetach.addEventListeners('hidden', () => zoomToDetach.detach())
+zoomToDetach.on('closed', () => zoomToDetach.detach())
 
 // Observe zooms to write the history
 const observedZooms = [
@@ -31,14 +31,14 @@ const observedZooms = [
 const history = document.querySelector('#history')
 
 observedZooms.forEach(zoom => {
-  zoom.addEventListeners('show', event => {
+  zoom.on('open', event => {
     const time = new Date().toLocaleTimeString()
     history.innerHTML += `<li>Image "<em>${
       event.target.alt
     }</em>" was zoomed at ${time}</li>`
   })
 
-  zoom.addEventListeners('detach', event => {
+  zoom.on('detach', event => {
     const time = new Date().toLocaleTimeString()
     history.innerHTML += `<li>Image <em>"${
       event.target.alt

@@ -2734,9 +2734,9 @@ mdn-data@^1.0.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/mdn-data/-/mdn-data-1.1.1.tgz#79586c90321787e5a2e51eb6823bb448949bc1ab"
 
-medium-zoom@0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/medium-zoom/-/medium-zoom-0.4.0.tgz#8e13c9b754903c0c903220611af0d3cd373a4222"
+medium-zoom@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/medium-zoom/-/medium-zoom-1.0.0.tgz#5cea43388c63d3acc5a2571c1fe2758a8da7a5ab"
 
 merge-source-map@1.0.4:
   version "1.0.4"
