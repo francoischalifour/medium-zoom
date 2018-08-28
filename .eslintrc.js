@@ -15,7 +15,5 @@ module.exports = {
     'no-use-before-define': 0,
     'no-shadow': 0,
     'no-console': ['error', { allow: ['warn', 'error'] }],
-    'prefer-spread': 0,
-    'no-plusplus': 0,
   },
 }
