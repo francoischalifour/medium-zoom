@@ -4126,9 +4126,9 @@ media-typer@0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/media-typer/-/media-typer-0.3.0.tgz#8710d7af0aa626f8fffa1ce00168545263255748"
 
-medium-zoom@latest:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/medium-zoom/-/medium-zoom-0.4.0.tgz#8e13c9b754903c0c903220611af0d3cd373a4222"
+medium-zoom@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/medium-zoom/-/medium-zoom-1.0.0.tgz#5cea43388c63d3acc5a2571c1fe2758a8da7a5ab"
 
 mem@^1.1.0:
   version "1.1.0"
