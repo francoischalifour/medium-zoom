@@ -1,5 +1,4 @@
 import babel from 'rollup-plugin-babel'
-import commonjs from 'rollup-plugin-commonjs'
 import minify from 'rollup-plugin-babel-minify'
 import replace from 'rollup-plugin-replace'
 import { uglify } from 'rollup-plugin-uglify'
@@ -25,23 +24,17 @@ const sharedPlugins = [
   replace({
     __TEST__: process.env.NODE_ENV === 'test' ? 'true' : 'false',
   }),
-  commonjs(),
   babel({
-    exclude: 'node_modules/**',
-    comments: false,
-    plugins: ['transform-object-rest-spread'],
     presets: [
       [
         'env',
         {
           modules: false,
           loose: true,
-          targets: {
-            browsers: ['last 2 versions', 'IE >= 11'],
-          },
         },
       ],
     ],
+    plugins: ['transform-object-rest-spread'],
   }),
 ]
 
@@ -68,7 +61,7 @@ const config = [
         output: {
           beautify: true,
           indent_level: 2,
-          comments: 'all',
+          preamble: banner,
         },
       }),
     ],
@@ -91,7 +84,6 @@ const config = [
     name: 'mediumZoom',
     file,
     format,
-    banner,
   },
   plugins,
 }))
