@@ -17,10 +17,12 @@ const getImagesFromSelector = selector => {
     }
 
     if (isNodeList(selector)) {
+      // Do not use spread operator or Array.from() for IE support
       return [].slice.call(selector).filter(isSupported)
     }
 
     if (isNode(selector)) {
+      // Do not use spread operator or Array.from() for IE support
       return [selector].filter(isSupported)
     }
 
