@@ -332,16 +332,16 @@ const zoom = mediumZoom('[data-zoom]')
 zoom.getImages() // => [Element, Element]
 ```
 
-#### `getZoomedTarget() => Element`
+#### `getZoomedImage() => Element`
 
-Returns the current zoomed target as an [`Element`](https://developer.mozilla.org/docs/Web/API/Element) or `null` if none.
+Returns the current zoomed image as an [`Element`](https://developer.mozilla.org/docs/Web/API/Element) or `null` if none.
 
 ```js
 const zoom = mediumZoom('[data-zoom]')
 
-zoom.getZoomedTarget() // => null
+zoom.getZoomedImage() // => null
 zoom.open().then(() => {
-  zoom.getZoomedTarget() // => Element
+  zoom.getZoomedImage() // => Element
 })
 ```
 

@@ -583,7 +583,7 @@ const mediumZoom = (selector, options = {}) => {
 
   const getImages = () => images
 
-  const getZoomedTarget = () => active.original
+  const getZoomedImage = () => active.original
 
   let images = []
   let eventListeners = []
@@ -636,7 +636,7 @@ const mediumZoom = (selector, options = {}) => {
     off,
     getOptions,
     getImages,
-    getZoomedTarget,
+    getZoomedImage,
   }
 
   return zoom

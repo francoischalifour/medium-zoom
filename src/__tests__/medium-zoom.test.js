@@ -737,17 +737,17 @@ describe('getImages()', () => {
   })
 })
 
-describe('getZoomedTarget()', () => {
+describe('getZoomedImage()', () => {
   const root = emptyRootBeforeEach()
 
   test('is defined and returns null by default', () => {
     const zoom = mediumZoom()
 
-    expect(zoom.getZoomedTarget).toBeDefined()
-    expect(zoom.getZoomedTarget()).toBe(null)
+    expect(zoom.getZoomedImage).toBeDefined()
+    expect(zoom.getZoomedImage()).toBe(null)
   })
 
-  test('getZoomedTarget() once zoomed is the target', () => {
+  test('getZoomedImage() once zoomed is the target', () => {
     expect.assertions(1)
 
     const image = document.createElement('img')
@@ -756,7 +756,7 @@ describe('getZoomedTarget()', () => {
     const zoom = mediumZoom(image)
     zoom.open()
 
-    expect(zoom.getZoomedTarget()).toBe(image)
+    expect(zoom.getZoomedImage()).toBe(image)
   })
 })
 
@@ -802,7 +802,7 @@ describe('open()', () => {
     await zoom.open()
     jest.runAllTimers()
 
-    expect(zoom.getZoomedTarget()).toBe(image)
+    expect(zoom.getZoomedImage()).toBe(image)
   })
 
   test('open({ target }) sets the active target', async () => {
@@ -817,7 +817,7 @@ describe('open()', () => {
     await zoom.open({ target: image2 })
     jest.runAllTimers()
 
-    expect(zoom.getZoomedTarget()).toBe(image2)
+    expect(zoom.getZoomedImage()).toBe(image2)
   })
 
   test('open({ target }) with unknown target cancels', async () => {
@@ -832,7 +832,7 @@ describe('open()', () => {
     await zoom.open({ target: image2 })
     jest.runAllTimers()
 
-    expect(zoom.getZoomedTarget()).toBe(null)
+    expect(zoom.getZoomedImage()).toBe(null)
   })
 
   test('open() renders correctly', async () => {

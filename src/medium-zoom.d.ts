@@ -34,7 +34,7 @@ declare namespace mediumZoom {
     off(type: string, listener: () => void, options?: object): Zoom
     getOptions(): ZoomOptions
     getImages(): Element[]
-    getZoomedTarget(): Element
+    getZoomedImage(): Element
   }
 }
 
