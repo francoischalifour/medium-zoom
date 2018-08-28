@@ -122,7 +122,7 @@ Or import the library with a script tag:
 That's it! You don't need to import any CSS styles.
 
 ```js
-mediumZoom('[data-zoom]')
+mediumZoom('[data-zoomable]')
 ```
 
 ## API
@@ -142,18 +142,18 @@ The selector allows attaching images to the zoom. It can be of the following typ
 
 ```js
 // CSS selector
-mediumZoom('[data-zoom]')
+mediumZoom('[data-zoomable]')
 
 // Element
 mediumZoom(document.querySelector('#cover'))
 
 // NodeList
-mediumZoom(document.querySelectorAll('[data-zoom]'))
+mediumZoom(document.querySelectorAll('[data-zoomable]'))
 
 // Array
 const images = [
   document.querySelector('#cover'),
-  ...document.querySelectorAll('[data-zoom]'),
+  ...document.querySelectorAll('[data-zoomable]'),
 ]
 
 mediumZoom(images)
@@ -172,7 +172,7 @@ The options enable the customization of the zoom. They are defined as an object 
 | `template`     | `string`\|`Element`           | `null`   | The template element to display on zoom<br> [Read more →](docs/template.md) |
 
 ```js
-mediumZoom('[data-zoom]', {
+mediumZoom('[data-zoomable]', {
   margin: 24,
   background: '#BADA55',
   scrollOffset: 0,
@@ -188,7 +188,7 @@ mediumZoom('[data-zoom]', {
 Opens the zoom and returns a promise resolving with the zoom.
 
 ```js
-const zoom = mediumZoom('[data-zoom]')
+const zoom = mediumZoom('[data-zoomable]')
 
 zoom.open()
 ```
@@ -200,7 +200,7 @@ _Emits an event [`open`](#events) on animation start and [`opened`](#events) whe
 Closes the zoom and returns a promise resolving with the zoom.
 
 ```js
-const zoom = mediumZoom('[data-zoom]')
+const zoom = mediumZoom('[data-zoomable]')
 
 zoom.close()
 ```
@@ -212,7 +212,7 @@ _Emits an event [`close`](#events) on animation start and [`closed`](#events) wh
 Opens the zoom when closed / dismisses the zoom when opened, and returns a promise resolving with the zoom.
 
 ```js
-const zoom = mediumZoom('[data-zoom]')
+const zoom = mediumZoom('[data-zoomable]')
 
 zoom.toggle()
 ```
@@ -227,7 +227,7 @@ const zoom = mediumZoom()
 zoom.attach('#image-1', '#image-2')
 zoom.attach(
   document.querySelector('#image-3'),
-  document.querySelectorAll('[data-zoom]')
+  document.querySelectorAll('[data-zoomable]')
 )
 ```
 
@@ -236,7 +236,7 @@ zoom.attach(
 Releases the images attached to the zoom and returns the zoom.
 
 ```js
-const zoom = mediumZoom('[data-zoom]')
+const zoom = mediumZoom('[data-zoomable]')
 
 zoom.detach('#image-1', document.querySelector('#image-2')) // detach two images
 zoom.detach() // detach all images
@@ -249,7 +249,7 @@ _Emits an event [`detach`](#events) on the image._
 Updates the options and returns the zoom.
 
 ```js
-const zoom = mediumZoom('[data-zoom]')
+const zoom = mediumZoom('[data-zoomable]')
 
 zoom.update({ background: '#BADA55' })
 ```
@@ -261,7 +261,7 @@ _Emits an event [`update`](#events) on each image of the zoom._
 Clones the zoom with provided options merged with the current ones and returns the zoom.
 
 ```js
-const zoom = mediumZoom('[data-zoom]', { background: '#BADA55' })
+const zoom = mediumZoom('[data-zoomable]', { background: '#BADA55' })
 
 const clonedZoom = zoom.clone({ margin: 48 })
 
@@ -275,7 +275,7 @@ Registers the listener on each target of the zoom.
 The same `options` as [`addEventListener`](https://developer.mozilla.org/docs/Web/API/EventTarget/addEventListener#Parameters) are used.
 
 ```js
-const zoom = mediumZoom('[data-zoom]')
+const zoom = mediumZoom('[data-zoomable]')
 
 zoom.on('closed', event => {
   // the image has been closed
@@ -299,7 +299,7 @@ Removes the previously registered listener on each target of the zoom.
 The same `options` as [`removeEventListener`](https://developer.mozilla.org/docs/Web/API/EventTarget/removeEventListener#Parameters) are used.
 
 ```js
-const zoom = mediumZoom('[data-zoom]')
+const zoom = mediumZoom('[data-zoomable]')
 
 function listener(event) {
   // ...
@@ -327,7 +327,7 @@ zoom.getOptions() // => { background: '#BADA55', ... }
 Returns the images attached to the zoom as an array of [`Element`s](https://developer.mozilla.org/docs/Web/API/Element).
 
 ```js
-const zoom = mediumZoom('[data-zoom]')
+const zoom = mediumZoom('[data-zoomable]')
 
 zoom.getImages() // => [Element, Element]
 ```
@@ -337,7 +337,7 @@ zoom.getImages() // => [Element, Element]
 Returns the current zoomed image as an [`Element`](https://developer.mozilla.org/docs/Web/API/Element) or `null` if none.
 
 ```js
-const zoom = mediumZoom('[data-zoom]')
+const zoom = mediumZoom('[data-zoomable]')
 
 zoom.getZoomedImage() // => null
 zoom.open().then(() => {
@@ -371,7 +371,7 @@ Specifies the high definition image to open on zoom. This image loads when the u
 | update | Fired when the `update` method is called            |
 
 ```js
-const zoom = mediumZoom('[data-zoom]')
+const zoom = mediumZoom('[data-zoomable]')
 
 zoom.on('open', event => {
   // track when the image is zoomed
@@ -414,7 +414,7 @@ zoom.on('open', event => {
  <summary>Detach a zoom once closed</summary>
 
 ```js
-const zoom = mediumZoom('[data-zoom]')
+const zoom = mediumZoom('[data-zoomable]')
 
 zoom.on('closed', () => zoom.detach(), { once: true })
 ```
@@ -424,10 +424,10 @@ zoom.on('closed', () => zoom.detach(), { once: true })
 <details>
  <summary>Attach jQuery elements</summary>
 
-jQuery elements are compatible with `medium-zoom` once converted to array.
+jQuery elements are compatible with `medium-zoom` once converted to an array.
 
 ```js
-mediumZoom($('[data-zoom]').toArray())
+mediumZoom($('[data-zoomable]').toArray())
 ```
 
 </details>
