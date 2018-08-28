@@ -1,10 +1,16 @@
 {
+  "presets": [
+    ["env", {
+      "modules": false,
+      "loose": true,
+      "targets": {
+        "browsers": "ie >= 10"
+      }
+    }]
+  ],
   "env": {
-    "build": {
-      "plugins": ["external-helpers"]
-    },
     "test": {
-      "presets": ["env"]
+      "presets": [["env"]]
     }
   }
 }

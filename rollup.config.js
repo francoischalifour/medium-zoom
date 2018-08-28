@@ -10,8 +10,8 @@ import {
   version,
   repository,
   license,
-  main as mainPath,
-  module as modulePath,
+  main as umdPath,
+  module as esmPath,
 } from './package.json'
 
 const banner = `/*! ${name} ${version} | ${license} License | https://github.com/${repository} */`
@@ -25,23 +25,18 @@ const sharedPlugins = [
     __TEST__: process.env.NODE_ENV === 'test' ? 'true' : 'false',
   }),
   babel({
-    presets: [
-      [
-        'env',
-        {
-          modules: false,
-          loose: true,
-        },
-      ],
-    ],
-    plugins: ['transform-object-rest-spread'],
+    exclude: 'node_modules/**',
+    plugins: ['external-helpers', 'transform-object-rest-spread'],
   }),
 ]
 
-const config = [
+export default [
   {
-    file: modulePath,
-    format: 'es',
+    input: 'src/index.js',
+    output: {
+      file: esmPath,
+      format: 'es',
+    },
     plugins: [
       ...sharedPlugins,
       minify({
@@ -51,8 +46,12 @@ const config = [
     ],
   },
   {
-    file: mainPath.replace('.min', ''),
-    format: 'umd',
+    input: 'src/index.js',
+    output: {
+      name: 'mediumZoom',
+      file: umdPath.replace('.min', ''),
+      format: 'umd',
+    },
     plugins: [
       ...sharedPlugins,
       uglify({
@@ -67,8 +66,12 @@ const config = [
     ],
   },
   {
-    file: mainPath,
-    format: 'umd',
+    input: 'src/index.js',
+    output: {
+      name: 'mediumZoom',
+      file: umdPath,
+      format: 'umd',
+    },
     plugins: [
       ...sharedPlugins,
       uglify({
@@ -78,14 +81,4 @@ const config = [
       }),
     ],
   },
-].map(({ file, format, plugins }) => ({
-  input: 'src/index.js',
-  output: {
-    name: 'mediumZoom',
-    file,
-    format,
-  },
-  plugins,
-}))
-
-export default config
+]
