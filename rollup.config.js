@@ -1,47 +1,44 @@
 import babel from 'rollup-plugin-babel'
-import commonjs from 'rollup-plugin-commonjs'
 import minify from 'rollup-plugin-babel-minify'
+import replace from 'rollup-plugin-replace'
 import { uglify } from 'rollup-plugin-uglify'
 import postcss from 'rollup-plugin-postcss'
 import cssnano from 'cssnano'
 
 import {
   name,
-  description,
   version,
-  author,
   repository,
   license,
-  main as mainPath,
-  module as modulePath,
+  main as umdPath,
+  module as esmPath,
 } from './package.json'
 
-const banner = `/*
- * ${name} v${version}
- * ${description}
- * Copyright ${new Date().getFullYear()} ${author.name}
- * https://github.com/${repository}
- * ${license} License
- */`
+const banner = `/*! ${name} ${version} | ${license} License | https://github.com/${repository} */`
 
-const plugins = [
+const sharedPlugins = [
   postcss({
     extensions: ['.css'],
     plugins: [cssnano()],
   }),
-  commonjs(),
+  replace({
+    __TEST__: process.env.NODE_ENV === 'test' ? 'true' : 'false',
+  }),
   babel({
     exclude: 'node_modules/**',
-    plugins: ['transform-object-assign'],
+    plugins: ['external-helpers', 'transform-object-rest-spread'],
   }),
 ]
 
-const config = [
+export default [
   {
-    file: modulePath,
-    format: 'es',
+    input: 'src/index.js',
+    output: {
+      file: esmPath,
+      format: 'es',
+    },
     plugins: [
-      ...plugins,
+      ...sharedPlugins,
       minify({
         comments: false,
         banner,
@@ -49,26 +46,34 @@ const config = [
     ],
   },
   {
-    file: mainPath.replace('.min', ''),
-    format: 'umd',
+    input: 'src/index.js',
+    output: {
+      name: 'mediumZoom',
+      file: umdPath.replace('.min', ''),
+      format: 'umd',
+    },
     plugins: [
-      ...plugins,
+      ...sharedPlugins,
       uglify({
         compress: false,
         mangle: false,
         output: {
           beautify: true,
           indent_level: 2,
-          comments: 'all',
+          preamble: banner,
         },
       }),
     ],
   },
   {
-    file: mainPath,
-    format: 'umd',
+    input: 'src/index.js',
+    output: {
+      name: 'mediumZoom',
+      file: umdPath,
+      format: 'umd',
+    },
     plugins: [
-      ...plugins,
+      ...sharedPlugins,
       uglify({
         output: {
           preamble: banner,
@@ -76,15 +81,4 @@ const config = [
       }),
     ],
   },
-].map(({ file, format, plugins }) => ({
-  input: 'src/index.js',
-  output: {
-    name: 'mediumZoom',
-    file,
-    format,
-    banner,
-  },
-  plugins,
-}))
-
-export default config
+]
