@@ -43,7 +43,7 @@ const getImagesFromSelector = selector => {
 const createOverlay = background => {
   const overlay = document.createElement('div')
   overlay.classList.add('medium-zoom-overlay')
-  overlay.style.backgroundColor = background
+  overlay.style.background = background
 
   return overlay
 }
@@ -163,7 +163,7 @@ const mediumZoom = (selector, options = {}) => {
     const newOptions = options
 
     if (options.background) {
-      overlay.style.backgroundColor = options.background
+      overlay.style.background = options.background
     }
 
     if (options.container && options.container instanceof Object) {

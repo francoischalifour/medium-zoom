@@ -25,7 +25,7 @@ exports[`browser events opens zoom on click on the image 1`] = `
   />
   <div
     class="medium-zoom-overlay"
-    style="background-color: rgb(255, 255, 255);"
+    style="background: rgb(255, 255, 255);"
   />
   <img
     class="medium-zoom-image medium-zoom-image--opened"
@@ -114,7 +114,7 @@ exports[`open() mediumZoom({ background }).open() renders correctly 1`] = `
   />
   <div
     class="medium-zoom-overlay"
-    style="background-color: rgb(186, 218, 85);"
+    style="background: rgb(186, 218, 85);"
   />
   <img
     class="medium-zoom-image medium-zoom-image--opened"
@@ -133,7 +133,7 @@ exports[`open() mediumZoom({ container: Node }).open() renders correctly 1`] = `
   />
   <div
     class="medium-zoom-overlay"
-    style="background-color: rgb(255, 255, 255);"
+    style="background: rgb(255, 255, 255);"
   />
   <img
     class="medium-zoom-image medium-zoom-image--opened"
@@ -151,7 +151,7 @@ exports[`open() mediumZoom({ container: Object }).open() renders correctly 1`] =
   />
   <div
     class="medium-zoom-overlay"
-    style="background-color: rgb(255, 255, 255);"
+    style="background: rgb(255, 255, 255);"
   />
   <img
     class="medium-zoom-image medium-zoom-image--opened"
@@ -170,7 +170,7 @@ exports[`open() mediumZoom({ container: String }).open() renders correctly 1`] =
   />
   <div
     class="medium-zoom-overlay"
-    style="background-color: rgb(255, 255, 255);"
+    style="background: rgb(255, 255, 255);"
   />
   <img
     class="medium-zoom-image medium-zoom-image--opened"
@@ -189,7 +189,7 @@ exports[`open() mediumZoom({ template: Node }).open() renders correctly 1`] = `
   />
   <div
     class="medium-zoom-overlay"
-    style="background-color: rgb(255, 255, 255);"
+    style="background: rgb(255, 255, 255);"
   />
   <div />
   <img
@@ -209,7 +209,7 @@ exports[`open() mediumZoom({ template: String }).open() renders correctly 1`] = 
   />
   <div
     class="medium-zoom-overlay"
-    style="background-color: rgb(255, 255, 255);"
+    style="background: rgb(255, 255, 255);"
   />
   <div />
   <img
@@ -229,7 +229,7 @@ exports[`open() open() a SVG renders correctly 1`] = `
   />
   <div
     class="medium-zoom-overlay"
-    style="background-color: rgb(255, 255, 255);"
+    style="background: rgb(255, 255, 255);"
   />
   <img
     class="medium-zoom-image medium-zoom-image--opened"
@@ -251,7 +251,7 @@ exports[`open() open() renders correctly 1`] = `
   />
   <div
     class="medium-zoom-overlay"
-    style="background-color: rgb(255, 255, 255);"
+    style="background: rgb(255, 255, 255);"
   />
   <img
     class="medium-zoom-image medium-zoom-image--opened"
@@ -269,7 +269,7 @@ exports[`open() open() twice does not zoom twice 1`] = `
   />
   <div
     class="medium-zoom-overlay"
-    style="background-color: rgb(255, 255, 255);"
+    style="background: rgb(255, 255, 255);"
   />
   <img
     class="medium-zoom-image medium-zoom-image--opened"
@@ -289,7 +289,7 @@ exports[`open() open() with \`data-zoom-src\` renders correctly 1`] = `
   />
   <div
     class="medium-zoom-overlay"
-    style="background-color: rgb(255, 255, 255);"
+    style="background: rgb(255, 255, 255);"
   />
   <img
     class="medium-zoom-image medium-zoom-image--opened"
@@ -317,7 +317,7 @@ exports[`open() open() with \`srcset\` renders correctly 1`] = `
   />
   <div
     class="medium-zoom-overlay"
-    style="background-color: rgb(255, 255, 255);"
+    style="background: rgb(255, 255, 255);"
   />
   <img
     class="medium-zoom-image medium-zoom-image--opened"
@@ -337,7 +337,7 @@ exports[`toggle() toggle() once renders correctly 1`] = `
   />
   <div
     class="medium-zoom-overlay"
-    style="background-color: rgb(255, 255, 255);"
+    style="background: rgb(255, 255, 255);"
   />
   <img
     class="medium-zoom-image medium-zoom-image--opened"
@@ -365,7 +365,7 @@ exports[`toggle() toggle() twice renders correctly: opened 1`] = `
   />
   <div
     class="medium-zoom-overlay"
-    style="background-color: rgb(255, 255, 255);"
+    style="background: rgb(255, 255, 255);"
   />
   <img
     class="medium-zoom-image medium-zoom-image--opened"
