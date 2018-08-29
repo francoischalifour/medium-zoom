@@ -9,7 +9,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "medium-zoom": "1.0.0"
+    "medium-zoom": "1.0.1"
   },
   "devDependencies": {
     "eslint": "5.4.0",
