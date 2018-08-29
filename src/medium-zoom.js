@@ -22,11 +22,11 @@ const getImagesFromSelector = selector => {
     }
 
     if (isNode(selector)) {
-      // Do not use spread operator or Array.from() for IE support
       return [selector].filter(isSupported)
     }
 
     if (typeof selector === 'string') {
+      // Do not use spread operator or Array.from() for IE support
       return [].slice
         .call(document.querySelectorAll(selector))
         .filter(isSupported)
