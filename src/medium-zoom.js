@@ -122,8 +122,6 @@ const Promise =
  */
 const mediumZoom = (selector, options = {}) => {
   const _handleClick = event => {
-    event.preventDefault()
-
     const { target } = event
 
     if (target === overlay) {
