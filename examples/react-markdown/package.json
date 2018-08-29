@@ -9,7 +9,7 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
-    "medium-zoom": "1.0.0",
+    "medium-zoom": "1.0.1",
     "react": "16.4.1",
     "react-dom": "16.4.1",
     "react-markdown": "3.4.1",
