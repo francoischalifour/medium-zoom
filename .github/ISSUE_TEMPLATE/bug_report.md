@@ -33,7 +33,7 @@ about: Did something not work?
   - Share the link of the sandbox
 -->
 
-[Link to the bug reproduction](add-the-url)
+[Link to the bug reproduction](https://codesandbox.io/s/ADD_THE_SANDBOX_ID)
 
 ## Environment
 
