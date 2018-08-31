@@ -37,6 +37,7 @@ em {
 }
 
 .placeholder {
+  font-family: sans-serif;
   text-align: justify;
   pointer-events: none;
   user-select: none;
