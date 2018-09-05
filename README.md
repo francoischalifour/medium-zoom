@@ -233,7 +233,7 @@ zoom.attach(
 
 #### `detach(...selectors: string[]|Element[]|NodeList[]|Array[]) => Zoom`
 
-Releases the images attached to the zoom and returns the zoom.
+Releases the images from the zoom and returns the zoom.
 
 ```js
 const zoom = mediumZoom('[data-zoomable]')
