@@ -268,8 +268,8 @@ const mediumZoom = (selector, options = {}) => {
   const open = ({ target } = {}) => {
     const _animate = () => {
       let container = {
-        width: window.innerWidth,
-        height: window.innerHeight,
+        width: document.documentElement.clientWidth,
+        height: document.documentElement.clientHeight,
         left: 0,
         top: 0,
         right: 0,
