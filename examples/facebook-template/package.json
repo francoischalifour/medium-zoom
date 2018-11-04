@@ -8,7 +8,7 @@
     "build": "parcel build index.html"
   },
   "dependencies": {
-    "medium-zoom": "1.0.1"
+    "medium-zoom": "1.0.2"
   },
   "devDependencies": {
     "parcel-bundler": "1.10.3"
