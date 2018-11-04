@@ -12,9 +12,10 @@
     "medium-zoom": "1.0.2"
   },
   "devDependencies": {
-    "eslint": "5.4.0",
+    "babel-core": "6.26.3",
+    "eslint": "5.8.0",
     "eslint-config-airbnb-base": "13.1.0",
-    "eslint-config-prettier": "3.0.1",
+    "eslint-config-prettier": "3.1.0",
     "eslint-plugin-import": "2.14.0",
     "parcel-bundler": "1.10.3"
   }
