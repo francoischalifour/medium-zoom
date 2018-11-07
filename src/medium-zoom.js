@@ -486,7 +486,7 @@ const mediumZoom = (selector, options = {}) => {
 
       if (__TEST__) {
         // The event `transitionend` is not triggered in test environment.
-        // Calling = this const manually makes testing the open() const possible=> .
+        // Calling this function manually makes testing the open() function possible.
         _handleOpenEnd()
       }
     })
