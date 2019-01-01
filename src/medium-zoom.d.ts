@@ -175,4 +175,4 @@ declare function mediumZoom(
  */
 declare function mediumZoom(options?: ZoomOptions): Zoom
 
-export = mediumZoom
+export default mediumZoom
