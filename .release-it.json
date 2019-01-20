@@ -1,9 +1,11 @@
 {
-  "requireUpstream": false,
-  "requireCleanWorkingDir": false,
   "increment": "conventional:angular",
-  "src": {
-    "commitMessage": "chore(release): %s",
-    "beforeStartCommand": "yarn run lint && yarn run build && yarn run test --colors && yarn run test:cypress && yarn run test:size"
+  "scripts": {
+    "beforeStart": "yarn run lint && yarn run build && yarn run test --colors && yarn run test:cypress && yarn run test:size"
+  },
+  "git": {
+    "requireUpstream": false,
+    "requireCleanWorkingDir": false,
+    "commitMessage": "chore(release): %s"
   }
 }
