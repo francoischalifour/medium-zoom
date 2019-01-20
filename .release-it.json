@@ -1,7 +1,8 @@
 {
   "increment": "conventional:angular",
   "scripts": {
-    "beforeStart": "yarn run lint && yarn run build && yarn run test --colors && yarn run test:cypress && yarn run test:size"
+    "beforeStart": "yarn run lint && yarn run build && yarn run test --colors && yarn run test:cypress && yarn run test:size",
+    "afterRelease": "./release-examples.sh"
   },
   "git": {
     "requireUpstream": false,
