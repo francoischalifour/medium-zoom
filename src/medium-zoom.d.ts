@@ -1,4 +1,4 @@
-export type ZoomSelector = string | Element | Element[] | NodeList
+export type ZoomSelector = string | HTMLElement | HTMLElement[] | NodeList
 
 export interface ZoomOptions {
   /**
@@ -27,14 +27,14 @@ export interface ZoomOptions {
    *
    * @default null
    */
-  container?: string | Element | ZoomContainer
+  container?: string | HTMLElement | ZoomContainer
 
   /**
    * The template element to display on zoom.
    *
    * @default null
    */
-  template?: string | Element
+  template?: string | HTMLTemplateElement
 }
 
 export interface ZoomContainer {
@@ -54,7 +54,7 @@ export interface ZoomOpenOptions {
    *
    * @default null
    */
-  target?: Element
+  target?: HTMLElement
 }
 
 export interface Zoom {
@@ -121,7 +121,11 @@ export interface Zoom {
    * @param options - The event listener options (same as [`addEventListener`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#Parameters))
    * @returns The zoom.
    */
-  on(type: string, listener: () => void, options?: object): Zoom
+  on(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | AddEventListenerOptions
+  ): Zoom
 
   /**
    * Unregisters an event handler.
@@ -131,7 +135,11 @@ export interface Zoom {
    * @param options - The event listener options (same as [`removeEventListener`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/removeEventListener#Parameters))
    * @returns The zoom.
    */
-  off(type: string, listener: () => void, options?: object): Zoom
+  off(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | AddEventListenerOptions
+  ): Zoom
 
   /**
    * Returns the zoom options.
@@ -145,14 +153,14 @@ export interface Zoom {
    *
    * @returns The zoom images.
    */
-  getImages(): Element[]
+  getImages(): HTMLElement[]
 
   /**
    * Returns the current zoomed image.
    *
    * @returns The current zoomed image.
    */
-  getZoomedImage(): Element
+  getZoomedImage(): HTMLElement
 }
 
 /**
