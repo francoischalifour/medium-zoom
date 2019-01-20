@@ -128,7 +128,7 @@ mediumZoom('[data-zoomable]')
 ## API
 
 ```
-mediumZoom(selector?: string|Element|NodeList|Array, options?: object) => Zoom
+mediumZoom(selector?: string | HTMLElement | HTMLElement[] | NodeList, options?: object): Zoom
 ```
 
 ### Selectors
@@ -136,7 +136,7 @@ mediumZoom(selector?: string|Element|NodeList|Array, options?: object) => Zoom
 The selector allows attaching images to the zoom. It can be of the following types:
 
 - [CSS selectors](https://developer.mozilla.org/docs/Web/CSS/CSS_Selectors)
-- [`Element`](https://developer.mozilla.org/docs/Web/API/Element)
+- [`HTMLElement`](https://developer.mozilla.org/docs/Web/API/HTMLElement)
 - [`NodeList`](https://developer.mozilla.org/docs/Web/API/NodeList)
 - [`Array`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)
 
@@ -144,7 +144,7 @@ The selector allows attaching images to the zoom. It can be of the following typ
 // CSS selector
 mediumZoom('[data-zoomable]')
 
-// Element
+// HTMLElement
 mediumZoom(document.querySelector('#cover'))
 
 // NodeList
@@ -163,13 +163,13 @@ mediumZoom(images)
 
 The options enable the customization of the zoom. They are defined as an object with the following properties:
 
-| Property       | Type                          | Default  | Description                                                                 |
-| -------------- | ----------------------------- | -------- | --------------------------------------------------------------------------- |
-| `margin`       | `number`                      | `0`      | The space outside the zoomed image                                          |
-| `background`   | `string`                      | `"#fff"` | The background of the overlay                                               |
-| `scrollOffset` | `number`                      | `40`     | The number of pixels to scroll to close the zoom                            |
-| `container`    | `string`\|`Element`\|`object` | `null`   | The viewport to render the zoom in<br> [Read more →](docs/container.md)     |
-| `template`     | `string`\|`Element`           | `null`   | The template element to display on zoom<br> [Read more →](docs/template.md) |
+| Property       | Type                                  | Default  | Description                                                                 |
+| -------------- | ------------------------------------- | -------- | --------------------------------------------------------------------------- |
+| `margin`       | `number`                              | `0`      | The space outside the zoomed image                                          |
+| `background`   | `string`                              | `"#fff"` | The background of the overlay                                               |
+| `scrollOffset` | `number`                              | `40`     | The number of pixels to scroll to close the zoom                            |
+| `container`    | `string` \| `HTMLElement` \| `object` | `null`   | The viewport to render the zoom in<br> [Read more →](docs/container.md)     |
+| `template`     | `string` \| `HTMLTemplateElement`     | `null`   | The template element to display on zoom<br> [Read more →](docs/template.md) |
 
 ```js
 mediumZoom('[data-zoomable]', {
@@ -183,7 +183,7 @@ mediumZoom('[data-zoomable]', {
 
 ### Methods
 
-#### `open({ target?: Element }) => Promise<Zoom>`
+#### `open({ target?: HTMLElement }): Promise<Zoom>`
 
 Opens the zoom and returns a promise resolving with the zoom.
 
@@ -195,7 +195,7 @@ zoom.open()
 
 _Emits an event [`open`](#events) on animation start and [`opened`](#events) when completed._
 
-#### `close() => Promise<Zoom>`
+#### `close(): Promise<Zoom>`
 
 Closes the zoom and returns a promise resolving with the zoom.
 
@@ -207,7 +207,7 @@ zoom.close()
 
 _Emits an event [`close`](#events) on animation start and [`closed`](#events) when completed._
 
-#### `toggle({ target?: Element }) => Promise<Zoom>`
+#### `toggle({ target?: HTMLElement }): Promise<Zoom>`
 
 Opens the zoom when closed / dismisses the zoom when opened, and returns a promise resolving with the zoom.
 
@@ -217,7 +217,7 @@ const zoom = mediumZoom('[data-zoomable]')
 zoom.toggle()
 ```
 
-#### `attach(...selectors: string[]|Element[]|NodeList[]|Array[]) => Zoom`
+#### `attach(...selectors: string[] | HTMLElement[] | NodeList[] | Array[]): Zoom`
 
 Attaches the images to the zoom and returns the zoom.
 
@@ -231,7 +231,7 @@ zoom.attach(
 )
 ```
 
-#### `detach(...selectors: string[]|Element[]|NodeList[]|Array[]) => Zoom`
+#### `detach(...selectors: string[] | HTMLElement[] | NodeList[] | Array[]): Zoom`
 
 Releases the images from the zoom and returns the zoom.
 
@@ -244,7 +244,7 @@ zoom.detach() // detach all images
 
 _Emits an event [`detach`](#events) on the image._
 
-#### `update(options: object) => Zoom`
+#### `update(options: object): Zoom`
 
 Updates the options and returns the zoom.
 
@@ -256,7 +256,7 @@ zoom.update({ background: '#BADA55' })
 
 _Emits an event [`update`](#events) on each image of the zoom._
 
-#### `clone(options?: object) => Zoom`
+#### `clone(options?: object): Zoom`
 
 Clones the zoom with provided options merged with the current ones and returns the zoom.
 
@@ -268,7 +268,7 @@ const clonedZoom = zoom.clone({ margin: 48 })
 clonedZoom.getOptions() // => { background: '#BADA55', margin: 48, ... }
 ```
 
-#### `on(type: string, listener: Function, options?: object) => Zoom`
+#### `on(type: string, listener: () => void, options?: boolean | AddEventListenerOptions): Zoom`
 
 Registers the listener on each target of the zoom.
 
@@ -292,7 +292,7 @@ zoom.on(
 
 The zoom object is accessible in `event.detail.zoom`.
 
-#### `off(type: string, listener: Function, options?: object) => Zoom`
+#### `off(type: string, listener: () => void, options?: boolean | AddEventListenerOptions): Zoom`
 
 Removes the previously registered listener on each target of the zoom.
 
@@ -312,7 +312,7 @@ zoom.off('open', listener)
 
 The zoom object is accessible in `event.detail.zoom`.
 
-#### `getOptions() => object`
+#### `getOptions(): object`
 
 Returns the zoom options as an object.
 
@@ -322,26 +322,26 @@ const zoom = mediumZoom({ background: '#BADA55' })
 zoom.getOptions() // => { background: '#BADA55', ... }
 ```
 
-#### `getImages() => Element[]`
+#### `getImages(): HTMLElement[]`
 
-Returns the images attached to the zoom as an array of [`Element`s](https://developer.mozilla.org/docs/Web/API/Element).
+Returns the images attached to the zoom as an array of [`HTMLElement`s](https://developer.mozilla.org/docs/Web/API/HTMLElement).
 
 ```js
 const zoom = mediumZoom('[data-zoomable]')
 
-zoom.getImages() // => [Element, Element]
+zoom.getImages() // => [HTMLElement, HTMLElement]
 ```
 
-#### `getZoomedImage() => Element`
+#### `getZoomedImage(): HTMLElement`
 
-Returns the current zoomed image as an [`Element`](https://developer.mozilla.org/docs/Web/API/Element) or `null` if none.
+Returns the current zoomed image as an [`HTMLElement`](https://developer.mozilla.org/docs/Web/API/HTMLElement) or `null` if none.
 
 ```js
 const zoom = mediumZoom('[data-zoomable]')
 
 zoom.getZoomedImage() // => null
 zoom.open().then(() => {
-  zoom.getZoomedImage() // => Element
+  zoom.getZoomedImage() // => HTMLElement
 })
 ```
 
