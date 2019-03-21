@@ -98,17 +98,17 @@ const createCustomEvent = (type, params) => {
   return customEvent
 }
 
-/**
- * Ensure the compatibility with IE11 if no Promise polyfill are used.
- */
-const Promise =
-  window.Promise ||
-  function Promise(fn) {
-    function noop() {}
-    fn(noop, noop)
-  }
-
 const mediumZoom = (selector, options = {}) => {
+  /**
+   * Ensure the compatibility with IE11 if no Promise polyfill are used.
+   */
+  const Promise =
+    window.Promise ||
+    function Promise(fn) {
+      function noop() {}
+      fn(noop, noop)
+    }
+
   const _handleClick = event => {
     const { target } = event
 
