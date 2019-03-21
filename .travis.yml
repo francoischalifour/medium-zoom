@@ -13,5 +13,5 @@ env:
   matrix:
     - SCRIPT="yarn run lint"
     - SCRIPT="yarn run test --coverage --colors"
-    - SCRIPT="yarn run test:cypress:record $CYPRESS_RECORD_KEY"
+    # - SCRIPT="yarn run test:cypress:record $CYPRESS_RECORD_KEY"
     - SCRIPT="yarn run test:size"
