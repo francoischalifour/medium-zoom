@@ -5795,10 +5795,10 @@ media-typer@0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/media-typer/-/media-typer-0.3.0.tgz#8710d7af0aa626f8fffa1ce00168545263255748"
 
-medium-zoom@1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/medium-zoom/-/medium-zoom-1.0.3.tgz#6edf14e894976bc52964a10e08a7ec7817152379"
-  integrity sha512-/8FocjPsVNuKkwUoI44l4nSsVTWalVqkB+FOXJTBQgl26y3Vp4er8FJpkk6kLQQPdCpm/W3eG7ptNoIm4Y6Rbw==
+medium-zoom@1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/medium-zoom/-/medium-zoom-1.0.4.tgz#b1063093f81151a19989489589edf28e6090630c"
+  integrity sha512-BjE+00gQku3XQfgHDcqyYwQaBtFddzh6Lnj1RZOliqJ9HS0mh/P2IaqVJ25/j9EbnjAUf27mLeLZBRxnd00bfA==
 
 mem@^1.1.0:
   version "1.1.0"
