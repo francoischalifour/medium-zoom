@@ -34,7 +34,8 @@
     "build:website": "(cd website && yarn && yarn run build) && yarn run build && yarn run build:storybook",
     "precommit": "pretty-quick --staged",
     "release": "release-it",
-    "release:next": "release-it --preRelease=next"
+    "release:next": "release-it --preRelease=next",
+    "release:examples": "./scripts/release-examples.sh"
   },
   "files": [
     "dist"
