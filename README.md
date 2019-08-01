@@ -121,13 +121,15 @@ Or import the library with a script tag:
 
 That's it! You don't need to import any CSS styles.
 
+Assuming you add the `data-zoomable` attribute to your images:
+
 ```js
 mediumZoom('[data-zoomable]')
 ```
 
 ## API
 
-```
+```ts
 mediumZoom(selector?: string | HTMLElement | HTMLElement[] | NodeList, options?: object): Zoom
 ```
 
