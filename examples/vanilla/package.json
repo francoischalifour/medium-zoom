@@ -8,7 +8,7 @@
     "build": "parcel build index.html --public-url ./"
   },
   "dependencies": {
-    "medium-zoom": "1.0.4"
+    "medium-zoom": "1.0.5"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
