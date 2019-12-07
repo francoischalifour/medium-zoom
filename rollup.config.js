@@ -1,20 +1,15 @@
 import babel from 'rollup-plugin-babel'
-import minify from 'rollup-plugin-babel-minify'
+import { terser } from 'rollup-plugin-terser'
+import license from 'rollup-plugin-license'
 import replace from 'rollup-plugin-replace'
 import { uglify } from 'rollup-plugin-uglify'
 import postcss from 'rollup-plugin-postcss'
+import filesize from 'rollup-plugin-filesize'
 import cssnano from 'cssnano'
 
-import {
-  name,
-  version,
-  repository,
-  license,
-  main as umdPath,
-  module as esmPath,
-} from './package.json'
+import pkg from './package.json'
 
-const banner = `/*! ${name} ${version} | ${license} License | https://github.com/${repository} */`
+const banner = `/*! ${pkg.name} ${pkg.version} | ${pkg.license} License | https://github.com/${pkg.repository} */`
 
 const sharedPlugins = [
   postcss({
@@ -28,28 +23,26 @@ const sharedPlugins = [
     exclude: 'node_modules/**',
     plugins: ['external-helpers', 'transform-object-rest-spread'],
   }),
+  filesize({
+    showMinifiedSize: false,
+    showGzippedSize: true,
+  }),
 ]
 
 export default [
   {
     input: 'src/index.js',
     output: {
-      file: esmPath,
+      file: pkg.module,
       format: 'es',
     },
-    plugins: [
-      ...sharedPlugins,
-      minify({
-        comments: false,
-        banner,
-      }),
-    ],
+    plugins: [...sharedPlugins, license({ banner })],
   },
   {
     input: 'src/index.js',
     output: {
       name: 'mediumZoom',
-      file: umdPath.replace('.min', ''),
+      file: pkg.main.replace('.min', ''),
       format: 'umd',
     },
     plugins: [
@@ -69,16 +62,9 @@ export default [
     input: 'src/index.js',
     output: {
       name: 'mediumZoom',
-      file: umdPath,
+      file: pkg.main,
       format: 'umd',
     },
-    plugins: [
-      ...sharedPlugins,
-      uglify({
-        output: {
-          preamble: banner,
-        },
-      }),
-    ],
+    plugins: [...sharedPlugins, terser(), license({ banner })],
   },
 ]
