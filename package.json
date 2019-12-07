@@ -12,6 +12,7 @@
   "main": "dist/medium-zoom.min.js",
   "module": "dist/medium-zoom.esm.js",
   "types": "dist/medium-zoom.d.ts",
+  "sideEffects": false,
   "scripts": {
     "start": "yarn run dev",
     "dev": "rollup --config --watch",
