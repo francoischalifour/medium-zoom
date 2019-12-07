@@ -1,0 +1,12 @@
+{
+  "files": [
+    {
+      "path": "dist/medium-zoom.esm.js",
+      "maxSize": "3 kB"
+    },
+    {
+      "path": "dist/medium-zoom.min.js",
+      "maxSize": "3 kB"
+    }
+  ]
+}

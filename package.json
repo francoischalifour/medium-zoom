@@ -92,15 +92,5 @@
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-uglify": "4.0.0",
     "rollup-watch": "4.3.1"
-  },
-  "bundlesize": [
-    {
-      "path": "dist/medium-zoom.esm.js",
-      "maxSize": "3 kB"
-    },
-    {
-      "path": "dist/medium-zoom.min.js",
-      "maxSize": "3 kB"
-    }
-  ]
+  }
 }
