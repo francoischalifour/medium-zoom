@@ -2,7 +2,8 @@
   "increment": "conventional:angular",
   "scripts": {
     "beforeStart": "yarn run lint && yarn run test --colors && yarn run build && yarn run test:size && yarn run test:cypress",
-    "afterRelease": "yarn run release:examples"
+    "afterRelease": "yarn run release:examples",
+    "changelog": "yarn run changelog:update"
   },
   "git": {
     "requireUpstream": false,
