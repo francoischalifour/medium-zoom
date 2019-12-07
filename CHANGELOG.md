@@ -1,3 +1,9 @@
+## [1.0.5](https://github.com/francoischalifour/medium-zoom/compare/1.0.4...1.0.5) (2019-12-07)
+
+### Fixed
+
+- Give zoom transition higher priority ([#148](https://github.com/francoischalifour/medium-zoom/issues/148)) ([25b3524](https://github.com/francoischalifour/medium-zoom/commit/25b3524bb76e19a5e8dc46e32cadca3db7fedbef)), closes [#110](https://github.com/francoischalifour/medium-zoom/issues/110)
+
 ## [1.0.4](https://github.com/francoischalifour/medium-zoom/compare/1.0.3...1.0.4) (2019-04-06)
 
 ### Fixed
