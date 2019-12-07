@@ -18,7 +18,16 @@
 .medium-zoom-image {
   cursor: pointer;
   cursor: zoom-in;
-  transition: transform 300ms cubic-bezier(0.2, 0, 0.2, 1);
+  /*
+    The `transition` is marked as "!important" for the animation to happen
+    even though it's overriden by another inline `transition` style attribute.
+
+    This is problematic with frameworks that generate inline styles on their
+    images (e.g. Gatsby).
+
+    See https://github.com/francoischalifour/medium-zoom/issues/110
+   */
+  transition: transform 300ms cubic-bezier(0.2, 0, 0.2, 1) !important;
 }
 
 .medium-zoom-image--hidden {
