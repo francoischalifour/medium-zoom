@@ -1,4 +1,4 @@
-## [1.0.4](https://github.com/francoischalifour/medium-zoom/compare/1.0.3...1.0.4) (2019-12-07)
+## [1.0.4](https://github.com/francoischalifour/medium-zoom/compare/1.0.3...1.0.4) (2019-04-06)
 
 ### Fixed
 
