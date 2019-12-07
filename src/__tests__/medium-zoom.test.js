@@ -1553,6 +1553,7 @@ describe('browser events', () => {
 
     const overlay = document.querySelector('.medium-zoom-overlay')
     overlay.click()
+    jest.runAllTimers()
 
     expect([...image.classList]).toEqual(['medium-zoom-image'])
     expect(document.querySelector('.medium-zoom-image--opened')).toBeFalsy()
@@ -1570,19 +1571,24 @@ describe('browser events', () => {
     image.click()
     jest.runAllTimers()
 
-    document.dispatchEvent(new KeyboardEvent('keyup', { keyCode: 27 }))
+    document.dispatchEvent(
+      new KeyboardEvent('keyup', {
+        bubbles: true,
+        cancelable: true,
+        key: 'Escape',
+        keyCode: 27,
+      })
+    )
+    jest.runAllTimers()
 
-    expect([...image.classList]).toEqual([
-      'medium-zoom-image',
-      'medium-zoom-image--hidden',
-    ])
+    expect([...image.classList]).toEqual(['medium-zoom-image'])
     expect(document.querySelector('.medium-zoom-image--opened')).toBeFalsy()
     expect(document.querySelector('.medium-zoom-overlay')).toBeFalsy()
     expect(document.querySelector('.medium-zoom--opened')).toBeFalsy()
     expect(root).toMatchSnapshot()
   })
 
-  test.skip('does not close on other keys', () => {
+  test('does not close on other keys', () => {
     const image = document.createElement('img')
     root.appendChild(image)
 
@@ -1591,7 +1597,15 @@ describe('browser events', () => {
     image.click()
     jest.runAllTimers()
 
-    document.dispatchEvent(new KeyboardEvent('keyup', { keyCode: 65 }))
+    document.dispatchEvent(
+      new KeyboardEvent('keyup', {
+        bubbles: true,
+        cancelable: true,
+        key: 'Enter',
+        keyCode: 13,
+      })
+    )
+    jest.runAllTimers()
 
     expect([...image.classList]).toEqual([
       'medium-zoom-image',

@@ -50,8 +50,10 @@ const mediumZoom = (selector, options = {}) => {
   }
 
   const _handleKeyUp = event => {
+    const key = event.key || event.keyCode
+
     // Close if escape key is pressed
-    if ((event.keyCode || event.which) === 27) {
+    if (key === 'Escape' || key === 'Esc' || key === 27) {
       close()
     }
   }
