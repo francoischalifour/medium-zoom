@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "medium-zoom": "1.0.4",
-    "parcel-bundler": "1.11.0",
-    "react": "16.7.0",
-    "react-dom": "16.7.0",
+    "parcel-bundler": "1.12.4",
+    "react": "16.12.0",
+    "react-dom": "16.12.0",
     "react-scripts": "1.1.5"
   }
 }

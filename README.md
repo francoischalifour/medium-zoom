@@ -354,11 +354,7 @@ zoom.open().then(() => {
 Specifies the high definition image to open on zoom. This image loads when the user clicks on the source image.
 
 ```html
-<img
-  src="image-thumbnail.jpg"
-  data-zoom-src="image-hd.jpg"
-  alt="My image"
->
+<img src="image-thumbnail.jpg" data-zoom-src="image-hd.jpg" alt="My image" />
 ```
 
 ### Events
@@ -436,6 +432,35 @@ mediumZoom($('[data-zoomable]').toArray())
 
 <details>
  <summary>Create a zoomable React component</summary>
+
+**Using React hooks**
+
+```js
+import React from 'react'
+import mediumZoom from 'medium-zoom'
+
+function ImageZoom({ zoom, src, alt, background }) {
+  const zoomRef = React.useRef(zoom.clone({ background }))
+
+  function attachZoom(image) {
+    zoomRef.current.attach(image)
+  }
+
+  return <img src={src} alt={alt} ref={attachZoom} />
+}
+
+function App() {
+  const zoom = React.useRef(mediumZoom({ background: '#000', margin: 48 }))
+
+  render() {
+    return (
+      <ImageZoom src="image.jpg" alt="Image" zoom={zoom.current} color="#BADA55" />
+    )
+  }
+}
+```
+
+**Using React classes**
 
 ```js
 import React, { Component } from 'react'
