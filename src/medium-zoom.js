@@ -379,9 +379,9 @@ const mediumZoom = (selector, options = {}) => {
         // image best fitting the current viewport size, respecting the `srcset`.
         active.zoomedHd.removeAttribute('sizes')
 
-        // In Firefox, the `loading` attribute needs to be set to `eager` for the
-        // load event to be fired.
-        active.zoomedHd.setAttribute('loading', 'eager')
+        // In Firefox, the `loading` attribute needs to be set to `eager` (default
+        // value) for the load event to be fired.
+        active.zoomedHd.setAttribute('loading', '')
 
         // Wait for the load event of the hd image. This will fire if the image
         // is already cached.
