@@ -1,3 +1,9 @@
+## [1.0.6](https://github.com/francoischalifour/medium-zoom/compare/1.0.5...1.0.6) (2020-07-08)
+
+### Bug Fixes
+
+- support lazy loading images on Firefox ([#158](https://github.com/francoischalifour/medium-zoom/issues/158)) ([aebb316](https://github.com/francoischalifour/medium-zoom/commit/aebb31636cb9e87f3a9b25f8bd0007f0269c1ae7))
+
 ## [1.0.5](https://github.com/francoischalifour/medium-zoom/compare/1.0.4...1.0.5) (2019-12-07)
 
 ### Fixed
