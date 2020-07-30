@@ -71,6 +71,7 @@ export const cloneTarget = template => {
   clone.style.width = `${width}px`
   clone.style.height = `${height}px`
   clone.style.transform = ''
+  clone.style.zIndex = '10000'
 
   return clone
 }
