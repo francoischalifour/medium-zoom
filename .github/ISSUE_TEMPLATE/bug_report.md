@@ -28,7 +28,7 @@ about: Did something not work?
 
 <!--
   - Go to the vanilla JavaScript example on CodeSandbox: https://codesandbox.io/s/github/francoischalifour/medium-zoom/tree/master/examples/vanilla
-  - Fork it (top-left button)
+  - Fork it
   - Reproduce the bug you noticed
   - Share the link of the sandbox
 -->
