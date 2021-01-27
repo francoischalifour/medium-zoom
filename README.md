@@ -63,6 +63,7 @@ npx doctoc README.md --maxlevel 3
   - [Attributes](#attributes)
   - [Events](#events)
 - [Examples](#examples)
+- [Debugging](#debugging)
 - [Browser support](#browser-support)
 - [Contributing](#contributing)
 - [License](#license)
@@ -497,6 +498,24 @@ class App extends Component {
 <br>
 
 You can see [more examples](examples/) including [React](examples/react) and [Vue](examples/vue), or check out the [storybook](https://medium-zoom.francoischalifour.com/storybook).
+
+## Debugging
+
+<details>
+ <summary>The zoomed image is not visible</summary>
+
+The library doesn't provide a `z-index` value on the zoomed image to avoid conflicts with other frameworks. Some frameworks might specify a `z-index` for their elements, which makes the zoomed image not visible.
+
+If that's the case, you can provide a `z-index` value in your CSS:
+
+```css
+.medium-zoom-overlay,
+.medium-zoom-image--opened {
+  z-index: 999;
+}
+```
+
+</details>
 
 ## Browser support
 
