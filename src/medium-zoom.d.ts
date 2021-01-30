@@ -35,6 +35,13 @@ export interface ZoomOptions {
    * @default null
    */
   template?: string | HTMLTemplateElement
+
+  /**
+   * The css class add to the zoomed image.
+   *
+   * @default null
+   */
+  class?: string | Array<T>
 }
 
 export interface ZoomContainer {
