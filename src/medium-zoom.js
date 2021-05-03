@@ -246,20 +246,21 @@ const mediumZoom = (selector, options = {}) => {
 
       const scaleX = Math.min(naturalWidth, viewportWidth) / width
       const scaleY = Math.min(naturalHeight, viewportHeight) / height
-      const scale = Math.min(scaleX, scaleY)
+      const scale = Math.min(scaleX, scaleY);
+      active.zoomed.style.width = `${width * scale}px`;
+      active.zoomed.style.height = `${height * scale}px`;
+
       const translateX =
-        (-left +
-          (viewportWidth - width) / 2 +
-          zoomOptions.margin +
-          container.left) /
-        scale
+        -left +
+        (viewportWidth - width * scale) / 2 +
+        zoomOptions.margin +
+        container.left;
       const translateY =
-        (-top +
-          (viewportHeight - height) / 2 +
-          zoomOptions.margin +
-          container.top) /
-        scale
-      const transform = `scale(${scale}) translate3d(${translateX}px, ${translateY}px, 0)`
+        -top +
+        (viewportHeight / scale - height) / 2 +
+        zoomOptions.margin +
+        container.top;
+      const transform = `translate3d(${translateX}px, ${translateY}px, 0)`;
 
       active.zoomed.style.transform = transform
 
@@ -446,6 +447,11 @@ const mediumZoom = (selector, options = {}) => {
       isAnimating = true
       document.body.classList.remove('medium-zoom--opened')
       active.zoomed.style.transform = ''
+
+      const zoomTarget = active.zoomedHd || active.original;
+      const { width, height } = zoomTarget.getBoundingClientRect();
+      active.zoomed.style.width = `${width}px`;
+      active.zoomed.style.height = `${height}px`;
 
       if (active.zoomedHd) {
         active.zoomedHd.style.transform = ''
