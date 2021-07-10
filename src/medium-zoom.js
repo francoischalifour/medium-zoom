@@ -246,7 +246,7 @@ const mediumZoom = (selector, options = {}) => {
 
       const scaleX = Math.min(Math.max(width, naturalWidth), viewportWidth) / width
       const scaleY = Math.min(Math.max(height, naturalHeight), viewportHeight) / height
-      const scale = Math.max(Math.min(scaleX, scaleY)
+      const scale = Math.min(scaleX, scaleY)
       const translateX =
         (-left +
           (viewportWidth - width) / 2 +
