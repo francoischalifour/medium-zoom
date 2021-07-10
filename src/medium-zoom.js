@@ -244,8 +244,8 @@ const mediumZoom = (selector, options = {}) => {
         : zoomTarget.naturalHeight || viewportHeight
       const { top, left, width, height } = zoomTarget.getBoundingClientRect()
 
-      const scaleX = Math.min(naturalWidth, viewportWidth) / width
-      const scaleY = Math.min(naturalHeight, viewportHeight) / height
+      const scaleX = Math.min(Math.max(width, naturalWidth), viewportWidth) / width
+      const scaleY = Math.min(Math.max(height, naturalHeight), viewportHeight) / height
       const scale = Math.min(scaleX, scaleY)
       const translateX =
         (-left +
