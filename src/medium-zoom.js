@@ -346,6 +346,8 @@ const mediumZoom = (selector, options = {}) => {
         // Reset the `scrset` property or the HD image won't load.
         active.zoomedHd.removeAttribute('srcset')
         active.zoomedHd.removeAttribute('sizes')
+        // Remove loading attribute so the browser can load the image normally
+        active.zoomedHd.removeAttribute('loading')
 
         active.zoomedHd.src = active.zoomed.getAttribute('data-zoom-src')
 
