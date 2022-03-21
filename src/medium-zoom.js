@@ -263,6 +263,10 @@ const mediumZoom = (selector, options = {}) => {
 
       active.zoomed.style.transform = transform
 
+      if (zoomOptions.zoomedBackground) {
+        active.zoomed.style.background = zoomOptions.zoomedBackground
+      }
+
       if (active.zoomedHd) {
         active.zoomedHd.style.transform = transform
       }
