@@ -16,6 +16,13 @@ export interface ZoomOptions {
   background?: string
 
   /**
+   * The background of zoomed image.
+   *
+   * @default null
+   */
+  zoomedBackground?: string
+
+  /**
    * The number of pixels to scroll to close the zoom.
    *
    * @default 40
