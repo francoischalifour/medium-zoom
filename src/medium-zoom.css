@@ -39,4 +39,5 @@
   cursor: pointer;
   cursor: zoom-out;
   will-change: transform;
+  background: #fff;
 }
