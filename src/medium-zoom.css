@@ -30,6 +30,12 @@
   transition: transform 300ms cubic-bezier(0.2, 0, 0.2, 1) !important;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .medium-zoom-image {
+    transition: transform 1ms !important;
+  }
+}
+
 .medium-zoom-image--hidden {
   visibility: hidden;
 }
