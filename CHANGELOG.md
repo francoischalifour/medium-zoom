@@ -1,3 +1,10 @@
+## [1.0.7](https://github.com/francoischalifour/medium-zoom/compare/1.0.6...1.0.7) (2022-11-14)
+
+### Bug Fixes
+
+- ensure zooming out doesn't happen ([#176](https://github.com/francoischalifour/medium-zoom/issues/176)) ([b920940](https://github.com/francoischalifour/medium-zoom/commit/b920940c061d2dcb280e873ac4ca577130d4efc1))
+- remove `loading` attribute on HD target ([#186](https://github.com/francoischalifour/medium-zoom/issues/186)) ([dd01423](https://github.com/francoischalifour/medium-zoom/commit/dd01423b983a228be348c81ef9347d688a166cb6))
+
 ## [1.0.6](https://github.com/francoischalifour/medium-zoom/compare/1.0.5...1.0.6) (2020-07-08)
 
 ### Bug Fixes
