@@ -244,8 +244,10 @@ const mediumZoom = (selector, options = {}) => {
         : zoomTarget.naturalHeight || viewportHeight
       const { top, left, width, height } = zoomTarget.getBoundingClientRect()
 
-      const scaleX = Math.min(Math.max(width, naturalWidth), viewportWidth) / width
-      const scaleY = Math.min(Math.max(height, naturalHeight), viewportHeight) / height
+      const scaleX =
+        Math.min(Math.max(width, naturalWidth), viewportWidth) / width
+      const scaleY =
+        Math.min(Math.max(height, naturalHeight), viewportHeight) / height
       const scale = Math.min(scaleX, scaleY)
       const translateX =
         (-left +
@@ -326,6 +328,17 @@ const mediumZoom = (selector, options = {}) => {
         active.template.appendChild(template.content.cloneNode(true))
 
         document.body.appendChild(active.template)
+      }
+
+      // If the selected <img> tag is inside a <picture> tag, set the
+      // currently-applied source as the cloned `src=` attribute.
+      // (as these might differ, or src= might be unset in some cases)
+      if (
+        active.original.parentElement &&
+        active.original.parentElement.tagName === 'PICTURE' &&
+        active.original.currentSrc
+      ) {
+        active.zoomed.src = active.original.currentSrc
       }
 
       document.body.appendChild(active.zoomed)

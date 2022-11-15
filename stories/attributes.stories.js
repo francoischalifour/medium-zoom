@@ -83,3 +83,41 @@ Zoom on an image having \`srcset\` attributes.
       `,
     }
   )
+  .add(
+    '<picture> tag',
+    () => `
+      <picture>
+        <source type="image/jpeg" srcset="image-1x300.jpg 300w, image-1x600.jpg 600w"></source>
+        <img>
+      </picture>
+
+      <script>
+        const zoom = mediumZoom('img');
+      </script>
+    `,
+    {
+      notes: `
+        Zoom on an image inside a &lt;picture&gt; tag.
+        The cloned image mirrors the picture structure and resizes the same as a usual image tag.
+      `,
+    }
+  )
+  .add(
+    '<picture> tag and data-zoom-src',
+    () => `
+      <picture>
+        <source type="image/jpeg" srcset="image-1x300.jpg 300w, image-1x600.jpg 600w"></source>
+        <img data-zoom-src="image-1.jpg">
+      </picture>
+
+      <script>
+        const zoom = mediumZoom('img');
+      </script>
+    `,
+    {
+      notes: `
+        Zoom on an image inside a &lt;picture&gt; tag.
+        The cloned image mirrors the picture structure and resizes the same as a usual image tag, which then uses the data-zoom-src value once loaded.
+      `,
+    }
+  )
