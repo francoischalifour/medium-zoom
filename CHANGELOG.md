@@ -2,7 +2,7 @@
 
 ### Bug Fixes
 
-- use currentSrc for imgs in <picture> tags ([#194](https://github.com/francoischalifour/medium-zoom/issues/194)) ([32ee39f](https://github.com/francoischalifour/medium-zoom/commit/32ee39f424f91e2f34e5e06e7ddc6bf8e4be9d23))
+- support images in `<picture>` elements with `currentSrc` ([#194](https://github.com/francoischalifour/medium-zoom/issues/194)) ([32ee39f](https://github.com/francoischalifour/medium-zoom/commit/32ee39f424f91e2f34e5e06e7ddc6bf8e4be9d23))
 
 ## [1.0.7](https://github.com/francoischalifour/medium-zoom/compare/1.0.6...1.0.7) (2022-11-14)
 
