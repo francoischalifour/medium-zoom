@@ -947,6 +947,41 @@ describe('open()', () => {
     expect(root).toMatchSnapshot()
   })
 
+  test('open() with `<picture>` renders correctly', async () => {
+    expect.assertions(6)
+
+    // <picture>
+    const picture = document.createElement('picture')
+    // | <source ... ></source>
+    const source = document.createElement('source')
+    source.srcset = `image-300x200.jpg 300w`
+    picture.appendChild(source)
+    // | <img>
+    const img = document.createElement('img')
+    jest
+      .spyOn(img, 'currentSrc', 'get')
+      .mockReturnValue('http://localhost/mock-src.png')
+    picture.appendChild(img)
+    // </picture>
+    root.appendChild(picture)
+
+    const zoom = mediumZoom('img')
+    await zoom.open()
+    jest.runAllTimers()
+
+    expect([...img.classList]).toEqual([
+      'medium-zoom-image',
+      'medium-zoom-image--hidden',
+    ])
+    expect(document.querySelector('.medium-zoom-image--opened')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom-image--opened').src).toEqual(
+      img.currentSrc
+    )
+    expect(document.querySelector('.medium-zoom-overlay')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom--opened')).toBeTruthy()
+    expect(root).toMatchSnapshot()
+  })
+
   test('mediumZoom({ background }).open() renders correctly', async () => {
     expect.assertions(1)
 

@@ -306,6 +306,30 @@ exports[`open() open() twice does not zoom twice 1`] = `
 </body>
 `;
 
+exports[`open() open() with \`<picture>\` renders correctly 1`] = `
+<body
+  class="medium-zoom--opened"
+>
+  <picture>
+    <source
+      srcset="image-300x200.jpg 300w"
+    />
+    <img
+      class="medium-zoom-image medium-zoom-image--hidden"
+    />
+  </picture>
+  <div
+    class="medium-zoom-overlay"
+    style="background: rgb(255, 255, 255);"
+  />
+  <img
+    class="medium-zoom-image medium-zoom-image--opened"
+    src="http://localhost/mock-src.png"
+    style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px;"
+  />
+</body>
+`;
+
 exports[`open() open() with \`data-zoom-src\` renders correctly 1`] = `
 <body
   class="medium-zoom--opened"
