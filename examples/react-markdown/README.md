@@ -1,12 +1,10 @@
-# React Markdown
+# Medium Zoom React Markdown Example
 
-> This is a medium-zoom example using React.
+This example reads Markdown in a React component and attaches the zoom on the Markdown images.
 
-![Preview](https://user-images.githubusercontent.com/6137112/32423266-67ccfd86-c273-11e7-9076-1df48ff85268.png)
-
-This example reads from a Markdown file and imports its content in a React component to attach the zoom (see [`src/Post.js`](src/Post.js)).
+[![Edit React Markdown Example](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/github/francoischalifour/medium-zoom/tree/master/examples/react-markdown?file=/src/App.tsx)
 
 ## Usage
 
-* Install dependencies: `yarn`
-* Run: `yarn start`
+- Install dependencies: `yarn`
+- Run: `yarn dev`

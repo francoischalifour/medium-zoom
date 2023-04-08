@@ -434,63 +434,26 @@ mediumZoom($('[data-zoomable]').toArray())
 <details>
  <summary>Create a zoomable React component</summary>
 
-**Using React hooks**
-
 ```js
-import React from 'react'
+import React, { useRef } from 'react'
 import mediumZoom from 'medium-zoom'
 
-function ImageZoom({ zoom, src, alt, background }) {
-  const zoomRef = React.useRef(zoom.clone({ background }))
+export function ImageZoom({ options, ...props }) {
+  const zoom = useRef(null)
+
+  if (zoom.current === null) {
+    zoom.current = mediumZoom(options)
+  }
 
   function attachZoom(image) {
-    zoomRef.current.attach(image)
+    if (image) {
+      zoom.current.attach(image)
+    } else {
+      zoom.current.detach(image)
+    }
   }
 
-  return <img src={src} alt={alt} ref={attachZoom} />
-}
-
-function App() {
-  const zoom = React.useRef(mediumZoom({ background: '#000', margin: 48 }))
-
-  render() {
-    return (
-      <ImageZoom src="image.jpg" alt="Image" zoom={zoom.current} color="#BADA55" />
-    )
-  }
-}
-```
-
-**Using React classes**
-
-```js
-import React, { Component } from 'react'
-import mediumZoom from 'medium-zoom'
-
-class ImageZoom extends Component {
-  zoom = this.props.zoom.clone({
-    background: this.props.color,
-  })
-
-  attachZoom = image => {
-    this.zoom.attach(image)
-  }
-
-  render() {
-    return (
-      <img src={this.props.src} alt={this.props.alt} ref={this.attachZoom} />
-    )
-  }
-}
-
-class App extends Component {
-  zoom = mediumZoom({ background: '#000', margin: 48 })
-
-  render() {
-    return (
-      <ImageZoom src="image.jpg" alt="Image" zoom={this.zoom} color="#BADA55" />
-    )
-  }
+  return <img {...props} ref={attachZoom} />
 }
 ```
 

@@ -1,20 +1,11 @@
-import React from 'react'
-import mediumZoom from 'medium-zoom'
-import ImageZoom from './ImageZoom'
+import { ImageZoom } from './ImageZoom'
 
-function App() {
-  const zoom = React.useRef(mediumZoom())
-
+export function App() {
   return (
     <article className="container">
       <h1>React demo</h1>
 
-      <ImageZoom
-        src="images/image-1.jpg"
-        alt="Zoom 1"
-        zoom={zoom.current}
-        background="#000"
-      />
+      <ImageZoom src="images/image-1.jpg" alt="Zoom 1" />
 
       <p>
         Lorem ipsum dolor sit amet, consectetur adipisicing elit. Tempora
@@ -23,12 +14,7 @@ function App() {
         accusantium saepe.
       </p>
 
-      <ImageZoom
-        src="images/image-2.jpg"
-        alt="Zoom 2"
-        zoom={zoom.current}
-        background="red"
-      />
+      <ImageZoom src="images/image-2.jpg" alt="Zoom 2" />
 
       <p>
         Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ea dolores
@@ -39,11 +25,8 @@ function App() {
       <ImageZoom
         src="images/image-3.jpg"
         alt="Zoom 3"
-        zoom={zoom.current}
-        background="yellow"
+        options={{ background: 'yellow' }}
       />
     </article>
   )
 }
-
-export default App
