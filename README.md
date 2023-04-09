@@ -62,6 +62,7 @@ npx doctoc README.md --maxlevel 3
   - [Methods](#methods)
   - [Attributes](#attributes)
   - [Events](#events)
+- [Framework integrations](#framework-integrations)
 - [Examples](#examples)
 - [Debugging](#debugging)
 - [Browser support](#browser-support)
@@ -74,15 +75,16 @@ npx doctoc README.md --maxlevel 3
 
 ## Features
 
-- 📱 **Responsive** — _scale on mobile and desktop_
-- 🚀 **Performant and lightweight** — _should be able to reach 60 [fps](https://en.wikipedia.org/wiki/Frame_rate)_
-- ⚡️ **High definition support** — _load the HD version of your image on zoom_
-- 🔎 **Flexibility** — _apply the zoom to a selection of images_
-- 🖱 **Mouse, keyboard and gesture friendly** — _click anywhere, press a key or scroll away to close the zoom_
-- 🎂 **Event handling** — _trigger events when the zoom enters a new state_
-- 📦 **Customization** — _set your own margin, background and scroll offset_
-- 🔧 **Pluggable** — _add your own features to the zoom_
-- 💎 **Custom templates** — _extend the default look to match the UI of your app_
+- 📱 **Responsive** — scale on mobile and desktop
+- 🚀 **Performant and lightweight** — optimized to reach 60 [fps](https://en.wikipedia.org/wiki/Framerate)
+- ⚡️ **High definition support** — load the HD version of your image on zoom
+- 🔎 **Flexibility** — apply the zoom to a selection of images
+- 🖱 **Mouse, keyboard and gesture friendly** — click anywhere, press a key or scroll away to close the zoom
+- 🎂 **Event handling** — trigger events when the zoom enters a new state
+- 📦 **Customization** — set your own margin, background and scroll offset
+- 🔧 **Pluggable** — add your own features to the zoom
+- 💎 **Custom templates** — extend the default look to match the UI of your app
+- 🔌 [**Framework agnostic**](#framework-integrations) — works with React, Vue, Angular, Svelte, Solid, etc.
 
 ## Installation
 
@@ -379,6 +381,15 @@ zoom.on('open', event => {
 
 The zoom object is accessible in `event.detail.zoom`.
 
+## Framework integrations
+
+Medium Zoom is a JavaScript library that can be used with any framework. Here are some integrations that you can use to get started quickly:
+
+- [React](./examples/react)
+- [React Markdown](./examples/react-markdown)
+- [Vue](./examples/vue)
+- [Svelte](./examples/svelte)
+
 ## Examples
 
 <details>
@@ -434,63 +445,26 @@ mediumZoom($('[data-zoomable]').toArray())
 <details>
  <summary>Create a zoomable React component</summary>
 
-**Using React hooks**
-
 ```js
-import React from 'react'
+import React, { useRef } from 'react'
 import mediumZoom from 'medium-zoom'
 
-function ImageZoom({ zoom, src, alt, background }) {
-  const zoomRef = React.useRef(zoom.clone({ background }))
+export function ImageZoom({ options, ...props }) {
+  const zoom = useRef(null)
+
+  if (zoom.current === null) {
+    zoom.current = mediumZoom(options)
+  }
 
   function attachZoom(image) {
-    zoomRef.current.attach(image)
+    if (image) {
+      zoom.current.attach(image)
+    } else {
+      zoom.current.detach(image)
+    }
   }
 
-  return <img src={src} alt={alt} ref={attachZoom} />
-}
-
-function App() {
-  const zoom = React.useRef(mediumZoom({ background: '#000', margin: 48 }))
-
-  render() {
-    return (
-      <ImageZoom src="image.jpg" alt="Image" zoom={zoom.current} color="#BADA55" />
-    )
-  }
-}
-```
-
-**Using React classes**
-
-```js
-import React, { Component } from 'react'
-import mediumZoom from 'medium-zoom'
-
-class ImageZoom extends Component {
-  zoom = this.props.zoom.clone({
-    background: this.props.color,
-  })
-
-  attachZoom = image => {
-    this.zoom.attach(image)
-  }
-
-  render() {
-    return (
-      <img src={this.props.src} alt={this.props.alt} ref={this.attachZoom} />
-    )
-  }
-}
-
-class App extends Component {
-  zoom = mediumZoom({ background: '#000', margin: 48 })
-
-  render() {
-    return (
-      <ImageZoom src="image.jpg" alt="Image" zoom={this.zoom} color="#BADA55" />
-    )
-  }
+  return <img {...props} ref={attachZoom} />
 }
 ```
 
