@@ -1,28 +1,33 @@
 <script>
-  import { onMount, onDestroy } from 'svelte'
   import mediumZoom from 'medium-zoom'
 
-  export let src = ''
-  export let alt = ''
-  export let options = {}
+  export let src = undefined
+  export let alt = undefined
+  export let options = undefined
 
-  let imgElement
-  let zoom
+  let zoom = null
 
-  onMount(() => {
-    zoom = mediumZoom(options)
-    zoom.attach(imgElement)
-
-    return () => {
-      zoom.detach(imgElement)
+  function getZoom() {
+    if (zoom === null) {
+      zoom = mediumZoom(options)
     }
-  })
 
-  onDestroy(() => {
-    if (zoom) {
-      zoom.detach(imgElement)
+    return zoom
+  }
+
+  function attachZoom(image) {
+    const zoom = getZoom()
+    zoom.attach(image)
+
+    return {
+      update(newOptions) {
+        zoom.update(newOptions)
+      },
+      destroy() {
+        zoom.detach()
+      },
     }
-  })
+  }
 </script>
 
-<img {src} {alt} {...$$restProps} bind:this={imgElement} />
+<img {src} {alt} {...$$restProps} use:attachZoom={options} />

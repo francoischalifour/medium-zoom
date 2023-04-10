@@ -8,17 +8,21 @@ type ImageZoomProps = ComponentProps<'img'> & {
 export function ImageZoom({ options, ...props }: ImageZoomProps) {
   const zoomRef = useRef<Zoom | null>(null)
 
-  if (zoomRef.current === null) {
-    zoomRef.current = mediumZoom(options)
+  function getZoom() {
+    if (zoomRef.current === null) {
+      zoomRef.current = mediumZoom(options)
+    }
+
+    return zoomRef.current
   }
 
-  const zoom = zoomRef.current!
+  function attachZoom(image: HTMLImageElement | null) {
+    const zoom = getZoom()
 
-  function attachZoom(image: HTMLImageElement) {
     if (image) {
       zoom.attach(image)
     } else {
-      zoom.detach(image)
+      zoom.detach()
     }
   }
 

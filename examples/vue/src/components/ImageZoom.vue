@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted,  watch, type ImgHTMLAttributes } from 'vue'
-import mediumZoom, { Zoom, ZoomOptions } from 'medium-zoom'
+import {  watch, type ImgHTMLAttributes, type ComponentPublicInstance } from 'vue'
+import mediumZoom, { type Zoom, type ZoomOptions } from 'medium-zoom'
 
 interface Props extends ImgHTMLAttributes {
   options?: ZoomOptions
@@ -8,30 +8,33 @@ interface Props extends ImgHTMLAttributes {
 
 const props = defineProps<Props>()
 
-const imgRef = ref<HTMLImageElement | null>(null)
-let zoom: Zoom
+let zoom: Zoom | null = null
 
-onMounted(() => {
-  zoom = mediumZoom(props.options)
-
-  if (imgRef.value) {
-    zoom.attach(imgRef.value)
+function getZoom() {
+  if (zoom === null) {
+    zoom = mediumZoom(props.options)
   }
-})
+
+  return zoom
+}
+
+function attachZoom(ref: Element | ComponentPublicInstance | null) {
+  const image = ref as HTMLImageElement | null
+  const zoom = getZoom()
+
+  if (image) {
+    zoom.attach(image)
+  } else {
+    zoom.detach()
+  }
+}
 
 watch(() => props.options, (options) => {
-  if (zoom) {
-    zoom.update(options || {})
-  }
-})
-
-onUnmounted(() => {
-  if (zoom && imgRef.value) {
-    zoom.detach(imgRef.value)
-  }
+  const zoom = getZoom()
+  zoom.update(options || {})
 })
 </script>
 
 <template>
-  <img ref="imgRef" />
+  <img :ref="attachZoom" />
 </template>

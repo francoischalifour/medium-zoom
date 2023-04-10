@@ -450,17 +450,23 @@ import React, { useRef } from 'react'
 import mediumZoom from 'medium-zoom'
 
 export function ImageZoom({ options, ...props }) {
-  const zoom = useRef(null)
+  const zoomRef = useRef(null)
 
-  if (zoom.current === null) {
-    zoom.current = mediumZoom(options)
+  function getZoom() {
+    if (zoomRef.current === null) {
+      zoomRef.current = mediumZoom(options)
+    }
+
+    return zoomRef.current
   }
 
   function attachZoom(image) {
+    const zoom = getZoom()
+
     if (image) {
-      zoom.current.attach(image)
+      zoom.attach(image)
     } else {
-      zoom.current.detach(image)
+      zoom.detach()
     }
   }
 
