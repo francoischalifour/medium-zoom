@@ -1,4 +1,4 @@
-import { ComponentProps, useRef } from 'react'
+import { useRef, ComponentProps, RefCallback } from 'react'
 import mediumZoom, { Zoom, ZoomOptions } from 'medium-zoom'
 
 type ImageZoomProps = ComponentProps<'img'> & {
@@ -16,11 +16,11 @@ export function ImageZoom({ options, ...props }: ImageZoomProps) {
     return zoomRef.current
   }
 
-  function attachZoom(image: HTMLImageElement | null) {
+  const attachZoom: RefCallback<HTMLImageElement> = node => {
     const zoom = getZoom()
 
-    if (image) {
-      zoom.attach(image)
+    if (node) {
+      zoom.attach(node)
     } else {
       zoom.detach()
     }
