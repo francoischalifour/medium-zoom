@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, onUpdated, type ImgHTMLAttributes } from 'vue'
+import { ref, onMounted, onUnmounted,  watch, type ImgHTMLAttributes } from 'vue'
 import mediumZoom, { Zoom, ZoomOptions } from 'medium-zoom'
 
 interface Props extends ImgHTMLAttributes {
@@ -19,9 +19,9 @@ onMounted(() => {
   }
 })
 
-onUpdated(() => {
+watch(() => props.options, (options) => {
   if (zoom) {
-    zoom.update(props.options || {})
+    zoom.update(options || {})
   }
 })
 
