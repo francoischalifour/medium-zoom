@@ -67,4 +67,27 @@ export default [
     },
     plugins: [...sharedPlugins, terser(), license({ banner })],
   },
+  // pure
+  {
+    input: 'src/medium-zoom.js',
+    output: {
+      file: 'dist/pure/index.js',
+      format: 'es',
+    },
+    plugins: [...sharedPlugins, license({ banner })],
+  },
+  {
+    input: 'src/medium-zoom.css',
+    output: {
+      file: 'dist/pure/style.css',
+      format: 'es',
+    },
+    plugins: [
+      postcss({
+        extract: true,
+        minimize: true,
+      }),
+      license({ banner }),
+    ],
+  },
 ]

@@ -18,7 +18,7 @@
     "dev": "rollup --config --watch",
     "prebuild": "yarn run clean",
     "build": "rollup --config",
-    "postbuild": "cp ./src/medium-zoom.d.ts ./dist",
+    "postbuild": "cp ./src/medium-zoom.d.ts ./dist && cp ./src/medium-zoom.d.ts ./dist/pure/index.d.ts",
     "prepublishOnly": "npm run build",
     "lint": "eslint .",
     "format": "prettier --write *.{js,json,css,md} && yarn run lint --fix",
