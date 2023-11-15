@@ -79,7 +79,7 @@ export default [
   {
     input: 'src/medium-zoom.css',
     output: {
-      file: 'dist/pure/style.css',
+      file: 'dist/style.css',
       format: 'es',
     },
     plugins: [
