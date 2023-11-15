@@ -28,6 +28,15 @@ const sharedPlugins = [
     showGzippedSize: true,
   }),
 ]
+const prettifyPlugin = uglify({
+  compress: false,
+  mangle: false,
+  output: {
+    beautify: true,
+    indent_level: 2,
+    preamble: banner,
+  },
+})
 
 export default [
   {
@@ -45,18 +54,7 @@ export default [
       file: pkg.main.replace('.min', ''),
       format: 'umd',
     },
-    plugins: [
-      ...sharedPlugins,
-      uglify({
-        compress: false,
-        mangle: false,
-        output: {
-          beautify: true,
-          indent_level: 2,
-          preamble: banner,
-        },
-      }),
-    ],
+    plugins: [...sharedPlugins, prettifyPlugin],
   },
   {
     input: 'src/index.js',
@@ -76,6 +74,25 @@ export default [
     },
     plugins: [...sharedPlugins, license({ banner })],
   },
+  {
+    input: 'src/medium-zoom.js',
+    output: {
+      name: 'mediumZoom',
+      file: 'dist/pure/medium-zoom.umd.js',
+      format: 'umd',
+    },
+    plugins: [...sharedPlugins, prettifyPlugin],
+  },
+  {
+    input: 'src/medium-zoom.js',
+    output: {
+      name: 'mediumZoom',
+      file: 'dist/pure/medium-zoom.min.umd.js',
+      format: 'umd',
+    },
+    plugins: [...sharedPlugins, terser(), license({ banner })],
+  },
+  // style
   {
     input: 'src/medium-zoom.css',
     output: {
