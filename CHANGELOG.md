@@ -1,3 +1,9 @@
+# [1.1.0](https://github.com/francoischalifour/medium-zoom/compare/1.0.8...1.1.0) (2023-11-16)
+
+### Features
+
+- introduce pure bundle (JS and CSS separated) ([#204](https://github.com/francoischalifour/medium-zoom/issues/204) and [#206](https://github.com/francoischalifour/medium-zoom/issues/206)) ([0a05b46](https://github.com/francoischalifour/medium-zoom/commit/0a05b4626b0f2820ae5bc3e2b0ef081244679750))
+
 ## [1.0.8](https://github.com/francoischalifour/medium-zoom/compare/1.0.7...1.0.8) (2022-11-15)
 
 ### Bug Fixes
