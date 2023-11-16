@@ -134,8 +134,8 @@ mediumZoom('[data-zoomable]')
 > If you want to control when to inject the Medium Zoom CSS styles, you can use the pure JavaScript bundle:
 >
 > ```js
-> import mediumZoom from 'medium-zoom/pure'
-> import 'medium-zoom/style.css'
+> import mediumZoom from 'medium-zoom/dist/pure'
+> import 'medium-zoom/dist/style.css'
 > ```
 
 ## API
