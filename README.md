@@ -130,6 +130,14 @@ Assuming you add the `data-zoomable` attribute to your images:
 mediumZoom('[data-zoomable]')
 ```
 
+> [!TIP]
+> If you want to control when to inject the Medium Zoom CSS styles, you can use the pure JavaScript bundle:
+>
+> ```js
+> import mediumZoom from 'medium-zoom/dist/pure'
+> import 'medium-zoom/dist/style.css'
+> ```
+
 ## API
 
 ```ts
