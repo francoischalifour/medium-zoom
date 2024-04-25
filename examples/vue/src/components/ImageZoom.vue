@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {  watch, type ImgHTMLAttributes, type ComponentPublicInstance } from 'vue'
+import { watch, type ImgHTMLAttributes, type ComponentPublicInstance } from 'vue'
 import mediumZoom, { type Zoom, type ZoomOptions } from 'medium-zoom'
 
 interface Props extends ImgHTMLAttributes {
