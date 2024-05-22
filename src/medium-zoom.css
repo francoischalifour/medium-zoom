@@ -40,3 +40,7 @@
   cursor: zoom-out;
   will-change: transform;
 }
+
+.medium-zoom-image--change {
+  transition: none !important;
+}
