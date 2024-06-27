@@ -104,6 +104,8 @@ const mediumZoom = (selector, options = {}) => {
       []
     )
 
+    const hasImagesBefore = images.length !== 0;
+
     newImages
       .filter(newImage => images.indexOf(newImage) === -1)
       .forEach(newImage => {
@@ -116,6 +118,10 @@ const mediumZoom = (selector, options = {}) => {
         image.addEventListener(type, listener, options)
       })
     })
+
+    if (!hasImagesBefore && images.length !== 0) {
+      document.addEventListener('click', _handleClick)
+    }
 
     return zoom
   }
@@ -147,6 +153,10 @@ const mediumZoom = (selector, options = {}) => {
 
     images = images.filter(image => imagesToDetach.indexOf(image) === -1)
 
+    if (images.length === 0) {
+      document.removeEventListener('click', _handleClick)
+    }
+
     return zoom
   }
 
@@ -175,6 +185,8 @@ const mediumZoom = (selector, options = {}) => {
 
     return zoom
   }
+
+  let unregisterEvents;
 
   const open = ({ target } = {}) => {
     const _animate = () => {
@@ -291,6 +303,18 @@ const mediumZoom = (selector, options = {}) => {
       if (active.zoomed) {
         resolve(zoom)
         return
+      }
+
+      if (!unregisterEvents) {
+        document.addEventListener('keyup', _handleKeyUp)
+        document.addEventListener('scroll', _handleScroll)
+        window.addEventListener('resize', close)
+
+        unregisterEvents = () => {
+          document.removeEventListener('keyup', _handleKeyUp)
+          document.removeEventListener('scroll', _handleScroll)
+          window.removeEventListener('resize', close)
+        };
       }
 
       if (target) {
@@ -424,6 +448,11 @@ const mediumZoom = (selector, options = {}) => {
 
   const close = () =>
     new Promise(resolve => {
+      if (unregisterEvents) {
+        unregisterEvents();
+        unregisterEvents = undefined;
+      }
+
       if (isAnimating || !active.original) {
         resolve(zoom)
         return
@@ -534,11 +563,6 @@ const mediumZoom = (selector, options = {}) => {
   }
 
   const overlay = createOverlay(zoomOptions.background)
-
-  document.addEventListener('click', _handleClick)
-  document.addEventListener('keyup', _handleKeyUp)
-  document.addEventListener('scroll', _handleScroll)
-  window.addEventListener('resize', close)
 
   const zoom = {
     open,
