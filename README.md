@@ -21,9 +21,6 @@
   <a href="https://github.com/francoischalifour/medium-zoom/blob/master/package.json">
     <img src="https://img.shields.io/badge/dependencies-none-lightgrey.svg?style=flat-square" alt="no dependencies">
   </a>
-  <a href="https://travis-ci.org/francoischalifour/medium-zoom">
-    <img src="https://img.shields.io/travis/francoischalifour/medium-zoom.svg?style=flat-square" alt="travis">
-  </a>
 </p>
 
 <p align="center">
