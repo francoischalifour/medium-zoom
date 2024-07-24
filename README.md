@@ -102,6 +102,7 @@ yarn add medium-zoom
 
 - [jsDelivr](https://www.jsdelivr.com/package/npm/medium-zoom)
 - [unpkg](https://unpkg.com/medium-zoom/)
+- [esm.sh](https://esm.sh/medium-zoom)
 
 ## Usage
 
