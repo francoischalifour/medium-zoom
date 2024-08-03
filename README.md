@@ -179,6 +179,7 @@ The options enable the customization of the zoom. They are defined as an object 
 | `margin`       | `number`                              | `0`      | The space outside the zoomed image                                          |
 | `background`   | `string`                              | `"#fff"` | The background of the overlay                                               |
 | `scrollOffset` | `number`                              | `40`     | The number of pixels to scroll to close the zoom                            |
+| `class`        | `string` \| `array`                   | `null`   | The custom class(es) add to the zoomed image                                |
 | `container`    | `string` \| `HTMLElement` \| `object` | `null`   | The viewport to render the zoom in<br> [Read more →](docs/container.md)     |
 | `template`     | `string` \| `HTMLTemplateElement`     | `null`   | The template element to display on zoom<br> [Read more →](docs/template.md) |
 
@@ -189,6 +190,7 @@ mediumZoom('[data-zoomable]', {
   scrollOffset: 0,
   container: '#zoom-container',
   template: '#zoom-template',
+  class: null,
 })
 ```
 
