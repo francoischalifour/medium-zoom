@@ -7,7 +7,7 @@ export const isNode = selector => selector && selector.nodeType === 1
 
 export const isSvg = image => {
   const source = image.currentSrc || image.src
-  return source.substr(-4).toLowerCase() === '.svg'
+  return source.toLowerCase().endsWith(".svg") || source.toLowerCase().includes("/svg/")
 }
 
 export const getImagesFromSelector = selector => {
