@@ -1,10 +1,10 @@
 import {
-  isNode,
-  isSvg,
-  getImagesFromSelector,
-  createOverlay,
   cloneTarget,
   createCustomEvent,
+  createOverlay,
+  getImagesFromSelector,
+  isNode,
+  isSvg,
 } from './utils'
 
 const mediumZoom = (selector, options = {}) => {
@@ -104,7 +104,7 @@ const mediumZoom = (selector, options = {}) => {
       []
     )
 
-    const hasImagesBefore = images.length !== 0;
+    const hasImagesBefore = images.length !== 0
 
     newImages
       .filter(newImage => images.indexOf(newImage) === -1)
@@ -186,7 +186,7 @@ const mediumZoom = (selector, options = {}) => {
     return zoom
   }
 
-  let unregisterEvents;
+  let unregisterEvents
 
   const open = ({ target } = {}) => {
     const _animate = () => {
@@ -305,18 +305,6 @@ const mediumZoom = (selector, options = {}) => {
         return
       }
 
-      if (!unregisterEvents) {
-        document.addEventListener('keyup', _handleKeyUp)
-        document.addEventListener('scroll', _handleScroll)
-        window.addEventListener('resize', close)
-
-        unregisterEvents = () => {
-          document.removeEventListener('keyup', _handleKeyUp)
-          document.removeEventListener('scroll', _handleScroll)
-          window.removeEventListener('resize', close)
-        };
-      }
-
       if (target) {
         // The zoom was triggered manually via a click
         active.original = target
@@ -326,6 +314,18 @@ const mediumZoom = (selector, options = {}) => {
       } else {
         resolve(zoom)
         return
+      }
+
+      if (!unregisterEvents) {
+        document.addEventListener('keyup', _handleKeyUp)
+        document.addEventListener('scroll', _handleScroll)
+        window.addEventListener('resize', close)
+
+        unregisterEvents = () => {
+          document.removeEventListener('keyup', _handleKeyUp)
+          document.removeEventListener('scroll', _handleScroll)
+          window.removeEventListener('resize', close)
+        }
       }
 
       active.original.dispatchEvent(
@@ -448,11 +448,6 @@ const mediumZoom = (selector, options = {}) => {
 
   const close = () =>
     new Promise(resolve => {
-      if (unregisterEvents) {
-        unregisterEvents();
-        unregisterEvents = undefined;
-      }
-
       if (isAnimating || !active.original) {
         resolve(zoom)
         return
@@ -483,6 +478,11 @@ const mediumZoom = (selector, options = {}) => {
         active.zoomed = null
         active.zoomedHd = null
         active.template = null
+
+        if (unregisterEvents) {
+          unregisterEvents()
+          unregisterEvents = undefined
+        }
 
         resolve(zoom)
       }
