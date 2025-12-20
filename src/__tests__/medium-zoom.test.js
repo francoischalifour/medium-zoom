@@ -17,6 +17,9 @@ const emptyRootBeforeEach = () => {
   return root
 }
 
+const countCallsForEventType = (spy, type) =>
+  spy.mock.calls.filter(([calledType]) => calledType === type).length
+
 describe('mediumZoom()', () => {
   test('is defined and returns an object', () => {
     expect(mediumZoom).toBeDefined()
@@ -320,13 +323,7 @@ describe('attach()', () => {
     zoom.attach(image1)
     zoom.attach(image2)
 
-    expect(addEventListenerSpy).toHaveBeenCalledWith(
-      'click',
-      expect.any(Function)
-    )
-    expect(
-      addEventListenerSpy.mock.calls.filter(([type]) => type === 'click')
-    ).toHaveLength(1)
+    expect(countCallsForEventType(addEventListenerSpy, 'click')).toBe(1)
 
     addEventListenerSpy.mockRestore()
   })
@@ -416,10 +413,7 @@ describe('detach()', () => {
     expect(zoom.getImages()).toEqual([])
     expect(image1.classList).toHaveLength(0)
     expect(image2.classList).toHaveLength(0)
-    expect(removeEventListenerSpy).toHaveBeenCalledWith(
-      'click',
-      expect.any(Function)
-    )
+    expect(countCallsForEventType(removeEventListenerSpy, 'click')).toBe(1)
 
     removeEventListenerSpy.mockRestore()
   })
@@ -452,10 +446,7 @@ describe('detach()', () => {
     expect(zoom.getImages()).toEqual([image2])
     expect(image1.classList).toHaveLength(0)
     expect(image2.classList).toHaveLength(1)
-    expect(removeEventListenerSpy).not.toHaveBeenCalledWith(
-      'click',
-      expect.any(Function)
-    )
+    expect(countCallsForEventType(removeEventListenerSpy, 'click')).toBe(0)
 
     removeEventListenerSpy.mockRestore()
   })
@@ -828,18 +819,9 @@ describe('open()', () => {
     const zoom = mediumZoom()
     await zoom.open()
 
-    expect(addDocumentListenerSpy).not.toHaveBeenCalledWith(
-      'keyup',
-      expect.any(Function)
-    )
-    expect(addDocumentListenerSpy).not.toHaveBeenCalledWith(
-      'scroll',
-      expect.any(Function)
-    )
-    expect(addWindowListenerSpy).not.toHaveBeenCalledWith(
-      'resize',
-      expect.any(Function)
-    )
+    expect(countCallsForEventType(addDocumentListenerSpy, 'keyup')).toBe(0)
+    expect(countCallsForEventType(addDocumentListenerSpy, 'scroll')).toBe(0)
+    expect(countCallsForEventType(addWindowListenerSpy, 'resize')).toBe(0)
 
     addDocumentListenerSpy.mockRestore()
     addWindowListenerSpy.mockRestore()
@@ -1147,7 +1129,6 @@ describe('close()', () => {
     expect.assertions(6)
 
     const previousTestFlag = global.__TEST__
-    global.__TEST__ = false
 
     const removeDocumentListenerSpy = jest.spyOn(
       document,
@@ -1155,54 +1136,44 @@ describe('close()', () => {
     )
     const removeWindowListenerSpy = jest.spyOn(window, 'removeEventListener')
 
-    const image = document.createElement('img')
-    root.appendChild(image)
+    try {
+      global.__TEST__ = false
 
-    const zoom = mediumZoom(image)
+      const image = document.createElement('img')
+      root.appendChild(image)
 
-    const openPromise = zoom.open()
-    zoom.close()
+      const zoom = mediumZoom(image)
 
-    expect(removeDocumentListenerSpy).not.toHaveBeenCalledWith(
-      'keyup',
-      expect.any(Function)
-    )
-    expect(removeDocumentListenerSpy).not.toHaveBeenCalledWith(
-      'scroll',
-      expect.any(Function)
-    )
-    expect(removeWindowListenerSpy).not.toHaveBeenCalledWith(
-      'resize',
-      expect.any(Function)
-    )
+      const openPromise = zoom.open()
+      zoom.close()
 
-    const openedImage = document.querySelector('.medium-zoom-image--opened')
-    openedImage.dispatchEvent(new Event('transitionend'))
-    await openPromise
+      expect(countCallsForEventType(removeDocumentListenerSpy, 'keyup')).toBe(0)
+      expect(countCallsForEventType(removeDocumentListenerSpy, 'scroll')).toBe(
+        0
+      )
+      expect(countCallsForEventType(removeWindowListenerSpy, 'resize')).toBe(0)
 
-    const closePromise = zoom.close()
-    const openedImageToClose = document.querySelector(
-      '.medium-zoom-image--opened'
-    )
-    openedImageToClose.dispatchEvent(new Event('transitionend'))
-    await closePromise
+      const openedImage = document.querySelector('.medium-zoom-image--opened')
+      openedImage.dispatchEvent(new Event('transitionend'))
+      await openPromise
 
-    expect(removeDocumentListenerSpy).toHaveBeenCalledWith(
-      'keyup',
-      expect.any(Function)
-    )
-    expect(removeDocumentListenerSpy).toHaveBeenCalledWith(
-      'scroll',
-      expect.any(Function)
-    )
-    expect(removeWindowListenerSpy).toHaveBeenCalledWith(
-      'resize',
-      expect.any(Function)
-    )
+      const closePromise = zoom.close()
+      const openedImageToClose = document.querySelector(
+        '.medium-zoom-image--opened'
+      )
+      openedImageToClose.dispatchEvent(new Event('transitionend'))
+      await closePromise
 
-    removeDocumentListenerSpy.mockRestore()
-    removeWindowListenerSpy.mockRestore()
-    global.__TEST__ = previousTestFlag
+      expect(countCallsForEventType(removeDocumentListenerSpy, 'keyup')).toBe(1)
+      expect(countCallsForEventType(removeDocumentListenerSpy, 'scroll')).toBe(
+        1
+      )
+      expect(countCallsForEventType(removeWindowListenerSpy, 'resize')).toBe(1)
+    } finally {
+      removeDocumentListenerSpy.mockRestore()
+      removeWindowListenerSpy.mockRestore()
+      global.__TEST__ = previousTestFlag
+    }
   })
 
   test('mediumZoom(Node).close() renders correctly', async () => {

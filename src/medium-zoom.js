@@ -95,6 +95,34 @@ const mediumZoom = (selector, options = {}) => {
 
   const clone = (options = {}) => mediumZoom({ ...zoomOptions, ...options })
 
+  const createListenerSync = () => {
+    let unregister
+
+    return (enabled, register) => {
+      if (enabled) {
+        if (!unregister) {
+          unregister = register()
+        }
+
+        return
+      }
+
+      if (unregister) {
+        unregister()
+        unregister = undefined
+      }
+    }
+  }
+
+  const _syncClickListener = createListenerSync()
+  const _updateClickListener = () =>
+    _syncClickListener(images.length > 0, () => {
+      document.addEventListener('click', _handleClick)
+      return () => {
+        document.removeEventListener('click', _handleClick)
+      }
+    })
+
   const attach = (...selectors) => {
     const newImages = selectors.reduce(
       (imagesAccumulator, currentSelector) => [
@@ -103,8 +131,6 @@ const mediumZoom = (selector, options = {}) => {
       ],
       []
     )
-
-    const hasImagesBefore = images.length !== 0
 
     newImages
       .filter(newImage => images.indexOf(newImage) === -1)
@@ -119,9 +145,7 @@ const mediumZoom = (selector, options = {}) => {
       })
     })
 
-    if (!hasImagesBefore && images.length !== 0) {
-      document.addEventListener('click', _handleClick)
-    }
+    _updateClickListener()
 
     return zoom
   }
@@ -152,10 +176,7 @@ const mediumZoom = (selector, options = {}) => {
     })
 
     images = images.filter(image => imagesToDetach.indexOf(image) === -1)
-
-    if (images.length === 0) {
-      document.removeEventListener('click', _handleClick)
-    }
+    _updateClickListener()
 
     return zoom
   }
@@ -186,7 +207,19 @@ const mediumZoom = (selector, options = {}) => {
     return zoom
   }
 
-  let unregisterEvents
+  const _syncGlobalEvents = createListenerSync()
+  const _updateGlobalEvents = enabled =>
+    _syncGlobalEvents(enabled, () => {
+      document.addEventListener('keyup', _handleKeyUp)
+      document.addEventListener('scroll', _handleScroll)
+      window.addEventListener('resize', close)
+
+      return () => {
+        document.removeEventListener('keyup', _handleKeyUp)
+        document.removeEventListener('scroll', _handleScroll)
+        window.removeEventListener('resize', close)
+      }
+    })
 
   const open = ({ target } = {}) => {
     const _animate = () => {
@@ -316,17 +349,7 @@ const mediumZoom = (selector, options = {}) => {
         return
       }
 
-      if (!unregisterEvents) {
-        document.addEventListener('keyup', _handleKeyUp)
-        document.addEventListener('scroll', _handleScroll)
-        window.addEventListener('resize', close)
-
-        unregisterEvents = () => {
-          document.removeEventListener('keyup', _handleKeyUp)
-          document.removeEventListener('scroll', _handleScroll)
-          window.removeEventListener('resize', close)
-        }
-      }
+      _updateGlobalEvents(true)
 
       active.original.dispatchEvent(
         createCustomEvent('medium-zoom:open', {
@@ -479,10 +502,7 @@ const mediumZoom = (selector, options = {}) => {
         active.zoomedHd = null
         active.template = null
 
-        if (unregisterEvents) {
-          unregisterEvents()
-          unregisterEvents = undefined
-        }
+        _updateGlobalEvents(false)
 
         resolve(zoom)
       }
