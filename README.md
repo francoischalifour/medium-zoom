@@ -81,7 +81,7 @@ npx doctoc README.md --maxlevel 3
 - 📦 **Customization** — set your own margin, background and scroll offset
 - 🔧 **Pluggable** — add your own features to the zoom
 - 💎 **Custom templates** — extend the default look to match the UI of your app
-- 🔌 [**Framework agnostic**](#framework-integrations) — works with React, Vue, Angular, Svelte, Solid, etc.
+- 🔌 [**Framework agnostic**](#framework-integrations) — works with React, Vue, Angular, Svelte, Solid, Divi, etc.
 
 ## Installation
 
@@ -396,6 +396,7 @@ Medium Zoom is a JavaScript library that can be used with any framework. Here ar
 - [React Markdown](./examples/react-markdown)
 - [Vue](./examples/vue)
 - [Svelte](./examples/svelte)
+- [Divi](./examples/Divi/README.md)
 
 ## Examples
 
