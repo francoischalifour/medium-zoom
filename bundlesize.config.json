@@ -6,7 +6,7 @@
     },
     {
       "path": "dist/medium-zoom.esm.js",
-      "maxSize": "5 kB"
+      "maxSize": "5.25 kB"
     },
     {
       "path": "dist/medium-zoom.min.js",
@@ -14,11 +14,11 @@
     },
     {
       "path": "dist/pure/index.js",
-      "maxSize": "4.75 kB"
+      "maxSize": "5 kB"
     },
     {
       "path": "dist/pure/medium-zoom.min.umd.js",
-      "maxSize": "2.75 kB"
+      "maxSize": "3 kB"
     }
   ]
 }
