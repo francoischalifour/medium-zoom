@@ -124,6 +124,7 @@ describe('mediumZoom()', () => {
           scrollOffset: 40,
           container: null,
           template: null,
+          class: null,
         })
       })
     })
@@ -145,6 +146,7 @@ describe('mediumZoom()', () => {
         scrollOffset: 40,
         container: null,
         template: null,
+        class: null,
       })
     })
 
@@ -161,6 +163,7 @@ describe('mediumZoom()', () => {
         scrollOffset: 40,
         container: null,
         template: null,
+        class: null,
       })
     })
 
@@ -182,6 +185,7 @@ describe('mediumZoom()', () => {
         scrollOffset: 124,
         container: null,
         template: null,
+        class: null,
       })
     })
   })
@@ -205,6 +209,7 @@ describe('mediumZoom()', () => {
           scrollOffset: 40,
           container: null,
           template: null,
+          class: null,
         })
       })
     })
@@ -223,6 +228,7 @@ describe('mediumZoom()', () => {
           scrollOffset: 40,
           container: null,
           template: null,
+          class: null,
         })
       })
 
@@ -244,7 +250,38 @@ describe('mediumZoom()', () => {
           scrollOffset: 124,
           container: null,
           template: null,
+          class: null,
         })
+      })
+
+      test('images to zoom and applies single custom class option', async () => {
+        const image = document.createElement('img')
+        root.appendChild(image)
+
+        const options = { class: 'custom-class' }
+        const zoom = mediumZoom('img', options)
+        await zoom.open()
+        jest.runAllTimers()
+
+        expect(document.querySelector('.custom-class')).toBeTruthy()
+        expect(zoom.getImages()).toEqual([image])
+      })
+
+      test('images to zoom and applies multiple custom classes option', async () => {
+        const image = document.createElement('img')
+        root.appendChild(image)
+
+        const options = {
+          class: ['custom-class-1', 'custom-class-2', 'custom-class-3'],
+        }
+        const zoom = mediumZoom('img', options)
+        await zoom.open()
+        jest.runAllTimers()
+
+        expect(document.querySelector('.custom-class-1')).toBeTruthy()
+        expect(document.querySelector('.custom-class-2')).toBeTruthy()
+        expect(document.querySelector('.custom-class-3')).toBeTruthy()
+        expect(zoom.getImages()).toEqual([image])
       })
     })
   })
@@ -729,6 +766,7 @@ describe('getOptions()', () => {
       scrollOffset: 40,
       container: null,
       template: null,
+      class: null,
     })
   })
 
@@ -741,6 +779,7 @@ describe('getOptions()', () => {
       scrollOffset: 40,
       container: null,
       template: null,
+      class: null,
     })
   })
 })
