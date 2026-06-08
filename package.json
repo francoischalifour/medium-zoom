@@ -59,6 +59,9 @@
     "medium-zoom",
     "zoomable"
   ],
+  "resolutions": {
+    "brotli-size": "4.0.0"
+  },
   "devDependencies": {
     "@storybook/addon-notes": "4.0.0-alpha.14",
     "@storybook/addon-options": "4.0.0-alpha.14",
