@@ -432,31 +432,53 @@ const mediumZoom = (selector, options = {}) => {
           }
         }, 10)
       } else if (active.original.hasAttribute('srcset')) {
-        // If an image has a `srcset` attribuet, we don't know the dimensions of the
+        // If an image has a `srcset` attribute, we don't know the dimensions of the
         // zoomed (HD) image (like when `data-zoom-src` is specified).
         // Therefore the approach is quite similar.
-        active.zoomedHd = active.zoomed.cloneNode()
+        const zoomedHd = active.zoomed.cloneNode()
+        active.zoomedHd = zoomedHd
 
         // Resetting the sizes attribute tells the browser to load the
         // image best fitting the current viewport size, respecting the `srcset`.
-        active.zoomedHd.removeAttribute('sizes')
+        zoomedHd.removeAttribute('sizes')
 
         // In Firefox, the `loading` attribute needs to be set to `eager` (default
         // value) for the load event to be fired.
-        active.zoomedHd.removeAttribute('loading')
+        zoomedHd.removeAttribute('loading')
 
         // Wait for the load event of the hd image. This will fire if the image
         // is already cached.
-        const loadEventListener = active.zoomedHd.addEventListener(
-          'load',
-          () => {
-            active.zoomedHd.removeEventListener('load', loadEventListener)
-            active.zoomedHd.classList.add('medium-zoom-image--opened')
-            active.zoomedHd.addEventListener('click', close)
-            document.body.appendChild(active.zoomedHd)
-            _animate()
+        const loadEventListener = () => {
+          zoomedHd.removeEventListener('load', loadEventListener)
+          zoomedHd.removeEventListener('error', errorEventListener)
+
+          if (active.zoomedHd !== zoomedHd) {
+            return
           }
-        )
+
+          zoomedHd.classList.add('medium-zoom-image--opened')
+          zoomedHd.addEventListener('click', close)
+          document.body.appendChild(zoomedHd)
+          _animate()
+        }
+        const errorEventListener = () => {
+          zoomedHd.removeEventListener('load', loadEventListener)
+          zoomedHd.removeEventListener('error', errorEventListener)
+
+          if (active.zoomedHd !== zoomedHd) {
+            return
+          }
+
+          console.warn(
+            `Unable to reach the zoom image target ${zoomedHd.currentSrc ||
+              zoomedHd.src}`
+          )
+          active.zoomedHd = null
+          _animate()
+        }
+
+        zoomedHd.addEventListener('load', loadEventListener)
+        zoomedHd.addEventListener('error', errorEventListener)
       } else {
         _animate()
       }
@@ -479,7 +501,7 @@ const mediumZoom = (selector, options = {}) => {
       const _handleCloseEnd = () => {
         active.original.classList.remove('medium-zoom-image--hidden')
         document.body.removeChild(active.zoomed)
-        if (active.zoomedHd) {
+        if (active.zoomedHd && active.zoomedHd.parentNode) {
           document.body.removeChild(active.zoomedHd)
         }
         document.body.removeChild(overlay)

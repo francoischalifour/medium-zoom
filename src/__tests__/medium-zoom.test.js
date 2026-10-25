@@ -994,6 +994,51 @@ describe('open()', () => {
     expect(root).toMatchSnapshot()
   })
 
+  test('open() with broken `srcset` can close correctly', async () => {
+    expect.assertions(6)
+
+    const image = document.createElement('img')
+    image.srcset = `image-300x200.jpg 300w, image-600x400.jpg 600w`
+    root.appendChild(image)
+
+    let errorEventListener
+    const addEventListener = HTMLImageElement.prototype.addEventListener
+    const addEventListenerSpy = jest
+      .spyOn(HTMLImageElement.prototype, 'addEventListener')
+      .mockImplementation(function mockAddEventListener(type, listener, options) {
+        if (type === 'error' && this !== image && this.hasAttribute('srcset')) {
+          errorEventListener = listener
+        }
+
+        return addEventListener.call(this, type, listener, options)
+      })
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
+
+    const zoom = mediumZoom('img')
+    await zoom.open()
+    jest.runAllTimers()
+
+    errorEventListener()
+    addEventListenerSpy.mockRestore()
+    warnSpy.mockRestore()
+
+    expect([...image.classList]).toEqual([
+      'medium-zoom-image',
+      'medium-zoom-image--hidden',
+    ])
+    expect(document.querySelectorAll('.medium-zoom-image--opened')).toHaveLength(
+      1
+    )
+    expect(document.querySelector('.medium-zoom-overlay')).toBeTruthy()
+    expect(document.querySelector('.medium-zoom--opened')).toBeTruthy()
+
+    await zoom.close()
+    jest.runAllTimers()
+
+    expect([...image.classList]).toEqual(['medium-zoom-image'])
+    expect(document.querySelector('.medium-zoom--opened')).toBeFalsy()
+  })
+
   test('open() with `<picture>` renders correctly', async () => {
     expect.assertions(6)
 
