@@ -12,7 +12,7 @@ export default mergeConfig(
     resolve: {
       alias: {
         '@storybook/html': fileURLToPath(
-          new URL('./stories/catalogue/registry.ts', import.meta.url)
+          new URL('../stories/catalogue/registry.ts', import.meta.url)
         ),
       },
     },

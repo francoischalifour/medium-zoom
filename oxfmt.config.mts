@@ -5,12 +5,5 @@ export default defineConfig({
   semi: false,
   trailingComma: 'es5',
   arrowParens: 'avoid',
-  ignorePatterns: [
-    'CHANGELOG.md',
-    'bun.lock',
-    '**/dist/**',
-    'coverage/**',
-    'test-results/**',
-    'playwright-report/**',
-  ],
+  ignorePatterns: ['CHANGELOG.md', 'bun.lock', '**/dist/**', 'coverage/**', '.cache/**'],
 })

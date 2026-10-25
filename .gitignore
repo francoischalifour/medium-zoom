@@ -1,12 +1,9 @@
 /node_modules
 /coverage
-/cypress/screenshots
-/cypress/videos
 /dist
 /storybook
 *.tgz
-/test-results
-/playwright-report
+/.cache
 
 .DS_Store
 package-lock.json

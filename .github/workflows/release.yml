@@ -28,6 +28,8 @@ jobs:
         with:
           token: ${{ github.token }}
           target-branch: main
+          config-file: .github/release-please-config.json
+          manifest-file: .github/.release-please-manifest.json
 
   checks:
     needs: release-please

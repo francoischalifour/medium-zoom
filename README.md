@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://medium-zoom.francoischalifour.com"><img src="logo.svg" alt="Demo" width="64"></a>
+  <a href="https://medium-zoom.francoischalifour.com"><img src="docs/assets/logo.svg" alt="Demo" width="64"></a>
   <h3 align="center">medium-zoom</h3>
   <p align="center">A JavaScript library for zooming images like Medium. Works with React and any web framework.</p>
 </p>

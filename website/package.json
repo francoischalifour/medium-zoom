@@ -5,9 +5,9 @@
   "type": "module",
   "main": "index.html",
   "scripts": {
-    "dev": "vite --config ../vite.website.config.mts --host 127.0.0.1",
+    "dev": "vite --config ../config/vite.website.config.mts --host 127.0.0.1",
     "start": "bun run dev",
-    "build": "vite build --config ../vite.website.config.mts"
+    "build": "vite build --config ../config/vite.website.config.mts"
   },
   "dependencies": {
     "medium-zoom": "file:.."

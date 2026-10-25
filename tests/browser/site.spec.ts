@@ -31,5 +31,5 @@ test('website uses the local package', async ({ page }) => {
   await page.goto('/website.html')
   await openImage(page, page.locator('#zoom-default'))
   await dismissZoom(page)
-  await page.screenshot({ path: 'playwright-report/website.png', fullPage: true })
+  await page.screenshot({ path: '.cache/playwright/report/website.png', fullPage: true })
 })
