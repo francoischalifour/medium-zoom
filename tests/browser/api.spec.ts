@@ -286,7 +286,15 @@ test('overlay clicks dismiss while unrelated keys leave the zoom open', async ({
 test('native browser listeners are registered only while needed', async ({ page }) => {
   const result = await page.evaluate(async () => {
     const calls: string[] = []
-    const relevant = new Set(['click', 'keyup', 'scroll', 'resize'])
+    const relevant = new Set([
+      'click',
+      'keyup',
+      'scroll',
+      'resize',
+      'touchstart',
+      'touchend',
+      'touchcancel',
+    ])
     // Observe native calls without replacing their behavior.
     const addDocument = document.addEventListener.bind(document)
     const removeDocument = document.removeEventListener.bind(document)
@@ -339,9 +347,15 @@ test('native browser listeners are registered only while needed', async ({ page 
     'document+click',
     'document+keyup',
     'document+scroll',
+    'document+touchstart',
+    'document+touchend',
+    'document+touchcancel',
     'window+resize',
     'document-keyup',
     'document-scroll',
+    'document-touchstart',
+    'document-touchend',
+    'document-touchcancel',
     'window-resize',
     'document-click',
   ])
