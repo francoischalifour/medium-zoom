@@ -19,7 +19,7 @@ const mediumZoom = (selector, options = {}) => {
     }
 
   const _dispatchEvent = (image, type) =>
-    image.dispatchEvent(createCustomEvent(`medium-zoom:${type}`, { detail: { zoom } }))
+    image.dispatchEvent(createCustomEvent(`medium-zoom:${type}`, { zoom }))
 
   const _handleClick = event => {
     const { target } = event
@@ -112,33 +112,14 @@ const mediumZoom = (selector, options = {}) => {
 
   const clone = (options = {}) => mediumZoom({ ...zoomOptions, ...options })
 
-  const createListenerSync = () => {
-    let unregister
+  let clickListening = false
+  const _updateClickListener = () => {
+    const enabled = images.length > 0
+    if (clickListening === enabled) return
 
-    return (enabled, register) => {
-      if (enabled) {
-        if (!unregister) {
-          unregister = register()
-        }
-
-        return
-      }
-
-      if (unregister) {
-        unregister()
-        unregister = undefined
-      }
-    }
+    document[enabled ? 'addEventListener' : 'removeEventListener']('click', _handleClick)
+    clickListening = enabled
   }
-
-  const _syncClickListener = createListenerSync()
-  const _updateClickListener = () =>
-    _syncClickListener(images.length > 0, () => {
-      document.addEventListener('click', _handleClick)
-      return () => {
-        document.removeEventListener('click', _handleClick)
-      }
-    })
 
   const attach = (...selectors) => {
     const newImages = selectors.reduce(
@@ -220,23 +201,20 @@ const mediumZoom = (selector, options = {}) => {
     return zoom
   }
 
-  const _syncGlobalEvents = createListenerSync()
-  const _updateGlobalEvents = enabled =>
-    _syncGlobalEvents(enabled, () => {
-      document.addEventListener('keyup', _handleKeyUp)
-      document.addEventListener('scroll', _handleScroll)
-      const touchEvents = ['touchstart', 'touchend', 'touchcancel']
-      const touchOptions = { passive: true }
-      touchEvents.forEach(type => document.addEventListener(type, _handleTouch, touchOptions))
-      window.addEventListener('resize', close)
+  let globalListening = false
+  const _updateGlobalEvents = enabled => {
+    if (globalListening === enabled) return
 
-      return () => {
-        document.removeEventListener('keyup', _handleKeyUp)
-        document.removeEventListener('scroll', _handleScroll)
-        touchEvents.forEach(type => document.removeEventListener(type, _handleTouch, touchOptions))
-        window.removeEventListener('resize', close)
-      }
-    })
+    const method = enabled ? 'addEventListener' : 'removeEventListener'
+    document[method]('keyup', _handleKeyUp)
+    document[method]('scroll', _handleScroll)
+    const touchOptions = { passive: true }
+    ;['touchstart', 'touchend', 'touchcancel'].forEach(type =>
+      document[method](type, _handleTouch, touchOptions)
+    )
+    window[method]('resize', close)
+    globalListening = enabled
+  }
 
   // A transition may be disabled, cancelled, or have no change to animate.
   const _waitForTransition = (image, done) => {

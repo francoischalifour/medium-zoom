@@ -449,21 +449,38 @@ test('repeated open and close calls are idempotent', async ({ page }) => {
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 })
 
-test('legacy CustomEvent fallback preserves the target and zoom detail', async ({ page }) => {
-  const result = await page.evaluate(() => {
-    Object.defineProperty(window, 'CustomEvent', { value: undefined, configurable: true })
-    const zoom = window.mediumZoom('#first')
-    let detailMatches = false
-    let target = ''
-    zoom.on('update', event => {
-      detailMatches = (event as CustomEvent).detail.zoom === zoom
-      target = (event.target as HTMLElement).id
+for (const fallback of [false, true]) {
+  test(`${fallback ? 'legacy' : 'native'} CustomEvent preserves event semantics`, async ({
+    page,
+  }) => {
+    const result = await page.evaluate(fallback => {
+      if (fallback) {
+        Object.defineProperty(window, 'CustomEvent', { value: undefined, configurable: true })
+      }
+      const zoom = window.mediumZoom('#first')
+      let observed
+      zoom.on('update', event => {
+        event.preventDefault()
+        observed = {
+          detailMatches: (event as CustomEvent).detail.zoom === zoom,
+          target: (event.target as HTMLElement).id,
+          bubbles: event.bubbles,
+          cancelable: event.cancelable,
+          defaultPrevented: event.defaultPrevented,
+        }
+      })
+      zoom.update({ margin: 24 })
+      return observed
+    }, fallback)
+    expect(result).toEqual({
+      detailMatches: true,
+      target: 'first',
+      bubbles: false,
+      cancelable: false,
+      defaultPrevented: false,
     })
-    zoom.update({ margin: 24 })
-    return { detailMatches, target }
   })
-  expect(result).toEqual({ detailMatches: true, target: 'first' })
-})
+}
 
 test('attachment validates selectors, supports variadic nodes, and ignores HTMLCollection', async ({
   page,

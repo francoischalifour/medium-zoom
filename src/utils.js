@@ -67,20 +67,13 @@ export const cloneTarget = template => {
   return clone
 }
 
-export const createCustomEvent = (type, params) => {
-  const eventParams = {
-    bubbles: false,
-    cancelable: false,
-    detail: undefined,
-    ...params,
-  }
-
+export const createCustomEvent = (type, detail) => {
   if (typeof window.CustomEvent === 'function') {
-    return new CustomEvent(type, eventParams)
+    return new CustomEvent(type, { detail })
   }
 
   const customEvent = document.createEvent('CustomEvent')
-  customEvent.initCustomEvent(type, eventParams.bubbles, eventParams.cancelable, eventParams.detail)
+  customEvent.initCustomEvent(type, false, false, detail)
 
   return customEvent
 }
