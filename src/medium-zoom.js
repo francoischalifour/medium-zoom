@@ -397,6 +397,15 @@ const mediumZoom = (selector, options = {}) => {
       active.original.classList.add('medium-zoom-image--hidden')
       active.zoomed.classList.add('medium-zoom-image--opened')
 
+      if (Array.isArray(zoomOptions.class)) {
+        active.zoomed.classList.add(...zoomOptions.class)
+      } else if (
+        typeof zoomOptions.class === 'string' ||
+        zoomOptions.class instanceof String
+      ) {
+        active.zoomed.classList.add(zoomOptions.class)
+      }
+
       active.zoomed.addEventListener('click', close)
       active.zoomed.addEventListener('transitionend', _handleOpenEnd)
 
@@ -484,6 +493,16 @@ const mediumZoom = (selector, options = {}) => {
         }
         document.body.removeChild(overlay)
         active.zoomed.classList.remove('medium-zoom-image--opened')
+
+        if (Array.isArray(zoomOptions.class)) {
+          active.zoomed.classList.remove(...zoomOptions.class)
+        } else if (
+          typeof zoomOptions.class === 'string' ||
+          zoomOptions.class instanceof String
+        ) {
+          active.zoomed.classList.remove(zoomOptions.class)
+        }
+
         if (active.template) {
           document.body.removeChild(active.template)
         }
@@ -579,6 +598,7 @@ const mediumZoom = (selector, options = {}) => {
     scrollOffset: 40,
     container: null,
     template: null,
+    class: null,
     ...zoomOptions,
   }
 
