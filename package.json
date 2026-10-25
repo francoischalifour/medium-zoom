@@ -40,7 +40,12 @@
     "dist",
     "CHANGELOG.md"
   ],
-  "sideEffects": false,
+  "sideEffects": [
+    "./dist/medium-zoom.js",
+    "./dist/medium-zoom.min.js",
+    "./dist/medium-zoom.esm.js",
+    "**/*.css"
+  ],
   "main": "dist/medium-zoom.min.js",
   "module": "dist/medium-zoom.esm.js",
   "types": "dist/medium-zoom.d.ts",
