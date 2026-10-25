@@ -45,7 +45,10 @@ const mediumZoom = (selector, options = {}) => {
       window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
 
     // Pinching and panning a magnified page must keep the full-size image open.
-    if (active.isPinching || (window.visualViewport && window.visualViewport.scale > 1)) {
+    if (
+      active.isPinching ||
+      (window.visualViewport && window.visualViewport.scale > active.viewportScale)
+    ) {
       scrollTop = currentScroll
       clearTimeout(active.scrollTimer)
       active.scrollTimer = null
@@ -352,6 +355,7 @@ const mediumZoom = (selector, options = {}) => {
         resolve(zoom)
         return
       }
+      current.viewportScale = window.visualViewport ? window.visualViewport.scale : 1
       _updateGlobalEvents(true)
       isAnimating = true
       _dispatchEvent(current.original, 'open')

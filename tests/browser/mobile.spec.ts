@@ -62,6 +62,52 @@ async function scroll(page: Page, top: number) {
   await page.clock.runFor(250)
 }
 
+for (const initialScale of [0.5, 2]) {
+  test(`pinch panning respects the opening viewport scale of ${initialScale}`, async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(browserName !== 'chromium', 'Browser scale emulation requires Chromium CDP')
+    await loadZoomFixture(page)
+    await page.evaluate(async initialScale => {
+      document
+        .querySelector('meta[name="viewport"]')!
+        .setAttribute('content', `width=device-width,initial-scale=${initialScale}`)
+      // Let the updated viewport metadata take effect before emulating a pinch.
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+    }, initialScale)
+    const session = await page.context().newCDPSession(page)
+    await session.send('Emulation.setPageScaleFactor', { pageScaleFactor: initialScale })
+    await expect
+      .poll(() => page.evaluate(() => window.visualViewport!.scale))
+      .toBeCloseTo(initialScale)
+    await page.evaluate(() => window.zoom.open())
+    await page.clock.install()
+
+    await session.send('Emulation.setPageScaleFactor', { pageScaleFactor: initialScale * 1.5 })
+    await scroll(page, 100)
+    await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
+    await scroll(page, 200)
+    await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
+
+    await session.send('Emulation.setPageScaleFactor', { pageScaleFactor: initialScale })
+    await scroll(page, 210)
+    await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
+    await scroll(page, 300)
+    await page.clock.runFor(500)
+    await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
+
+    // A new opening must capture the browser's current scale again.
+    await session.send('Emulation.setPageScaleFactor', { pageScaleFactor: initialScale * 1.5 })
+    await page.evaluate(() => void window.zoom.open())
+    await page.clock.runFor(500)
+    await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
+    await scroll(page, 400)
+    await page.clock.runFor(500)
+    await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
+  })
+}
+
 test.describe('pinch gestures', () => {
   test.beforeEach(async ({ page }) => {
     await loadZoomFixture(page)
