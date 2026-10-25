@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.1.2](https://github.com/francoischalifour/medium-zoom/compare/1.1.1...1.1.2) (2026-10-25)
+
+
+### Bug Fixes
+
+* allow closing zooms during image loading and opening ([#233](https://github.com/francoischalifour/medium-zoom/issues/233)) ([3eece1a](https://github.com/francoischalifour/medium-zoom/commit/3eece1ac4916c170609a45e5e1f78c8259ccdc58))
+* honor reduced-motion preferences ([#242](https://github.com/francoischalifour/medium-zoom/issues/242)) ([a6af2a1](https://github.com/francoischalifour/medium-zoom/commit/a6af2a1b261c414231031a1bc439318c2cabecd1))
+* keep images open during pinch zoom on mobile ([#239](https://github.com/francoischalifour/medium-zoom/issues/239)) ([60ebc2a](https://github.com/francoischalifour/medium-zoom/commit/60ebc2a78fe2c52a321de4021dec4c563f7285b4))
+* **package:** preserve stylesheet side effects during bundling ([#240](https://github.com/francoischalifour/medium-zoom/issues/240)) ([ff25230](https://github.com/francoischalifour/medium-zoom/commit/ff25230efc2f750a4d36c48b4606c4fffdb2ab5e))
+
+
+### Performance Improvements
+
+* reduce runtime overhead and minify ES5 modules ([#236](https://github.com/francoischalifour/medium-zoom/issues/236)) ([414710f](https://github.com/francoischalifour/medium-zoom/commit/414710fa9ca6aac37b359757c86070f85c4372a9))
+
 ## [1.1.1](https://github.com/francoischalifour/medium-zoom/compare/1.1.0...1.1.1) (2026-10-25)
 
 ### Bug Fixes
