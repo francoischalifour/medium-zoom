@@ -18,6 +18,9 @@ const mediumZoom = (selector, options = {}) => {
       fn(noop, noop)
     }
 
+  const _dispatchEvent = (image, type) =>
+    image.dispatchEvent(createCustomEvent(`medium-zoom:${type}`, { detail: { zoom } }))
+
   const _handleClick = event => {
     const { target } = event
 
@@ -41,8 +44,8 @@ const mediumZoom = (selector, options = {}) => {
     const currentScroll =
       window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
 
-    if (Math.abs(scrollTop - currentScroll) > zoomOptions.scrollOffset) {
-      setTimeout(close, 150)
+    if (Math.abs(scrollTop - currentScroll) > zoomOptions.scrollOffset && !active.scrollTimer) {
+      active.scrollTimer = setTimeout(close, 150)
     }
   }
 
@@ -80,11 +83,7 @@ const mediumZoom = (selector, options = {}) => {
     zoomOptions = { ...zoomOptions, ...newOptions }
 
     images.forEach(image => {
-      image.dispatchEvent(
-        createCustomEvent('medium-zoom:update', {
-          detail: { zoom },
-        })
-      )
+      _dispatchEvent(image, 'update')
     })
 
     return zoom
@@ -165,11 +164,7 @@ const mediumZoom = (selector, options = {}) => {
 
     imagesToDetach.forEach(image => {
       image.classList.remove('medium-zoom-image')
-      image.dispatchEvent(
-        createCustomEvent('medium-zoom:detach', {
-          detail: { zoom },
-        })
-      )
+      _dispatchEvent(image, 'detach')
     })
 
     images = images.filter(image => imagesToDetach.indexOf(image) === -1)
@@ -218,7 +213,25 @@ const mediumZoom = (selector, options = {}) => {
       }
     })
 
+  // A transition may never start (for example when closing before the first frame).
+  const _waitForTransition = (image, done) => {
+    const finish = event => {
+      if (event && event.propertyName !== 'transform') return
+      cleanup()
+      done()
+    }
+    // Allow the 300ms CSS transition to finish even if no event is delivered.
+    const timer = setTimeout(finish, 400)
+    const cleanup = () => {
+      clearTimeout(timer)
+      image.removeEventListener('transitionend', finish)
+    }
+    image.addEventListener('transitionend', finish)
+    return cleanup
+  }
+
   const open = ({ target } = {}) => {
+    const current = {}
     const _animate = () => {
       let container = {
         width: document.documentElement.clientWidth,
@@ -265,7 +278,7 @@ const mediumZoom = (selector, options = {}) => {
       viewportWidth = viewportWidth || container.width - zoomOptions.margin * 2
       viewportHeight = viewportHeight || container.height - zoomOptions.margin * 2
 
-      const zoomTarget = active.zoomedHd || active.original
+      const zoomTarget = current.zoomedHd || current.original
       const naturalWidth = isSvg(zoomTarget)
         ? viewportWidth
         : zoomTarget.naturalWidth || viewportWidth
@@ -273,6 +286,8 @@ const mediumZoom = (selector, options = {}) => {
         ? viewportHeight
         : zoomTarget.naturalHeight || viewportHeight
       const { top, left, width, height } = zoomTarget.getBoundingClientRect()
+
+      if (!width || !height) return
 
       const scaleX = Math.min(Math.max(width, naturalWidth), viewportWidth) / width
       const scaleY = Math.min(Math.max(height, naturalHeight), viewportHeight) / height
@@ -283,59 +298,49 @@ const mediumZoom = (selector, options = {}) => {
         (-top + (viewportHeight - height) / 2 + zoomOptions.margin + container.top) / scale
       const transform = `scale(${scale}) translate3d(${translateX}px, ${translateY}px, 0)`
 
-      active.zoomed.style.transform = transform
+      current.zoomed.style.transform = transform
 
-      if (active.zoomedHd) {
-        active.zoomedHd.style.transform = transform
+      if (current.zoomedHd) {
+        current.zoomedHd.style.transform = transform
       }
     }
 
     return new Promise(resolve => {
-      if (target && images.indexOf(target) === -1) {
+      if (active.original || (target && images.indexOf(target) === -1)) {
         resolve(zoom)
         return
       }
+      active = current
 
-      const _handleOpenEnd = () => {
+      let cancelTransition = () => {}
+      let cancelImage = () => {}
+      let frame
+      const finishOpening = opened => {
+        if (!current.cancelOpen) return
+        cancelTransition()
+        cancelImage()
+        window.cancelAnimationFrame(frame)
+        current.cancelOpen = null
         isAnimating = false
-        active.zoomed.removeEventListener('transitionend', _handleOpenEnd)
-        active.original.dispatchEvent(
-          createCustomEvent('medium-zoom:opened', {
-            detail: { zoom },
-          })
-        )
-
         resolve(zoom)
+        if (opened) {
+          _dispatchEvent(current.original, 'opened')
+        }
       }
-
-      if (active.zoomed) {
+      current.cancelOpen = finishOpening
+      current.original = target || images[0]
+      if (!current.original) {
         resolve(zoom)
         return
       }
-
-      if (target) {
-        // The zoom was triggered manually via a click
-        active.original = target
-      } else if (images.length > 0) {
-        // The zoom was triggered programmatically, select the first image in the list
-        ;[active.original] = images
-      } else {
-        resolve(zoom)
-        return
-      }
-
       _updateGlobalEvents(true)
-
-      active.original.dispatchEvent(
-        createCustomEvent('medium-zoom:open', {
-          detail: { zoom },
-        })
-      )
+      isAnimating = true
+      _dispatchEvent(current.original, 'open')
+      if (current.closing) return
 
       scrollTop =
         window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
-      isAnimating = true
-      active.zoomed = cloneTarget(active.original)
+      current.zoomed = cloneTarget(current.original)
 
       document.body.appendChild(overlay)
 
@@ -343,164 +348,112 @@ const mediumZoom = (selector, options = {}) => {
         const template = isNode(zoomOptions.template)
           ? zoomOptions.template
           : document.querySelector(zoomOptions.template)
-        active.template = document.createElement('div')
-        active.template.appendChild(template.content.cloneNode(true))
+        current.template = document.createElement('div')
+        current.template.appendChild(template.content.cloneNode(true))
 
-        document.body.appendChild(active.template)
+        document.body.appendChild(current.template)
       }
 
       // If the selected <img> tag is inside a <picture> tag, set the
       // currently-applied source as the cloned `src=` attribute.
       // (as these might differ, or src= might be unset in some cases)
       if (
-        active.original.parentElement &&
-        active.original.parentElement.tagName === 'PICTURE' &&
-        active.original.currentSrc
+        current.original.parentElement &&
+        current.original.parentElement.tagName === 'PICTURE' &&
+        current.original.currentSrc
       ) {
-        active.zoomed.src = active.original.currentSrc
+        current.zoomed.src = current.original.currentSrc
       }
 
-      document.body.appendChild(active.zoomed)
+      document.body.appendChild(current.zoomed)
 
-      window.requestAnimationFrame(() => {
+      frame = window.requestAnimationFrame(() => {
         document.body.classList.add('medium-zoom--opened')
       })
 
-      active.original.classList.add('medium-zoom-image--hidden')
-      active.zoomed.classList.add('medium-zoom-image--opened')
+      current.original.classList.add('medium-zoom-image--hidden')
+      current.zoomed.classList.add('medium-zoom-image--opened')
 
-      active.zoomed.addEventListener('click', close)
-      active.zoomed.addEventListener('transitionend', _handleOpenEnd)
+      current.zoomed.addEventListener('click', close)
 
-      if (active.original.getAttribute('data-zoom-src')) {
-        active.zoomedHd = active.zoomed.cloneNode()
-
-        // Reset the `scrset` property or the HD image won't load.
-        active.zoomedHd.removeAttribute('srcset')
-        active.zoomedHd.removeAttribute('sizes')
-        // Remove loading attribute so the browser can load the image normally
-        active.zoomedHd.removeAttribute('loading')
-
-        active.zoomedHd.src = active.zoomed.getAttribute('data-zoom-src')
-
-        active.zoomedHd.onerror = () => {
-          clearInterval(getZoomTargetSize)
-          console.warn(`Unable to reach the zoom image target ${active.zoomedHd.src}`)
-          active.zoomedHd = null
-          _animate()
-        }
-
-        // We need to access the natural size of the full HD
-        // target as fast as possible to compute the animation.
-        const getZoomTargetSize = setInterval(() => {
-          if (__TEST__ ? true : active.zoomedHd.complete) {
-            clearInterval(getZoomTargetSize)
-            active.zoomedHd.classList.add('medium-zoom-image--opened')
-            active.zoomedHd.addEventListener('click', close)
-            document.body.appendChild(active.zoomedHd)
-            _animate()
-          }
-        }, 10)
-      } else if (active.original.hasAttribute('srcset')) {
-        // If an image has a `srcset` attribuet, we don't know the dimensions of the
-        // zoomed (HD) image (like when `data-zoom-src` is specified).
-        // Therefore the approach is quite similar.
-        active.zoomedHd = active.zoomed.cloneNode()
-
-        // Resetting the sizes attribute tells the browser to load the
-        // image best fitting the current viewport size, respecting the `srcset`.
-        active.zoomedHd.removeAttribute('sizes')
-
-        // In Firefox, the `loading` attribute needs to be set to `eager` (default
-        // value) for the load event to be fired.
-        active.zoomedHd.removeAttribute('loading')
-
-        // Wait for the load event of the hd image. This will fire if the image
-        // is already cached.
-        const loadEventListener = active.zoomedHd.addEventListener('load', () => {
-          active.zoomedHd.removeEventListener('load', loadEventListener)
-          active.zoomedHd.classList.add('medium-zoom-image--opened')
-          active.zoomedHd.addEventListener('click', close)
-          document.body.appendChild(active.zoomedHd)
-          _animate()
-        })
-      } else {
+      const animate = () => {
         _animate()
+        cancelTransition = _waitForTransition(current.zoomed, () => finishOpening(true))
       }
 
-      if (__TEST__) {
-        // The event `transitionend` is not triggered in test environment.
-        // Calling this function manually makes testing the open() function possible.
-        _handleOpenEnd()
+      const zoomSrc = current.original.getAttribute('data-zoom-src')
+      if (zoomSrc || current.original.hasAttribute('srcset')) {
+        // Cloning a cached image can queue a load for its old source in Firefox.
+        // Copy its presentation first, then assign sources after installing handlers.
+        const hd = document.createElement('img')
+        ;[].slice.call(current.zoomed.attributes).forEach(({ name, value }) => {
+          if (!/^(src|srcset|sizes|loading)$/.test(name)) hd.setAttribute(name, value)
+        })
+        current.zoomedHd = hd
+        const finishImage = () => {
+          cancelImage()
+          if (current.closing) return
+          if (hd.naturalWidth) {
+            hd.classList.add('medium-zoom-image--opened')
+            hd.addEventListener('click', close)
+            document.body.appendChild(hd)
+          } else {
+            console.warn(`Unable to reach the zoom image target ${hd.currentSrc || hd.src}`)
+            current.zoomedHd = null
+          }
+          animate()
+        }
+        cancelImage = () => {
+          hd.removeEventListener('load', finishImage)
+          hd.removeEventListener('error', finishImage)
+        }
+        hd.addEventListener('load', finishImage)
+        hd.addEventListener('error', finishImage)
+        if (!zoomSrc) hd.srcset = current.zoomed.srcset
+        hd.src = zoomSrc || current.zoomed.src
+      } else {
+        animate()
       }
     })
   }
 
   const close = () =>
     new Promise(resolve => {
-      if (isAnimating || !active.original) {
+      const current = active
+      if (!current.original || current.closing) {
         resolve(zoom)
         return
       }
 
-      const _handleCloseEnd = () => {
-        active.original.classList.remove('medium-zoom-image--hidden')
-        document.body.removeChild(active.zoomed)
-        if (active.zoomedHd) {
-          document.body.removeChild(active.zoomedHd)
-        }
-        document.body.removeChild(overlay)
-        active.zoomed.classList.remove('medium-zoom-image--opened')
-        if (active.template) {
-          document.body.removeChild(active.template)
-        }
-
-        isAnimating = false
-        active.zoomed.removeEventListener('transitionend', _handleCloseEnd)
-
-        active.original.dispatchEvent(
-          createCustomEvent('medium-zoom:closed', {
-            detail: { zoom },
-          })
-        )
-
-        active.original = null
-        active.zoomed = null
-        active.zoomedHd = null
-        active.template = null
-
-        _updateGlobalEvents(false)
-
-        resolve(zoom)
-      }
-
+      current.closing = true
+      if (current.cancelOpen) current.cancelOpen()
+      clearTimeout(current.scrollTimer)
       isAnimating = true
-      document.body.classList.remove('medium-zoom--opened')
-      active.zoomed.style.transform = ''
-
-      if (active.zoomedHd) {
-        active.zoomedHd.style.transform = ''
-      }
-
-      // Fade out the template so it's not too abrupt
-      if (active.template) {
-        active.template.style.transition = 'opacity 150ms'
-        active.template.style.opacity = 0
-      }
-
-      active.original.dispatchEvent(
-        createCustomEvent('medium-zoom:close', {
-          detail: { zoom },
+      const finishClosing = () => {
+        current.original.classList.remove('medium-zoom-image--hidden')
+        ;[current.zoomed, current.zoomedHd, current.template, overlay].forEach(node => {
+          if (!node) return
+          node.removeEventListener('click', close)
+          if (node.parentNode) node.parentNode.removeChild(node)
         })
-      )
-
-      active.zoomed.addEventListener('transitionend', _handleCloseEnd)
-
-      if (__TEST__) {
-        // The event `transitionend` is not triggered in test environment.
-        // Calling this function manually makes testing the close() function possible.
-        _handleCloseEnd()
+        active = {}
+        isAnimating = false
+        _updateGlobalEvents(false)
+        resolve(zoom)
+        _dispatchEvent(current.original, 'closed')
       }
+
+      // Install completion before dispatching events, whose listeners may interact again.
+      if (current.zoomed) _waitForTransition(current.zoomed, finishClosing)
+      document.body.classList.remove('medium-zoom--opened')
+      if (current.zoomed) current.zoomed.style.transform = ''
+      if (current.zoomedHd) current.zoomedHd.style.transform = ''
+      if (current.template) {
+        current.template.style.transition = 'opacity 150ms'
+        current.template.style.opacity = 0
+      }
+      _dispatchEvent(current.original, 'close')
+      if (!current.zoomed) finishClosing()
     })
 
   const toggle = ({ target } = {}) => {
@@ -515,19 +468,14 @@ const mediumZoom = (selector, options = {}) => {
 
   const getImages = () => images
 
-  const getZoomedImage = () => active.original
+  const getZoomedImage = () => active.original || null
 
   let images = []
   let eventListeners = []
   let isAnimating = false
   let scrollTop = 0
   let zoomOptions = options
-  const active = {
-    original: null,
-    zoomed: null,
-    zoomedHd: null,
-    template: null,
-  }
+  let active = {}
 
   // If the selector is omitted, it's replaced by the options
   if (Object.prototype.toString.call(selector) === '[object Object]') {

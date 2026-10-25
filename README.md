@@ -212,6 +212,8 @@ _Emits an event [`open`](#events) on animation start and [`opened`](#events) whe
 
 Closes the zoom and returns a promise resolving with the zoom.
 
+Cancelling an opening also resolves its pending `open()` promise without emitting `opened`.
+
 ```js
 const zoom = mediumZoom('[data-zoomable]')
 
