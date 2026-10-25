@@ -80,6 +80,9 @@ jobs:
         with:
           name: browser-build
       - name: Test ${{ matrix.suite.name }}
+        env:
+          # GitHub's /github/home belongs to the host runner, not the container's root user.
+          HOME: /root
         run: bun run test:browser --project="*${{ matrix.browser }}" ${{ matrix.suite.args }}
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ !cancelled() }}
