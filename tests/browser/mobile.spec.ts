@@ -1,6 +1,21 @@
 import { test, expect } from '@playwright/test'
 import { loadZoomFixture, openImage } from './helpers.ts'
 
+test('video plays inline after a tap and cleans up on viewport change', async ({ page }) => {
+  await page.goto('/examples/video/')
+  await page.locator('#play').tap()
+  const video = page.locator('video')
+  await expect(video).toBeVisible()
+  await expect
+    .poll(() => video.evaluate((video: HTMLVideoElement) => video.currentTime))
+    .toBeGreaterThan(0)
+  const viewport = page.viewportSize()!
+  await page.setViewportSize({ width: viewport.height, height: viewport.width })
+  await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
+  await expect(video).toHaveCount(0)
+  await expect(page.locator('#play')).toBeFocused()
+})
+
 for (const distribution of ['baseline', 'package'] as const) {
   test.describe(distribution, () => {
     test.beforeEach(async ({ page }) => {

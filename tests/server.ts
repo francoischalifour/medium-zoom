@@ -17,6 +17,7 @@ const contentTypes: Record<string, string> = {
   '.jpg': 'image/jpeg',
   '.png': 'image/png',
   '.svg': 'image/svg+xml',
+  '.mp4': 'video/mp4',
 }
 
 const server = createServer((request, response) => {
@@ -38,8 +39,29 @@ const server = createServer((request, response) => {
   }
   try {
     const contents = readFileSync(path)
+    const contentType = contentTypes[extname(path)] || 'application/octet-stream'
+    // Native video players (including WebKit) request byte ranges when loading media.
+    const range = request.headers.range?.match(/^bytes=(\d+)-(\d*)$/)
+    if (range) {
+      const start = Number(range[1])
+      const end = Math.min(Number(range[2] || contents.length - 1), contents.length - 1)
+      if (start > end) {
+        response.writeHead(416, { 'Content-Range': `bytes */${contents.length}` }).end()
+        return
+      }
+      response.writeHead(206, {
+        'Content-Type': contentType,
+        'Content-Range': `bytes ${start}-${end}/${contents.length}`,
+        'Content-Length': end - start + 1,
+        'Accept-Ranges': 'bytes',
+      })
+      response.end(contents.subarray(start, end + 1))
+      return
+    }
     response.writeHead(200, {
-      'Content-Type': contentTypes[extname(path)] || 'application/octet-stream',
+      'Content-Type': contentType,
+      'Content-Length': contents.length,
+      'Accept-Ranges': 'bytes',
     })
     response.end(contents)
   } catch {

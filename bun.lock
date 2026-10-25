@@ -101,6 +101,17 @@
         "vite": "8.3.5",
       },
     },
+    "examples/video": {
+      "name": "@medium-zoom/video-example",
+      "version": "1.0.0",
+      "dependencies": {
+        "medium-zoom": "1.1.1",
+      },
+      "devDependencies": {
+        "typescript": "7.0.2",
+        "vite": "8.3.5",
+      },
+    },
     "examples/vue": {
       "name": "@medium-zoom/vue-example",
       "version": "0.1.0",
@@ -319,6 +330,8 @@
     "@medium-zoom/svelte-example": ["@medium-zoom/svelte-example@workspace:examples/svelte"],
 
     "@medium-zoom/vanilla-example": ["@medium-zoom/vanilla-example@workspace:examples/vanilla"],
+
+    "@medium-zoom/video-example": ["@medium-zoom/video-example@workspace:examples/video"],
 
     "@medium-zoom/vue-example": ["@medium-zoom/vue-example@workspace:examples/vue"],
 
