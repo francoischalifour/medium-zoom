@@ -1,6 +1,10 @@
 import { test, expect, type Page, type Route } from '@playwright/test'
 import { loadZoomFixture, openImage } from './helpers.ts'
 
+const imageButton = `<button type="button" aria-label="Zoom image" style="padding:0;border:0;background:none">
+  <img id="image" src="/images/image-1.jpg" width="160" alt="Zoom fixture">
+</button>`
+
 test('video plays inline after a tap and cleans up on viewport change', async ({ page }) => {
   await page.goto('/examples/video/')
   await page.locator('#play').tap()
@@ -21,9 +25,7 @@ for (const distribution of ['baseline', 'package'] as const) {
     test.beforeEach(async ({ page }) => {
       await loadZoomFixture(page, {
         distribution,
-        body: `<button type="button" aria-label="Zoom image" style="padding:0;border:0;background:none">
-          <img id="image" src="/images/image-1.jpg" width="160" alt="Zoom fixture">
-        </button>`,
+        body: imageButton,
       })
     })
 
@@ -68,7 +70,7 @@ for (const initialScale of [0.5, 2]) {
     browserName,
   }) => {
     test.skip(browserName !== 'chromium', 'Browser scale emulation requires Chromium CDP')
-    await loadZoomFixture(page)
+    await loadZoomFixture(page, { body: imageButton })
     await page.evaluate(async initialScale => {
       document
         .querySelector('meta[name="viewport"]')!
@@ -109,7 +111,7 @@ for (const initialScale of [0.5, 2]) {
 }
 
 test('pinching while an HD image loads refreshes the scroll baseline', async ({ page }) => {
-  await loadZoomFixture(page)
+  await loadZoomFixture(page, { body: imageButton })
   let pendingImage!: Route
   await page.route('**/pending.jpg', route => {
     pendingImage = route
@@ -138,7 +140,7 @@ test('pinching while an HD image loads refreshes the scroll baseline', async ({ 
 
 test.describe('pinch gestures', () => {
   test.beforeEach(async ({ page }) => {
-    await loadZoomFixture(page)
+    await loadZoomFixture(page, { body: imageButton })
     await openImage(page, page.locator('#image'), { via: 'tap' })
     await page.clock.install()
   })
