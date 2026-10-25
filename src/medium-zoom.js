@@ -238,20 +238,32 @@ const mediumZoom = (selector, options = {}) => {
       }
     })
 
-  // A transition may never start (for example when closing before the first frame).
+  // A transition may be disabled, cancelled, or have no change to animate.
   const _waitForTransition = (image, done) => {
+    let timer
+    let frame
+    let finished = false
     const finish = event => {
-      if (event && event.propertyName !== 'transform') return
+      if (finished || (event && event.propertyName !== 'transform')) return
       cleanup()
       done()
     }
-    // Allow the 300ms CSS transition to finish even if no event is delivered.
-    const timer = setTimeout(finish, 400)
     const cleanup = () => {
+      finished = true
       clearTimeout(timer)
+      window.cancelAnimationFrame(frame)
       image.removeEventListener('transitionend', finish)
+      image.removeEventListener('transitioncancel', finish)
     }
     image.addEventListener('transitionend', finish)
+    image.addEventListener('transitioncancel', finish)
+    frame = window.requestAnimationFrame(() => {
+      const style = window.getComputedStyle(image)
+      // Computed times use seconds. Bound all declared transitions if no event fires.
+      const getTime = value => Math.max(...value.split(',').map(parseFloat))
+      const duration = (getTime(style.transitionDuration) + getTime(style.transitionDelay)) * 1_000
+      timer = setTimeout(finish, duration > 0 ? duration + 50 : 0)
+    })
     return cleanup
   }
 
@@ -475,7 +487,9 @@ const mediumZoom = (selector, options = {}) => {
       if (current.zoomed) current.zoomed.style.transform = ''
       if (current.zoomedHd) current.zoomedHd.style.transform = ''
       if (current.template) {
-        current.template.style.transition = 'opacity 150ms'
+        current.template.style.transition = window.matchMedia('(prefers-reduced-motion)').matches
+          ? 'none'
+          : 'opacity 150ms'
         current.template.style.opacity = 0
       }
       _dispatchEvent(current.original, 'close')

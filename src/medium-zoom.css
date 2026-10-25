@@ -6,7 +6,6 @@
   left: 0;
   opacity: 0;
   transition: opacity 300ms;
-  will-change: opacity;
 }
 
 .medium-zoom--opened .medium-zoom-overlay {
@@ -38,5 +37,11 @@
   position: relative;
   cursor: pointer;
   cursor: zoom-out;
-  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .medium-zoom-image,
+  .medium-zoom-overlay {
+    transition: none !important;
+  }
 }
