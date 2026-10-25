@@ -156,3 +156,71 @@ for (const source of ['data-zoom-src', 'srcset'] as const) {
     await expect(page.locator('#image')).toBeVisible()
   })
 }
+
+test('closing during opening waits for the reverse transition', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await loadZoomFixture(page)
+  await page.addStyleTag({ content: '.medium-zoom-image { transition-duration: 1s !important }' })
+  await page.evaluate(() => {
+    document.body.dataset.motionEvents = ''
+    let started = false
+    document.addEventListener('transitionrun', event => {
+      if (
+        !started &&
+        event.propertyName === 'transform' &&
+        (event.target as Element).classList.contains('medium-zoom-image--opened')
+      ) {
+        started = true
+        // Reverse a running transition rather than cancelling before its first frame.
+        setTimeout(() => {
+          void window.zoom.close().then(() => {
+            document.body.dataset.completed = 'true'
+          })
+        }, 75)
+      }
+    })
+    void window.zoom.open()
+    document
+      .querySelector('.medium-zoom-image--opened')!
+      .addEventListener('transitionend', event => {
+        if ((event as TransitionEvent).propertyName === 'transform') {
+          document.body.dataset.motionEvents += 'transitionend,'
+        }
+      })
+    window.zoom.on('closed', () => {
+      document.body.dataset.motionEvents += 'closed,'
+    })
+  })
+  await expect(page.locator('body')).toHaveAttribute('data-completed', 'true')
+  await expect(page.locator('body')).toHaveAttribute('data-motion-events', 'transitionend,closed,')
+  await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
+})
+
+test('lifecycle completion has a fallback when animation frames are suspended', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await loadZoomFixture(page)
+  const result = await page.evaluate(async () => {
+    const requestFrame = window.requestAnimationFrame
+    window.requestAnimationFrame = () => 0
+    try {
+      const opened = await window.zoom.open()
+      const openedClass = document.body.classList.contains('medium-zoom--opened')
+      const overlayOpacity = getComputedStyle(
+        document.querySelector('.medium-zoom-overlay')!
+      ).opacity
+      const closed = await window.zoom.close()
+      return {
+        fluent: opened === window.zoom && closed === window.zoom,
+        openedClass,
+        overlayOpacity,
+      }
+    } finally {
+      window.requestAnimationFrame = requestFrame
+    }
+  })
+  expect(result).toEqual({ fluent: true, openedClass: true, overlayOpacity: '1' })
+  await expect(page.locator('.medium-zoom-overlay, .medium-zoom-image--opened')).toHaveCount(0)
+  await expect(page.locator('#image')).toBeVisible()
+})

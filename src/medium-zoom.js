@@ -243,27 +243,31 @@ const mediumZoom = (selector, options = {}) => {
     let timer
     let frame
     let finished = false
+    const query = window.matchMedia('(prefers-reduced-motion)')
+    const getTime = value => Math.max(...value.split(',').map(parseFloat))
     const finish = event => {
       if (finished || (event && event.propertyName !== 'transform')) return
       cleanup()
       done()
+    }
+    const motionChange = () => {
+      if (query.matches) finish()
     }
     const cleanup = () => {
       finished = true
       clearTimeout(timer)
       window.cancelAnimationFrame(frame)
       image.removeEventListener('transitionend', finish)
-      image.removeEventListener('transitioncancel', finish)
+      query.removeListener(motionChange)
     }
     image.addEventListener('transitionend', finish)
-    image.addEventListener('transitioncancel', finish)
-    frame = window.requestAnimationFrame(() => {
-      const style = window.getComputedStyle(image)
-      // Computed times use seconds. Bound all declared transitions if no event fires.
-      const getTime = value => Math.max(...value.split(',').map(parseFloat))
-      const duration = (getTime(style.transitionDuration) + getTime(style.transitionDelay)) * 1_000
-      timer = setTimeout(finish, duration > 0 ? duration + 50 : 0)
-    })
+    query.addListener(motionChange)
+    const style = window.getComputedStyle(image)
+    // Keep a fallback independent of animation frames, which pause in hidden tabs.
+    const duration = (getTime(style.transitionDuration) + getTime(style.transitionDelay)) * 1_000
+    timer = setTimeout(finish, Math.max(0, duration) + 50)
+    // Let the opening body class update before completing a zero-duration zoom.
+    if (duration <= 0) frame = window.requestAnimationFrame(() => finish())
     return cleanup
   }
 
@@ -361,6 +365,7 @@ const mediumZoom = (selector, options = {}) => {
         isAnimating = false
         resolve(zoom)
         if (opened) {
+          document.body.classList.add('medium-zoom--opened')
           _dispatchEvent(current.original, 'opened')
         }
       }
