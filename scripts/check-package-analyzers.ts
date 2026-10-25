@@ -5,7 +5,22 @@ import { resolve } from 'node:path'
 import { publint } from 'publint'
 import { formatMessage } from 'publint/utils'
 
+interface AttwAnalysis {
+  problems: {
+    kind: string
+    fileName?: string
+    typesFileName?: string
+    implementationFileName?: string
+  }[]
+  entrypoints: Record<string, { resolutions: Record<string, { visibleProblems: number[] }> }>
+}
+
 export async function checkAnalyzers(archive: string) {
+  await checkPublint(archive)
+  checkAttw(archive)
+}
+
+async function checkPublint(archive: string) {
   const result = await publint({
     pack: { tarball: new Uint8Array(readFileSync(archive)).buffer },
     level: 'warning',
@@ -27,9 +42,11 @@ export async function checkAnalyzers(archive: string) {
       path: ['name'],
       type: 'warning',
     })),
-    'Unexpected publint findings; review the v1 compatibility exceptions in CONTRIBUTING.md'
+    'Unexpected publint findings outside the v1 ESM .js compatibility exceptions'
   )
+}
 
+function checkAttw(archive: string) {
   // Explicitly include both typed pure paths: without exports, ATTW discovers
   // only the root by default. Other UMD paths are runtime-only (checked separately).
   const attw = spawnSync(
@@ -40,17 +57,7 @@ export async function checkAnalyzers(archive: string) {
   assert.ifError(attw.error)
   assert(attw.status === 0 || attw.status === 1, attw.stderr)
   // Exit 1 means findings were reported; validate their exact scope below.
-  const { analysis } = JSON.parse(attw.stdout) as {
-    analysis: {
-      problems: {
-        kind: string
-        fileName?: string
-        typesFileName?: string
-        implementationFileName?: string
-      }[]
-      entrypoints: Record<string, { resolutions: Record<string, { visibleProblems: number[] }> }>
-    }
-  }
+  const { analysis } = JSON.parse(attw.stdout) as { analysis: AttwAnalysis }
   const findings = analysis.problems.map(problem => ({
     kind: problem.kind,
     files: [problem.fileName, problem.typesFileName, problem.implementationFileName].filter(
@@ -58,6 +65,8 @@ export async function checkAnalyzers(archive: string) {
     ),
   }))
   console.log('ATTW v1 compatibility findings:', findings)
+  // v1's default-export types misdescribe the callable UMD. Switching to export =
+  // would break legacy default imports and misdescribe the shared pure ESM types.
   assert.deepEqual(findings, [
     {
       kind: 'FalseExportDefault',
@@ -78,8 +87,11 @@ export async function checkAnalyzers(archive: string) {
     const { resolutions } = analysis.entrypoints[entry]
     assert.deepEqual(Object.keys(resolutions), modes)
     for (const mode of modes) {
-      const expected = entry === '.' ? [0] : mode.startsWith('node16-') ? [1] : []
-      assert.deepEqual(resolutions[mode].visibleProblems, expected, `${entry}: ${mode}`)
+      const actual = resolutions[mode].visibleProblems.map(index => analysis.problems[index].kind)
+      let expected: string[] = []
+      if (entry === '.') expected = ['FalseExportDefault']
+      else if (mode.startsWith('node16-')) expected = ['UnexpectedModuleSyntax']
+      assert.deepEqual(actual, expected, `${entry}: ${mode}`)
     }
   }
 }
