@@ -62,8 +62,8 @@ em {
   padding: 92px 24px;
   text-align: center;
   color: #fff;
-  background: #00ab6c;
-  background: linear-gradient(to bottom, #00ab6c 0%, #13cc69 100%);
+  background: #007a4d;
+  background: linear-gradient(to bottom, #007a4d 0%, #00834a 100%);
   align-items: center;
   justify-content: center;
 }
@@ -138,14 +138,13 @@ button.button,
   transition: all 0.16s;
   font: inherit;
   cursor: pointer;
-  outline: none;
   font-weight: bold;
   border: none;
   border-radius: 32px;
   font-size: 1rem;
   color: #fff;
-  background: #00ab6c;
-  background: linear-gradient(#13cc69 0%, #00ab6c 100%);
+  background: #007a4d;
+  background: linear-gradient(#00834a 0%, #007a4d 100%);
   box-shadow: 0 2px 6px 0 rgba(0, 171, 108, 0.32);
   transition: all 300ms;
 }
@@ -174,7 +173,7 @@ button.button:hover {
 
 .header .button:hover,
 .footer .button:hover {
-  color: #00ab6c;
+  color: #007a4d;
   background-color: #fff;
 }
 
@@ -239,4 +238,9 @@ pre {
     float: left;
     margin-left: -16px;
   }
+}
+
+.button:focus-visible {
+  outline: 3px solid #000;
+  outline-offset: 3px;
 }

@@ -10,9 +10,21 @@ export default defineConfig({
   use: { baseURL: 'http://127.0.0.1:4175', trace: 'retain-on-failure' },
   projects: [
     { name: 'chromium', testIgnore: '**/mobile.spec.ts', use: { ...devices['Desktop Chrome'] } },
-    { name: 'firefox', testIgnore: '**/mobile.spec.ts', use: { ...devices['Desktop Firefox'] } },
-    { name: 'webkit', testIgnore: '**/mobile.spec.ts', use: { ...devices['Desktop Safari'] } },
-    { name: 'mobile-chromium', testMatch: '**/mobile.spec.ts', use: { ...devices['Pixel 7'] } },
+    {
+      name: 'firefox',
+      testIgnore: ['**/mobile.spec.ts', '**/accessibility.spec.ts'],
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      testIgnore: ['**/mobile.spec.ts', '**/accessibility.spec.ts'],
+      use: { ...devices['Desktop Safari'] },
+    },
+    {
+      name: 'mobile-chromium',
+      testMatch: ['**/mobile.spec.ts', '**/accessibility.spec.ts'],
+      use: { ...devices['Pixel 7'] },
+    },
     { name: 'mobile-webkit', testMatch: '**/mobile.spec.ts', use: { ...devices['iPhone 13'] } },
   ],
   webServer: [

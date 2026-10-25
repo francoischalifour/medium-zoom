@@ -41,6 +41,30 @@ Before running individual package checks, run `bun run build`. Before browser
 checks, run `bun run build:website && bun run test:examples`. Browser fixtures use port 4175.
 To select browsers, append `--project=chromium --project=webkit`.
 
+### Automated accessibility scans
+
+The existing `test:browser` run includes axe scans of the built public website in
+Chromium desktop and Pixel 7 emulation. The scans check the whole document before
+opening a zoom and with default, dark-background, and keyboard-triggered zooms
+open. They wait for the real opening transition and verify Escape dismissal.
+Run only these scans with `bun run test:browser accessibility.spec.ts` after the
+browser build prerequisites above; CI runs them once within `bun run check`.
+
+Checks use WCAG 2 A/AA, 2.1 A/AA, and 2.2 AA rule tags without exclusions or rule
+suppressions. Each state attaches the complete axe result (including incomplete
+checks needing manual review) to the Playwright report. Violations include affected
+selectors, markup, and remediation links; violations also attach a screenshot. CI
+uploads these reports and traces in the `browser-evidence` artifact.
+
+Clean scans do not establish WCAG conformance. In v1, directly attached images are
+not keyboard-activatable; the website's separate “Trigger zoom” button demonstrates
+keyboard opening. The viewer has no dialog semantics, focus management, or explicit
+accessible close control, and Escape dismissal alone does not resolve those gaps.
+These existing interaction limitations require separate runtime design work. Review
+keyboard and screen-reader behavior manually, along with contrast over gradients
+and any other incomplete axe checks; the scans do not cover every option, template,
+example, browser, or assistive technology.
+
 ## Compatibility
 
 Preserve the documented browser support and package entry paths, including
