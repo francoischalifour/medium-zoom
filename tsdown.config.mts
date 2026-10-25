@@ -1,5 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { readFileSync } from 'node:fs'
 import { transformSync } from '@babel/core'
 import { parse } from 'acorn'
 import { transform as transformCss } from 'lightningcss'
@@ -36,142 +35,103 @@ function stylesheet(): TsdownPlugin {
         document.head.appendChild(style);
       }`
     },
-    generateBundle() {
-      this.emitFile({
-        type: 'asset',
-        fileName: 'medium-zoom.d.ts',
-        source: readFileSync(new URL('./src/medium-zoom.d.ts', import.meta.url), 'utf8'),
-      })
-      this.emitFile({
-        type: 'asset',
-        fileName: 'pure/index.d.ts',
-        source: readFileSync(new URL('./src/medium-zoom.d.ts', import.meta.url), 'utf8'),
-      })
-    },
   }
 }
 
-function legacySyntax({ minify = false }: { minify?: boolean } = {}): TsdownPlugin {
+function legacySyntax(minify: boolean): TsdownPlugin {
   return {
     name: 'medium-zoom-legacy-syntax',
-    async writeBundle(options, bundle) {
-      for (const chunk of Object.values(bundle)) {
-        if (chunk.type !== 'chunk') continue
-        const path = resolve(options.dir!, chunk.fileName)
-        const result = transformSync(readFileSync(path, 'utf8').replace(banner, ''), {
-          babelrc: false,
-          configFile: false,
-          targets: { ie: '10' },
-          assumptions: {
-            iterableIsArray: true,
-            ignoreFunctionLength: true,
-            ignoreToPrimitiveHint: true,
-            pureGetters: true,
-            setSpreadProperties: true,
-          },
-          presets: [
-            ['@babel/preset-env', { modules: false, exclude: ['transform-typeof-symbol'] }],
-          ],
-          compact: minify,
-          minified: minify,
-          comments: true,
-        })
-        if (!result?.code) throw new Error('Babel did not emit the browser bundle')
-        const code = minify
-          ? (
-              await minifyEs5(result.code, {
-                ecma: 5,
-                module: options.format === 'es',
-                mangle: { properties: { regex: privateSessionProperties } },
-                format: { comments: /^!/ },
-              })
-            ).code
-          : result.code
-        if (!code) throw new Error('The ES5 minifier did not emit a browser bundle')
-        // Line-based package analyzers can mistake URL strings for comments.
-        // Keep ESM exports visible on their own lines regardless of minifier formatting.
-        let output = code
-        if (options.format === 'es') {
-          const { body } = parse(code, { ecmaVersion: 2_015, sourceType: 'module' })
-          // Work backwards so each declaration's original offset remains valid.
-          for (const declaration of body.reverse()) {
-            if (
-              declaration.type === 'ExportNamedDeclaration' ||
-              declaration.type === 'ExportDefaultDeclaration' ||
-              declaration.type === 'ExportAllDeclaration'
-            ) {
-              output = `${output.slice(0, declaration.start)}\n${output.slice(declaration.start)}`
-            }
+    async renderChunk(source, _chunk, options) {
+      const result = transformSync(source, {
+        babelrc: false,
+        configFile: false,
+        targets: { ie: '10' },
+        assumptions: {
+          iterableIsArray: true,
+          ignoreFunctionLength: true,
+          ignoreToPrimitiveHint: true,
+          pureGetters: true,
+          setSpreadProperties: true,
+        },
+        presets: [['@babel/preset-env', { modules: false, exclude: ['transform-typeof-symbol'] }]],
+        compact: minify,
+        minified: minify,
+        comments: true,
+      })
+      if (!result?.code) throw new Error('Babel did not emit the browser bundle')
+      const code = minify
+        ? (
+            await minifyEs5(result.code, {
+              ecma: 5,
+              module: options.format === 'es',
+              mangle: { properties: { regex: privateSessionProperties } },
+              format: { comments: /^!/ },
+            })
+          ).code
+        : result.code
+      if (!code) throw new Error('The ES5 minifier did not emit a browser bundle')
+      // Line-based package analyzers can mistake URL strings for comments.
+      // Keep ESM exports visible on their own lines regardless of minifier formatting.
+      let output = code
+      if (options.format === 'es') {
+        const { body } = parse(code, { ecmaVersion: 2_015, sourceType: 'module' })
+        // Work backwards so each declaration's original offset remains valid.
+        for (const declaration of body.reverse()) {
+          if (
+            declaration.type === 'ExportNamedDeclaration' ||
+            declaration.type === 'ExportDefaultDeclaration' ||
+            declaration.type === 'ExportAllDeclaration'
+          ) {
+            output = `${output.slice(0, declaration.start)}\n${output.slice(declaration.start)}`
           }
         }
-        writeFileSync(path, `${banner}\n${output}\n`)
       }
+      return { code: output, map: null }
     },
   }
 }
 
-const umd = {
-  format: 'umd',
-  globalName: 'mediumZoom',
-  outputOptions: { exports: 'default', intro: '"use strict";' },
-} satisfies UserConfig
-
-const formats = {
-  esm: { format: 'esm', minify: true, outputOptions: {} },
-  umd: { ...umd, minify: false },
-  minified: { ...umd, minify: true },
-} satisfies Record<string, UserConfig>
-
-type Format = keyof typeof formats
-interface Entry {
-  source: string
-  plugins: () => TsdownPlugin[]
-  outputs: Record<Format, string>
+function browserBundle(
+  source: string,
+  fileName: string,
+  format: 'esm' | 'umd',
+  minify = true
+): UserConfig {
+  return {
+    entry: { 'medium-zoom': source },
+    platform: 'browser',
+    target: 'esnext',
+    dts: false,
+    clean: false,
+    unbundle: false,
+    define: { __TEST__: 'false' },
+    // Tsdown applies the release banner after renderChunk via Rolldown postBanner.
+    banner,
+    failOnWarn: true,
+    format,
+    globalName: 'mediumZoom',
+    // Babel lowers the complete bundle before Terser minifies it as ES5.
+    // Rolldown's later minifier must not introduce modern syntax again.
+    minify: false,
+    outputOptions: {
+      entryFileNames: fileName,
+      ...(format === 'umd' && { exports: 'default', intro: '"use strict";' }),
+    },
+    plugins: [stylesheet(), legacySyntax(minify)],
+  }
 }
 
-const entries = [
+export default defineConfig([
   {
-    source: 'src/index.js',
-    plugins: () => [stylesheet()],
-    outputs: {
-      esm: 'medium-zoom.esm.js',
-      umd: 'medium-zoom.js',
-      minified: 'medium-zoom.min.js',
-    },
+    ...browserBundle('src/index.js', 'medium-zoom.esm.js', 'esm'),
+    copy: [
+      { from: 'src/medium-zoom.d.ts' },
+      { from: 'src/medium-zoom.d.ts', to: 'dist/pure', rename: 'index.d.ts' },
+    ],
   },
-  {
-    source: 'src/medium-zoom.js',
-    plugins: () => [],
-    outputs: {
-      esm: 'pure/index.js',
-      umd: 'pure/medium-zoom.umd.js',
-      minified: 'pure/medium-zoom.min.umd.js',
-    },
-  },
-] satisfies Entry[]
-
-const shared = {
-  platform: 'browser',
-  target: 'esnext',
-  dts: false,
-  clean: false,
-  unbundle: false,
-  define: { __TEST__: 'false' },
-  banner,
-  failOnWarn: true,
-} satisfies UserConfig
-
-export default defineConfig(
-  entries.flatMap(entry =>
-    Object.entries(entry.outputs).map(([name, fileName]): UserConfig => {
-      const format = formats[name as Format]
-      return {
-        ...shared,
-        ...format,
-        entry: { 'medium-zoom': entry.source },
-        outputOptions: { ...format.outputOptions, entryFileNames: fileName },
-        plugins: [...entry.plugins(), legacySyntax({ minify: format.minify })],
-      }
-    })
-  )
-)
+  browserBundle('src/index.js', 'medium-zoom.js', 'umd', false),
+  browserBundle('src/index.js', 'medium-zoom.min.js', 'umd'),
+  browserBundle('src/medium-zoom.js', 'pure/index.js', 'esm'),
+  browserBundle('src/medium-zoom.js', 'pure/medium-zoom.umd.js', 'umd', false),
+  browserBundle('src/medium-zoom.js', 'pure/medium-zoom.min.umd.js', 'umd'),
+])
