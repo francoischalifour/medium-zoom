@@ -3,6 +3,7 @@
   "release-type": "node",
   "include-component-in-tag": false,
   "include-v-in-tag": false,
+  "include-v-in-release-name": false,
   "packages": { ".": {} },
   "bootstrap-sha": "bab82e5eaa183e75e1de9d92a155ccadfff00950"
 }
