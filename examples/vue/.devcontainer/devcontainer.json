@@ -1,0 +1,6 @@
+{
+  "name": "Medium Zoom vue example",
+  "image": "node:26.12.1-bookworm",
+  "remoteUser": "node",
+  "forwardPorts": [5173]
+}

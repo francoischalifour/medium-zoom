@@ -170,10 +170,7 @@ export interface Zoom {
  * @param options The options of the zoom.
  * @returns The zoom.
  */
-declare function mediumZoom(
-  selector?: ZoomSelector,
-  options?: ZoomOptions
-): Zoom
+declare function mediumZoom(selector?: ZoomSelector, options?: ZoomOptions): Zoom
 
 /**
  * Attaches a zoom effect on a selection of images.

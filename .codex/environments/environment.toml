@@ -1,0 +1,39 @@
+version = 1
+name = "medium-zoom"
+
+[setup]
+script = '''
+bun install --frozen-lockfile &&
+bunx playwright install chromium firefox webkit &&
+bun run build
+'''
+
+[[actions]]
+name = "Website"
+icon = "run"
+command = "bun run dev:website"
+
+[[actions]]
+name = "API stories"
+icon = "run"
+command = "bun run stories"
+
+[[actions]]
+name = "Watch library"
+icon = "run"
+command = "bun run dev"
+
+[[actions]]
+name = "Browser tests UI"
+icon = "test"
+command = "bun run build:website && bun run test:browser --ui"
+
+[[actions]]
+name = "Full checks"
+icon = "test"
+command = "bun run check"
+
+[[actions]]
+name = "Examples"
+icon = "run"
+command = "bun run examples"

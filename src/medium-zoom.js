@@ -39,10 +39,7 @@ const mediumZoom = (selector, options = {}) => {
     }
 
     const currentScroll =
-      window.pageYOffset ||
-      document.documentElement.scrollTop ||
-      document.body.scrollTop ||
-      0
+      window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
 
     if (Math.abs(scrollTop - currentScroll) > zoomOptions.scrollOffset) {
       setTimeout(close, 150)
@@ -244,27 +241,16 @@ const mediumZoom = (selector, options = {}) => {
 
           // We need to adjust custom options like container.right or container.bottom
           viewportWidth =
-            container.width -
-            container.left -
-            container.right -
-            zoomOptions.margin * 2
+            container.width - container.left - container.right - zoomOptions.margin * 2
           viewportHeight =
-            container.height -
-            container.top -
-            container.bottom -
-            zoomOptions.margin * 2
+            container.height - container.top - container.bottom - zoomOptions.margin * 2
         } else {
           // The container is given as an element
           const zoomContainer = isNode(zoomOptions.container)
             ? zoomOptions.container
             : document.querySelector(zoomOptions.container)
 
-          const {
-            width,
-            height,
-            left,
-            top,
-          } = zoomContainer.getBoundingClientRect()
+          const { width, height, left, top } = zoomContainer.getBoundingClientRect()
 
           container = {
             ...container,
@@ -277,8 +263,7 @@ const mediumZoom = (selector, options = {}) => {
       }
 
       viewportWidth = viewportWidth || container.width - zoomOptions.margin * 2
-      viewportHeight =
-        viewportHeight || container.height - zoomOptions.margin * 2
+      viewportHeight = viewportHeight || container.height - zoomOptions.margin * 2
 
       const zoomTarget = active.zoomedHd || active.original
       const naturalWidth = isSvg(zoomTarget)
@@ -289,23 +274,13 @@ const mediumZoom = (selector, options = {}) => {
         : zoomTarget.naturalHeight || viewportHeight
       const { top, left, width, height } = zoomTarget.getBoundingClientRect()
 
-      const scaleX =
-        Math.min(Math.max(width, naturalWidth), viewportWidth) / width
-      const scaleY =
-        Math.min(Math.max(height, naturalHeight), viewportHeight) / height
+      const scaleX = Math.min(Math.max(width, naturalWidth), viewportWidth) / width
+      const scaleY = Math.min(Math.max(height, naturalHeight), viewportHeight) / height
       const scale = Math.min(scaleX, scaleY)
       const translateX =
-        (-left +
-          (viewportWidth - width) / 2 +
-          zoomOptions.margin +
-          container.left) /
-        scale
+        (-left + (viewportWidth - width) / 2 + zoomOptions.margin + container.left) / scale
       const translateY =
-        (-top +
-          (viewportHeight - height) / 2 +
-          zoomOptions.margin +
-          container.top) /
-        scale
+        (-top + (viewportHeight - height) / 2 + zoomOptions.margin + container.top) / scale
       const transform = `scale(${scale}) translate3d(${translateX}px, ${translateY}px, 0)`
 
       active.zoomed.style.transform = transform
@@ -358,10 +333,7 @@ const mediumZoom = (selector, options = {}) => {
       )
 
       scrollTop =
-        window.pageYOffset ||
-        document.documentElement.scrollTop ||
-        document.body.scrollTop ||
-        0
+        window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
       isAnimating = true
       active.zoomed = cloneTarget(active.original)
 
@@ -413,9 +385,7 @@ const mediumZoom = (selector, options = {}) => {
 
         active.zoomedHd.onerror = () => {
           clearInterval(getZoomTargetSize)
-          console.warn(
-            `Unable to reach the zoom image target ${active.zoomedHd.src}`
-          )
+          console.warn(`Unable to reach the zoom image target ${active.zoomedHd.src}`)
           active.zoomedHd = null
           _animate()
         }
@@ -447,16 +417,13 @@ const mediumZoom = (selector, options = {}) => {
 
         // Wait for the load event of the hd image. This will fire if the image
         // is already cached.
-        const loadEventListener = active.zoomedHd.addEventListener(
-          'load',
-          () => {
-            active.zoomedHd.removeEventListener('load', loadEventListener)
-            active.zoomedHd.classList.add('medium-zoom-image--opened')
-            active.zoomedHd.addEventListener('click', close)
-            document.body.appendChild(active.zoomedHd)
-            _animate()
-          }
-        )
+        const loadEventListener = active.zoomedHd.addEventListener('load', () => {
+          active.zoomedHd.removeEventListener('load', loadEventListener)
+          active.zoomedHd.classList.add('medium-zoom-image--opened')
+          active.zoomedHd.addEventListener('click', close)
+          document.body.appendChild(active.zoomedHd)
+          _animate()
+        })
       } else {
         _animate()
       }

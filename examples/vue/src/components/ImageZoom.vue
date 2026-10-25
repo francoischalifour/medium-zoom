@@ -2,7 +2,7 @@
 import { watch, type ImgHTMLAttributes, type ComponentPublicInstance } from 'vue'
 import mediumZoom, { type Zoom, type ZoomOptions } from 'medium-zoom'
 
-interface Props extends ImgHTMLAttributes {
+interface Props extends /* @vue-ignore */ ImgHTMLAttributes {
   options?: ZoomOptions
 }
 
@@ -29,10 +29,13 @@ function attachZoom(ref: Element | ComponentPublicInstance | null) {
   }
 }
 
-watch(() => props.options, (options) => {
-  const zoom = getZoom()
-  zoom.update(options || {})
-})
+watch(
+  () => props.options,
+  options => {
+    const zoom = getZoom()
+    zoom.update(options || {})
+  }
+)
 </script>
 
 <template>

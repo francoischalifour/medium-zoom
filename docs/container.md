@@ -7,13 +7,13 @@ The zoom is by default rendered in the window viewport. You can also render your
 ```html
 <article>
   <p>My article...</p>
-  <img src="image.jpg" alt="My image">
+  <img src="image.jpg" alt="My image" />
   <div id="zoom-container"></div>
 </article>
 
 <script>
   mediumZoom('img', {
-    container: '#zoom-container'
+    container: '#zoom-container',
   })
 </script>
 ```

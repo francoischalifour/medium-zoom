@@ -8,7 +8,7 @@
   <a href="https://www.npmjs.com/package/medium-zoom">
     <img src="https://img.shields.io/npm/v/medium-zoom.svg?style=flat-square" alt="version">
   </a>
-  <a href="https://github.com/francoischalifour/medium-zoom/blob/master/LICENSE">
+  <a href="https://github.com/francoischalifour/medium-zoom/blob/main/LICENSE">
     <img src="https://img.shields.io/npm/l/medium-zoom.svg?style=flat-square" alt="MIT license">
   </a>
   <a href="http://npmcharts.com/compare/medium-zoom">
@@ -18,7 +18,7 @@
   <a href="https://unpkg.com/medium-zoom/dist/">
     <img src="http://img.badgesize.io/https://unpkg.com/medium-zoom/dist/medium-zoom.min.js?compression=gzip&label=gzip%20size&style=flat-square" alt="gzip size">
   </a>
-  <a href="https://github.com/francoischalifour/medium-zoom/blob/master/package.json">
+  <a href="https://github.com/francoischalifour/medium-zoom/blob/main/package.json">
     <img src="https://img.shields.io/badge/dependencies-none-lightgrey.svg?style=flat-square" alt="no dependencies">
   </a>
 </p>
@@ -30,9 +30,9 @@
   <br>
   <br>
   <strong>
-  <a href="https://codesandbox.io/s/github/francoischalifour/medium-zoom/tree/master/website">🔬 Playground</a> ・
+  <a href="https://codesandbox.io/s/github/francoischalifour/medium-zoom/tree/main/website">🔬 Playground</a> ・
   <a href="https://medium-zoom.francoischalifour.com">🔎 Demo</a> ・
-  <a href="https://medium-zoom.francoischalifour.com/storybook">📚 Storybook</a>
+  <a href="https://medium-zoom.francoischalifour.com/storybook">📚 API stories</a>
   </strong>
 </p>
 
@@ -107,7 +107,7 @@ yarn add medium-zoom
 
 ## Usage
 
-> [Try it out in the browser](https://codesandbox.io/s/github/francoischalifour/medium-zoom/tree/master/website)
+> [Try it out in the browser](https://codesandbox.io/s/github/francoischalifour/medium-zoom/tree/main/website)
 
 Import the library as a module:
 
@@ -152,6 +152,7 @@ The selector allows attaching images to the zoom. It can be of the following typ
 - [`NodeList`](https://developer.mozilla.org/docs/Web/API/NodeList)
 - [`Array`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)
 
+<!-- prettier-ignore -->
 ```js
 // CSS selector
 mediumZoom('[data-zoomable]')
@@ -233,6 +234,7 @@ zoom.toggle()
 
 Attaches the images to the zoom and returns the zoom.
 
+<!-- prettier-ignore -->
 ```js
 const zoom = mediumZoom()
 
@@ -522,13 +524,13 @@ If that's the case, you can provide a `z-index` value in your CSS:
 
 ## Contributing
 
-- Run `yarn` to install Node dev dependencies
-- Run `yarn start` to build the library in watch mode
-- Run `yarn run storybook` to see your changes at http://localhost:9001
+- Install the Node and Bun versions pinned in `.node-version` and `.bun-version`
+- Run `bun install --frozen-lockfile` from the repository root
+- Run `bun run dev` to build the library in watch mode
+- Run `bun run dev:example vanilla` to develop an example against the local build
+- Run `bun run stories` to browse the existing API stories at http://localhost:9001/storybook/
 
 Please read the [contributing guidelines](CONTRIBUTING.md) for more detailed explanations.
-
-_You can also use [npm](https://www.npmjs.com)._
 
 ## License
 

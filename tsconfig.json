@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node", "vite/client"],
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "paths": {
+      "medium-zoom": ["./src/medium-zoom.d.ts"],
+      "medium-zoom/dist/pure": ["./src/medium-zoom.d.ts"]
+    }
+  },
+  "include": [
+    "*.mts",
+    "scripts/**/*.ts",
+    "tests/**/*.ts",
+    "stories/catalogue/**/*.ts",
+    "examples/*/vite.config.ts"
+  ]
+}
