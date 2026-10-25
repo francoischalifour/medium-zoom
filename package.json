@@ -57,7 +57,15 @@
     "performance",
     "event",
     "medium-zoom",
-    "zoomable"
+    "zoomable",
+    "image-zoom",
+    "zoom-image",
+    "click-to-zoom",
+    "lightbox-alternative",
+    "lightweight",
+    "zero-dependency",
+    "typescript",
+    "image-viewer"
   ],
   "devDependencies": {
     "@storybook/addon-notes": "4.0.0-alpha.14",
