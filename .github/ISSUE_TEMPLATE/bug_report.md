@@ -27,7 +27,7 @@ about: Did something not work?
 ## Reproducible example
 
 <!--
-  - Go to the vanilla JavaScript example on CodeSandbox: https://codesandbox.io/s/github/francoischalifour/medium-zoom/tree/master/examples/vanilla
+  - Go to the vanilla JavaScript example on CodeSandbox: https://codesandbox.io/s/github/francoischalifour/medium-zoom/tree/main/examples/vanilla
   - Fork it
   - Reproduce the bug you noticed
   - Share the link of the sandbox
@@ -37,5 +37,5 @@ about: Did something not work?
 
 ## Environment
 
- - Browser: name / version
- - `medium-zoom` version:
+- Browser: name / version
+- `medium-zoom` version:

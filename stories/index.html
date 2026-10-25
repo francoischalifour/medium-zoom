@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Medium Zoom API stories</title>
+    <style>
+      body {
+        margin: 0;
+        font: 14px system-ui;
+        display: flex;
+        height: 100vh;
+      }
+      nav {
+        width: 240px;
+        overflow: auto;
+        padding: 16px;
+        flex-shrink: 0;
+      }
+      a {
+        display: block;
+        padding: 6px 0;
+        color: #17694a;
+      }
+      iframe {
+        border: 0;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <nav aria-label="API stories"><h1>Medium Zoom</h1></nav>
+    <iframe title="Story preview" name="preview"></iframe>
+    <script type="module" src="catalogue/index.ts"></script>
+  </body>
+</html>

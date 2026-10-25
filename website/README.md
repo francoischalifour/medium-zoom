@@ -4,14 +4,19 @@
 
 [![Preview](https://user-images.githubusercontent.com/6137112/32421106-dddf0566-c262-11e7-9917-a164d992384c.png)](https://medium-zoom.francoischalifour.com)
 
-## Storybook
+## API stories
 
-📚 The storybook is available at [medium-zoom.francoischalifour.com/storybook](https://medium-zoom.francoischalifour.com/storybook).
+📚 The API catalogue is available at [medium-zoom.francoischalifour.com/storybook](https://medium-zoom.francoischalifour.com/storybook).
 
-## Dev
+## Development
 
-* Install dependencies: `yarn`
-* Run the website: `yarn start`
+From the repository root:
+
+```sh
+bun install --frozen-lockfile
+bun run build
+bun run dev:website
+```
 
 ## License
 

@@ -27,9 +27,7 @@ export const getImagesFromSelector = selector => {
 
     if (typeof selector === 'string') {
       // Do not use spread operator or Array.from() for IE support
-      return [].slice
-        .call(document.querySelectorAll(selector))
-        .filter(isSupported)
+      return [].slice.call(document.querySelectorAll(selector)).filter(isSupported)
     }
 
     return []
@@ -54,15 +52,9 @@ export const cloneTarget = template => {
   const { top, left, width, height } = template.getBoundingClientRect()
   const clone = template.cloneNode()
   const scrollTop =
-    window.pageYOffset ||
-    document.documentElement.scrollTop ||
-    document.body.scrollTop ||
-    0
+    window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
   const scrollLeft =
-    window.pageXOffset ||
-    document.documentElement.scrollLeft ||
-    document.body.scrollLeft ||
-    0
+    window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0
 
   clone.removeAttribute('id')
   clone.style.position = 'absolute'
@@ -88,12 +80,7 @@ export const createCustomEvent = (type, params) => {
   }
 
   const customEvent = document.createEvent('CustomEvent')
-  customEvent.initCustomEvent(
-    type,
-    eventParams.bubbles,
-    eventParams.cancelable,
-    eventParams.detail
-  )
+  customEvent.initCustomEvent(type, eventParams.bubbles, eventParams.cancelable, eventParams.detail)
 
   return customEvent
 }

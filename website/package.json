@@ -2,21 +2,15 @@
   "name": "medium-zoom-website",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "main": "index.html",
   "scripts": {
-    "start": "parcel index.html --open",
-    "build": "parcel build index.html",
-    "lint": "eslint ."
+    "dev": "vite --config ../vite.website.config.mts --host 127.0.0.1",
+    "start": "bun run dev",
+    "build": "vite build --config ../vite.website.config.mts"
   },
   "dependencies": {
-    "medium-zoom": "1.0.3"
+    "medium-zoom": "file:.."
   },
-  "devDependencies": {
-    "babel-core": "6.26.3",
-    "eslint": "5.12.1",
-    "eslint-config-airbnb-base": "13.1.0",
-    "eslint-config-prettier": "3.6.0",
-    "eslint-plugin-import": "2.14.0",
-    "parcel-bundler": "1.11.0"
-  }
+  "devDependencies": {}
 }
