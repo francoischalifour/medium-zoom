@@ -225,14 +225,15 @@ test('once handlers run once and their custom event identifies the instance', as
   expect(result).toEqual({ calls: 1, detailMatches: true })
 })
 
-test('closing during opening retains keyboard dismissal after the transition', async ({ page }) => {
+test('closing during opening cancels the zoom and allows reopening', async ({ page }) => {
   await page.evaluate(async () => {
     window.zoom = window.mediumZoom('#first')
     const opening = window.zoom.open()
     await window.zoom.close()
     await opening
   })
-  await expect(page.locator('.medium-zoom-overlay')).toBeVisible()
+  await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
+  await page.evaluate(() => window.zoom.open())
   await page.keyboard.press('Escape')
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 })
