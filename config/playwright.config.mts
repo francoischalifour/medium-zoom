@@ -5,12 +5,12 @@ const repositoryRoot = fileURLToPath(new URL('../', import.meta.url))
 
 export default defineConfig({
   testDir: '../tests/browser',
-  outputDir: '../test-results',
+  outputDir: '../.cache/playwright/results',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 2 : undefined,
-  reporter: [['list'], ['html', { open: 'never' }]],
+  reporter: [['list'], ['html', { open: 'never', outputFolder: '../.cache/playwright/report' }]],
   use: { baseURL: 'http://127.0.0.1:4175', trace: 'retain-on-failure' },
   projects: [
     { name: 'chromium', testIgnore: '**/mobile.spec.ts', use: { ...devices['Desktop Chrome'] } },

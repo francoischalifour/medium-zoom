@@ -1,9 +1,0 @@
-{
-  "compilerOptions": {
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "strict": true,
-    "skipLibCheck": true,
-    "noEmit": true
-  }
-}
