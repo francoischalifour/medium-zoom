@@ -383,7 +383,12 @@ const mediumZoom = (selector, options = {}) => {
 
       const zoomSrc = current.original.getAttribute('data-zoom-src')
       if (zoomSrc || current.original.hasAttribute('srcset')) {
-        const hd = current.zoomed.cloneNode()
+        // Cloning a cached image can queue a load for its old source in Firefox.
+        // Copy its presentation first, then assign sources after installing handlers.
+        const hd = document.createElement('img')
+        ;[].slice.call(current.zoomed.attributes).forEach(({ name, value }) => {
+          if (!/^(src|srcset|sizes|loading)$/.test(name)) hd.setAttribute(name, value)
+        })
         current.zoomedHd = hd
         const finishImage = () => {
           cancelImage()
@@ -404,12 +409,8 @@ const mediumZoom = (selector, options = {}) => {
         }
         hd.addEventListener('load', finishImage)
         hd.addEventListener('error', finishImage)
-        hd.removeAttribute('loading')
-        hd.removeAttribute('sizes')
-        if (zoomSrc) {
-          hd.removeAttribute('srcset')
-          hd.src = zoomSrc
-        }
+        if (!zoomSrc) hd.srcset = current.zoomed.srcset
+        hd.src = zoomSrc || current.zoomed.src
       } else {
         animate()
       }
