@@ -30,7 +30,7 @@ website/example builds, and browser behavior.
 - `bun run format` / `bun run format:check`: format maintained files or check formatting.
 - `bun run lint`: check source, tests, and tooling with Oxlint.
 - `bun run typecheck`: check tooling and framework examples.
-- `bun run test:package`: verify the npm tarball's exports, declarations, CSS, and ES5 syntax.
+- `bun run test:package`: verify the npm tarball's exports, declarations, CSS, source maps, and ES5 syntax.
 - `bun run test:examples`: copy each example outside the workspace, install with npm,
   check types, and build against the published package.
 - `bun run test:size`: check the existing gzip budgets.
@@ -49,6 +49,14 @@ the pure entry does not. Both declaration paths must match `src/medium-zoom.d.ts
 
 The build uses Babel and Terser to retain ES5 syntax after bundling with tsdown.
 Keep the older-browser CSS fallbacks and existing bundle-size budgets.
+
+All six JavaScript artifacts ship adjacent hidden `.js.map` files with embedded
+maintained sources and relative paths. Load the map manually in your debugger
+(e.g. DevTools' **Add source map** command); JavaScript has no `sourceMappingURL`
+comment so maps do not change its gzip cost. Maps compose tsdown, Babel, and Terser
+output, including the release banner offset. `bun run test:package` checks the
+packed maps and traces generated positions back to both source modules. Keep maps
+outside the JavaScript size budgets and declarations free of dangling map links.
 
 ## Releases
 

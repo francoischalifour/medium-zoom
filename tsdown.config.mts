@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { basename, resolve } from 'node:path'
 import { transformSync } from '@babel/core'
 import { transform as transformCss } from 'lightningcss'
 import { minify as minifyEs5 } from 'terser'
@@ -55,6 +55,8 @@ function legacySyntax({ minify = false }: { minify?: boolean } = {}): TsdownPlug
         if (chunk.type !== 'chunk') continue
         const path = resolve(options.dir!, chunk.fileName)
         const result = transformSync(readFileSync(path, 'utf8').replace(banner, ''), {
+          inputSourceMap: JSON.parse(readFileSync(`${path}.map`, 'utf8')),
+          sourceMaps: true,
           babelrc: false,
           configFile: false,
           targets: { ie: '10' },
@@ -73,11 +75,22 @@ function legacySyntax({ minify = false }: { minify?: boolean } = {}): TsdownPlug
           comments: true,
         })
         if (!result?.code) throw new Error('Babel did not emit the browser bundle')
-        const code = minify
-          ? (await minifyEs5(result.code, { ecma: 5, format: { comments: /^!/ } })).code
-          : result.code
-        if (!code) throw new Error('The ES5 minifier did not emit a browser bundle')
-        writeFileSync(path, `${banner}\n${code}\n`)
+        if (!result.map) throw new Error('Babel did not emit a source map')
+        const output = minify
+          ? await minifyEs5(result.code, {
+              ecma: 5,
+              format: { comments: /^!/ },
+              sourceMap: { content: JSON.stringify(result.map), filename: basename(path) },
+            })
+          : { code: result.code, map: result.map }
+        if (!output.code || !output.map)
+          throw new Error('The ES5 transform did not emit code and a source map')
+        const map = typeof output.map === 'string' ? JSON.parse(output.map) : output.map
+        map.file = basename(path)
+        // The release banner is added after both transforms, so shift generated lines.
+        map.mappings = ';' + map.mappings
+        writeFileSync(`${path}.map`, JSON.stringify(map))
+        writeFileSync(path, `${banner}\n${output.code}\n`)
       }
     },
   }
@@ -131,6 +144,8 @@ const shared = {
   unbundle: false,
   define: { __TEST__: 'false' },
   banner,
+  // Keep legacy JavaScript bytes and budgets unchanged; load adjacent maps manually.
+  sourcemap: 'hidden',
   failOnWarn: true,
 } satisfies UserConfig
 

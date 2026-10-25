@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync, mkdirSync, symlinkSync, copyFileSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
-import { join, resolve } from 'node:path'
+import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import { runInNewContext } from 'node:vm'
-import { parse } from 'acorn'
+import { parse, tokenizer } from 'acorn'
+import { TraceMap, originalPositionFor } from '@jridgewell/trace-mapping'
 import { pack } from './pack.ts'
 
 const artifact = pack()
@@ -30,8 +31,57 @@ try {
     'pure/medium-zoom.umd.js',
   ])
 
-  for (const path of files.filter(path => path.endsWith('.js'))) {
+  const javascript = files.filter(path => path.endsWith('.js'))
+  assert.deepEqual(
+    files.filter(path => path.endsWith('.map')).sort(),
+    javascript.map(path => `${path}.map`).sort(),
+    'Ship exactly one source map for each JavaScript artifact'
+  )
+  for (const path of javascript) {
     const code = readFileSync(join(artifact.root, 'dist', path), 'utf8')
+    assert(!code.includes('sourceMappingURL='), `${path} must keep its source map hidden`)
+    const map = JSON.parse(readFileSync(join(artifact.root, 'dist', `${path}.map`), 'utf8'))
+    assert.equal(map.file, basename(path))
+    assert(!map.sourceRoot, `${path} must use relative source paths`)
+    assert(map.sources.length > 0, `${path} must include maintained sources`)
+    assert.equal(map.sourcesContent.length, map.sources.length)
+    for (const [index, source] of map.sources.entries()) {
+      assert(!isAbsolute(source) && !source.includes('\\') && !source.includes(':'), source)
+      const sourcePath = resolve('dist', dirname(path), source)
+      assert.match(relative(resolve('src'), sourcePath), /^[\w/-]+\.js$/, source)
+      assert.equal(map.sourcesContent[index], readFileSync(sourcePath, 'utf8'), source)
+    }
+    const trace = new TraceMap(map)
+    // Tokens survive bundling, ES5 conversion, and minification. Check both source
+    // modules at real generated locations after the final transforms.
+    const anchors = [
+      { token: 'createEvent', source: 'src/utils.js', text: "document.createEvent('CustomEvent')" },
+      {
+        token: 'medium-zoom:opened',
+        source: 'src/medium-zoom.js',
+        text: "createCustomEvent('medium-zoom:opened'",
+      },
+    ]
+    for (const anchor of anchors) {
+      const token = [...tokenizer(code, { ecmaVersion: 2_015, locations: true })].find(token => {
+        const text = code.slice(token.start, token.end)
+        return text === anchor.token || text.slice(1, -1) === anchor.token
+      })
+      assert(token?.loc, `${path} needs a generated ${anchor.token} location`)
+      const original = originalPositionFor(trace, token.loc.start)
+      const expectedLine =
+        readFileSync(anchor.source, 'utf8')
+          .split('\n')
+          .findIndex(line => line.includes(anchor.text)) + 1
+      assert(expectedLine > 0)
+      assert(original.source, `${path}: ${anchor.token} needs an original source`)
+      assert.equal(resolve('dist', dirname(path), original.source), resolve(anchor.source), path)
+      assert.equal(
+        original.line,
+        expectedLine,
+        `${path}: ${anchor.token} must map to original source`
+      )
+    }
     const esm = path.endsWith('.esm.js') || path === 'pure/index.js'
     parse(code, { ecmaVersion: esm ? 2_015 : 5, sourceType: esm ? 'module' : 'script' })
     // ESM syntax is intentionally retained; its implementation must still be ES5.
@@ -69,8 +119,11 @@ try {
   }
 
   const declarations = readFileSync('src/medium-zoom.d.ts', 'utf8')
-  for (const path of ['dist/medium-zoom.d.ts', 'dist/pure/index.d.ts'])
-    assert.equal(readFileSync(join(artifact.root, path), 'utf8'), declarations)
+  for (const path of ['dist/medium-zoom.d.ts', 'dist/pure/index.d.ts']) {
+    const declaration = readFileSync(join(artifact.root, path), 'utf8')
+    assert.equal(declaration, declarations)
+    assert(!declaration.includes('sourceMappingURL='), `${path} must not reference missing maps`)
+  }
   const css = readFileSync(join(artifact.root, 'dist/style.css'), 'utf8')
   assert(css.includes('cursor:pointer') && css.includes('cursor:zoom-in'))
   assert(css.includes('cursor:zoom-out'))
@@ -95,7 +148,9 @@ try {
     ],
     { cwd: consumer, stdio: 'inherit' }
   )
-  console.log('Packed package paths, modules, ES5 syntax, CSS, license, and declarations verified.')
+  console.log(
+    'Packed package paths, modules, ES5 syntax, CSS, license, declarations, and source maps verified.'
+  )
 } finally {
   artifact.cleanup()
 }
