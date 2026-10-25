@@ -1,0 +1,66 @@
+name: Deploy preview
+
+# workflow_run uses the workflow on main. Never check out or execute PR code here.
+on:
+  workflow_run:
+    workflows: [Preview build]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: preview-deploy-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.id }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Only main may use this environment, including when PRs edit these workflows.
+    environment: preview
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+      PR_SHA: ${{ github.event.workflow_run.head_sha }}
+      RUN_ID: ${{ github.event.workflow_run.id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          path: trusted
+          persist-credentials: false
+      - name: Check the build and current PR
+        id: eligibility
+        run: bash trusted/scripts/check-preview.sh
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: steps.eligibility.outputs.deploy == 'true'
+        with:
+          node-version-file: trusted/.node-version
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        if: steps.eligibility.outputs.deploy == 'true'
+        with:
+          bun-version-file: trusted/.bun-version
+      - name: Install locked deployment tooling from main
+        if: steps.eligibility.outputs.deploy == 'true'
+        working-directory: trusted
+        run: bun install --frozen-lockfile --ignore-scripts
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        if: steps.eligibility.outputs.deploy == 'true'
+        with:
+          name: preview-site
+          path: ${{ runner.temp }}/preview-assets
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+      - name: Upload static files to the preview Worker
+        if: steps.eligibility.outputs.deploy == 'true'
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_PREVIEW_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: b41c9db3b56da737528cffc5cb203c10
+        run: bash trusted/scripts/deploy-preview.sh

@@ -63,6 +63,8 @@
     "clean": "bun scripts/clean.ts",
     "build": "bun run clean && tsdown --config config/tsdown.config.mts",
     "build:website": "bun run build && bun run build:demo",
+    "deploy:website": "bun run build:website && wrangler deploy --config config/wrangler.jsonc",
+    "preview:website": "bun run build:website && wrangler dev --config config/wrangler.jsonc",
     "build:demo": "vite build --config config/vite.website.config.mts && bun run build:stories && bun run build:examples",
     "build:stories": "vite build --config config/vite.stories.config.mts",
     "build:examples": "bun scripts/build-examples.ts",
@@ -98,7 +100,8 @@
     "tsdown": "0.23.2",
     "typescript": "7.0.2",
     "typescript-legacy": "npm:typescript@5.9.3",
-    "vite": "8.3.5"
+    "vite": "8.3.5",
+    "wrangler": "4.152.0"
   },
   "packageManager": "bun@1.4.4"
 }
