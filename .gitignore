@@ -4,6 +4,8 @@
 /storybook
 *.tgz
 /.cache
+.wrangler/
+.dev.vars*
 
 .DS_Store
 package-lock.json
