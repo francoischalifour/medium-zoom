@@ -9,6 +9,9 @@ import pkg from './package.json' with { type: 'json' }
 
 const banner = `/*! ${pkg.name} ${pkg.version} | ${pkg.license} License | https://github.com/${pkg.repository} */`
 const stylesheetPath = new URL('./src/medium-zoom.css', import.meta.url)
+// Restrict property mangling to private per-opening state, excluding public options and DOM APIs.
+const privateSessionProperties =
+  /^__mz_(original|zoomed|zoomedHd|template|closing|cancelOpen|viewportScale|isPinching|scrollTimer)$/
 
 function stylesheet(): TsdownPlugin {
   return {
@@ -74,7 +77,13 @@ function legacySyntax({ minify = false }: { minify?: boolean } = {}): TsdownPlug
         })
         if (!result?.code) throw new Error('Babel did not emit the browser bundle')
         const code = minify
-          ? (await minifyEs5(result.code, { ecma: 5, format: { comments: /^!/ } })).code
+          ? (
+              await minifyEs5(result.code, {
+                ecma: 5,
+                mangle: { properties: { regex: privateSessionProperties } },
+                format: { comments: /^!/ },
+              })
+            ).code
           : result.code
         if (!code) throw new Error('The ES5 minifier did not emit a browser bundle')
         writeFileSync(path, `${banner}\n${code}\n`)
