@@ -488,7 +488,7 @@ export function ImageZoom({ options, ...props }) {
 </details>
 <br>
 
-You can see [more examples](examples/) including [React](examples/react) and [Vue](examples/vue), or check out the [storybook](https://medium-zoom.francoischalifour.com/storybook).
+You can see [more examples](examples/) including [React](examples/react), [Vue](examples/vue), and [video playback](examples/video) ([integration guide](docs/video.md)), or check out the [storybook](https://medium-zoom.francoischalifour.com/storybook).
 
 ## Debugging
 
