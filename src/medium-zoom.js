@@ -487,9 +487,11 @@ const mediumZoom = (selector, options = {}) => {
       if (current.zoomed) current.zoomed.style.transform = ''
       if (current.zoomedHd) current.zoomedHd.style.transform = ''
       if (current.template) {
-        current.template.style.transition = window.matchMedia('(prefers-reduced-motion)').matches
-          ? 'none'
-          : 'opacity 150ms'
+        current.template.style.transition = parseFloat(
+          window.getComputedStyle(current.zoomed).transitionDuration
+        )
+          ? 'opacity 150ms'
+          : 'none'
         current.template.style.opacity = 0
       }
       _dispatchEvent(current.original, 'close')
