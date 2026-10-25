@@ -361,6 +361,48 @@ test('native browser listeners are registered only while needed', async ({ page 
   ])
 })
 
+test('touch listeners are removed when browser event options accept only a boolean', async ({
+  page,
+}) => {
+  const touchReads = await page.evaluate(async () => {
+    const addDocument = document.addEventListener.bind(document)
+    const removeDocument = document.removeEventListener.bind(document)
+    // Older browsers coerce the options object to capture=true.
+    document.addEventListener = (
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: boolean | AddEventListenerOptions
+    ) => {
+      addDocument(type, listener, Boolean(options))
+    }
+    document.removeEventListener = (
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: boolean | EventListenerOptions
+    ) => {
+      removeDocument(type, listener, Boolean(options))
+    }
+    const zoom = window.mediumZoom('#first')
+    await zoom.open()
+    await zoom.close()
+    zoom.detach()
+
+    let reads = 0
+    for (const type of ['touchstart', 'touchend', 'touchcancel']) {
+      const event = new Event(type)
+      Object.defineProperty(event, 'touches', {
+        get() {
+          reads++
+          return { length: 2 }
+        },
+      })
+      document.dispatchEvent(event)
+    }
+    return reads
+  })
+  expect(touchReads).toBe(0)
+})
+
 test('a missing HD image falls back to the original image', async ({ page }) => {
   await page.evaluate(async () => {
     document.querySelector('#first')!.setAttribute('data-zoom-src', '/images/missing.jpg')

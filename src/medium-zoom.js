@@ -37,7 +37,7 @@ const mediumZoom = (selector, options = {}) => {
   }
 
   const _handleScroll = () => {
-    if (isAnimating || !active.original) {
+    if (!active.original) {
       return
     }
 
@@ -54,6 +54,8 @@ const mediumZoom = (selector, options = {}) => {
       active.scrollTimer = null
       return
     }
+
+    if (isAnimating) return
 
     if (Math.abs(scrollTop - currentScroll) > zoomOptions.scrollOffset && !active.scrollTimer) {
       active.scrollTimer = setTimeout(close, 150)
@@ -224,13 +226,14 @@ const mediumZoom = (selector, options = {}) => {
       document.addEventListener('keyup', _handleKeyUp)
       document.addEventListener('scroll', _handleScroll)
       const touchEvents = ['touchstart', 'touchend', 'touchcancel']
-      touchEvents.forEach(type => document.addEventListener(type, _handleTouch, { passive: true }))
+      const touchOptions = { passive: true }
+      touchEvents.forEach(type => document.addEventListener(type, _handleTouch, touchOptions))
       window.addEventListener('resize', close)
 
       return () => {
         document.removeEventListener('keyup', _handleKeyUp)
         document.removeEventListener('scroll', _handleScroll)
-        touchEvents.forEach(type => document.removeEventListener(type, _handleTouch))
+        touchEvents.forEach(type => document.removeEventListener(type, _handleTouch, touchOptions))
         window.removeEventListener('resize', close)
       }
     })

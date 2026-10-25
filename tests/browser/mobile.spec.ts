@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect, type Page, type Route } from '@playwright/test'
 import { loadZoomFixture, openImage } from './helpers.ts'
 
 test('video plays inline after a tap and cleans up on viewport change', async ({ page }) => {
@@ -107,6 +107,34 @@ for (const initialScale of [0.5, 2]) {
     await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
   })
 }
+
+test('pinching while an HD image loads refreshes the scroll baseline', async ({ page }) => {
+  await loadZoomFixture(page)
+  let pendingImage!: Route
+  await page.route('**/pending.jpg', route => {
+    pendingImage = route
+  })
+  await page.clock.install()
+  await page.evaluate(() => {
+    // Exercise touch tracking without relying on the visual viewport guard.
+    Object.defineProperty(window, 'visualViewport', { value: undefined })
+    document.querySelector('#image')!.setAttribute('data-zoom-src', '/pending.jpg')
+  })
+  await page.locator('#image').tap()
+  await expect.poll(() => Boolean(pendingImage)).toBe(true)
+  await touch(page, 'touchstart', 2)
+  await scroll(page, 80)
+  await touch(page, 'touchend', 0)
+  await pendingImage.fulfill({ path: 'stories/images/image-2.jpg', contentType: 'image/jpeg' })
+  await expect(page.locator('.medium-zoom-image--opened')).toHaveCount(2)
+  await page.clock.runFor(500)
+
+  await scroll(page, 90)
+  await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
+  await scroll(page, 140)
+  await page.clock.runFor(500)
+  await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
+})
 
 test.describe('pinch gestures', () => {
   test.beforeEach(async ({ page }) => {
