@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { transformSync } from '@babel/core'
+import { parse } from 'acorn'
 import { transform as transformCss } from 'lightningcss'
 import { minify as minifyEs5 } from 'terser'
 import { defineConfig } from 'tsdown'
@@ -88,8 +89,21 @@ function legacySyntax({ minify = false }: { minify?: boolean } = {}): TsdownPlug
           : result.code
         if (!code) throw new Error('The ES5 minifier did not emit a browser bundle')
         // Line-based package analyzers can mistake URL strings for comments.
-        // Keep the final ESM export visible on its own line.
-        const output = options.format === 'es' ? code.replace(/(export\{[^}]+\};?)$/, '\n$1') : code
+        // Keep ESM exports visible on their own lines regardless of minifier formatting.
+        let output = code
+        if (options.format === 'es') {
+          const { body } = parse(code, { ecmaVersion: 2_015, sourceType: 'module' })
+          // Work backwards so each declaration's original offset remains valid.
+          for (const declaration of body.reverse()) {
+            if (
+              declaration.type === 'ExportNamedDeclaration' ||
+              declaration.type === 'ExportDefaultDeclaration' ||
+              declaration.type === 'ExportAllDeclaration'
+            ) {
+              output = `${output.slice(0, declaration.start)}\n${output.slice(declaration.start)}`
+            }
+          }
+        }
         writeFileSync(path, `${banner}\n${output}\n`)
       }
     },
