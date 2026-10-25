@@ -403,6 +403,8 @@ Medium Zoom is a JavaScript library that can be used with any framework. Here ar
 
 ## Examples
 
+[Zoom generated SVG diagrams using image data URLs](./docs/inline-svg.md), with a [runnable example](./examples/svg-data-url).
+
 <details>
  <summary>Trigger a zoom from another element</summary>
 
