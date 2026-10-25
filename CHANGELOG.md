@@ -1,10 +1,12 @@
+# Changelog
+
 ## [1.1.1](https://github.com/francoischalifour/medium-zoom/compare/1.1.0...1.1.1) (2026-10-25)
 
 ### Bug Fixes
 
 - **perf:** subscribe to browser events only when needed ([#217](https://github.com/francoischalifour/medium-zoom/issues/217)) ([21332eb](https://github.com/francoischalifour/medium-zoom/commit/21332eb3c5abc181b48251a06ee19fd7792fab22))
 
-# [1.1.0](https://github.com/francoischalifour/medium-zoom/compare/1.0.8...1.1.0) (2023-11-16)
+## [1.1.0](https://github.com/francoischalifour/medium-zoom/compare/1.0.8...1.1.0) (2023-11-16)
 
 ### Features
 
@@ -64,7 +66,7 @@
 
 - Don't prevent behavior of all clicks ([#72](https://github.com/francoischalifour/medium-zoom/issues/72)) ([71eebf9](https://github.com/francoischalifour/medium-zoom/commit/71eebf90f09a81c013731871b8cab92a4243a557)), closes [#71](https://github.com/francoischalifour/medium-zoom/issues/71)
 
-# [1.0.0](https://github.com/francoischalifour/medium-zoom/compare/v0.4.0...1.0.0) (2018-08-28)
+## [1.0.0](https://github.com/francoischalifour/medium-zoom/compare/v0.4.0...1.0.0) (2018-08-28)
 
 ### Added
 
@@ -148,7 +150,7 @@ zoom.open().then(() => zoom.update({ background: 'yellow' }))
   - "hide" → "close"
   - "hidden" → "closed"
 
-# [0.4.0](https://github.com/francoischalifour/medium-zoom/compare/v0.3.0...v0.4.0) (2018-03-09)
+## [0.4.0](https://github.com/francoischalifour/medium-zoom/compare/v0.3.0...v0.4.0) (2018-03-09)
 
 ### Added
 
@@ -158,13 +160,13 @@ zoom.open().then(() => zoom.update({ background: 'yellow' }))
 
 - Calling `.detach()` when having a zoomed image: 9fa798d3fe96ae7060f316995b84eaacf3ce8a11
 
-# [0.3.0](https://github.com/francoischalifour/medium-zoom/compare/v0.2.0...v0.3.0) (2017-12-07)
+## [0.3.0](https://github.com/francoischalifour/medium-zoom/compare/v0.2.0...v0.3.0) (2017-12-07)
 
 ### Added
 
 - Add support for `template`s and `container`s: d0d1ec141ffe744d059dddcfc08b6e830b7c17c9
 
-# [0.2.0](https://github.com/francoischalifour/medium-zoom/compare/v0.1.8...v0.2.0) (2017-10-01)
+## [0.2.0](https://github.com/francoischalifour/medium-zoom/compare/v0.1.8...v0.2.0) (2017-10-01)
 
 ### Added
 
@@ -236,6 +238,6 @@ zoom.open().then(() => zoom.update({ background: 'yellow' }))
 
 - Export the plugin for npm usage (#1): affca211ac6999f1d2c554205d5b216c37fc7c1c
 
-# 0.1.0 (2016-07-28)
+## 0.1.0 (2016-07-28)
 
 Initial release.
