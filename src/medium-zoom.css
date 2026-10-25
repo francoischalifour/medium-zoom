@@ -40,3 +40,10 @@
   cursor: zoom-out;
   will-change: transform;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .medium-zoom-image,
+  .medium-zoom-overlay {
+    transition: none !important;
+  }
+}
