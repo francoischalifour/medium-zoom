@@ -3,6 +3,7 @@ interface BundleBudget {
   maxBytes: number
 }
 
+// Temporary minified headroom; remeasure and tighten after overlapping PRs land.
 export default [
   { path: 'dist/style.css', maxBytes: 260 },
   { path: 'dist/medium-zoom.esm.js', maxBytes: 5_376 },
