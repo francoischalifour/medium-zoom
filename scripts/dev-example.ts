@@ -1,6 +1,6 @@
 import { parseArgs } from 'node:util'
 import { createServer } from 'vite'
-import { localExampleConfig } from '../vite.examples.config.mts'
+import { localExampleConfig } from '../config/vite.examples.config.mts'
 import { exampleNames } from './example-names.ts'
 
 const { positionals, values } = parseArgs({

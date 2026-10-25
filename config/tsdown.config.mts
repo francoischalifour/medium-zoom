@@ -1,14 +1,15 @@
 import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { transformSync } from '@babel/core'
 import { parse } from 'acorn'
 import { transform as transformCss } from 'lightningcss'
 import { minify as minifyEs5 } from 'terser'
 import { defineConfig } from 'tsdown'
 import type { TsdownPlugin, UserConfig } from 'tsdown'
-import pkg from './package.json' with { type: 'json' }
+import pkg from '../package.json' with { type: 'json' }
 
 const banner = `/*! ${pkg.name} ${pkg.version} | ${pkg.license} License | https://github.com/${pkg.repository} */`
-const stylesheetPath = new URL('./src/medium-zoom.css', import.meta.url)
+const stylesheetPath = new URL('../src/medium-zoom.css', import.meta.url)
 // Restrict property mangling to private per-opening state, excluding public options and DOM APIs.
 const privateSessionProperties =
   /^__mz_(original|zoomed|zoomedHd|template|closing|cancelOpen|viewportScale|isPinching|scrollTimer)$/
@@ -98,6 +99,7 @@ function browserBundle(
   minify = true
 ): UserConfig {
   return {
+    cwd: fileURLToPath(new URL('../', import.meta.url)),
     entry: { 'medium-zoom': source },
     platform: 'browser',
     target: 'esnext',

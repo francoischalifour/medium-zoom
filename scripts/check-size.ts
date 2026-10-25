@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { styleText } from 'node:util'
 import { gzipSync } from 'node:zlib'
 
-import budgets from '../size.config.mts'
+import budgets from '../config/size.config.mts'
 
 const formatBytes = (bytes: number) => `${bytes.toLocaleString('en-US')} B`
 const pathWidth = Math.max('File'.length, ...budgets.map(({ path }) => path.length))

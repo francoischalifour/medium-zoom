@@ -14,6 +14,7 @@
   },
   "include": [
     "*.mts",
+    "config/**/*.mts",
     "scripts/**/*.ts",
     "tests/**/*.ts",
     "stories/catalogue/**/*.ts",

@@ -1,7 +1,5 @@
 /node_modules
 /coverage
-/cypress/screenshots
-/cypress/videos
 /dist
 /storybook
 *.tgz

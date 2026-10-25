@@ -5,6 +5,6 @@ import { libraryConfig } from './vite.shared.config.mts'
 export default mergeConfig(
   libraryConfig,
   defineConfig({
-    root: fileURLToPath(new URL('./website/', import.meta.url)),
+    root: fileURLToPath(new URL('../website/', import.meta.url)),
   })
 )

@@ -3,6 +3,6 @@ import { defineConfig } from 'vite'
 
 export const libraryConfig = defineConfig({
   resolve: {
-    alias: { 'medium-zoom': fileURLToPath(new URL('./dist/medium-zoom.esm.js', import.meta.url)) },
+    alias: { 'medium-zoom': fileURLToPath(new URL('../dist/medium-zoom.esm.js', import.meta.url)) },
   },
 })
