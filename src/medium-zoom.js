@@ -37,16 +37,37 @@ const mediumZoom = (selector, options = {}) => {
   }
 
   const _handleScroll = () => {
-    if (isAnimating || !active.original) {
+    if (!active.original) {
       return
     }
 
     const currentScroll =
       window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
 
+    // Pinching and panning a magnified page must keep the full-size image open.
+    if (
+      active.isPinching ||
+      (window.visualViewport && window.visualViewport.scale > active.viewportScale)
+    ) {
+      scrollTop = currentScroll
+      clearTimeout(active.scrollTimer)
+      active.scrollTimer = null
+      return
+    }
+
+    if (isAnimating) return
+
     if (Math.abs(scrollTop - currentScroll) > zoomOptions.scrollOffset && !active.scrollTimer) {
       active.scrollTimer = setTimeout(close, 150)
     }
+  }
+
+  const _handleTouch = event => {
+    if (event.touches.length >= 2) active.isPinching = true
+    if (active.isPinching) _handleScroll()
+
+    // Keep protecting the gesture when one finger lifts before the other.
+    if (event.touches.length === 0) active.isPinching = false
   }
 
   const _handleKeyUp = event => {
@@ -204,11 +225,15 @@ const mediumZoom = (selector, options = {}) => {
     _syncGlobalEvents(enabled, () => {
       document.addEventListener('keyup', _handleKeyUp)
       document.addEventListener('scroll', _handleScroll)
+      const touchEvents = ['touchstart', 'touchend', 'touchcancel']
+      const touchOptions = { passive: true }
+      touchEvents.forEach(type => document.addEventListener(type, _handleTouch, touchOptions))
       window.addEventListener('resize', close)
 
       return () => {
         document.removeEventListener('keyup', _handleKeyUp)
         document.removeEventListener('scroll', _handleScroll)
+        touchEvents.forEach(type => document.removeEventListener(type, _handleTouch, touchOptions))
         window.removeEventListener('resize', close)
       }
     })
@@ -333,6 +358,7 @@ const mediumZoom = (selector, options = {}) => {
         resolve(zoom)
         return
       }
+      current.viewportScale = window.visualViewport ? window.visualViewport.scale : 1
       _updateGlobalEvents(true)
       isAnimating = true
       _dispatchEvent(current.original, 'open')

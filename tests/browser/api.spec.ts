@@ -286,7 +286,15 @@ test('overlay clicks dismiss while unrelated keys leave the zoom open', async ({
 test('native browser listeners are registered only while needed', async ({ page }) => {
   const result = await page.evaluate(async () => {
     const calls: string[] = []
-    const relevant = new Set(['click', 'keyup', 'scroll', 'resize'])
+    const relevant = new Set([
+      'click',
+      'keyup',
+      'scroll',
+      'resize',
+      'touchstart',
+      'touchend',
+      'touchcancel',
+    ])
     // Observe native calls without replacing their behavior.
     const addDocument = document.addEventListener.bind(document)
     const removeDocument = document.removeEventListener.bind(document)
@@ -339,12 +347,60 @@ test('native browser listeners are registered only while needed', async ({ page 
     'document+click',
     'document+keyup',
     'document+scroll',
+    'document+touchstart',
+    'document+touchend',
+    'document+touchcancel',
     'window+resize',
     'document-keyup',
     'document-scroll',
+    'document-touchstart',
+    'document-touchend',
+    'document-touchcancel',
     'window-resize',
     'document-click',
   ])
+})
+
+test('touch listeners are removed when browser event options accept only a boolean', async ({
+  page,
+}) => {
+  const touchReads = await page.evaluate(async () => {
+    const addDocument = document.addEventListener.bind(document)
+    const removeDocument = document.removeEventListener.bind(document)
+    // Older browsers coerce the options object to capture=true.
+    document.addEventListener = (
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: boolean | AddEventListenerOptions
+    ) => {
+      addDocument(type, listener, Boolean(options))
+    }
+    document.removeEventListener = (
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: boolean | EventListenerOptions
+    ) => {
+      removeDocument(type, listener, Boolean(options))
+    }
+    const zoom = window.mediumZoom('#first')
+    await zoom.open()
+    await zoom.close()
+    zoom.detach()
+
+    let reads = 0
+    for (const type of ['touchstart', 'touchend', 'touchcancel']) {
+      const event = new Event(type)
+      Object.defineProperty(event, 'touches', {
+        get() {
+          reads++
+          return { length: 2 }
+        },
+      })
+      document.dispatchEvent(event)
+    }
+    return reads
+  })
+  expect(touchReads).toBe(0)
 })
 
 test('a missing HD image falls back to the original image', async ({ page }) => {
