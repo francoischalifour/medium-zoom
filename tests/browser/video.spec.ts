@@ -106,10 +106,10 @@ test('blocked autoplay leaves a usable player and failed media leaves the poster
   await page.keyboard.press('Escape')
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 
-  await page.route('**/*.mp4', route => route.fulfill({ status: 404 }))
-  const failure = page.waitForResponse(response => response.url().endsWith('.mp4'))
+  await page.route('**/*.mp4', route => route.abort())
+  const failure = page.waitForEvent('requestfailed', request => request.url().endsWith('.mp4'))
   await page.locator('#play').click()
-  expect((await failure).status()).toBe(404)
+  await failure
   await expect(page.locator('.medium-zoom-image--opened')).toBeVisible()
   await finishAnimations(page)
   await expect(video).toHaveCount(0)
