@@ -18,6 +18,9 @@ const mediumZoom = (selector, options = {}) => {
       fn(noop, noop)
     }
 
+  const _dispatchEvent = (image, type) =>
+    image.dispatchEvent(createCustomEvent(`medium-zoom:${type}`, { detail: { zoom } }))
+
   const _handleClick = event => {
     const { target } = event
 
@@ -81,11 +84,7 @@ const mediumZoom = (selector, options = {}) => {
     zoomOptions = { ...zoomOptions, ...newOptions }
 
     images.forEach(image => {
-      image.dispatchEvent(
-        createCustomEvent('medium-zoom:update', {
-          detail: { zoom },
-        })
-      )
+      _dispatchEvent(image, 'update')
     })
 
     return zoom
@@ -166,11 +165,7 @@ const mediumZoom = (selector, options = {}) => {
 
     imagesToDetach.forEach(image => {
       image.classList.remove('medium-zoom-image')
-      image.dispatchEvent(
-        createCustomEvent('medium-zoom:detach', {
-          detail: { zoom },
-        })
-      )
+      _dispatchEvent(image, 'detach')
     })
 
     images = images.filter(image => imagesToDetach.indexOf(image) === -1)
@@ -222,7 +217,7 @@ const mediumZoom = (selector, options = {}) => {
   // A transition may never start (for example when closing before the first frame).
   const _waitForTransition = (image, done) => {
     const finish = event => {
-      if (event && (event.target !== image || event.propertyName !== 'transform')) return
+      if (event && event.propertyName !== 'transform') return
       cleanup()
       done()
     }
@@ -312,23 +307,17 @@ const mediumZoom = (selector, options = {}) => {
     }
 
     return new Promise(resolve => {
-      if (active.original) {
+      if (active.original || (target && images.indexOf(target) === -1)) {
         resolve(zoom)
         return
       }
       active = current
-      if (target && images.indexOf(target) === -1) {
-        resolve(zoom)
-        return
-      }
 
       let cancelTransition = () => {}
       let cancelImage = () => {}
       let frame
-      let settled = false
       const finishOpening = opened => {
-        if (settled) return
-        settled = true
+        if (!current.cancelOpen) return
         cancelTransition()
         cancelImage()
         window.cancelAnimationFrame(frame)
@@ -336,17 +325,12 @@ const mediumZoom = (selector, options = {}) => {
         isAnimating = false
         resolve(zoom)
         if (opened) {
-          current.original.dispatchEvent(
-            createCustomEvent('medium-zoom:opened', { detail: { zoom } })
-          )
+          _dispatchEvent(current.original, 'opened')
         }
       }
-      current.cancelOpen = () => finishOpening(false)
-      if (target) {
-        current.original = target
-      } else if (images.length > 0) {
-        ;[current.original] = images
-      } else {
+      current.cancelOpen = finishOpening
+      current.original = target || images[0]
+      if (!current.original) {
         resolve(zoom)
         return
       }
@@ -395,15 +379,13 @@ const mediumZoom = (selector, options = {}) => {
         cancelTransition = _waitForTransition(current.zoomed, () => finishOpening(true))
       }
 
-      if (
-        current.original.getAttribute('data-zoom-src') ||
-        current.original.hasAttribute('srcset')
-      ) {
+      const zoomSrc = current.original.getAttribute('data-zoom-src')
+      if (zoomSrc || current.original.hasAttribute('srcset')) {
         const hd = current.zoomed.cloneNode()
         current.zoomedHd = hd
         const finishImage = () => {
           cancelImage()
-          if (active !== current || current.closing) return
+          if (current.closing) return
           if (hd.naturalWidth) {
             hd.classList.add('medium-zoom-image--opened')
             hd.addEventListener('click', close)
@@ -422,15 +404,15 @@ const mediumZoom = (selector, options = {}) => {
         hd.addEventListener('error', finishImage)
         hd.removeAttribute('loading')
         hd.removeAttribute('sizes')
-        if (current.original.getAttribute('data-zoom-src')) {
+        if (zoomSrc) {
           hd.removeAttribute('srcset')
-          hd.src = current.original.getAttribute('data-zoom-src')
+          hd.src = zoomSrc
         }
       } else {
         animate()
       }
 
-      current.original.dispatchEvent(createCustomEvent('medium-zoom:open', { detail: { zoom } }))
+      _dispatchEvent(current.original, 'open')
     })
   }
 
@@ -449,17 +431,15 @@ const mediumZoom = (selector, options = {}) => {
       const finishClosing = () => {
         current.original.classList.remove('medium-zoom-image--hidden')
         ;[current.zoomed, current.zoomedHd, current.template, overlay].forEach(node => {
-          if (node && node.parentNode) node.parentNode.removeChild(node)
+          if (!node) return
+          node.removeEventListener('click', close)
+          if (node.parentNode) node.parentNode.removeChild(node)
         })
-        current.zoomed.removeEventListener('click', close)
-        if (current.zoomedHd) current.zoomedHd.removeEventListener('click', close)
         active = {}
         isAnimating = false
         _updateGlobalEvents(false)
         resolve(zoom)
-        current.original.dispatchEvent(
-          createCustomEvent('medium-zoom:closed', { detail: { zoom } })
-        )
+        _dispatchEvent(current.original, 'closed')
       }
 
       // Install completion before dispatching events, whose listeners may interact again.
@@ -471,7 +451,7 @@ const mediumZoom = (selector, options = {}) => {
         current.template.style.transition = 'opacity 150ms'
         current.template.style.opacity = 0
       }
-      current.original.dispatchEvent(createCustomEvent('medium-zoom:close', { detail: { zoom } }))
+      _dispatchEvent(current.original, 'close')
     })
 
   const toggle = ({ target } = {}) => {
