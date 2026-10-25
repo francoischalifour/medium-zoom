@@ -21,12 +21,17 @@ interface PackageOptions {
   bundle?: BundleName
 }
 
+interface PageOptions {
+  body?: string
+  bodyStyle?: string
+}
+
 export async function preparePage(
   page: Page,
   {
     body = '<img id="image" src="/images/image-1.jpg" width="160" alt="Zoom fixture">',
     bodyStyle = 'margin:32px;min-height:200vh',
-  }: { body?: string; bodyStyle?: string } = {}
+  }: PageOptions = {}
 ) {
   await page.goto('/')
   await page.setContent(`<!doctype html><html><head>
@@ -49,8 +54,8 @@ export async function loadBundle(
   } else await page.addScriptTag({ url })
 }
 
-export async function loadZoomFixture(page: Page, options: PackageOptions = {}) {
-  await preparePage(page)
+export async function loadZoomFixture(page: Page, options: PackageOptions & PageOptions = {}) {
+  await preparePage(page, options)
   await loadBundle(page, options)
   await page.evaluate(() => {
     window.zoom = window.mediumZoom('#image')
