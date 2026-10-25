@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#00ab6c" />
+
+    <link href="src/reset.css" rel="stylesheet" />
+    <link href="src/style.css" rel="stylesheet" />
+
+    <title>Medium Zoom | SVG data URL demo</title>
+  </head>
+
+  <body>
+    <article class="container">
+      <h1>SVG data URL demo</h1>
+
+      <img
+        id="diagram"
+        width="560"
+        height="280"
+        alt="Checkout flow: if payment is approved, ship the order; otherwise, try another card."
+      />
+
+      <p>
+        This image contains generated SVG markup encoded as a data URL. Click it to zoom; click
+        again or press Escape to close.
+      </p>
+    </article>
+
+    <script type="module" src="src/index.js"></script>
+  </body>
+</html>

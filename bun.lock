@@ -90,6 +90,17 @@
         "vite": "8.3.5",
       },
     },
+    "examples/svg-data-url": {
+      "name": "@medium-zoom/svg-data-url-example",
+      "version": "1.0.0",
+      "dependencies": {
+        "medium-zoom": "1.1.1",
+      },
+      "devDependencies": {
+        "typescript": "7.0.2",
+        "vite": "8.3.5",
+      },
+    },
     "examples/vanilla": {
       "name": "@medium-zoom/vanilla-example",
       "version": "1.0.0",
@@ -328,6 +339,8 @@
     "@medium-zoom/react-markdown-example": ["@medium-zoom/react-markdown-example@workspace:examples/react-markdown"],
 
     "@medium-zoom/svelte-example": ["@medium-zoom/svelte-example@workspace:examples/svelte"],
+
+    "@medium-zoom/svg-data-url-example": ["@medium-zoom/svg-data-url-example@workspace:examples/svg-data-url"],
 
     "@medium-zoom/vanilla-example": ["@medium-zoom/vanilla-example@workspace:examples/vanilla"],
 
