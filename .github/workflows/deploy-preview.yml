@@ -30,25 +30,14 @@ jobs:
       PR_SHA: ${{ github.event.workflow_run.head_sha }}
       RUN_ID: ${{ github.event.workflow_run.id }}
     steps:
-      - name: Check the build and current PR
-        id: eligibility
-        shell: bash
-        run: |
-          [[ "$PR_NUMBER" =~ ^[0-9]+$ ]] || exit 0
-          [[ "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" --jq '.path')" == '.github/workflows/preview.yml' ]] || exit 0
-          gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" > "$RUNNER_TEMP/preview-pr.json"
-          if jq -e --arg sha "$PR_SHA" --arg repo "$GITHUB_REPOSITORY" '
-            .state == "open" and .head.sha == $sha and .head.repo.full_name == $repo and
-            any(.labels[]; .name == "preview")
-          ' "$RUNNER_TEMP/preview-pr.json" > /dev/null; then
-            echo 'deploy=true' >> "$GITHUB_OUTPUT"
-          fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: steps.eligibility.outputs.deploy == 'true'
         with:
           ref: main
           path: trusted
           persist-credentials: false
+      - name: Check the build and current PR
+        id: eligibility
+        run: bash trusted/scripts/check-preview.sh
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         if: steps.eligibility.outputs.deploy == 'true'
         with:
@@ -74,23 +63,4 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_PREVIEW_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: b41c9db3b56da737528cffc5cb203c10
-        run: |
-          test -n "$CLOUDFLARE_API_TOKEN" || { echo 'Missing preview environment secret CLOUDFLARE_PREVIEW_API_TOKEN' >&2; exit 1; }
-          # Recheck after downloading: a new commit, removed label, or closed PR cancels eligibility.
-          gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" > "$RUNNER_TEMP/preview-pr.json"
-          jq -e --arg sha "$PR_SHA" --arg repo "$GITHUB_REPOSITORY" '
-            .state == "open" and .head.sha == $sha and .head.repo.full_name == $repo and
-            any(.labels[]; .name == "preview")
-          ' "$RUNNER_TEMP/preview-pr.json" > /dev/null || exit 0
-          # Keep trusted config outside the artifact. PR files are served only as static assets.
-          mkdir -p "$RUNNER_TEMP/preview-tools"
-          jq -n --arg directory "$RUNNER_TEMP/preview-assets" '{
-            name: "medium-zoom-preview",
-            compatibility_date: "2026-10-25",
-            workers_dev: true,
-            preview_urls: true,
-            assets: {directory: $directory, not_found_handling: "404-page"}
-          }' > "$RUNNER_TEMP/preview-tools/wrangler.json"
-          cd "$RUNNER_TEMP/preview-tools"
-          node "$GITHUB_WORKSPACE/trusted/node_modules/wrangler/bin/wrangler.js" versions upload --config wrangler.json --preview-alias "pr-$PR_NUMBER"
-          printf '### Preview\n\n[Open preview](https://pr-%s-medium-zoom-preview.fran-ois-b41.workers.dev)\n\nCommit: %s\n' "$PR_NUMBER" "$PR_SHA" >> "$GITHUB_STEP_SUMMARY"
+        run: bash trusted/scripts/deploy-preview.sh
