@@ -18,36 +18,42 @@ const unattachedStories = new Set([
   'getOptions()/default',
 ])
 
-test('every API story demonstrates its behavior', async ({ page }, testInfo) => {
-  test.setTimeout(180_000)
-  const errors = observeErrors(page)
-  const alerts = acceptAlerts(page)
-  const evidence: { id: string; before: string; after: string; action: string }[] = []
-  await observeStoryEvents(page)
-  const stories = await readStories(page)
-  expect(stories).toHaveLength(43)
-  expect(new Set(stories.map(story => story.id)).size).toBe(43)
+const storyGroups = 8
 
-  for (const [index, story] of stories.entries()) {
-    await test.step(story.id, async () => {
-      alerts.length = 0
-      await page.goto(story.url)
-      await expect(page.locator('html')).toHaveAttribute('data-ready', 'true')
-      await assertInitialState(page, story.id)
-      const before = await captureStory(page, testInfo, { story, index, state: 'before' })
-      await demonstrateStory(page, story.id)
-      const after = await captureStory(page, testInfo, { story, index, state: 'after' })
-      await dismissStory(page, story.id)
-      expect(alerts).toEqual(expectedAlerts(story.id))
-      expect(errors).toEqual([])
-      const action = unattachedStories.has(story.id)
-        ? 'verify unattached image stays closed'
-        : 'open and dismiss'
-      evidence.push({ id: story.id, before, after, action })
-    })
-  }
-  await writeFile(testInfo.outputPath('stories.json'), JSON.stringify(evidence, null, 2))
-})
+// Small groups can run concurrently and retry without repeating the entire catalogue.
+for (let group = 0; group < storyGroups; group++) {
+  test(`API stories (group ${group + 1}/${storyGroups})`, async ({ page }, testInfo) => {
+    test.setTimeout(60_000)
+    const errors = observeErrors(page)
+    const alerts = acceptAlerts(page)
+    const evidence: { id: string; before: string; after: string; action: string }[] = []
+    await observeStoryEvents(page)
+    const stories = await readStories(page)
+    expect(stories).toHaveLength(43)
+    expect(new Set(stories.map(story => story.id)).size).toBe(43)
+
+    for (const [index, story] of stories.entries()) {
+      if (index % storyGroups !== group) continue
+      await test.step(story.id, async () => {
+        alerts.length = 0
+        await page.goto(story.url)
+        await expect(page.locator('html')).toHaveAttribute('data-ready', 'true')
+        await assertInitialState(page, story.id)
+        const before = await captureStory(page, testInfo, { story, index, state: 'before' })
+        await demonstrateStory(page, story.id)
+        const after = await captureStory(page, testInfo, { story, index, state: 'after' })
+        await dismissStory(page, story.id)
+        expect(alerts).toEqual(expectedAlerts(story.id))
+        expect(errors).toEqual([])
+        const action = unattachedStories.has(story.id)
+          ? 'verify unattached image stays closed'
+          : 'open and dismiss'
+        evidence.push({ id: story.id, before, after, action })
+      })
+    }
+    await writeFile(testInfo.outputPath('stories.json'), JSON.stringify(evidence, null, 2))
+  })
+}
 
 async function assertInitialState(page: Page, id: string) {
   const automaticClose = /^(close|toggle)\(\)\//.test(id)
