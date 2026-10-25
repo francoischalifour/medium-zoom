@@ -113,7 +113,7 @@ const mediumZoom = (selector, options = {}) => {
     return zoom
   }
 
-  const clone = (options = {}) => mediumZoom({ ...zoomOptions, ...options })
+  const clone = options => mediumZoom({ ...zoomOptions, ...options })
 
   let clickListening = false
   const _updateClickListener = () => {
@@ -179,24 +179,26 @@ const mediumZoom = (selector, options = {}) => {
   }
 
   const on = (type, listener, options = {}) => {
+    const eventType = `medium-zoom:${type}`
     images.forEach(image => {
-      image.addEventListener(`medium-zoom:${type}`, listener, options)
+      image.addEventListener(eventType, listener, options)
     })
 
-    eventListeners.push({ type: `medium-zoom:${type}`, listener, options })
+    eventListeners.push({ type: eventType, listener, options })
 
     return zoom
   }
 
   const off = (type, listener, options = {}) => {
+    const eventType = `medium-zoom:${type}`
     images.forEach(image => {
-      image.removeEventListener(`medium-zoom:${type}`, listener, options)
+      image.removeEventListener(eventType, listener, options)
     })
 
     eventListeners = eventListeners.filter(
       eventListener =>
         !(
-          eventListener.type === `medium-zoom:${type}` &&
+          eventListener.type === eventType &&
           eventListener.listener.toString() === listener.toString()
         )
     )

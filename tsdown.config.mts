@@ -31,7 +31,7 @@ function stylesheet(): TsdownPlugin {
       this.emitFile({ type: 'asset', fileName: 'style.css', source: css })
       return `if (typeof document !== 'undefined') {
         var style = document.createElement('style');
-        style.appendChild(document.createTextNode(${JSON.stringify(css)}));
+        style.textContent = ${JSON.stringify(css)};
         document.head.appendChild(style);
       }`
     },
@@ -80,13 +80,17 @@ function legacySyntax({ minify = false }: { minify?: boolean } = {}): TsdownPlug
           ? (
               await minifyEs5(result.code, {
                 ecma: 5,
+                module: options.format === 'es',
                 mangle: { properties: { regex: privateSessionProperties } },
                 format: { comments: /^!/ },
               })
             ).code
           : result.code
         if (!code) throw new Error('The ES5 minifier did not emit a browser bundle')
-        writeFileSync(path, `${banner}\n${code}\n`)
+        // Line-based package analyzers can mistake URL strings for comments.
+        // Keep the final ESM export visible on its own line.
+        const output = options.format === 'es' ? code.replace(/(export\{[^}]+\};?)$/, '\n$1') : code
+        writeFileSync(path, `${banner}\n${output}\n`)
       }
     },
   }
@@ -99,7 +103,7 @@ const umd = {
 } satisfies UserConfig
 
 const formats = {
-  esm: { format: 'esm', minify: false, outputOptions: {} },
+  esm: { format: 'esm', minify: true, outputOptions: {} },
   umd: { ...umd, minify: false },
   minified: { ...umd, minify: true },
 } satisfies Record<string, UserConfig>

@@ -149,12 +149,16 @@ test('clone copies options without attached images or shared option updates', as
     clone.update({ background: '#000' })
     return {
       original: zoom.getOptions(),
+      defaultClone: zoom.clone().getOptions(),
+      undefinedClone: zoom.clone(undefined).getOptions(),
       clone: clone.getOptions(),
       images: clone.getImages().length,
     }
   })
   expect(result.original.margin).toBe(24)
   expect(result.original.background).toBe('#123456')
+  expect(result.defaultClone).toEqual(result.original)
+  expect(result.undefinedClone).toEqual(result.original)
   expect(result.clone.margin).toBe(48)
   expect(result.clone.background).toBe('#000')
   expect(result.images).toBe(0)
