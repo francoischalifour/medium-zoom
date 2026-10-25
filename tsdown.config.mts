@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { transformSync } from '@babel/core'
+import { parse } from 'acorn'
 import { transform as transformCss } from 'lightningcss'
 import { minify as minifyEs5 } from 'terser'
 import { defineConfig } from 'tsdown'
@@ -9,6 +10,9 @@ import pkg from './package.json' with { type: 'json' }
 
 const banner = `/*! ${pkg.name} ${pkg.version} | ${pkg.license} License | https://github.com/${pkg.repository} */`
 const stylesheetPath = new URL('./src/medium-zoom.css', import.meta.url)
+// Restrict property mangling to private per-opening state, excluding public options and DOM APIs.
+const privateSessionProperties =
+  /^__mz_(original|zoomed|zoomedHd|template|closing|cancelOpen|viewportScale|isPinching|scrollTimer)$/
 
 function stylesheet(): TsdownPlugin {
   return {
@@ -28,7 +32,7 @@ function stylesheet(): TsdownPlugin {
       this.emitFile({ type: 'asset', fileName: 'style.css', source: css })
       return `if (typeof document !== 'undefined') {
         var style = document.createElement('style');
-        style.appendChild(document.createTextNode(${JSON.stringify(css)}));
+        style.textContent = ${JSON.stringify(css)};
         document.head.appendChild(style);
       }`
     },
@@ -74,10 +78,33 @@ function legacySyntax({ minify = false }: { minify?: boolean } = {}): TsdownPlug
         })
         if (!result?.code) throw new Error('Babel did not emit the browser bundle')
         const code = minify
-          ? (await minifyEs5(result.code, { ecma: 5, format: { comments: /^!/ } })).code
+          ? (
+              await minifyEs5(result.code, {
+                ecma: 5,
+                module: options.format === 'es',
+                mangle: { properties: { regex: privateSessionProperties } },
+                format: { comments: /^!/ },
+              })
+            ).code
           : result.code
         if (!code) throw new Error('The ES5 minifier did not emit a browser bundle')
-        writeFileSync(path, `${banner}\n${code}\n`)
+        // Line-based package analyzers can mistake URL strings for comments.
+        // Keep ESM exports visible on their own lines regardless of minifier formatting.
+        let output = code
+        if (options.format === 'es') {
+          const { body } = parse(code, { ecmaVersion: 2_015, sourceType: 'module' })
+          // Work backwards so each declaration's original offset remains valid.
+          for (const declaration of body.reverse()) {
+            if (
+              declaration.type === 'ExportNamedDeclaration' ||
+              declaration.type === 'ExportDefaultDeclaration' ||
+              declaration.type === 'ExportAllDeclaration'
+            ) {
+              output = `${output.slice(0, declaration.start)}\n${output.slice(declaration.start)}`
+            }
+          }
+        }
+        writeFileSync(path, `${banner}\n${output}\n`)
       }
     },
   }
@@ -90,7 +117,7 @@ const umd = {
 } satisfies UserConfig
 
 const formats = {
-  esm: { format: 'esm', minify: false, outputOptions: {} },
+  esm: { format: 'esm', minify: true, outputOptions: {} },
   umd: { ...umd, minify: false },
   minified: { ...umd, minify: true },
 } satisfies Record<string, UserConfig>

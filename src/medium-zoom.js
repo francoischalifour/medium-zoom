@@ -19,7 +19,7 @@ const mediumZoom = (selector, options = {}) => {
     }
 
   const _dispatchEvent = (image, type) =>
-    image.dispatchEvent(createCustomEvent(`medium-zoom:${type}`, { detail: { zoom } }))
+    image.dispatchEvent(createCustomEvent(`medium-zoom:${type}`, { zoom }))
 
   const _handleClick = event => {
     const { target } = event
@@ -37,7 +37,7 @@ const mediumZoom = (selector, options = {}) => {
   }
 
   const _handleScroll = () => {
-    if (!active.original) {
+    if (!active.__mz_original) {
       return
     }
 
@@ -46,28 +46,31 @@ const mediumZoom = (selector, options = {}) => {
 
     // Pinching and panning a magnified page must keep the full-size image open.
     if (
-      active.isPinching ||
-      (window.visualViewport && window.visualViewport.scale > active.viewportScale)
+      active.__mz_isPinching ||
+      (window.visualViewport && window.visualViewport.scale > active.__mz_viewportScale)
     ) {
       scrollTop = currentScroll
-      clearTimeout(active.scrollTimer)
-      active.scrollTimer = null
+      clearTimeout(active.__mz_scrollTimer)
+      active.__mz_scrollTimer = null
       return
     }
 
     if (isAnimating) return
 
-    if (Math.abs(scrollTop - currentScroll) > zoomOptions.scrollOffset && !active.scrollTimer) {
-      active.scrollTimer = setTimeout(close, 150)
+    if (
+      Math.abs(scrollTop - currentScroll) > zoomOptions.scrollOffset &&
+      !active.__mz_scrollTimer
+    ) {
+      active.__mz_scrollTimer = setTimeout(close, 150)
     }
   }
 
   const _handleTouch = event => {
-    if (event.touches.length >= 2) active.isPinching = true
-    if (active.isPinching) _handleScroll()
+    if (event.touches.length >= 2) active.__mz_isPinching = true
+    if (active.__mz_isPinching) _handleScroll()
 
     // Keep protecting the gesture when one finger lifts before the other.
-    if (event.touches.length === 0) active.isPinching = false
+    if (event.touches.length === 0) active.__mz_isPinching = false
   }
 
   const _handleKeyUp = event => {
@@ -110,35 +113,16 @@ const mediumZoom = (selector, options = {}) => {
     return zoom
   }
 
-  const clone = (options = {}) => mediumZoom({ ...zoomOptions, ...options })
+  const clone = options => mediumZoom({ ...zoomOptions, ...options })
 
-  const createListenerSync = () => {
-    let unregister
+  let clickListening = false
+  const _updateClickListener = () => {
+    const enabled = images.length > 0
+    if (clickListening === enabled) return
 
-    return (enabled, register) => {
-      if (enabled) {
-        if (!unregister) {
-          unregister = register()
-        }
-
-        return
-      }
-
-      if (unregister) {
-        unregister()
-        unregister = undefined
-      }
-    }
+    document[enabled ? 'addEventListener' : 'removeEventListener']('click', _handleClick)
+    clickListening = enabled
   }
-
-  const _syncClickListener = createListenerSync()
-  const _updateClickListener = () =>
-    _syncClickListener(images.length > 0, () => {
-      document.addEventListener('click', _handleClick)
-      return () => {
-        document.removeEventListener('click', _handleClick)
-      }
-    })
 
   const attach = (...selectors) => {
     const newImages = selectors.reduce(
@@ -168,7 +152,7 @@ const mediumZoom = (selector, options = {}) => {
   }
 
   const detach = (...selectors) => {
-    if (active.zoomed) {
+    if (active.__mz_zoomed) {
       close()
     }
 
@@ -195,24 +179,26 @@ const mediumZoom = (selector, options = {}) => {
   }
 
   const on = (type, listener, options = {}) => {
+    const eventType = `medium-zoom:${type}`
     images.forEach(image => {
-      image.addEventListener(`medium-zoom:${type}`, listener, options)
+      image.addEventListener(eventType, listener, options)
     })
 
-    eventListeners.push({ type: `medium-zoom:${type}`, listener, options })
+    eventListeners.push({ type: eventType, listener, options })
 
     return zoom
   }
 
   const off = (type, listener, options = {}) => {
+    const eventType = `medium-zoom:${type}`
     images.forEach(image => {
-      image.removeEventListener(`medium-zoom:${type}`, listener, options)
+      image.removeEventListener(eventType, listener, options)
     })
 
     eventListeners = eventListeners.filter(
       eventListener =>
         !(
-          eventListener.type === `medium-zoom:${type}` &&
+          eventListener.type === eventType &&
           eventListener.listener.toString() === listener.toString()
         )
     )
@@ -220,23 +206,20 @@ const mediumZoom = (selector, options = {}) => {
     return zoom
   }
 
-  const _syncGlobalEvents = createListenerSync()
-  const _updateGlobalEvents = enabled =>
-    _syncGlobalEvents(enabled, () => {
-      document.addEventListener('keyup', _handleKeyUp)
-      document.addEventListener('scroll', _handleScroll)
-      const touchEvents = ['touchstart', 'touchend', 'touchcancel']
-      const touchOptions = { passive: true }
-      touchEvents.forEach(type => document.addEventListener(type, _handleTouch, touchOptions))
-      window.addEventListener('resize', close)
+  let globalListening = false
+  const _updateGlobalEvents = enabled => {
+    if (globalListening === enabled) return
 
-      return () => {
-        document.removeEventListener('keyup', _handleKeyUp)
-        document.removeEventListener('scroll', _handleScroll)
-        touchEvents.forEach(type => document.removeEventListener(type, _handleTouch, touchOptions))
-        window.removeEventListener('resize', close)
-      }
-    })
+    const method = enabled ? 'addEventListener' : 'removeEventListener'
+    document[method]('keyup', _handleKeyUp)
+    document[method]('scroll', _handleScroll)
+    const touchOptions = { passive: true }
+    ;['touchstart', 'touchend', 'touchcancel'].forEach(type =>
+      document[method](type, _handleTouch, touchOptions)
+    )
+    window[method]('resize', close)
+    globalListening = enabled
+  }
 
   // A transition may be disabled, cancelled, or have no change to animate.
   const _waitForTransition = (image, done) => {
@@ -319,7 +302,7 @@ const mediumZoom = (selector, options = {}) => {
       viewportWidth = viewportWidth || container.width - zoomOptions.margin * 2
       viewportHeight = viewportHeight || container.height - zoomOptions.margin * 2
 
-      const zoomTarget = current.zoomedHd || current.original
+      const zoomTarget = current.__mz_zoomedHd || current.__mz_original
       const naturalWidth = isSvg(zoomTarget)
         ? viewportWidth
         : zoomTarget.naturalWidth || viewportWidth
@@ -339,15 +322,15 @@ const mediumZoom = (selector, options = {}) => {
         (-top + (viewportHeight - height) / 2 + zoomOptions.margin + container.top) / scale
       const transform = `scale(${scale}) translate3d(${translateX}px, ${translateY}px, 0)`
 
-      current.zoomed.style.transform = transform
+      current.__mz_zoomed.style.transform = transform
 
-      if (current.zoomedHd) {
-        current.zoomedHd.style.transform = transform
+      if (current.__mz_zoomedHd) {
+        current.__mz_zoomedHd.style.transform = transform
       }
     }
 
     return new Promise(resolve => {
-      if (active.original || (target && images.indexOf(target) === -1)) {
+      if (active.__mz_original || (target && images.indexOf(target) === -1)) {
         resolve(zoom)
         return
       }
@@ -357,33 +340,33 @@ const mediumZoom = (selector, options = {}) => {
       let cancelImage = () => {}
       let frame
       const finishOpening = opened => {
-        if (!current.cancelOpen) return
+        if (!current.__mz_cancelOpen) return
         cancelTransition()
         cancelImage()
         window.cancelAnimationFrame(frame)
-        current.cancelOpen = null
+        current.__mz_cancelOpen = null
         isAnimating = false
         resolve(zoom)
         if (opened) {
           document.body.classList.add('medium-zoom--opened')
-          _dispatchEvent(current.original, 'opened')
+          _dispatchEvent(current.__mz_original, 'opened')
         }
       }
-      current.cancelOpen = finishOpening
-      current.original = target || images[0]
-      if (!current.original) {
+      current.__mz_cancelOpen = finishOpening
+      current.__mz_original = target || images[0]
+      if (!current.__mz_original) {
         resolve(zoom)
         return
       }
-      current.viewportScale = window.visualViewport ? window.visualViewport.scale : 1
+      current.__mz_viewportScale = window.visualViewport ? window.visualViewport.scale : 1
       _updateGlobalEvents(true)
       isAnimating = true
-      _dispatchEvent(current.original, 'open')
-      if (current.closing) return
+      _dispatchEvent(current.__mz_original, 'open')
+      if (current.__mz_closing) return
 
       scrollTop =
         window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
-      current.zoomed = cloneTarget(current.original)
+      current.__mz_zoomed = cloneTarget(current.__mz_original)
 
       document.body.appendChild(overlay)
 
@@ -391,58 +374,58 @@ const mediumZoom = (selector, options = {}) => {
         const template = isNode(zoomOptions.template)
           ? zoomOptions.template
           : document.querySelector(zoomOptions.template)
-        current.template = document.createElement('div')
-        current.template.appendChild(template.content.cloneNode(true))
+        current.__mz_template = document.createElement('div')
+        current.__mz_template.appendChild(template.content.cloneNode(true))
 
-        document.body.appendChild(current.template)
+        document.body.appendChild(current.__mz_template)
       }
 
       // If the selected <img> tag is inside a <picture> tag, set the
       // currently-applied source as the cloned `src=` attribute.
       // (as these might differ, or src= might be unset in some cases)
       if (
-        current.original.parentElement &&
-        current.original.parentElement.tagName === 'PICTURE' &&
-        current.original.currentSrc
+        current.__mz_original.parentElement &&
+        current.__mz_original.parentElement.tagName === 'PICTURE' &&
+        current.__mz_original.currentSrc
       ) {
-        current.zoomed.src = current.original.currentSrc
+        current.__mz_zoomed.src = current.__mz_original.currentSrc
       }
 
-      document.body.appendChild(current.zoomed)
+      document.body.appendChild(current.__mz_zoomed)
 
       frame = window.requestAnimationFrame(() => {
         document.body.classList.add('medium-zoom--opened')
       })
 
-      current.original.classList.add('medium-zoom-image--hidden')
-      current.zoomed.classList.add('medium-zoom-image--opened')
+      current.__mz_original.classList.add('medium-zoom-image--hidden')
+      current.__mz_zoomed.classList.add('medium-zoom-image--opened')
 
-      current.zoomed.addEventListener('click', close)
+      current.__mz_zoomed.addEventListener('click', close)
 
       const animate = () => {
         _animate()
-        cancelTransition = _waitForTransition(current.zoomed, () => finishOpening(true))
+        cancelTransition = _waitForTransition(current.__mz_zoomed, () => finishOpening(true))
       }
 
-      const zoomSrc = current.original.getAttribute('data-zoom-src')
-      if (zoomSrc || current.original.hasAttribute('srcset')) {
+      const zoomSrc = current.__mz_original.getAttribute('data-zoom-src')
+      if (zoomSrc || current.__mz_original.hasAttribute('srcset')) {
         // Cloning a cached image can queue a load for its old source in Firefox.
         // Copy its presentation first, then assign sources after installing handlers.
         const hd = document.createElement('img')
-        ;[].slice.call(current.zoomed.attributes).forEach(({ name, value }) => {
+        ;[].slice.call(current.__mz_zoomed.attributes).forEach(({ name, value }) => {
           if (!/^(src|srcset|sizes|loading)$/.test(name)) hd.setAttribute(name, value)
         })
-        current.zoomedHd = hd
+        current.__mz_zoomedHd = hd
         const finishImage = () => {
           cancelImage()
-          if (current.closing) return
+          if (current.__mz_closing) return
           if (hd.naturalWidth) {
             hd.classList.add('medium-zoom-image--opened')
             hd.addEventListener('click', close)
             document.body.appendChild(hd)
           } else {
             console.warn(`Unable to reach the zoom image target ${hd.currentSrc || hd.src}`)
-            current.zoomedHd = null
+            current.__mz_zoomedHd = null
           }
           animate()
         }
@@ -452,8 +435,8 @@ const mediumZoom = (selector, options = {}) => {
         }
         hd.addEventListener('load', finishImage)
         hd.addEventListener('error', finishImage)
-        if (!zoomSrc) hd.srcset = current.zoomed.srcset
-        hd.src = zoomSrc || current.zoomed.src
+        if (!zoomSrc) hd.srcset = current.__mz_zoomed.srcset
+        hd.src = zoomSrc || current.__mz_zoomed.src
       } else {
         animate()
       }
@@ -463,48 +446,50 @@ const mediumZoom = (selector, options = {}) => {
   const close = () =>
     new Promise(resolve => {
       const current = active
-      if (!current.original || current.closing) {
+      if (!current.__mz_original || current.__mz_closing) {
         resolve(zoom)
         return
       }
 
-      current.closing = true
-      if (current.cancelOpen) current.cancelOpen()
-      clearTimeout(current.scrollTimer)
+      current.__mz_closing = true
+      if (current.__mz_cancelOpen) current.__mz_cancelOpen()
+      clearTimeout(current.__mz_scrollTimer)
       isAnimating = true
       const finishClosing = () => {
-        current.original.classList.remove('medium-zoom-image--hidden')
-        ;[current.zoomed, current.zoomedHd, current.template, overlay].forEach(node => {
-          if (!node) return
-          node.removeEventListener('click', close)
-          if (node.parentNode) node.parentNode.removeChild(node)
-        })
+        current.__mz_original.classList.remove('medium-zoom-image--hidden')
+        ;[current.__mz_zoomed, current.__mz_zoomedHd, current.__mz_template, overlay].forEach(
+          node => {
+            if (!node) return
+            node.removeEventListener('click', close)
+            if (node.parentNode) node.parentNode.removeChild(node)
+          }
+        )
         active = {}
         isAnimating = false
         _updateGlobalEvents(false)
         resolve(zoom)
-        _dispatchEvent(current.original, 'closed')
+        _dispatchEvent(current.__mz_original, 'closed')
       }
 
       // Install completion before dispatching events, whose listeners may interact again.
-      if (current.zoomed) _waitForTransition(current.zoomed, finishClosing)
+      if (current.__mz_zoomed) _waitForTransition(current.__mz_zoomed, finishClosing)
       document.body.classList.remove('medium-zoom--opened')
-      if (current.zoomed) current.zoomed.style.transform = ''
-      if (current.zoomedHd) current.zoomedHd.style.transform = ''
-      if (current.template) {
-        current.template.style.transition = parseFloat(
-          window.getComputedStyle(current.zoomed).transitionDuration
+      if (current.__mz_zoomed) current.__mz_zoomed.style.transform = ''
+      if (current.__mz_zoomedHd) current.__mz_zoomedHd.style.transform = ''
+      if (current.__mz_template) {
+        current.__mz_template.style.transition = parseFloat(
+          window.getComputedStyle(current.__mz_zoomed).transitionDuration
         )
           ? 'opacity 150ms'
           : 'none'
-        current.template.style.opacity = 0
+        current.__mz_template.style.opacity = 0
       }
-      _dispatchEvent(current.original, 'close')
-      if (!current.zoomed) finishClosing()
+      _dispatchEvent(current.__mz_original, 'close')
+      if (!current.__mz_zoomed) finishClosing()
     })
 
   const toggle = ({ target } = {}) => {
-    if (active.original) {
+    if (active.__mz_original) {
       return close()
     }
 
@@ -515,7 +500,7 @@ const mediumZoom = (selector, options = {}) => {
 
   const getImages = () => images
 
-  const getZoomedImage = () => active.original || null
+  const getZoomedImage = () => active.__mz_original || null
 
   let images = []
   let eventListeners = []
