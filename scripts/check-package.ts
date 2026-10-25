@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict'
-import { readFileSync, readdirSync, mkdirSync, symlinkSync, copyFileSync } from 'node:fs'
-import { execFileSync } from 'node:child_process'
-import { join, resolve } from 'node:path'
+import { readFileSync, readdirSync } from 'node:fs'
+import { join } from 'node:path'
 import { runInNewContext } from 'node:vm'
 import { parse } from 'acorn'
 import { pack } from './pack.ts'
+import { checkAnalyzers } from './check-package-analyzers.ts'
+import { checkConsumers } from './check-package-consumers.ts'
 
 const artifact = pack()
 try {
@@ -75,26 +76,8 @@ try {
   assert(css.includes('cursor:pointer') && css.includes('cursor:zoom-in'))
   assert(css.includes('cursor:zoom-out'))
 
-  const consumer = join(artifact.directory, 'consumer')
-  mkdirSync(join(consumer, 'node_modules'), { recursive: true })
-  symlinkSync(artifact.root, join(consumer, 'node_modules/medium-zoom'), 'dir')
-  copyFileSync('tests/types/consumer.ts', join(consumer, 'consumer.ts'))
-  execFileSync(
-    resolve('node_modules/.bin/tsc'),
-    [
-      '--noEmit',
-      '--strict',
-      '--skipLibCheck',
-      '--module',
-      'esnext',
-      '--moduleResolution',
-      'bundler',
-      '--target',
-      'es2020',
-      join(consumer, 'consumer.ts'),
-    ],
-    { cwd: consumer, stdio: 'inherit' }
-  )
+  await checkAnalyzers(artifact.archive)
+  await checkConsumers(artifact)
   console.log('Packed package paths, modules, ES5 syntax, CSS, license, and declarations verified.')
 } finally {
   artifact.cleanup()

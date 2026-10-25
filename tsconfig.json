@@ -8,7 +8,8 @@
     "resolveJsonModule": true,
     "paths": {
       "medium-zoom": ["./src/medium-zoom.d.ts"],
-      "medium-zoom/dist/pure": ["./src/medium-zoom.d.ts"]
+      "medium-zoom/dist/pure": ["./src/medium-zoom.d.ts"],
+      "medium-zoom/dist/pure/index.js": ["./src/medium-zoom.d.ts"]
     }
   },
   "include": [

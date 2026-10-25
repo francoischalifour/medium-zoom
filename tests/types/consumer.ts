@@ -1,5 +1,6 @@
 import mediumZoom, { type Zoom, type ZoomOptions } from 'medium-zoom'
 import pureZoom from 'medium-zoom/dist/pure'
+import pureFileZoom from 'medium-zoom/dist/pure/index.js'
 
 const image = document.createElement('img')
 const options: ZoomOptions = { margin: 16, background: '#fff', container: document.body }
@@ -12,6 +13,7 @@ zoom
   .on('opened', () => {})
   .detach(image)
 mediumZoom(options)
+pureFileZoom(options).clone().update(options)
 
 // @ts-expect-error selectors do not accept numbers
 mediumZoom(42)
