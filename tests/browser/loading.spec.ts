@@ -252,3 +252,51 @@ test('a broken srcset-only image can open and close (#226)', async ({ page }) =>
   await expect(page.locator('.medium-zoom-image--hidden')).toHaveCount(0)
   expect(errors).toEqual([])
 })
+
+test('open listeners configure the current geometry, template, and HD source', async ({ page }) => {
+  await loadZoomFixture(page)
+  await page.evaluate(() => {
+    document.body.insertAdjacentHTML(
+      'beforeend',
+      '<template id="template"><p id="content">Zoom</p></template>'
+    )
+    window.zoom.on('open', () => {
+      window.zoom.update({ margin: 300, template: '#template' })
+      document.querySelector('#image')!.setAttribute('data-zoom-src', '/images/image-2.jpg')
+    })
+  })
+  await page.evaluate(() => window.zoom.open())
+  await expect(page.locator('#content')).toBeVisible()
+  const clones = page.locator('.medium-zoom-image--opened')
+  await expect(clones).toHaveCount(2)
+  expect(await clones.last().evaluate(image => (image as HTMLImageElement).currentSrc)).toContain(
+    '/images/image-2.jpg'
+  )
+  const bounds = await clones.first().boundingBox()
+  const viewport = page.viewportSize()!
+  expect(bounds!.width).toBeLessThanOrEqual(viewport.width - 600 + 1)
+  expect(bounds!.height).toBeLessThanOrEqual(viewport.height - 600 + 1)
+  await page.evaluate(() => window.zoom.close())
+  await expect(page.locator('#content')).toHaveCount(0)
+})
+
+test('continuous scrolling dismisses without waiting for scrolling to stop', async ({ page }) => {
+  await loadZoomFixture(page)
+  await page.evaluate(() => window.zoom.open())
+  // Keep scrolling longer than the dismissal delay and closing animation together.
+  const closedWhileScrolling = await page.evaluate(async () => {
+    let closed = false
+    window.zoom.on('closed', () => {
+      closed = true
+    })
+    const scrolling = setInterval(() => window.scrollBy(0, 5), 20)
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1_000))
+      return closed
+    } finally {
+      clearInterval(scrolling)
+    }
+  })
+  expect(closedWhileScrolling).toBe(true)
+  await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
+})

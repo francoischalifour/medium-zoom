@@ -44,9 +44,8 @@ const mediumZoom = (selector, options = {}) => {
     const currentScroll =
       window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
 
-    if (Math.abs(scrollTop - currentScroll) > zoomOptions.scrollOffset) {
-      clearTimeout(scrollTimer)
-      scrollTimer = setTimeout(close, 150)
+    if (Math.abs(scrollTop - currentScroll) > zoomOptions.scrollOffset && !active.scrollTimer) {
+      active.scrollTimer = setTimeout(close, 150)
     }
   }
 
@@ -335,9 +334,12 @@ const mediumZoom = (selector, options = {}) => {
         return
       }
       _updateGlobalEvents(true)
+      isAnimating = true
+      _dispatchEvent(current.original, 'open')
+      if (current.closing) return
+
       scrollTop =
         window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
-      isAnimating = true
       current.zoomed = cloneTarget(current.original)
 
       document.body.appendChild(overlay)
@@ -411,8 +413,6 @@ const mediumZoom = (selector, options = {}) => {
       } else {
         animate()
       }
-
-      _dispatchEvent(current.original, 'open')
     })
   }
 
@@ -426,7 +426,7 @@ const mediumZoom = (selector, options = {}) => {
 
       current.closing = true
       if (current.cancelOpen) current.cancelOpen()
-      clearTimeout(scrollTimer)
+      clearTimeout(current.scrollTimer)
       isAnimating = true
       const finishClosing = () => {
         current.original.classList.remove('medium-zoom-image--hidden')
@@ -443,15 +443,16 @@ const mediumZoom = (selector, options = {}) => {
       }
 
       // Install completion before dispatching events, whose listeners may interact again.
-      _waitForTransition(current.zoomed, finishClosing)
+      if (current.zoomed) _waitForTransition(current.zoomed, finishClosing)
       document.body.classList.remove('medium-zoom--opened')
-      current.zoomed.style.transform = ''
+      if (current.zoomed) current.zoomed.style.transform = ''
       if (current.zoomedHd) current.zoomedHd.style.transform = ''
       if (current.template) {
         current.template.style.transition = 'opacity 150ms'
         current.template.style.opacity = 0
       }
       _dispatchEvent(current.original, 'close')
+      if (!current.zoomed) finishClosing()
     })
 
   const toggle = ({ target } = {}) => {
@@ -473,7 +474,6 @@ const mediumZoom = (selector, options = {}) => {
   let isAnimating = false
   let scrollTop = 0
   let zoomOptions = options
-  let scrollTimer
   let active = {}
 
   // If the selector is omitted, it's replaced by the options
