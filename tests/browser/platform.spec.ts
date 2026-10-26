@@ -13,7 +13,7 @@ const profiles = {
 
 async function loadProfile(page: Page, file: string) {
   await page.evaluate(async file => {
-    const url = `/package/dist/${file}`
+    const url = `/${file === 'medium-zoom.esm.js' ? 'package' : 'experimental'}/dist/${file}`
     if (file.endsWith('.cjs')) {
       const loadCommonJS = async (url: string): Promise<unknown> => {
         const commonjs = { exports: {} as unknown }
@@ -25,7 +25,7 @@ async function loadProfile(page: Page, file: string) {
       if (file === 'core/index.cjs') {
         const core = (await loadCommonJS(url)) as typeof import('../../src/core')
         const { hdImage, container, template } = (await loadCommonJS(
-          '/package/dist/features/index.cjs'
+          '/experimental/dist/features/index.cjs'
         )) as typeof import('../../src/features')
         window.mediumZoom = core.createMediumZoom({
           features: [hdImage(), container(), template()],
@@ -37,7 +37,8 @@ async function loadProfile(page: Page, file: string) {
       window.mediumZoom = (await import(url)).default
     }
   }, file)
-  if (file === 'core/index.cjs') await page.addStyleTag({ url: '/package/dist/modern/style.css' })
+  if (file === 'core/index.cjs')
+    await page.addStyleTag({ url: '/experimental/dist/modern/style.css' })
 }
 
 for (const [profile, file] of Object.entries(profiles)) {

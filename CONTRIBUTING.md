@@ -55,9 +55,11 @@ For documentation changes, the [website guide](website/README.md#verify-changes)
 
 ## Preserve compatibility
 
-Preserve the [documented browser support](https://medium-zoom.francoischalifour.com/docs/javascript/#browser-support) and package entry paths, including CommonJS, AMD, and the `mediumZoom` browser global. The default entry injects CSS; the pure entry does not. Both declaration paths must match `src/medium-zoom.d.ts`.
+Preserve the [documented browser support](https://medium-zoom.francoischalifour.com/docs/javascript/#browser-support) and package entry paths, including CommonJS, AMD, and the `mediumZoom` browser global. The default entry injects CSS; the pure entry does not. Both declaration paths are generated from the TypeScript source and must describe the same API.
 
 The build uses Babel and Terser to retain ES5 syntax after bundling with tsdown. Keep the older-browser CSS fallbacks and existing bundle-size budgets.
+
+Experimental factories, profiles, and entry paths are tested through the [private package fixture](tests/experimental/README.md). Keep them out of the release tarball until their API is ready.
 
 ## Release
 

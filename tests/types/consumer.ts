@@ -29,17 +29,3 @@ void images
 
 const current: HTMLElement = zoom.getZoomedImage()
 void current
-
-import pureAlias, { type Zoom as PureZoom, type ZoomOptions as PureOptions } from 'medium-zoom/pure'
-const aliased: PureZoom = pureAlias('img', options as PureOptions)
-void aliased
-
-import compat from 'medium-zoom/compat'
-import compatPure from 'medium-zoom/compat/pure'
-import modern from 'medium-zoom/modern'
-const profiles: Zoom[] = [
-  compat(image, options),
-  compatPure(image, options),
-  modern(image, options),
-]
-void profiles

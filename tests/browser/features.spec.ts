@@ -20,8 +20,8 @@ for (const features of combinations) {
     const requests: string[] = []
     page.on('request', request => requests.push(request.url()))
     await page.evaluate(async names => {
-      const coreUrl = '/package/dist/core/index.mjs'
-      const featuresUrl = '/package/dist/features/index.mjs'
+      const coreUrl = '/experimental/dist/core/index.mjs'
+      const featuresUrl = '/experimental/dist/features/index.mjs'
       const { createMediumZoom } = (await import(coreUrl)) as typeof import('../../src/core')
       const builtins = (await import(featuresUrl)) as typeof import('../../src/features')
       const factory = createMediumZoom({ features: names.map(name => builtins[name]()) })
@@ -35,7 +35,7 @@ for (const features of combinations) {
       })
     }, features)
     await expect(page.locator('style')).toHaveCount(0)
-    await page.addStyleTag({ url: '/package/dist/modern/style.css' })
+    await page.addStyleTag({ url: '/experimental/dist/modern/style.css' })
     const options = await page.evaluate(() => window.zoom.getOptions())
     expect('container' in options).toBe(features.includes('container'))
     expect('template' in options).toBe(features.includes('template'))
@@ -66,8 +66,8 @@ test('factories and instances isolate options and pending image loads', async ({
   await preparePage(page)
   await page.route('**/pending.jpg', () => {})
   const result = await page.evaluate(async () => {
-    const coreUrl = '/package/dist/core/index.mjs'
-    const featuresUrl = '/package/dist/features/index.mjs'
+    const coreUrl = '/experimental/dist/core/index.mjs'
+    const featuresUrl = '/experimental/dist/features/index.mjs'
     const { createMediumZoom } = (await import(coreUrl)) as typeof import('../../src/core')
     const { hdImage, template } = (await import(featuresUrl)) as typeof import('../../src/features')
     const full = createMediumZoom({ features: [hdImage(), template()] })
@@ -105,7 +105,7 @@ test('factories and instances isolate options and pending image loads', async ({
 test('importing feature functions has no stylesheet side effect', async ({ page }) => {
   await preparePage(page)
   await page.evaluate(async () => {
-    const url = '/package/dist/features/index.mjs'
+    const url = '/experimental/dist/features/index.mjs'
     await import(url)
   })
   await expect(page.locator('style')).toHaveCount(0)
@@ -114,8 +114,8 @@ test('importing feature functions has no stylesheet side effect', async ({ page 
 test('editing the configuration array does not change an existing factory', async ({ page }) => {
   await preparePage(page)
   const result = await page.evaluate(async () => {
-    const coreUrl = '/package/dist/core/index.mjs'
-    const featuresUrl = '/package/dist/features/index.mjs'
+    const coreUrl = '/experimental/dist/core/index.mjs'
+    const featuresUrl = '/experimental/dist/features/index.mjs'
     const { createMediumZoom } = (await import(coreUrl)) as typeof import('../../src/core')
     const { container } = (await import(featuresUrl)) as typeof import('../../src/features')
     const features = [container()]
@@ -139,12 +139,12 @@ test('the full pure entry supports templates and HD images without injecting CSS
     <template id="template"><div id="caption">Caption</div></template>`,
   })
   await page.evaluate(async () => {
-    const url = '/package/dist/pure/index.mjs'
+    const url = '/experimental/dist/pure/index.mjs'
     const { default: mediumZoom } = (await import(url)) as typeof import('../../src/pure')
     window.zoom = mediumZoom('#image', { template: '#template' })
   })
   await expect(page.locator('style')).toHaveCount(0)
-  await page.addStyleTag({ url: '/package/dist/style.css' })
+  await page.addStyleTag({ url: '/experimental/dist/style.css' })
   await openImage(page, page.locator('#image'))
   await expect(page.locator('.medium-zoom-image--opened')).toHaveCount(2)
   await expect(page.locator('#caption')).toBeVisible()

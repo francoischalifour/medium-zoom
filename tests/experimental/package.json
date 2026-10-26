@@ -1,0 +1,126 @@
+{
+  "private": true,
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "sideEffects": [
+    "./dist/medium-zoom.js",
+    "./dist/medium-zoom.min.js",
+    "./dist/medium-zoom.esm.js",
+    "**/*.css",
+    "./dist/compat/index.mjs",
+    "./dist/compat/index.cjs",
+    "./dist/modern/index.mjs",
+    "./dist/modern/index.cjs"
+  ],
+  "typesVersions": {
+    "*": {
+      "core": [
+        "dist/core/index.d.cts"
+      ],
+      "features": [
+        "dist/features/index.d.cts"
+      ],
+      "dist/pure": [
+        "dist/pure/index.d.ts"
+      ],
+      "*": [
+        "*"
+      ],
+      "pure": [
+        "dist/pure/index.d.mts"
+      ],
+      "compat": [
+        "dist/compat/index.d.mts"
+      ],
+      "modern": [
+        "dist/modern/index.d.mts"
+      ],
+      "compat/pure": [
+        "dist/compat/pure/index.d.mts"
+      ]
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/medium-zoom.d.ts",
+      "module": "./dist/medium-zoom.esm.js",
+      "default": "./dist/medium-zoom.min.js"
+    },
+    "./core": {
+      "import": {
+        "types": "./dist/core/index.d.mts",
+        "default": "./dist/core/index.mjs"
+      },
+      "require": {
+        "types": "./dist/core/index.d.cts",
+        "default": "./dist/core/index.cjs"
+      }
+    },
+    "./features": {
+      "import": {
+        "types": "./dist/features/index.d.mts",
+        "default": "./dist/features/index.mjs"
+      },
+      "require": {
+        "types": "./dist/features/index.d.cts",
+        "default": "./dist/features/index.cjs"
+      }
+    },
+    "./dist/pure": {
+      "types": "./dist/pure/index.d.ts",
+      "default": "./dist/pure/index.js"
+    },
+    "./dist/medium-zoom": "./dist/medium-zoom.js",
+    "./dist/medium-zoom.min": "./dist/medium-zoom.min.js",
+    "./dist/medium-zoom.esm": "./dist/medium-zoom.esm.js",
+    "./dist/pure/index": "./dist/pure/index.js",
+    "./dist/pure/medium-zoom.umd": "./dist/pure/medium-zoom.umd.js",
+    "./dist/pure/medium-zoom.min.umd": "./dist/pure/medium-zoom.min.umd.js",
+    "./*": "./*",
+    "./pure": {
+      "import": {
+        "types": "./dist/pure/index.d.mts",
+        "default": "./dist/pure/index.mjs"
+      },
+      "require": {
+        "types": "./dist/pure/index.d.cts",
+        "default": "./dist/pure/index.cjs"
+      }
+    },
+    "./style.css": "./dist/style.css",
+    "./compat": {
+      "import": {
+        "types": "./dist/compat/index.d.mts",
+        "default": "./dist/compat/index.mjs"
+      },
+      "require": {
+        "types": "./dist/compat/index.d.cts",
+        "default": "./dist/compat/index.cjs"
+      }
+    },
+    "./modern": {
+      "import": {
+        "types": "./dist/modern/index.d.mts",
+        "default": "./dist/modern/index.mjs"
+      },
+      "require": {
+        "types": "./dist/modern/index.d.cts",
+        "default": "./dist/modern/index.cjs"
+      }
+    },
+    "./compat/pure": {
+      "import": {
+        "types": "./dist/compat/pure/index.d.mts",
+        "default": "./dist/compat/pure/index.mjs"
+      },
+      "require": {
+        "types": "./dist/compat/pure/index.d.cts",
+        "default": "./dist/compat/pure/index.cjs"
+      }
+    },
+    "./compat/style.css": "./dist/style.css",
+    "./modern/style.css": "./dist/modern/style.css"
+  }
+}

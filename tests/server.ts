@@ -2,13 +2,16 @@ import { existsSync, readFileSync } from 'node:fs'
 import { createServer } from 'node:http'
 import { resolve, extname, sep } from 'node:path'
 
+import { packExperimental } from '../scripts/pack-experimental.ts'
 import { pack } from '../scripts/pack.ts'
 import { readExactRedirects } from '../website/build/site-redirects.ts'
 import { testPort } from './server-urls.ts'
 
 const artifact = pack()
+const experimental = packExperimental()
 const roots: Record<string, string> = {
   package: artifact.root,
+  experimental: experimental.root,
   baseline: resolve('node_modules/medium-zoom-baseline'),
   images: resolve('stories/images'),
   site: resolve('website/dist'),
@@ -90,4 +93,7 @@ server.listen(testPort, '127.0.0.1')
 for (const signal of ['SIGTERM', 'SIGINT']) {
   process.on(signal, () => server.close(() => process.exit()))
 }
-process.on('exit', artifact.cleanup)
+process.on('exit', () => {
+  artifact.cleanup()
+  experimental.cleanup()
+})

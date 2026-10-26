@@ -20,50 +20,49 @@ for (const path of [
 }
 for (const path of ['dist/medium-zoom.esm.js', 'dist/pure/index.js', 'dist/style.css'])
   assert(require.resolve(`medium-zoom/${path}`))
-assert.equal(typeof (await import('medium-zoom/dist/pure')).default, 'function')
+// Native Node ESM does not support the directory shorthand used by bundlers.
+await assert.rejects(import('medium-zoom/dist/pure'), { code: 'ERR_UNSUPPORTED_DIR_IMPORT' })
 
-for (const [entry, names] of Object.entries({
-  core: ['createMediumZoom'],
-  features: ['hdImage', 'container', 'template'],
-})) {
-  const esm = await import(`medium-zoom/${entry}`)
-  const cjs = require(`medium-zoom/${entry}`)
-  for (const name of names) {
-    assert.equal(typeof esm[name], 'function')
-    assert.equal(typeof cjs[name], 'function')
-  }
-}
-
+// Keep v1's extension and directory resolution, including the trailing slash.
 for (const path of [
-  'medium-zoom',
-  'medium-zoom.min',
-  'medium-zoom.esm',
-  'pure/index',
-  'pure/medium-zoom.umd',
-  'pure/medium-zoom.min.umd',
-]) {
-  assert.equal(
-    require.resolve(`medium-zoom/dist/${path}`),
-    require.resolve(`medium-zoom/dist/${path}.js`)
-  )
-}
-
-assert.equal(typeof (await import('medium-zoom/pure')).default, 'function')
-assert.equal(typeof require('medium-zoom/pure'), 'function')
-
+  'dist/medium-zoom',
+  'dist/medium-zoom.min',
+  'dist/pure/index',
+  'dist/pure/medium-zoom.umd',
+  'dist/pure/medium-zoom.min.umd',
+])
+  assert.equal(require.resolve(`medium-zoom/${path}`), require.resolve(`medium-zoom/${path}.js`))
 assert.equal(
-  require.resolve('medium-zoom/style.css'),
-  require.resolve('medium-zoom/dist/style.css')
+  require.resolve('medium-zoom/dist/pure'),
+  require.resolve('medium-zoom/dist/pure/index.js')
 )
-assert.match(require.resolve('medium-zoom/modern/style.css'), /\/dist\/modern\/style\.css$/)
 assert.equal(
-  require.resolve('medium-zoom/compat/style.css'),
-  require.resolve('medium-zoom/dist/style.css')
+  require.resolve('medium-zoom/dist/pure/'),
+  require.resolve('medium-zoom/dist/pure/index.js')
 )
 
-for (const profile of ['compat', 'compat/pure', 'modern']) {
-  assert.equal(typeof (await import(`medium-zoom/${profile}`)).default, 'function')
-  assert.equal(typeof require(`medium-zoom/${profile}`), 'function')
-}
-
-assert.notEqual(require.resolve('medium-zoom/compat/pure'), require.resolve('medium-zoom/pure'))
+// Neither candidate aliases nor raw experimental artifacts may escape the tarball.
+for (const path of [
+  'core',
+  'features',
+  'modern',
+  'compat',
+  'pure',
+  'compat/pure',
+  'style.css',
+  'modern/style.css',
+  'compat/style.css',
+  'dist/core/index.mjs',
+  'dist/core/index.cjs',
+  'dist/core/index.d.mts',
+  'dist/features/index.mjs',
+  'dist/modern/index.mjs',
+  'dist/compat/index.mjs',
+  'dist/compat/pure/index.mjs',
+  'dist/modern/style.css',
+  'dist/pure/index.mjs',
+  'dist/pure/index.cjs',
+  'dist/pure/index.d.mts',
+  'dist/pure/index.d.cts',
+])
+  assert.throws(() => require.resolve(`medium-zoom/${path}`), { code: 'MODULE_NOT_FOUND' })

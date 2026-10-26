@@ -46,7 +46,7 @@ export async function loadBundle(
 ) {
   if (distribution === 'package' && test.info().project.metadata.modernFull) {
     await page.evaluate(async () => {
-      const url = '/package/dist/modern/index.mjs'
+      const url = '/experimental/dist/modern/index.mjs'
       const { default: mediumZoom } = (await import(url)) as typeof import('../../src/medium-zoom')
       window.mediumZoom = mediumZoom
     })
@@ -54,15 +54,15 @@ export async function loadBundle(
   }
   if (distribution === 'package' && test.info().project.metadata.composed) {
     await page.evaluate(async () => {
-      const coreUrl = '/package/dist/core/index.mjs'
-      const featureUrl = '/package/dist/features/index.mjs'
+      const coreUrl = '/experimental/dist/core/index.mjs'
+      const featureUrl = '/experimental/dist/features/index.mjs'
       const { createMediumZoom } = (await import(coreUrl)) as typeof import('../../src/core')
       const { hdImage, container, template } = (await import(
         featureUrl
       )) as typeof import('../../src/features')
       window.mediumZoom = createMediumZoom({ features: [template(), container(), hdImage()] })
     })
-    await page.addStyleTag({ url: '/package/dist/modern/style.css' })
+    await page.addStyleTag({ url: '/experimental/dist/modern/style.css' })
     return
   }
   const { file, format } = bundles[bundle]

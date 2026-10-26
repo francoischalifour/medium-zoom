@@ -15,9 +15,9 @@ interface AttwAnalysis {
   entrypoints: Record<string, { resolutions: Record<string, { visibleProblems: number[] }> }>
 }
 
-export async function checkAnalyzers(archive: string) {
+export async function checkAnalyzers(archive: string, experimental = false) {
   await checkPublint(archive)
-  checkAttw(archive)
+  checkAttw(archive, experimental)
 }
 
 async function checkPublint(archive: string) {
@@ -28,39 +28,41 @@ async function checkPublint(archive: string) {
   for (const message of result.messages) console.log(formatMessage(message, result.pkg))
   // These established ESM .js paths cannot be renamed or put in a type:module
   // package without breaking v1's dist imports or callable UMD main.
-  const legacyEsmPaths = new Set(['./dist/medium-zoom.esm.js', './dist/pure/index.js'])
+  const legacyEsmPaths = new Set(['/dist/medium-zoom.esm.js', '/dist/pure/index.js'])
   const reportedPaths = new Set<string>()
   for (const message of result.messages) {
     assert.equal(message.code, 'FILE_INVALID_FORMAT', 'Unexpected publint finding')
     assert.equal(message.type, 'warning')
     if (message.code !== 'FILE_INVALID_FORMAT') continue
     assert(message.args.actualFilePath)
-    assert(legacyEsmPaths.has(message.args.actualFilePath), 'Unexpected module format exception')
-    reportedPaths.add(message.args.actualFilePath)
+    assert(
+      legacyEsmPaths.has(message.args.actualFilePath.replace(/^\./, '')),
+      'Unexpected module format exception'
+    )
+    reportedPaths.add(message.args.actualFilePath.replace(/^\./, ''))
   }
   assert.deepEqual(reportedPaths, legacyEsmPaths)
 }
 
-function checkAttw(archive: string) {
+function checkAttw(archive: string, experimental: boolean) {
   // Include legacy pure paths and every new typed entry. Other UMD paths
   // are runtime-only and are checked separately.
+  const entrypoints = experimental
+    ? [
+        '.',
+        './dist/pure',
+        './dist/pure/index.js',
+        './core',
+        './features',
+        './pure',
+        './compat',
+        './compat/pure',
+        './modern',
+      ]
+    : ['.', './dist/pure', './dist/pure/index.js']
   const attw = spawnSync(
     resolve('node_modules/.bin/attw'),
-    [
-      archive,
-      '--entrypoints',
-      '.',
-      './dist/pure',
-      './dist/pure/index.js',
-      './core',
-      './features',
-      './pure',
-      './compat',
-      './compat/pure',
-      './modern',
-      '--format',
-      'json',
-    ],
+    [archive, '--entrypoints', ...entrypoints, '--format', 'json'],
     { encoding: 'utf8' }
   )
   assert.ifError(attw.error)
@@ -89,17 +91,6 @@ function checkAttw(archive: string) {
       files: ['/node_modules/medium-zoom/dist/pure/index.js'],
     },
   ])
-  const entrypoints = [
-    '.',
-    './dist/pure',
-    './dist/pure/index.js',
-    './core',
-    './features',
-    './pure',
-    './compat',
-    './compat/pure',
-    './modern',
-  ]
   const modes = ['node10', 'node16-cjs', 'node16-esm', 'bundler']
   assert.deepEqual(Object.keys(analysis.entrypoints), entrypoints)
   for (const entry of entrypoints) {
