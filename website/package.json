@@ -7,10 +7,19 @@
   "scripts": {
     "dev": "vite --config ../config/vite.website.config.mts --host 127.0.0.1",
     "start": "bun run dev",
-    "build": "vite build --config ../config/vite.website.config.mts"
+    "build": "vite build --config ../config/vite.website.config.mts && bun ../scripts/prerender-website.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "medium-zoom": "file:.."
+    "@fontsource-variable/geist": "5.3.0",
+    "@fontsource-variable/geist-mono": "5.3.0",
+    "medium-zoom": "file:..",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "typescript": "7.0.2"
+  }
 }

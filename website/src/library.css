@@ -1,0 +1,132 @@
+.integration-section {
+  padding: 64px 0 80px;
+}
+.integration-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: center;
+}
+.integration-card {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 24px;
+  box-shadow: var(--shadow-xs);
+  transition:
+    background 150ms,
+    border-color 150ms;
+}
+.featured-integration {
+  flex-direction: row;
+  gap: 24px;
+  align-items: center;
+  padding: 32px;
+  margin-bottom: 16px;
+}
+.integration-symbol {
+  display: inline-grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+
+  flex-shrink: 0;
+}
+.integration-tag {
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+.featured-integration h3 {
+  margin: 5px 0 8px;
+  font-size: 22px;
+  line-height: 1.3;
+  letter-spacing: -0.035em;
+  font-weight: 500;
+}
+.featured-integration p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted-foreground);
+  line-height: 1.7;
+}
+.integration-action {
+  display: inline-flex;
+  gap: 12px;
+  margin-top: 18px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.integration-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+.stack-name {
+  font-weight: 500;
+  font-size: 14px;
+}
+.integration-grid .integration-card > span:nth-child(2) {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted-foreground);
+}
+.card-arrow {
+  position: absolute;
+  top: 22px;
+  right: 20px;
+  font-size: 14px;
+  color: var(--muted-foreground);
+}
+@media (hover: hover) and (pointer: fine) {
+  .integration-card:hover {
+    background: var(--surface);
+    border-color: var(--ring);
+  }
+}
+@media (max-width: 760px) {
+  .integration-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .featured-integration {
+    padding: 22px;
+    gap: 18px;
+    align-items: flex-start;
+  }
+  .integration-symbol {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+  }
+  .featured-integration h3 {
+    font-size: 19px;
+  }
+  .integration-grid {
+    gap: 12px;
+  }
+  .integration-grid .integration-card {
+    padding: 20px 16px;
+  }
+  .card-arrow {
+    top: 18px;
+    right: 14px;
+  }
+  .integration-section {
+    padding: 44px 0 48px;
+  }
+  .integration-heading {
+    align-items: flex-start;
+  }
+}
+
+.integration-symbol .shadcn-mark {
+  width: 28px;
+  height: 28px;
+}

@@ -2,6 +2,7 @@ import { createServer } from 'node:http'
 import { readFileSync } from 'node:fs'
 import { resolve, extname, sep } from 'node:path'
 import { pack } from '../scripts/pack.ts'
+import { testPort } from './server-urls.ts'
 
 const artifact = pack()
 const roots: Record<string, string> = {
@@ -9,6 +10,7 @@ const roots: Record<string, string> = {
   baseline: resolve('node_modules/medium-zoom-baseline'),
   images: resolve('stories/images'),
   site: resolve('website/dist'),
+  analytics: resolve('.cache/analytics-site'),
 }
 const contentTypes: Record<string, string> = {
   '.js': 'text/javascript',
@@ -16,6 +18,7 @@ const contentTypes: Record<string, string> = {
   '.html': 'text/html',
   '.jpg': 'image/jpeg',
   '.png': 'image/png',
+  '.webp': 'image/webp',
   '.svg': 'image/svg+xml',
   '.mp4': 'video/mp4',
 }
@@ -69,7 +72,7 @@ const server = createServer((request, response) => {
   }
 })
 
-server.listen(4_175, '127.0.0.1')
+server.listen(testPort, '127.0.0.1')
 for (const signal of ['SIGTERM', 'SIGINT'])
   process.on(signal, () => server.close(() => process.exit()))
 process.on('exit', artifact.cleanup)

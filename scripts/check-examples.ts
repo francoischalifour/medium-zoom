@@ -26,6 +26,8 @@ async function checkExample(name: string) {
     recursive: true,
     filter: path => !['node_modules', 'dist'].includes(basename(path)),
   })
+  if (name === 'shadcn')
+    cpSync(resolve('assets/images'), join(root, 'public/assets/images'), { recursive: true })
   const run = (args: string[]) =>
     new Promise<void>((resolve, reject) => {
       const child = spawn('npm', args, { cwd: root, stdio: 'inherit' })

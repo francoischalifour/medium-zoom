@@ -1,0 +1,6 @@
+/assets/images/earth.png /assets/images/earth.webp 301
+/examples/shadcn/images/image-1.jpg /assets/images/ocean-sunset.jpg 301
+/examples/shadcn/images/image-1-preview.webp /assets/images/ocean-sunset-preview.webp 301
+/examples/shadcn/images/image-2.jpg /assets/images/skateboard.jpg 301
+/examples/shadcn/images/* /assets/images/:splat 301
+/examples/shadcn/brand/* /brand/:splat 301

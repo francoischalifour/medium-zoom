@@ -397,6 +397,7 @@ The zoom object is accessible in `event.detail.zoom`.
 Medium Zoom is a JavaScript library that can be used with any framework. Here are some integrations that you can use to get started quickly:
 
 - [React](./examples/react)
+- [shadcn/ui](./examples/shadcn) — install an accessible React component with the shadcn CLI
 - [React Markdown](./examples/react-markdown)
 - [Vue](./examples/vue)
 - [Svelte](./examples/svelte)

@@ -1,0 +1,32 @@
+.image-zoom-trigger {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  vertical-align: middle;
+  cursor: zoom-in;
+}
+
+.image-zoom-trigger:focus-visible {
+  outline: 2px solid currentColor;
+  outline-color: var(--ring, currentColor);
+  outline-offset: 4px;
+}
+
+.image-zoom-trigger:disabled {
+  cursor: default;
+}
+
+.medium-zoom-overlay {
+  z-index: 50;
+}
+
+[data-slot='image-zoom'].medium-zoom-image--opened {
+  z-index: 51 !important;
+  visibility: visible;
+  pointer-events: auto !important;
+}
