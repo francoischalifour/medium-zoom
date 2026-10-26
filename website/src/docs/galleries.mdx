@@ -1,0 +1,59 @@
+import { Example } from './doc-components'
+import { Gallery } from './examples/gallery'
+import galleryCode from './examples/gallery.tsx?raw'
+import galleryStyles from './examples/gallery.css?raw'
+
+Make each image in a gallery zoomable. The page keeps its grid layout while an image is open.
+
+<Example
+  code={galleryCode}
+  title="gallery.tsx"
+  styles={{ code: galleryStyles, title: 'gallery.css' }}
+>
+  <Gallery />
+</Example>
+
+## JavaScript
+
+Select all gallery images with one instance:
+
+```html
+<div class="photo-gallery">
+  <img src="/ocean.jpg" alt="Ocean sunset" data-zoomable />
+  <img src="/mountain.jpg" alt="Denali at sunrise" data-zoomable />
+  <img
+    src="/yellowstone.jpg"
+    alt="Yellowstone at sunrise"
+    data-zoomable
+  />
+  <img src="/aurora.jpg" alt="Aurora over Yellowstone" data-zoomable />
+</div>
+```
+
+```js
+import mediumZoom from 'medium-zoom'
+
+const zoom = mediumZoom('.photo-gallery [data-zoomable]')
+```
+
+After adding more images to the gallery, attach them to the instance:
+
+```js
+zoom.attach('.photo-gallery [data-zoomable]')
+```
+
+An image is attached once, even when it matches the selector again. See [`attach()`](/docs/reference/javascript/methods/#attach) and [`detach()`](/docs/reference/javascript/methods/#detach) for image lifecycle handling.
+
+## React
+
+Render one `<ImageZoom>` per image. With composition, use a separate `<ImageZoom.Root>` for each image.
+
+The example’s Code view contains the complete React component.
+
+## Gallery layout
+
+Set the grid layout in `gallery.css`, included in the example’s Code view. The zoom preserves this layout while an image is open.
+
+## Related pages
+
+Use [HD images](/docs/guides/hd-images/) for smaller previews. [Styling](/docs/guides/styling/) covers captions and the zoom background.

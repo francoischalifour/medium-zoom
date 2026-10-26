@@ -1,4 +1,22 @@
 import { fileURLToPath } from 'node:url'
-import { prerenderWebsite } from '../website/build/prerender'
+import { createServer } from 'vite'
 
-prerenderWebsite(fileURLToPath(new URL('../website/dist/', import.meta.url)))
+export async function prerenderWebsite(directory: string) {
+  // Use Vite's MDX and raw-source transforms for the same tree rendered in the browser.
+  const server = await createServer({
+    mode: 'production',
+    configFile: fileURLToPath(new URL('../config/vite.website.config.mts', import.meta.url)),
+    server: { middlewareMode: true, watch: null, hmr: false, ws: false },
+    appType: 'custom',
+  })
+  try {
+    const renderer = await server.ssrLoadModule('/build/prerender.ts')
+    renderer.prerenderWebsite(directory)
+  } finally {
+    await server.close()
+  }
+}
+
+if (import.meta.main) {
+  await prerenderWebsite(fileURLToPath(new URL('../website/dist/', import.meta.url)))
+}

@@ -1,5 +1,5 @@
 import { InstallCommand } from './install-command'
-import { ProductLinks } from './site-shell'
+import { SectionLinks } from './site-shell'
 import { Icon } from './site-components'
 import { registryUrl } from './install-commands'
 import type { SitePage } from './site-data'
@@ -9,7 +9,7 @@ export function Hero({ page }: { page: SitePage }) {
   return (
     <section className="hero" aria-labelledby="page-title">
       <nav className="section-links mobile-section-links" aria-label="Product navigation">
-        <ProductLinks page={page} />
+        <SectionLinks page={page} />
       </nav>
       <span className="eyebrow">
         {shadcn && <span className="shadcn-mark" aria-hidden="true" />}

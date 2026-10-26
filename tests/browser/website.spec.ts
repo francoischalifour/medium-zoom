@@ -26,7 +26,9 @@ test('home page presents the library with the shared preview and code rail', asy
   })
   await openHome(page)
   await expect(page.getByText('No dependencies. Works with any framework.')).toBeVisible()
-  await expect(page.locator('.section-links:visible [aria-current="page"]')).toHaveText('Library')
+  await expect(page.locator('.section-links:visible [aria-current="page"]')).toHaveText(
+    'JavaScript'
+  )
   await page.screenshot({ path: testInfo.outputPath('home-desktop.png'), fullPage: true })
   const image = page.locator('#zoom-default')
   await openImage(page, image, { trigger: image.locator('..') })
@@ -54,16 +56,16 @@ test('shared navigation preserves theme and typography across both pages and bac
   })
   expect(fonts.every(count => count > 0)).toBe(true)
   await page.getByRole('button', { name: 'Switch to dark theme' }).click()
-  await page.getByRole('navigation').getByRole('link', { name: 'shadcn/ui', exact: true }).click()
+  await page.getByRole('navigation').getByRole('link', { name: 'React', exact: true }).click()
   await expect(page).toHaveURL(`${testUrl}/examples/shadcn/`)
   await expect(page.locator('html')).toHaveClass('dark')
-  await expect(page.locator('.section-links:visible [aria-current="page"]')).toHaveText('shadcn/ui')
+  await expect(page.locator('.section-links:visible [aria-current="page"]')).toHaveText('React')
   await expect(page.getByRole('heading', { name: /Your images,/ })).toBeVisible()
   const nextHeader = await page.locator('.navigation').boundingBox()
   expect(nextHeader).toEqual(header)
   await page.screenshot({ path: testInfo.outputPath('integration-dark.png'), fullPage: true })
   await page.getByRole('button', { name: 'Switch to light theme' }).click()
-  await page.getByRole('navigation').getByRole('link', { name: 'Library', exact: true }).click()
+  await page.getByRole('navigation').getByRole('link', { name: 'JavaScript', exact: true }).click()
   await expect(page.getByRole('heading', { name: /Your images,/ })).toBeVisible()
   await expect(page.locator('html')).not.toHaveClass('dark')
   await page.getByRole('button', { name: 'Switch to dark theme' }).click()
@@ -111,11 +113,11 @@ test('mobile navigation remains usable and both pages fit the viewport', async (
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
     .toBe(true)
   await expect(
-    page.getByRole('navigation').getByRole('link', { name: 'shadcn/ui', exact: true })
+    page.getByRole('navigation').getByRole('link', { name: 'React', exact: true })
   ).toBeVisible()
   await expect(page.locator('.brand-name')).toBeVisible()
   await page.screenshot({ path: testInfo.outputPath('home-mobile.png'), fullPage: true })
-  await page.getByRole('navigation').getByRole('link', { name: 'shadcn/ui', exact: true }).click()
+  await page.getByRole('navigation').getByRole('link', { name: 'React', exact: true }).click()
   await expect(page.getByRole('heading', { name: /Your images,/ })).toBeVisible()
   await page.screenshot({ path: testInfo.outputPath('integration-mobile.png'), fullPage: true })
   await page.setViewportSize({ width: 320, height: 740 })
@@ -123,7 +125,7 @@ test('mobile navigation remains usable and both pages fit the viewport', async (
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
     .toBe(true)
   await expect(
-    page.getByRole('navigation').getByRole('link', { name: 'Library', exact: true })
+    page.getByRole('navigation').getByRole('link', { name: 'JavaScript', exact: true })
   ).toBeVisible()
 })
 
@@ -195,7 +197,7 @@ test('both pages preload the same font resources across navigation', async ({ pa
     .locator('link[rel="preload"][as="font"]')
     .evaluateAll(links => links.map(link => (link as HTMLLinkElement).href).sort())
   expect(homeFonts).toHaveLength(2)
-  await page.getByRole('navigation').getByRole('link', { name: 'shadcn/ui', exact: true }).click()
+  await page.getByRole('navigation').getByRole('link', { name: 'React', exact: true }).click()
   const componentFonts = await page
     .locator('link[rel="preload"][as="font"]')
     .evaluateAll(links => links.map(link => (link as HTMLLinkElement).href).sort())
@@ -287,9 +289,9 @@ test('mobile branding stays in the bar and product navigation is centered in the
       const bar = page.getByRole('navigation', { name: 'Main navigation', exact: true })
       const product = page.getByRole('navigation', { name: 'Product navigation', exact: true })
       await expect(page.locator('.brand-name')).toBeVisible()
-      await expect(bar.getByRole('link', { name: 'shadcn/ui', exact: true })).toHaveCount(0)
+      await expect(bar.getByRole('link', { name: 'React', exact: true })).toHaveCount(0)
       await expect(
-        product.getByRole('link', { name: integration ? 'shadcn/ui' : 'Library', exact: true })
+        product.getByRole('link', { name: integration ? 'React' : 'JavaScript', exact: true })
       ).toHaveAttribute('aria-current', 'page')
       const barBox = (await bar.boundingBox())!
       const brandBox = (await bar.getByRole('link', { name: 'medium-zoom home' }).boundingBox())!

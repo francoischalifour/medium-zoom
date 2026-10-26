@@ -2,4 +2,19 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://medium-zoom.francoischalifour.com/</loc></url>
   <url><loc>https://medium-zoom.francoischalifour.com/examples/shadcn/</loc></url>
+  <url><loc>https://medium-zoom.francoischalifour.com/docs/</loc></url>
+  <url><loc>https://medium-zoom.francoischalifour.com/docs/javascript/</loc></url>
+  <url><loc>https://medium-zoom.francoischalifour.com/docs/react/</loc></url>
+  <url><loc>https://medium-zoom.francoischalifour.com/docs/guides/hd-images/</loc></url>
+  <url><loc>https://medium-zoom.francoischalifour.com/docs/guides/galleries/</loc></url>
+  <url><loc>https://medium-zoom.francoischalifour.com/docs/guides/styling/</loc></url>
+  <url><loc>https://medium-zoom.francoischalifour.com/docs/guides/custom-react-triggers/</loc></url>
+  <url><loc>https://medium-zoom.francoischalifour.com/docs/guides/controlled-state/</loc></url>
+  <url><loc>https://medium-zoom.francoischalifour.com/docs/guides/server-rendering/</loc></url>
+  <url><loc>https://medium-zoom.francoischalifour.com/docs/reference/javascript/medium-zoom/</loc></url>
+  <url><loc>https://medium-zoom.francoischalifour.com/docs/reference/javascript/options/</loc></url>
+  <url><loc>https://medium-zoom.francoischalifour.com/docs/reference/javascript/methods/</loc></url>
+  <url><loc>https://medium-zoom.francoischalifour.com/docs/reference/javascript/events/</loc></url>
+  <url><loc>https://medium-zoom.francoischalifour.com/docs/reference/react/image-zoom/</loc></url>
+  <url><loc>https://medium-zoom.francoischalifour.com/docs/reference/react/composition/</loc></url>
 </urlset>

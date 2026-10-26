@@ -19,7 +19,14 @@ function getClient() {
       transformEvent(event) {
         const url = event.properties?.$url
         const path = new URL(typeof url === 'string' ? url : location.href).pathname
-        const page = path === '/' ? 'library' : path === '/examples/shadcn/' ? 'shadcn' : null
+        const page =
+          path === '/'
+            ? 'library'
+            : path === '/examples/shadcn/'
+              ? 'shadcn'
+              : path.startsWith('/docs/')
+                ? 'docs'
+                : null
         if (!page) return null
         if (event.event === '$pageview') {
           if (lastPage === path) return null

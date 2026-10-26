@@ -8,7 +8,7 @@
       "type": "registry:ui",
       "title": "Image Zoom",
       "description": "An accessible React image zoom powered by medium-zoom, with keyboard controls and theme-aware styling.",
-      "dependencies": ["medium-zoom@^1.1.2"],
+      "dependencies": ["medium-zoom"],
       "files": [
         {
           "path": "examples/shadcn/src/components/ui/image-zoom.tsx",

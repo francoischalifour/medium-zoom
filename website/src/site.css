@@ -29,6 +29,7 @@
     'Geist Variable', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Consolas, monospace;
   --site-width: 1152px;
+  --site-header-height: 56px;
   --site-gutter: 32px;
   --shadow-xs: 0 1px 2px rgb(0 0 0 / 4%), 0 0 0 1px rgb(0 0 0 / 1%);
   --shadow-image: 0 1px 3px rgb(0 0 0 / 6%), 0 12px 28px -14px rgb(0 0 0 / 25%);
@@ -114,7 +115,7 @@ pre:focus-visible,
 }
 .navigation {
   max-width: var(--site-width);
-  height: 56px;
+  height: var(--site-header-height);
   margin: 0 auto;
   padding: 0 var(--site-gutter);
   display: flex;
@@ -138,7 +139,7 @@ pre:focus-visible,
   --switcher-radius: 11px;
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   padding: 3px;
   border: 1px solid var(--border);
   border-radius: var(--switcher-radius);
@@ -207,6 +208,10 @@ pre:focus-visible,
   height: 14px;
   background: currentColor;
   mask: url('/brand/mark-monochrome.svg') center / contain no-repeat;
+}
+.section-links .documentation-mark {
+  width: 14px;
+  height: 14px;
 }
 .section-links .shadcn-mark {
   width: 14px;
@@ -433,6 +438,16 @@ h1 {
   opacity: 0.3;
   cursor: default;
 }
+.zoom-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 6px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.6;
+}
 .zoom-controls > span {
   display: inline-flex;
   align-items: center;
@@ -440,10 +455,7 @@ h1 {
   white-space: nowrap;
 }
 .demo-caption > .zoom-controls {
-  display: flex;
-  align-items: center;
   flex-shrink: 0;
-  gap: 20px;
   margin-left: auto;
 }
 a.example-kind {
@@ -690,10 +702,16 @@ kbd {
   line-height: 1.7;
 }
 .code-block {
+  --code-radius: 9px;
   border: 1px solid var(--border);
-  border-radius: 9px;
+  border-radius: var(--code-radius);
   background: var(--surface);
   min-width: 0;
+}
+.code-block > .code-caption {
+  background: var(--background);
+  border-radius: calc(var(--code-radius) - 1px) calc(var(--code-radius) - 1px) 0 0;
+  corner-shape: inherit;
 }
 .code-caption {
   display: flex;
@@ -906,7 +924,7 @@ td code {
     --site-gutter: 20px;
   }
   .navigation {
-    height: 56px;
+    height: var(--site-header-height);
     padding: 0 var(--site-gutter);
     gap: 16px;
   }
@@ -923,15 +941,16 @@ td code {
     margin: 0 auto 24px;
   }
   .section-links {
-    gap: 0;
+    gap: 4px;
     font-size: 12px;
   }
   .section-links a {
-    padding: 0 8px;
+    padding: 0 6px;
     gap: 5px;
   }
   .section-links .library-mark,
-  .section-links .shadcn-mark {
+  .section-links .shadcn-mark,
+  .section-links .documentation-mark {
     width: 12px;
     height: 12px;
   }
@@ -1145,7 +1164,9 @@ td code {
   .demo {
     border-radius: 20px;
   }
-  .code-block,
+  .code-block {
+    --code-radius: 18px;
+  }
   .integration-card {
     border-radius: 18px;
   }

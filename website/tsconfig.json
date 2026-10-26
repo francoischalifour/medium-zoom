@@ -11,6 +11,9 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "strict": true,
+    "paths": {
+      "@/components/ui/image-zoom": ["../examples/shadcn/src/components/ui/image-zoom.tsx"]
+    },
     "skipLibCheck": true,
     "noEmit": true,
     "jsx": "react-jsx",

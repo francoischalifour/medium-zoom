@@ -32,6 +32,7 @@
   <strong>
   <a href="https://codesandbox.io/s/github/francoischalifour/medium-zoom/tree/main/website">🔬 Playground</a> ・
   <a href="https://medium-zoom.francoischalifour.com">🔎 Demo</a> ・
+  <a href="https://medium-zoom.francoischalifour.com/docs/">📖 Documentation</a> ・
   <a href="https://medium-zoom.francoischalifour.com/storybook">📚 API stories</a>
   </strong>
 </p>

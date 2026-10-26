@@ -2,6 +2,13 @@ import snippets from './highlighted-snippets.json'
 import * as React from 'react'
 
 const iconPaths = {
+  book: (
+    <>
+      <path d="M12 7v14" />
+      <path d="M3 3h4a5 5 0 0 1 5 5v13a4 4 0 0 0-4-4H3z" />
+      <path d="M21 3h-4a5 5 0 0 0-5 5v13a4 4 0 0 1 4-4h5z" />
+    </>
+  ),
   contrast: (
     <>
       <circle cx="12" cy="12" r="9" />
@@ -135,5 +142,20 @@ export function HighlightedCode({ code }: { code: string }) {
         <CodeTokens code={code} />
       </code>
     </pre>
+  )
+}
+
+export function ZoomControls({ descriptionId }: { descriptionId?: string }) {
+  return (
+    <span className="zoom-controls">
+      <span aria-hidden="true">Click to zoom</span>
+      <span aria-hidden="true">/</span>
+      <span aria-hidden="true">
+        Click, <kbd>esc</kbd> or scroll to close
+      </span>
+      <span id={descriptionId} className="sr-only">
+        Press Enter or Space to zoom. Click, press Escape, or scroll to close.
+      </span>
+    </span>
   )
 }

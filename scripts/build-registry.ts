@@ -1,6 +1,17 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import registry from '../registry.json' with { type: 'json' }
+import registryDefinition from '../registry.json' with { type: 'json' }
+import { version } from '../package.json' with { type: 'json' }
+
+const registry = {
+  ...registryDefinition,
+  items: registryDefinition.items.map(item => ({
+    ...item,
+    dependencies: item.dependencies.map(dependency =>
+      dependency === 'medium-zoom' ? `medium-zoom@^${version}` : dependency
+    ),
+  })),
+}
 
 const output = resolve('website/public/r')
 mkdirSync(output, { recursive: true })

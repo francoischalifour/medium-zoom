@@ -12,6 +12,12 @@ const roots: Record<string, string> = {
   site: resolve('website/dist'),
   analytics: resolve('.cache/analytics-site'),
 }
+const docsRedirects = new Map(
+  readFileSync(resolve(roots.site, '_redirects'), 'utf8')
+    .split('\n')
+    .filter(line => line.startsWith('/docs/'))
+    .map(line => line.trim().split(/\s+/).slice(0, 2) as [string, string])
+)
 const contentTypes: Record<string, string> = {
   '.js': 'text/javascript',
   '.css': 'text/css',
@@ -28,6 +34,11 @@ const server = createServer((request, response) => {
   if (url.pathname === '/') {
     response.writeHead(200, { 'Content-Type': 'text/html' })
     response.end('<!doctype html><title>Medium Zoom package tests</title>')
+    return
+  }
+  const destination = docsRedirects.get(url.pathname.replace(/\/?$/, '/'))
+  if (destination) {
+    response.writeHead(301, { Location: destination + url.search }).end()
     return
   }
   const [, root, ...segments] = decodeURIComponent(url.pathname).split('/')

@@ -33,7 +33,8 @@ for (const path of ['/website.html', '/examples/shadcn/']) {
     await expect(page.locator('html')).not.toHaveClass(/dark/)
     await page
       .getByRole('navigation', { name: 'Main navigation', exact: true })
-      .getByRole('link', { name: path === '/website.html' ? 'shadcn/ui' : 'Library', exact: true })
+      .locator('.section-links')
+      .locator(`a[href="${path === '/website.html' ? '/examples/shadcn/' : '/'}"]`)
       .click()
     await expect(
       page.locator('.hero-install').getByRole('radio', { name: 'bun', exact: true })

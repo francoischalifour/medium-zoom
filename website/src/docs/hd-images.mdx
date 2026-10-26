@@ -1,0 +1,46 @@
+import { Example } from './doc-components'
+import { HDPhoto } from './examples/hd'
+import hdCode from './examples/hd.tsx?raw'
+
+Display a smaller preview in the page and load a high-resolution image when the zoom opens.
+
+<div id="data-zoom-src" />
+
+<Example code={hdCode} title="hd-photo.tsx">
+  <HDPhoto />
+</Example>
+
+## JavaScript
+
+Set `data-zoom-src` on the image. Its value is the HD image URL:
+
+```html
+<img
+  src="/photo-preview.jpg"
+  data-zoom-src="/photo-large.jpg"
+  alt="A mountain at sunrise"
+  width="1200"
+  height="800"
+  data-zoomable
+/>
+```
+
+Attach the image after adding it to the document:
+
+```js
+import mediumZoom from 'medium-zoom'
+
+mediumZoom('[data-zoomable]')
+```
+
+Opening the zoom loads `/photo-large.jpg`. Use the same aspect ratio for the preview and HD image.
+
+## React
+
+Pass `data-zoom-src` to `<ImageZoom>` or `<ImageZoom.Image>`:
+
+The example uses images hosted by this site. Replace both URLs with your preview and HD image.
+
+## Related pages
+
+[Galleries](/docs/guides/galleries/) covers several images. The [`<ImageZoom>` reference](/docs/reference/react/image-zoom/) lists its image props.

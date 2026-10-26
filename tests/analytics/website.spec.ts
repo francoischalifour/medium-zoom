@@ -221,3 +221,14 @@ test('an immediate outbound navigation delivers the click without waiting for id
     placement: 'header',
   })
 })
+
+test('documentation pageviews retain the shared website context', async ({ page }) => {
+  const events = await intercept(page)
+  await page.goto(`${origin}/docs/react/`)
+  await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(1)
+  expect(events.find(event => event.event === '$pageview')!.properties).toMatchObject({
+    site: 'medium-zoom',
+    page: 'docs',
+    path: '/docs/react/',
+  })
+})

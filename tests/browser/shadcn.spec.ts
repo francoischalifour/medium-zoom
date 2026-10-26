@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process'
 import { test, expect, type Page } from '@playwright/test'
 import { decodeImages, dismissZoom, observeErrors, openImage } from './helpers.ts'
 import { shadcnDevUrl } from '../server-urls.ts'
+import { version } from '../../package.json' with { type: 'json' }
 
 const demo = '/examples/shadcn/playground.html'
 const firstName = 'Zoom image: Ocean sunset'
@@ -249,7 +250,7 @@ test('serves the installable registry with its component source and stylesheet',
   expect(item).toMatchObject({
     name: 'image-zoom',
     type: 'registry:ui',
-    dependencies: ['medium-zoom@^1.1.2'],
+    dependencies: [`medium-zoom@^${version}`],
     files: [
       {
         path: 'examples/shadcn/src/components/ui/image-zoom.tsx',

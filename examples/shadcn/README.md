@@ -1,6 +1,8 @@
 # Medium Zoom for shadcn/ui
 
-An editable React component powered by `medium-zoom`. The registry installs the component, its stylesheet, and `medium-zoom@^1.1.2` into your project.
+An editable React component powered by `medium-zoom`. The registry installs the component, its stylesheet, and `medium-zoom` into your project.
+
+Read the [React quickstart](https://medium-zoom.francoischalifour.com/docs/react/) for installation and a working image.
 
 ## Install
 

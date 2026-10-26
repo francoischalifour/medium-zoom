@@ -1,7 +1,7 @@
 import { trackSiteEvent } from './site-analytics'
 import * as React from 'react'
 import * as ImageZoom from '../../examples/shadcn/src/components/ui/image-zoom'
-import { CopyButton, HighlightedCode } from './site-components'
+import { CopyButton, HighlightedCode, ZoomControls } from './site-components'
 import { TabList } from './site-tabs'
 
 import { galleryAssetBase, galleryImages, type ExampleImage, usageCode } from './gallery'
@@ -95,17 +95,7 @@ function ExampleCard({
       </div>
       <div className="demo-caption">
         <span>{image.alt}</span>
-        {tab === 'preview' && (
-          <span className="zoom-controls">
-            <span aria-hidden="true">Click to zoom</span>
-            <span aria-hidden="true">
-              Click, <kbd>esc</kbd> or scroll to close
-            </span>
-            <span id={`${id}-hint`} className="sr-only">
-              Press Enter or Space to zoom. Click, press Escape, or scroll to close.
-            </span>
-          </span>
-        )}
+        {tab === 'preview' && <ZoomControls descriptionId={`${id}-hint`} />}
       </div>
     </article>
   )

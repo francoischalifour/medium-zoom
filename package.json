@@ -72,7 +72,7 @@
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
     "lint": "oxlint --deny-warnings src scripts tests stories/catalogue config website/src website/build *.mts",
-    "typecheck": "tsc --noEmit -p tsconfig.json && bun run --cwd website typecheck && bun run typecheck:examples",
+    "typecheck": "tsc --noEmit -p tsconfig.json && bun run --cwd website typecheck && bun scripts/check-docs.ts && bun run typecheck:examples",
     "typecheck:examples": "bun run --filter \"@medium-zoom/*-example\" typecheck",
     "test": "bun run test:browser",
     "test:browser": "playwright test --config config/playwright.config.mts",
@@ -87,13 +87,15 @@
     "test:analytics": "playwright test --config config/playwright.analytics.config.mts",
     "test:seo": "bun run test:browser website-metadata.spec.ts --project=chromium",
     "test:a11y": "bun run test:browser accessibility.spec.ts --project=chromium",
-    "test:rsc": "playwright test --config config/playwright.rsc.config.mts"
+    "test:rsc": "playwright test --config config/playwright.rsc.config.mts",
+    "test:docs": "bun scripts/check-docs.ts && bun run test:browser website-docs.spec.ts website-hierarchy.spec.ts"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
     "@axe-core/playwright": "4.14.0",
     "@babel/core": "8.0.9",
     "@babel/preset-env": "8.0.7",
+    "@mdx-js/rollup": "3.1.1",
     "@pierre/highlights": "0.2.0",
     "@playwright/test": "1.64.1",
     "@types/node": "26.6.5",

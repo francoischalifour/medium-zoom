@@ -33,6 +33,8 @@ The component source and independently runnable playground remain in `examples/s
 
 ## Code samples and site details
 
+The registry build derives its `medium-zoom` dependency range from the root `package.json` version, which release-please updates for each release.
+
 `website/src/gallery.ts` owns the image metadata and copyable code samples. Vanilla cards show HTML image markup; the usage section initializes all images with `[data-zoomable]`. The Vite `website/build/site-highlights.ts` plugin generates `highlighted-snippets.json` with Pierre Highlights during builds. Both prerendering and hydration consume that same markup, with no highlighter or WebAssembly runtime shipped to the browser. Regenerate it with `bun run build:demo` after editing snippets.
 
 The header’s star count is an API-verified snapshot in `site-data.ts`, rendered by the shared React header. The shadcn mark comes from the [official icon source](https://github.com/shadcn-ui/ui/blob/main/apps/v4/components/icons.tsx). Native CSS squircles enhance supported browsers; rounded corners remain the fallback.
@@ -66,3 +68,28 @@ Run `bun run test:seo` to check the built responses with JavaScript disabled, in
 ## License
 
 MIT © [François Chalifour](https://francoischalifour.com)
+
+## Documentation
+
+[The documentation overview](https://medium-zoom.francoischalifour.com/docs/) links to the JavaScript and React quickstarts. Each quickstart includes installation
+and a working image. Task guides cover HD images, galleries, styling, custom React
+triggers, controlled state, and server rendering. The JavaScript and React references
+own signatures, props, defaults, and events. Original README documentation is preserved.
+
+Authored MDX lives in `website/src/docs`. `pages.ts` owns navigation order and grouping.
+Guides link to related tasks explicitly. Previous/next navigation stays within each
+API reference. Headings own their anchors and the generated outline. React examples
+are regular TypeScript modules; their raw source is also the displayed code. Pierre
+Highlights handles fenced code and example source at build time, including CSS. Oxfmt
+formats authored examples with a 72-character line width.
+
+The website build prerenders MDX through Vite using the same transforms and components
+as hydration. Each route has its own HTML entry, metadata, canonical URL, and sitemap
+entry. Moved documentation routes are listed in `website/public/_redirects`; the same
+manifest is used by local development, preview, and the browser test server.
+
+Run `bun run test:docs` after `bun run build:website` to compile authored examples and
+exercise the built pages. Hierarchy and migration journeys are covered by
+`website-hierarchy.spec.ts` in the same browser harness.
+
+Troubleshooting guides can be added when they have complete, verified examples.

@@ -3,22 +3,26 @@ import { Icon } from './site-components'
 import { githubStars, githubStarLabel, repositoryUrl, type SitePage } from './site-data'
 import { getTheme, getServerTheme, setTheme, subscribeTheme } from './site-theme'
 
-export function ProductLinks({ page }: { page: SitePage }) {
+export function SectionLinks({ page }: { page: SitePage | 'docs' }) {
   return (
     <>
       <a href="/" aria-current={page === 'library' ? 'page' : undefined}>
         <span className="library-mark" aria-hidden="true" />
-        Library
+        JavaScript
       </a>
       <a href="/examples/shadcn/" aria-current={page === 'shadcn' ? 'page' : undefined}>
         <span className="shadcn-mark" aria-hidden="true" />
-        shadcn/ui
+        React
+      </a>
+      <a href="/docs/" aria-current={page === 'docs' ? 'page' : undefined}>
+        <Icon name="book" className="documentation-mark" />
+        Docs
       </a>
     </>
   )
 }
 
-export function SiteHeader({ page }: { page: SitePage }) {
+export function SiteHeader({ page }: { page: SitePage | 'docs' }) {
   const dark = React.useSyncExternalStore(subscribeTheme, getTheme, getServerTheme)
   return (
     <>
@@ -32,10 +36,9 @@ export function SiteHeader({ page }: { page: SitePage }) {
             <span className="brand-name">medium-zoom</span>
           </a>
           <div className="section-links">
-            <ProductLinks page={page} />
+            <SectionLinks page={page} />
           </div>
           <div className="nav-links">
-            <a href={`${repositoryUrl}#readme`}>Documentation</a>
             <a
               className="button button-ghost github-link"
               href={repositoryUrl}
@@ -72,7 +75,7 @@ export function SiteFooter() {
         </p>
       </div>
       <nav aria-label="Footer navigation">
-        <a href={`${repositoryUrl}#readme`}>Documentation</a>
+        <a href="/docs/">Documentation</a>
         <a href={`${repositoryUrl}/blob/main/LICENSE`}>MIT license</a>
         <a href={repositoryUrl}>GitHub</a>
       </nav>

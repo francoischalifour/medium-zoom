@@ -1,0 +1,101 @@
+import { PropertyMeta } from './doc-components'
+
+Pass an options object to `mediumZoom()` to configure the zoom. These options apply to every image attached to the instance.
+
+```js
+import mediumZoom from 'medium-zoom'
+
+const zoom = mediumZoom('[data-zoomable]', {
+  margin: 24,
+  background: '#111113',
+  scrollOffset: 80,
+})
+```
+
+To change options later, call [`update()`](/docs/reference/javascript/methods/#update).
+
+## margin
+
+The space in pixels around the zoomed image.
+
+<PropertyMeta type="number" defaultValue="0" />
+
+```js
+zoom.update({ margin: 48 })
+```
+
+## background
+
+The overlay's CSS background color.
+
+<PropertyMeta type="string" defaultValue="'#fff'" />
+
+```js
+zoom.update({ background: 'rgba(0, 0, 0, 0.9)' })
+```
+
+## scrollOffset
+
+The scroll distance in pixels that closes the zoom. Set `0` to close after any scroll movement.
+
+<PropertyMeta type="number" defaultValue="40" />
+
+```js
+zoom.update({ scrollOffset: 0 })
+```
+
+## container
+
+By default, the zoom uses the window viewport.
+
+<PropertyMeta
+  type="string | HTMLElement | ZoomContainer"
+  defaultValue="null"
+/>
+
+Use an element's bounds as the zoom viewport. The element must exist when you open the zoom:
+
+```js
+zoom.update({ container: '#zoom-container' })
+```
+
+You can also pass coordinates in pixels:
+
+```js
+zoom.update({
+  container: {
+    width: 720,
+    height: 480,
+    top: 64,
+    left: 0,
+  },
+})
+```
+
+The object accepts `width`, `height`, `top`, `bottom`, `right`, and `left`. Width and height default to the window dimensions. The other values default to `0`.
+
+## template
+
+Use a `<template>` element to display custom markup while the image is zoomed:
+
+<PropertyMeta type="string | HTMLTemplateElement" defaultValue="null" />
+
+```html
+<template id="zoom-template">
+  <div class="zoom-layout">
+    <header>Photo details</header>
+    <div id="zoom-container"></div>
+  </div>
+</template>
+```
+
+```js
+zoom.update({
+  template: '#zoom-template',
+  container: '#zoom-container',
+})
+```
+
+The zoom clones the template's content when it opens. A `container` can refer to an element inside the template. Style the template to position its content and give its container the desired size.
+
+The [Facebook](/examples/facebook-template/) and [Dropbox Paper](/examples/dropbox-paper-template/) examples show custom templates.

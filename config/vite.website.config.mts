@@ -1,6 +1,9 @@
 import { fileURLToPath } from 'node:url'
 import { defineConfig, mergeConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import mdx from '@mdx-js/rollup'
+import { docsPlugin } from '../website/build/docs-plugin.ts'
+import { docsPages } from '../website/src/docs/pages.ts'
 import { libraryConfig } from './vite.shared.config.mts'
 import { siteHighlights } from '../website/build/site-highlights.ts'
 import { sitePreferences } from '../website/build/site-preferences.ts'
@@ -10,12 +13,33 @@ import { galleryAssets } from '../examples/shadcn/gallery-assets.ts'
 export default mergeConfig(
   libraryConfig,
   defineConfig({
-    plugins: [react(), galleryAssets(), siteFonts(), sitePreferences(), siteHighlights()],
+    plugins: [
+      docsPlugin(),
+      { ...mdx(), enforce: 'pre' },
+      react({ include: /\.(jsx|tsx|mdx)$/ }),
+      galleryAssets(),
+      siteFonts(),
+      sitePreferences(),
+      siteHighlights(),
+    ],
+    resolve: {
+      alias: {
+        '@/components/ui/image-zoom': fileURLToPath(
+          new URL('../examples/shadcn/src/components/ui/image-zoom.tsx', import.meta.url)
+        ),
+      },
+    },
     envDir: fileURLToPath(new URL('../', import.meta.url)),
     root: fileURLToPath(new URL('../website/', import.meta.url)),
     build: {
       rolldownOptions: {
         input: {
+          ...Object.fromEntries(
+            docsPages.map(page => [
+              page.path.slice(1).replaceAll('/', '-'),
+              fileURLToPath(new URL(`../website${page.path}index.html`, import.meta.url)),
+            ])
+          ),
           index: fileURLToPath(new URL('../website/index.html', import.meta.url)),
           shadcn: fileURLToPath(new URL('../website/examples/shadcn/index.html', import.meta.url)),
         },
