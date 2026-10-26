@@ -57,6 +57,6 @@ export function searchDocs(entries: SearchEntry[], query: string, react: boolean
     })
     .filter(result => result.score > 0)
     .sort((a, b) => b.score - a.score)
-    .slice(0, 9)
+    .slice(0, 5)
     .map(result => result.entry)
 }

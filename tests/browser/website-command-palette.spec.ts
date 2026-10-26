@@ -195,3 +195,23 @@ test('moving the selection preserves row and text geometry', async ({ page }) =>
   await rows.nth(2).hover()
   expect(await geometry()).toEqual(before)
 })
+
+test('balances actions, matching documentation, and chat handoffs', async ({ page }) => {
+  await page.goto('/docs/react/')
+  await page.getByRole('button', { name: /Search docs/ }).click()
+  await expect(page.locator('.command-group')).toHaveText(['Get started', 'Actions', 'Popular'])
+  const search = page.getByRole('combobox')
+  await search.fill('inst')
+  await expect(page.locator('.command-group')).toHaveText([
+    'Actions',
+    'Documentation',
+    'Open in chat',
+  ])
+  await expect(page.getByRole('option').first()).toContainText('Copy React install command')
+  await expect(page.locator('.command-result:not(.command-action):not(.command-chat)')).toHaveCount(
+    5
+  )
+  await search.fill('margin')
+  await expect(page.locator('.command-group')).toHaveText(['Documentation', 'Open in chat'])
+  await expect(page.getByRole('option').first().locator('.command-title')).toHaveText('margin')
+})

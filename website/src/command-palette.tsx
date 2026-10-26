@@ -124,31 +124,46 @@ export function CommandPalette({ react }: { react: boolean }) {
       .split(/\s+/)
       .every(word => action.terms.includes(word))
   )
-  const results = [
-    ...docs.map(entry => ({
-      key: entry.path,
-      title: entry.title,
-      detail: entry.parent
-        ? `${entry.parent} › ${entry.group}`
-        : entry.group === 'Get started' && !query.trim()
-          ? ''
-          : entry.group,
-      description: entry.parent ? '' : entry.description,
-      icon: entry.path.includes('#') ? ('code' as const) : ('book' as const),
-      href: entry.path,
-      chatUrl: undefined,
-    })),
-    ...actions.map(action => ({ ...action, href: undefined, description: '', chatUrl: undefined })),
-    ...getChatLinks(query, docs, react).map(provider => ({
-      key: provider.key,
-      title: provider.title,
-      detail: query.trim(),
-      description: '',
-      icon: 'chat' as const,
+  const docResults = docs.map((entry, index) => ({
+    key: entry.path,
+    section: query.trim() ? 'Documentation' : index < 2 ? 'Get started' : 'Popular',
+    title: entry.title,
+    detail: entry.parent
+      ? `${entry.parent} › ${entry.group}`
+      : entry.group === 'Get started' && !query.trim()
+        ? ''
+        : entry.group,
+    description: entry.parent ? '' : entry.description,
+    icon: entry.path.includes('#') ? ('code' as const) : ('book' as const),
+    href: entry.path,
+    chatUrl: undefined,
+  }))
+  const actionResults = actions
+    .sort(
+      (a, b) =>
+        Number(b.key === (react ? 'react' : 'javascript')) -
+        Number(a.key === (react ? 'react' : 'javascript'))
+    )
+    .map(action => ({
+      ...action,
+      section: 'Actions',
       href: undefined,
-      chatUrl: provider.url,
-    })),
-  ]
+      description: '',
+      chatUrl: undefined,
+    }))
+  const chatResults = getChatLinks(query, docs, react).map(provider => ({
+    key: provider.key,
+    section: 'Open in chat',
+    title: provider.title,
+    detail: query.trim(),
+    description: '',
+    icon: 'chat' as const,
+    href: undefined,
+    chatUrl: provider.url,
+  }))
+  const results = query.trim()
+    ? [...actionResults, ...docResults, ...chatResults]
+    : [...docResults.slice(0, 2), ...actionResults, ...docResults.slice(2)]
   const selected = Math.min(active, Math.max(0, results.length - 1))
 
   React.useEffect(() => {
@@ -274,20 +289,9 @@ export function CommandPalette({ react }: { react: boolean }) {
             )}
             {results.map((result, index) => (
               <React.Fragment key={result.key}>
-                {(index === 0 ||
-                  index === docs.length ||
-                  index === docs.length + actions.length ||
-                  (!query.trim() && index === 2 && index < docs.length)) && (
+                {result.section !== results[index - 1]?.section && (
                   <div className="command-group" role="presentation">
-                    {index >= docs.length + actions.length
-                      ? 'Open in chat'
-                      : index < docs.length
-                        ? query.trim()
-                          ? 'Documentation'
-                          : index === 0
-                            ? 'Get started'
-                            : 'Popular'
-                        : 'Actions'}
+                    {result.section}
                   </div>
                 )}
                 <div
