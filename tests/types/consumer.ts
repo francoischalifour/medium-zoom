@@ -26,3 +26,6 @@ mediumZoom({ margin: '16' })
 
 void opened
 void images
+
+const current: HTMLElement = zoom.getZoomedImage()
+void current

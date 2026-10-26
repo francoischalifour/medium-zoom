@@ -6,24 +6,43 @@
     "skipLibCheck": true,
     "noEmit": true,
     "target": "ES2023",
-    "lib": ["ES2023", "DOM", "DOM.Iterable"],
-    "types": ["node", "vite/client"],
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [
+      "node",
+      "vite/client"
+    ],
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "paths": {
-      "medium-zoom": ["./src/medium-zoom.d.ts"],
-      "medium-zoom/dist/pure": ["./src/medium-zoom.d.ts"],
-      "medium-zoom/dist/pure/index.js": ["./src/medium-zoom.d.ts"]
+      "medium-zoom/core": [
+        "./src/core.ts"
+      ],
+      "medium-zoom/features": [
+        "./src/features/index.ts"
+      ],
+      "medium-zoom": [
+        "./src/medium-zoom.ts"
+      ],
+      "medium-zoom/dist/pure": [
+        "./src/medium-zoom.ts"
+      ],
+      "medium-zoom/dist/pure/index.js": [
+        "./src/medium-zoom.ts"
+      ]
     },
     "jsx": "react-jsx"
   },
   "include": [
     "*.mts",
+    "src/**/*.ts",
     "config/**/*.mts",
     "scripts/**/*.ts",
     "tests/**/*.ts",
     "stories/catalogue/**/*.ts",
     "examples/*/vite.config.ts"
-  ],
-  "exclude": ["**/node_modules", "tests/fixtures/next/.next"]
+  ]
 }

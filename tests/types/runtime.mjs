@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict'
 import { createRequire } from 'node:module'
-
 import mediumZoom from 'medium-zoom'
 
 const require = createRequire(import.meta.url)
@@ -19,8 +18,32 @@ for (const path of [
   assert.equal(typeof require(specifier), 'function', specifier)
   assert.equal(typeof (await import(specifier)).default, 'function', specifier)
 }
-for (const path of ['dist/medium-zoom.esm.js', 'dist/pure/index.js', 'dist/style.css']) {
+for (const path of ['dist/medium-zoom.esm.js', 'dist/pure/index.js', 'dist/style.css'])
   assert(require.resolve(`medium-zoom/${path}`))
+assert.equal(typeof (await import('medium-zoom/dist/pure')).default, 'function')
+
+for (const [entry, names] of Object.entries({
+  core: ['createMediumZoom'],
+  features: ['hdImage', 'container', 'template'],
+})) {
+  const esm = await import(`medium-zoom/${entry}`)
+  const cjs = require(`medium-zoom/${entry}`)
+  for (const name of names) {
+    assert.equal(typeof esm[name], 'function')
+    assert.equal(typeof cjs[name], 'function')
+  }
 }
-// Native Node ESM does not support the directory shorthand used by bundlers.
-await assert.rejects(import('medium-zoom/dist/pure'), { code: 'ERR_UNSUPPORTED_DIR_IMPORT' })
+
+for (const path of [
+  'medium-zoom',
+  'medium-zoom.min',
+  'medium-zoom.esm',
+  'pure/index',
+  'pure/medium-zoom.umd',
+  'pure/medium-zoom.min.umd',
+]) {
+  assert.equal(
+    require.resolve(`medium-zoom/dist/${path}`),
+    require.resolve(`medium-zoom/dist/${path}.js`)
+  )
+}

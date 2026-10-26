@@ -17,6 +17,7 @@ const roots: Record<string, string> = {
 const pageRedirects = readExactRedirects(resolve(roots.site, '_redirects'))
 const contentTypes: Record<string, string> = {
   '.js': 'text/javascript',
+  '.mjs': 'text/javascript',
   '.css': 'text/css',
   '.html': 'text/html',
   '.jpg': 'image/jpeg',

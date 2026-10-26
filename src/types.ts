@@ -1,6 +1,6 @@
 export type ZoomSelector = string | HTMLElement | HTMLElement[] | NodeList | null
 
-export interface ZoomOptions {
+export interface CoreZoomOptions {
   /**
    * The space outside the zoomed image.
    *
@@ -21,20 +21,16 @@ export interface ZoomOptions {
    * @default 40
    */
   scrollOffset?: number
+}
 
-  /**
-   * The viewport to render the zoom in.
-   *
-   * @default null
-   */
-  container?: string | HTMLElement | ZoomContainer
+export interface ZoomOptions extends CoreZoomOptions, ContainerOptions, TemplateOptions {}
 
-  /**
-   * The template element to display on zoom.
-   *
-   * @default null
-   */
-  template?: string | HTMLTemplateElement
+export interface ContainerOptions {
+  container?: string | HTMLElement | ZoomContainer | null
+}
+
+export interface TemplateOptions {
+  template?: string | HTMLTemplateElement | null
 }
 
 export interface ZoomContainer {
@@ -57,21 +53,21 @@ export interface ZoomOpenOptions {
   target?: HTMLElement
 }
 
-export interface Zoom {
+export interface Zoom<Options extends CoreZoomOptions = ZoomOptions> {
   /**
    * Opens the zoom.
    *
    * @param options
    * @returns A promise resolving with the zoom.
    */
-  open(options?: ZoomOpenOptions): Promise<Zoom>
+  open(options?: ZoomOpenOptions): Promise<Zoom<Options>>
 
   /**
    * Closes the zoom.
    *
    * @returns A promise resolving with the zoom.
    */
-  close(): Promise<Zoom>
+  close(): Promise<Zoom<Options>>
 
   /**
    * Toggles the zoom.
@@ -79,7 +75,7 @@ export interface Zoom {
    * @param options
    * @returns A promise resolving with the zoom.
    */
-  toggle(options?: ZoomOpenOptions): Promise<Zoom>
+  toggle(options?: ZoomOpenOptions): Promise<Zoom<Options>>
 
   /**
    * Attaches the images to the zoom.
@@ -87,7 +83,7 @@ export interface Zoom {
    * @param selectors - The selectors describing the images.
    * @returns The zoom.
    */
-  attach(...selectors: ZoomSelector[]): Zoom
+  attach(...selectors: ZoomSelector[]): Zoom<Options>
 
   /**
    * Releases the images from the zoom.
@@ -95,7 +91,7 @@ export interface Zoom {
    * @param selectors - The selectors describing the images.
    * @returns The zoom.
    */
-  detach(...selectors: ZoomSelector[]): Zoom
+  detach(...selectors: ZoomSelector[]): Zoom<Options>
 
   /**
    * Updates the options.
@@ -103,7 +99,7 @@ export interface Zoom {
    * @param options
    * @returns The zoom.
    */
-  update(options: ZoomOptions): Zoom
+  update(options: Options): Zoom<Options>
 
   /**
    * Extends the zoom with the provided options merged with the current ones.
@@ -111,7 +107,7 @@ export interface Zoom {
    * @param options
    * @returns The zoom.
    */
-  clone(options?: ZoomOptions): Zoom
+  clone(options?: Options): Zoom<Options>
 
   /**
    * Registers an event handler on each target of the zoom.
@@ -125,7 +121,7 @@ export interface Zoom {
     type: string,
     listener: EventListenerOrEventListenerObject,
     options?: boolean | AddEventListenerOptions
-  ): Zoom
+  ): Zoom<Options>
 
   /**
    * Unregisters an event handler.
@@ -139,14 +135,14 @@ export interface Zoom {
     type: string,
     listener: EventListenerOrEventListenerObject,
     options?: boolean | AddEventListenerOptions
-  ): Zoom
+  ): Zoom<Options>
 
   /**
    * Returns the zoom options.
    *
    * @returns The zoom options.
    */
-  getOptions(): ZoomOptions
+  getOptions(): Options
 
   /**
    * Returns the zoom images.
@@ -163,21 +159,21 @@ export interface Zoom {
   getZoomedImage(): HTMLElement
 }
 
-/**
- * Attaches a zoom effect on a selection of images.
- *
- * @param selector The selector to target the images.
- * @param options The options of the zoom.
- * @returns The zoom.
- */
-declare function mediumZoom(selector?: ZoomSelector, options?: ZoomOptions): Zoom
+export interface ZoomFactory<Options extends CoreZoomOptions = ZoomOptions> {
+  (selector?: ZoomSelector, options?: Options): Zoom<Options>
+  (options?: Options): Zoom<Options>
+}
 
-/**
- * Attaches a zoom effect on a selection of images.
- *
- * @param options The options of the zoom.
- * @returns The zoom.
- */
-declare function mediumZoom(options?: ZoomOptions): Zoom
+// Feature functions carry their options at the type level; their hooks stay internal.
+declare const featureOptions: unique symbol
+export interface ZoomFeature<Options extends object = object> {
+  readonly [featureOptions]: Options
+}
 
-export default mediumZoom
+type FeatureOptionFunctions<Feature> =
+  Feature extends ZoomFeature<infer Options> ? (options: Options) => void : never
+
+export type FeatureOptions<Features extends readonly ZoomFeature[]> = CoreZoomOptions &
+  (FeatureOptionFunctions<Features[number]> extends (options: infer Options) => void
+    ? Options
+    : object)

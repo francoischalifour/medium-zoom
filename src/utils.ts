@@ -1,16 +1,20 @@
-export const isSupported = node => node.tagName === 'IMG'
+import type { Zoom } from './types'
+
+export const isSupported = (node: Element): node is HTMLImageElement => node.tagName === 'IMG'
 
 /* eslint-disable-next-line no-prototype-builtins */
-export const isNodeList = selector => NodeList.prototype.isPrototypeOf(selector)
+export const isNodeList = (selector: unknown): selector is NodeList =>
+  NodeList.prototype.isPrototypeOf(selector as object)
 
-export const isNode = selector => selector && selector.nodeType === 1
+export const isNode = (selector: unknown): selector is HTMLElement =>
+  !!selector && (selector as Node).nodeType === 1
 
-export const isSvg = image => {
+export const isSvg = (image: HTMLImageElement): boolean => {
   const source = image.currentSrc || image.src
   return source.substr(-4).toLowerCase() === '.svg'
 }
 
-export const getImagesFromSelector = selector => {
+export const getImagesFromSelector = (selector: unknown): HTMLImageElement[] => {
   try {
     if (Array.isArray(selector)) {
       return selector.filter(isSupported)
@@ -18,7 +22,7 @@ export const getImagesFromSelector = selector => {
 
     if (isNodeList(selector)) {
       // Do not use spread operator or Array.from() for IE support
-      return [].slice.call(selector).filter(isSupported)
+      return (Array.prototype.slice.call(selector) as Element[]).filter(isSupported)
     }
 
     if (isNode(selector)) {
@@ -27,7 +31,9 @@ export const getImagesFromSelector = selector => {
 
     if (typeof selector === 'string') {
       // Do not use spread operator or Array.from() for IE support
-      return [].slice.call(document.querySelectorAll(selector)).filter(isSupported)
+      return (Array.prototype.slice.call(document.querySelectorAll(selector)) as Element[]).filter(
+        isSupported
+      )
     }
 
     return []
@@ -40,17 +46,17 @@ export const getImagesFromSelector = selector => {
   }
 }
 
-export const createOverlay = background => {
+export const createOverlay = (background: string | undefined): HTMLDivElement => {
   const overlay = document.createElement('div')
   overlay.classList.add('medium-zoom-overlay')
-  overlay.style.background = background
+  overlay.style.background = background || ''
 
   return overlay
 }
 
-export const cloneTarget = template => {
+export const cloneTarget = (template: HTMLImageElement): HTMLImageElement => {
   const { top, left, width, height } = template.getBoundingClientRect()
-  const clone = template.cloneNode()
+  const clone = template.cloneNode() as HTMLImageElement
   const scrollTop =
     window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
   const scrollLeft =
@@ -67,7 +73,10 @@ export const cloneTarget = template => {
   return clone
 }
 
-export const createCustomEvent = (type, detail) => {
+export const createCustomEvent = (
+  type: string,
+  detail: { zoom: Zoom }
+): CustomEvent<{ zoom: Zoom }> => {
   if (typeof window.CustomEvent === 'function') {
     return new CustomEvent(type, { detail })
   }

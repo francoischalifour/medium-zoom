@@ -12,7 +12,6 @@ export default defineConfig({
   },
   options: { typeAware: true },
   overrides: [
-    { files: ['src/**/*.js'], rules: { 'typescript/no-floating-promises': 'off' } },
     {
       files: ['**/*.ts', '**/*.mts', '**/*.tsx'],
       rules: {

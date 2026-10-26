@@ -17,6 +17,12 @@ export default defineConfig({
   use: { baseURL: testUrl, trace: 'retain-on-failure' },
   projects: [
     { name: 'chromium', testIgnore: '**/mobile.spec.ts', use: { ...devices['Desktop Chrome'] } },
+    {
+      name: 'composed-chromium',
+      testMatch: ['**/api.spec.ts', '**/loading.spec.ts', '**/motion.spec.ts'],
+      metadata: { composed: true },
+      use: { ...devices['Desktop Chrome'] },
+    },
     { name: 'firefox', testIgnore: '**/mobile.spec.ts', use: { ...devices['Desktop Firefox'] } },
     { name: 'webkit', testIgnore: '**/mobile.spec.ts', use: { ...devices['Desktop Safari'] } },
     { name: 'mobile-chromium', testMatch: '**/mobile.spec.ts', use: { ...devices['Pixel 7'] } },

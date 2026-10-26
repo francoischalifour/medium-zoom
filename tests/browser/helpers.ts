@@ -1,4 +1,4 @@
-import { expect, type Page, type Locator } from '@playwright/test'
+import { test, expect, type Page, type Locator } from '@playwright/test'
 
 interface Bundle {
   format: 'esm' | 'umd'
@@ -44,6 +44,18 @@ export async function loadBundle(
   page: Page,
   { distribution = 'package', bundle = 'defaultUmd' }: PackageOptions = {}
 ) {
+  if (distribution === 'package' && test.info().project.metadata.composed) {
+    await page.evaluate(async () => {
+      const coreUrl = '/package/dist/core/index.mjs'
+      const featureUrl = '/package/dist/features/index.mjs'
+      const { createMediumZoom } = (await import(coreUrl)) as typeof import('../../src/core')
+      const { hdImage, container, template } = (await import(
+        featureUrl
+      )) as typeof import('../../src/features')
+      window.mediumZoom = createMediumZoom({ features: [template(), container(), hdImage()] })
+    })
+    return
+  }
   const { file, format } = bundles[bundle]
   const url = `/${distribution}/dist/${file}`
   if (format === 'esm') {

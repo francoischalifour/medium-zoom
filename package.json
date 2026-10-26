@@ -52,7 +52,9 @@
     "./dist/medium-zoom.js",
     "./dist/medium-zoom.min.js",
     "./dist/medium-zoom.esm.js",
-    "**/*.css"
+    "**/*.css",
+    "./dist/core/index.mjs",
+    "./dist/core/index.cjs"
   ],
   "main": "dist/medium-zoom.min.js",
   "module": "dist/medium-zoom.esm.js",
@@ -79,7 +81,7 @@
     "test": "bun run test:browser",
     "test:browser": "playwright test --config config/playwright.config.mts",
     "test:package": "bun scripts/check-package.ts",
-    "test:size": "bun scripts/check-size.ts",
+    "test:size": "bun scripts/check-size.ts && bun scripts/check-feature-size.ts",
     "check": "bun run check:library && bun run build:demo && bun run test:examples && bun run test:browser && bun run test:rsc && bun run test:analytics && bun run test:registry",
     "check:library": "bun run format:check && bun run build && bun run lint && bun run typecheck && bun run test:size && bun run test:package",
     "prepublishOnly": "bun run check",
@@ -120,5 +122,59 @@
     "vite": "8.3.5",
     "wrangler": "4.152.0"
   },
-  "packageManager": "bun@1.4.4"
+  "packageManager": "bun@1.4.4",
+  "exports": {
+    ".": {
+      "types": "./dist/medium-zoom.d.ts",
+      "module": "./dist/medium-zoom.esm.js",
+      "default": "./dist/medium-zoom.min.js"
+    },
+    "./core": {
+      "import": {
+        "types": "./dist/core/index.d.mts",
+        "default": "./dist/core/index.mjs"
+      },
+      "require": {
+        "types": "./dist/core/index.d.cts",
+        "default": "./dist/core/index.cjs"
+      }
+    },
+    "./features": {
+      "import": {
+        "types": "./dist/features/index.d.mts",
+        "default": "./dist/features/index.mjs"
+      },
+      "require": {
+        "types": "./dist/features/index.d.cts",
+        "default": "./dist/features/index.cjs"
+      }
+    },
+    "./dist/pure": {
+      "types": "./dist/pure/index.d.ts",
+      "default": "./dist/pure/index.js"
+    },
+    "./dist/medium-zoom": "./dist/medium-zoom.js",
+    "./dist/medium-zoom.min": "./dist/medium-zoom.min.js",
+    "./dist/medium-zoom.esm": "./dist/medium-zoom.esm.js",
+    "./dist/pure/index": "./dist/pure/index.js",
+    "./dist/pure/medium-zoom.umd": "./dist/pure/medium-zoom.umd.js",
+    "./dist/pure/medium-zoom.min.umd": "./dist/pure/medium-zoom.min.umd.js",
+    "./*": "./*"
+  },
+  "typesVersions": {
+    "*": {
+      "core": [
+        "dist/core/index.d.cts"
+      ],
+      "features": [
+        "dist/features/index.d.cts"
+      ],
+      "dist/pure": [
+        "dist/pure/index.d.ts"
+      ],
+      "*": [
+        "*"
+      ]
+    }
+  }
 }

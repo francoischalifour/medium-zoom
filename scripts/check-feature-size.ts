@@ -1,0 +1,65 @@
+import assert from 'node:assert/strict'
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
+import { gzipSync } from 'node:zlib'
+import { build } from 'tsdown'
+
+// Measure complete consumer bundles, including injected CSS and retained feature code.
+// Import every feature in each fixture to verify unused exports are eliminated.
+const variants = {
+  core: [],
+  'core + HD': ['hdImage'],
+  'core + container': ['container'],
+  'core + template': ['template'],
+  'core + all features': ['hdImage', 'container', 'template'],
+  full: null,
+} satisfies Record<string, string[] | null>
+const directory = mkdtempSync(join(tmpdir(), 'medium-zoom-size-'))
+try {
+  const results: Record<string, number> = {}
+  for (const [index, [name, features]] of Object.entries(variants).entries()) {
+    const entry = join(directory, `${index}.ts`)
+    const source = features
+      ? `import { createMediumZoom } from ${JSON.stringify(resolve('dist/core/index.mjs'))};
+         import { hdImage, container, template } from ${JSON.stringify(resolve('dist/features/index.mjs'))};
+         globalThis.zoom = createMediumZoom({ features: [${features.map(name => `${name}()`).join(',')}] })('img');`
+      : `import mediumZoom from ${JSON.stringify(resolve('dist/medium-zoom.esm.js'))}; globalThis.zoom = mediumZoom('img');`
+    writeFileSync(entry, source)
+    const output = join(directory, `output-${index}`)
+    await build({
+      config: false,
+      entry: { index: entry },
+      outDir: output,
+      platform: 'browser',
+      target: 'es2015',
+      format: 'esm',
+      minify: true,
+      dts: false,
+      logLevel: 'silent',
+      outputOptions: { entryFileNames: 'index.js' },
+    })
+    const code = readFileSync(join(output, 'index.js'), 'utf8')
+    results[name] = gzipSync(code, { level: 9 }).length
+    const included = features || variants['core + all features']
+    assert.equal(
+      code.includes('data-zoom-src'),
+      included.includes('hdImage'),
+      `${name}: HD loading`
+    )
+    assert.equal(
+      code.includes('opacity 150ms'),
+      included.includes('template'),
+      `${name}: templates`
+    )
+    assert.equal(
+      code.includes('.right'),
+      included.includes('container'),
+      `${name}: custom containers`
+    )
+    console.log(`${name.padEnd(24)} ${results[name].toLocaleString('en-US').padStart(6)} B gzip`)
+  }
+  assert(results.core < results.full, 'The core consumer must be smaller than the full consumer')
+} finally {
+  rmSync(directory, { recursive: true, force: true })
+}

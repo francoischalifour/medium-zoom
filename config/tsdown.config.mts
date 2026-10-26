@@ -48,7 +48,19 @@ function stylesheet(): TsdownPlugin {
 function legacySyntax(minify: boolean): TsdownPlugin {
   return {
     name: 'medium-zoom-legacy-syntax',
-    async renderChunk(source, _chunk, options) {
+    generateBundle(_options, bundle) {
+      // Preserve the older declaration syntax of the existing root and pure entries.
+      for (const fileName of ['medium-zoom.d.ts', 'pure/index.d.ts']) {
+        const declaration = bundle[fileName]
+        if (declaration?.type !== 'chunk') continue
+        declaration.code = declaration.code.replace(
+          /export \{([^}]+)\}/g,
+          (_match, names: string) => `export {${names.replace(/\btype\s+/g, '')}}`
+        )
+      }
+    },
+    async renderChunk(source, chunk, options) {
+      if (chunk.name.endsWith('.d')) return
       const result = transformSync(source, {
         babelrc: false,
         configFile: false,
@@ -74,6 +86,22 @@ function legacySyntax(minify: boolean): TsdownPlugin {
               ecma: 5,
               module: options.format === 'es',
               mangle: { properties: { regex: privateSessionProperties } },
+              // Core and features are bundled independently: their session keys must agree.
+              nameCache: {
+                props: {
+                  props: {
+                    $__mz_original: 'o',
+                    $__mz_zoomed: 'z',
+                    $__mz_zoomedHd: 'h',
+                    $__mz_template: 't',
+                    $__mz_closing: 'c',
+                    $__mz_cancelOpen: 'a',
+                    $__mz_viewportScale: 'v',
+                    $__mz_isPinching: 'p',
+                    $__mz_scrollTimer: 's',
+                  },
+                },
+              },
               format: { comments: /^!/ },
             })
           ).code
@@ -105,7 +133,7 @@ function legacySyntax(minify: boolean): TsdownPlugin {
 function browserBundle(
   source: string,
   fileName: string,
-  format: 'esm' | 'umd',
+  format: 'esm' | 'umd' | 'cjs',
   minify = true
 ): UserConfig {
   return {
@@ -126,24 +154,42 @@ function browserBundle(
     // Rolldown's later minifier must not introduce modern syntax again.
     minify: false,
     outputOptions: {
-      entryFileNames: fileName,
+      entryFileNames: chunk =>
+        chunk.name.endsWith('.d')
+          ? /\.[mc]js$/.test(fileName)
+            ? fileName.replace(/\.([mc])js$/, '.d.$1ts')
+            : fileName.replace(/(?:\.esm)?\.js$/, '.d.ts')
+          : fileName,
       ...(format === 'umd' && { exports: 'default', intro: '"use strict";' }),
     },
     plugins: [stylesheet(), legacySyntax(minify)],
   }
 }
 
+function featureBundle(name: 'core' | 'features', format: 'esm' | 'cjs'): UserConfig {
+  const source = name === 'core' ? 'src/core.ts' : 'src/features/index.ts'
+  return {
+    ...browserBundle(source, `${name}/index.${format === 'esm' ? 'mjs' : 'cjs'}`, format),
+    entry: { [`${name}/index`]: source },
+    // Keep the opaque feature type shared with the core declaration entry.
+    deps: { neverBundle: ['medium-zoom/core'] },
+    dts: { generator: 'oxc' },
+    plugins: [...(name === 'core' ? [stylesheet()] : []), legacySyntax(true)],
+  }
+}
+
 export default defineConfig([
   {
-    ...browserBundle('src/index.js', 'medium-zoom.esm.js', 'esm'),
-    copy: [
-      { from: 'src/medium-zoom.d.ts' },
-      { from: 'src/medium-zoom.d.ts', to: 'dist/pure', rename: 'index.d.ts' },
-    ],
+    ...browserBundle('src/index.ts', 'medium-zoom.esm.js', 'esm'),
+    dts: { generator: 'oxc' },
   },
-  browserBundle('src/index.js', 'medium-zoom.js', 'umd', false),
-  browserBundle('src/index.js', 'medium-zoom.min.js', 'umd'),
-  browserBundle('src/medium-zoom.js', 'pure/index.js', 'esm'),
-  browserBundle('src/medium-zoom.js', 'pure/medium-zoom.umd.js', 'umd', false),
-  browserBundle('src/medium-zoom.js', 'pure/medium-zoom.min.umd.js', 'umd'),
+  browserBundle('src/index.ts', 'medium-zoom.js', 'umd', false),
+  browserBundle('src/index.ts', 'medium-zoom.min.js', 'umd'),
+  { ...browserBundle('src/medium-zoom.ts', 'pure/index.js', 'esm'), dts: { generator: 'oxc' } },
+  browserBundle('src/medium-zoom.ts', 'pure/medium-zoom.umd.js', 'umd', false),
+  browserBundle('src/medium-zoom.ts', 'pure/medium-zoom.min.umd.js', 'umd'),
+  featureBundle('core', 'esm'),
+  featureBundle('features', 'esm'),
+  featureBundle('core', 'cjs'),
+  featureBundle('features', 'cjs'),
 ])
