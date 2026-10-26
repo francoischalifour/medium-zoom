@@ -15,3 +15,6 @@ package-lock.json
 
 .env.local
 .env.*.local
+
+# Generated Vite documentation entries.
+/website/docs/

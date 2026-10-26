@@ -3,7 +3,6 @@ import { defineConfig, mergeConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import mdx from '@mdx-js/rollup'
 import { docsPlugin } from '../website/build/docs-plugin.ts'
-import { docsPages } from '../website/src/docs/pages.ts'
 import { libraryConfig } from './vite.shared.config.mts'
 import { siteHighlights } from '../website/build/site-highlights.ts'
 import { sitePreferences } from '../website/build/site-preferences.ts'
@@ -34,12 +33,6 @@ export default mergeConfig(
     build: {
       rolldownOptions: {
         input: {
-          ...Object.fromEntries(
-            docsPages.map(page => [
-              page.path.slice(1).replaceAll('/', '-'),
-              fileURLToPath(new URL(`../website${page.path}index.html`, import.meta.url)),
-            ])
-          ),
           index: fileURLToPath(new URL('../website/index.html', import.meta.url)),
           shadcn: fileURLToPath(new URL('../website/examples/shadcn/index.html', import.meta.url)),
         },

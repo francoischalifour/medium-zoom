@@ -1,6 +1,8 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname } from 'node:path'
 import type { PreviewServer, ViteDevServer, Plugin } from 'vite'
-import { headingId } from '../src/docs/pages.ts'
+import { docsPages, headingId } from '../src/docs/pages.ts'
 
 // Use the hosting manifest for local development and preview redirects too.
 function redirectMovedDocs(server: ViteDevServer | PreviewServer) {
@@ -23,6 +25,47 @@ export function docsPlugin(): Plugin {
   return {
     name: 'medium-zoom-docs',
     enforce: 'pre',
+    config() {
+      const template = readFileSync(new URL('./docs-template.html', import.meta.url), 'utf8')
+      const entries: Record<string, string> = {}
+      const escapeHtml = (value: string) =>
+        value.replace(
+          /[&<>"']/g,
+          character =>
+            ({
+              '&': '&amp;',
+              '<': '&lt;',
+              '>': '&gt;',
+              '"': '&quot;',
+              "'": '&#39;',
+            })[character]!
+        )
+      for (const page of docsPages) {
+        const url = `https://medium-zoom.francoischalifour.com${page.path}`
+        const schema = {
+          '@context': 'https://schema.org',
+          '@type': 'TechArticle',
+          headline: page.title,
+          description: page.description,
+          url,
+          isPartOf: {
+            '@type': 'WebSite',
+            name: 'medium-zoom',
+            url: 'https://medium-zoom.francoischalifour.com/',
+          },
+        }
+        const html = template
+          .replaceAll('__DOC_TITLE__', escapeHtml(`${page.title} — medium-zoom documentation`))
+          .replaceAll('__DOC_DESCRIPTION__', escapeHtml(page.description))
+          .replaceAll('__DOC_URL__', escapeHtml(url))
+          .replace('"__DOC_SCHEMA__"', JSON.stringify(schema).replaceAll('<', '\\u003c'))
+        const file = fileURLToPath(new URL(`..${page.path}index.html`, import.meta.url))
+        mkdirSync(dirname(file), { recursive: true })
+        if (!existsSync(file) || readFileSync(file, 'utf8') !== html) writeFileSync(file, html)
+        entries[page.path.slice(1).replaceAll('/', '-')] = file
+      }
+      return { build: { rolldownOptions: { input: entries } } }
+    },
     configureServer: redirectMovedDocs,
     configurePreviewServer: redirectMovedDocs,
     transform(source, id) {

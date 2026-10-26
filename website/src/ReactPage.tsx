@@ -3,7 +3,7 @@ import { ExampleRail } from './example-rail'
 import { UsageExamples } from './usage-examples'
 import { repositoryUrl } from './site-data'
 
-export function ShadcnPage() {
+export function ReactPage() {
   return (
     <>
       <ExampleRail />
