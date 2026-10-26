@@ -1,7 +1,7 @@
 import { test, expect } from './website-fixture'
 import { testUrl } from '../server-urls.ts'
 
-for (const path of ['/website.html', '/examples/shadcn/']) {
+for (const path of ['/website.html', '/react']) {
   test(`${path} hydrates saved preferences without losing server-rendered content`, async ({
     page,
   }) => {
@@ -34,7 +34,7 @@ for (const path of ['/website.html', '/examples/shadcn/']) {
     await page
       .getByRole('navigation', { name: 'Main navigation', exact: true })
       .locator('.section-links')
-      .locator(`a[href="${path === '/website.html' ? '/examples/shadcn/' : '/'}"]`)
+      .locator(`a[href="${path === '/website.html' ? '/react' : '/'}"]`)
       .click()
     await expect(
       page.locator('.hero-install').getByRole('radio', { name: 'bun', exact: true })
@@ -44,7 +44,7 @@ for (const path of ['/website.html', '/examples/shadcn/']) {
   })
 }
 
-for (const path of ['/website.html', '/examples/shadcn/']) {
+for (const path of ['/website.html', '/react']) {
   test(`${path} shows the saved install command before React loads`, async ({ page }) => {
     const errors: string[] = []
     page.on('console', message => {

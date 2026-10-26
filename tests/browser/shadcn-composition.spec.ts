@@ -198,7 +198,7 @@ test('the default trigger name follows changes to image alt text', async ({ page
 })
 
 test('the published composition and controlled examples work as documented', async ({ page }) => {
-  await page.goto('/examples/shadcn/')
+  await page.goto('/react')
   await page.getByRole('tab', { name: 'Composed', exact: true }).click()
   const example = page.locator('#usage [role="tabpanel"]')
   await expect(example.locator('code')).toContainText('ImageZoom.Root')
@@ -216,7 +216,7 @@ test('the published composition and controlled examples work as documented', asy
 })
 
 test('composed and controlled examples are accessible in both themes', async ({ page }) => {
-  await page.goto('/examples/shadcn/')
+  await page.goto('/react')
   for (const theme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: theme })
     for (const name of ['Composed', 'Controlled']) {

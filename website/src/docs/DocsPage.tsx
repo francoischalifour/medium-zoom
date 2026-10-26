@@ -2,6 +2,8 @@ import { Children, isValidElement, type ReactNode } from 'react'
 import { SiteHeader, SiteFooter, SectionLinks } from '../site-shell'
 import { docsPages, headingId } from './pages'
 import { CodeFence } from './doc-components'
+import { useDocsNavigation } from './use-docs-navigation'
+import { ScrollArea } from '../scroll-area'
 import './docs.css'
 
 const pageContent = import.meta.glob<typeof import('./overview.mdx')>('./*.mdx', { eager: true })
@@ -32,6 +34,7 @@ function ArticleHeading({ children }: { children: ReactNode }) {
 }
 
 export function DocsPage({ path }: { path: string }) {
+  const { articleRef, activeHeadingId } = useDocsNavigation(path)
   const page = docsPages.find(page => page.path === path)
   if (!page) throw new Error(`Unknown documentation page: ${path}`)
   const { default: Content, outline } = pageContent[`./${page.source}`]
@@ -59,10 +62,14 @@ export function DocsPage({ path }: { path: string }) {
     </nav>
   )
   const contents = (
-    <nav aria-label="On this page">
-      <p>On this page</p>
+    <nav className="docs-contents" aria-label="On this page">
+      <p className="docs-contents-title">On this page</p>
       {outline.map(item => (
-        <a key={item.id} href={`#${item.id}`}>
+        <a
+          key={item.id}
+          href={`#${item.id}`}
+          aria-current={activeHeadingId === item.id ? 'location' : undefined}
+        >
           {item.title}
         </a>
       ))}
@@ -83,25 +90,25 @@ export function DocsPage({ path }: { path: string }) {
           }
         </style>
       </noscript>
-      <div className="docs-mobile-navigation">
-        <nav className="section-links" aria-label="Product navigation">
-          <SectionLinks page="docs" />
-        </nav>
-        <details>
-          <summary>Documentation</summary>
-          {navigation}
-        </details>
-        {!isOverview && (
-          <details>
-            <summary>On this page</summary>
-            {contents}
-          </details>
-        )}
-      </div>
       <div className="docs-layout">
-        <div className="docs-sidebar">{navigation}</div>
+        <ScrollArea className="docs-sidebar">{navigation}</ScrollArea>
         <main id="main" className="docs-main">
-          <article className="docs-article">
+          <div className="docs-mobile-navigation">
+            <nav className="section-links" aria-label="Product navigation">
+              <SectionLinks page="docs" />
+            </nav>
+            <details>
+              <summary>Documentation</summary>
+              <ScrollArea>{navigation}</ScrollArea>
+            </details>
+            {!isOverview && (
+              <details>
+                <summary>On this page</summary>
+                <ScrollArea>{contents}</ScrollArea>
+              </details>
+            )}
+          </div>
+          <article ref={articleRef} className="docs-article">
             <header className="docs-heading">
               <p>{page.group}</p>
               <h1>{page.title}</h1>
@@ -130,9 +137,9 @@ export function DocsPage({ path }: { path: string }) {
             </nav>
           )}
         </main>
-        {!isOverview && <div className="docs-outline">{contents}</div>}
+        {!isOverview && <ScrollArea className="docs-outline">{contents}</ScrollArea>}
       </div>
-      <SiteFooter />
+      <SiteFooter page="docs" />
     </div>
   )
 }

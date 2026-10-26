@@ -1,24 +1,8 @@
 import { readFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname } from 'node:path'
-import type { PreviewServer, ViteDevServer, Plugin } from 'vite'
+import type { Plugin } from 'vite'
 import { docsPages, headingId } from '../src/docs/pages.ts'
-
-// Use the hosting manifest for local development and preview redirects too.
-function redirectMovedDocs(server: ViteDevServer | PreviewServer) {
-  const redirects = new Map(
-    readFileSync(new URL('../public/_redirects', import.meta.url), 'utf8')
-      .split('\n')
-      .filter(line => line.startsWith('/docs/'))
-      .map(line => line.trim().split(/\s+/).slice(0, 2) as [string, string])
-  )
-  server.middlewares.use((request, response, next) => {
-    const url = new URL(request.url || '/', 'http://localhost')
-    const destination = redirects.get(url.pathname.replace(/\/?$/, '/'))
-    if (!destination) return next()
-    response.writeHead(301, { Location: destination + url.search }).end()
-  })
-}
 
 function getOutline(source: string) {
   const prose = source.replace(/^```[^\n]*\n[\s\S]*?^```/gm, '')
@@ -119,8 +103,6 @@ export function docsPlugin(): Plugin {
       }
       return { build: { rolldownOptions: { input: entries } } }
     },
-    configureServer: redirectMovedDocs,
-    configurePreviewServer: redirectMovedDocs,
     transform(source, id) {
       if (!id.endsWith('.mdx')) return
       const outline = getOutline(source)

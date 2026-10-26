@@ -20,6 +20,140 @@ const pages = [
   ['/docs/reference/react/composition/', 'Composition'],
 ] as const
 
+test('collapsed docs navigation stays inside the article column on phones and tablets', async ({
+  page,
+}) => {
+  await page.goto('/docs/javascript/')
+  for (const width of [390, 1_024]) {
+    await page.setViewportSize({ width, height: 900 })
+    const main = page.locator('.docs-main')
+    const menus = main.locator('.docs-mobile-navigation')
+    await expect(menus).toBeVisible()
+    const mainBounds = (await main.boundingBox())!
+    const menuBounds = (await menus.boundingBox())!
+    expect(menuBounds.x).toBe(mainBounds.x)
+    expect(menuBounds.width).toBe(mainBounds.width)
+    const documentation = menus.getByText('Documentation', { exact: true }).first()
+    if (width === 390) await expect(documentation).toBeVisible()
+    else await expect(documentation).toBeHidden()
+    await expect(menus.locator('summary').last()).toHaveText('On this page')
+  }
+  await page.setViewportSize({ width: 1_024, height: 900 })
+  await page.goto('/docs/')
+  await expect(page.locator('.docs-mobile-navigation')).toBeHidden()
+})
+
+test('the active outline section keeps its rail marker without a fill or underline', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1_440, height: 900 })
+  await page.goto('/docs/javascript/')
+  const link = page.locator('.docs-outline a[href="#initialize-the-zoom"]')
+  await link.click()
+  await expect(link).toHaveAttribute('aria-current', 'location')
+  await link.hover()
+  await expect(link).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+  await expect(link).toHaveCSS('text-decoration-line', 'none')
+  expect(await link.evaluate(element => getComputedStyle(element, '::before').width)).toBe('2px')
+})
+
+for (const theme of ['light', 'dark'] as const) {
+  test(`docs scroll indicators follow overflow and keyboard focus in ${theme} mode`, async ({
+    page,
+  }) => {
+    await page.emulateMedia({ colorScheme: theme })
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/docs/guides/hd-images/')
+    const menu = page.locator('.docs-mobile-navigation details').first()
+    await menu.locator('summary').click()
+    const area = menu.locator('.scroll-area')
+    const viewport = area.locator('.scroll-area-viewport')
+    await expect(area).not.toHaveAttribute('data-scroll-above')
+    await expect(area).toHaveAttribute('data-scroll-below', '')
+    expect(await area.evaluate(element => getComputedStyle(element, '::after').opacity)).toBe('1')
+    await viewport.evaluate(element => {
+      element.scrollTop = (element.scrollHeight - element.clientHeight) / 2
+    })
+    await expect(area).toHaveAttribute('data-scroll-above', '')
+    await expect(area).toHaveAttribute('data-scroll-below', '')
+    await area.getByRole('link', { name: 'Composition', exact: true }).focus()
+    await expect(area).toHaveAttribute('data-scroll-above', '')
+    await expect(area).not.toHaveAttribute('data-scroll-below')
+    expect(await area.evaluate(element => getComputedStyle(element, '::after').opacity)).toBe('0')
+    await menu.locator('summary').click()
+    await menu.locator('summary').click()
+    await expect(area).toHaveAttribute('data-scroll-above', '')
+    const contents = page.locator('.docs-mobile-navigation details').last()
+    await contents.locator('summary').click()
+    await expect(contents.locator('.scroll-area')).not.toHaveAttribute('data-scroll-above')
+    await expect(contents.locator('.scroll-area')).not.toHaveAttribute('data-scroll-below')
+    await page.setViewportSize({ width: 1_440, height: 600 })
+    await expect(page.locator('.docs-sidebar')).toHaveAttribute('data-scroll-below', '')
+    await page.setViewportSize({ width: 1_440, height: 1_500 })
+    await expect(page.locator('.docs-sidebar')).not.toHaveAttribute('data-scroll-below')
+  })
+}
+
+test('anchor arrival waits for scrolling, fades away, and repeats for the same destination', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1_440, height: 900 })
+  await page.goto('/docs/reference/javascript/methods/')
+  const link = page.locator('.docs-outline a[href="#getzoomedimage"]')
+  const heading = page.locator('h2#getzoomedimage')
+  await link.click()
+  await expect(heading).toHaveAttribute('data-anchor-arrival', '')
+  await expect(heading).toBeInViewport()
+  await expect(link).toHaveAttribute('aria-current', 'location')
+  const position = await page.evaluate(() => window.scrollY)
+  await expect(heading).not.toHaveAttribute('data-anchor-arrival', '', { timeout: 3_000 })
+  expect(await page.evaluate(() => window.scrollY)).toBe(position)
+  await link.click()
+  await expect(heading).toHaveAttribute('data-anchor-arrival', '')
+  await page.locator('.docs-outline a[href="#open"]').click()
+  await expect(page.locator('#open')).toHaveAttribute('data-anchor-arrival', '')
+  await expect(heading).not.toHaveAttribute('data-anchor-arrival', '')
+  await page.goBack()
+  await expect(heading).toHaveAttribute('data-anchor-arrival', '')
+})
+
+test('mobile contents menus close before landing and transfer keyboard focus', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/docs/guides/custom-react-triggers/')
+  const menu = page.locator('.docs-mobile-navigation details').last()
+  await menu.locator('summary').focus()
+  await page.keyboard.press('Enter')
+  await expect(menu).toHaveAttribute('open', '')
+  await expect(menu.locator('.docs-contents-title')).toBeHidden()
+  const link = menu.getByRole('link', { name: 'Style the trigger', exact: true })
+  await link.focus()
+  await page.keyboard.press('Enter')
+  await expect(menu).not.toHaveAttribute('open', '')
+  const heading = page.locator('#style-the-trigger')
+  await expect(heading).toHaveAttribute('data-anchor-arrival', '')
+  await expect(heading).toBeFocused()
+  await expect(heading).toBeInViewport()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390)
+})
+
+test('deep links and compatibility markers show static arrival feedback with reduced motion', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/docs/javascript/#add-an-image')
+  const heading = page.locator('#add-an-image')
+  await expect(heading).toHaveAttribute('data-anchor-arrival', '')
+  expect(
+    await heading.evaluate(element => getComputedStyle(element, '::before').animationName)
+  ).toBe('none')
+  await expect(heading).not.toHaveAttribute('data-anchor-arrival', '', { timeout: 3_000 })
+  await page.goto('/docs/guides/hd-images/#data-zoom-src')
+  await expect(page.locator('[data-anchor-arrival]')).toBeVisible()
+  await expect(page.locator('#data-zoom-src')).not.toHaveAttribute('data-anchor-arrival', '')
+  await page.goto('/docs/javascript/#%E0%A4%A')
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+})
+
 for (const [path, title] of pages) {
   test(`${title} ships complete HTML, anchors and metadata`, async ({ browser }) => {
     const context = await browser.newContext({ javaScriptEnabled: false })
@@ -298,7 +432,7 @@ for (const theme of ['light', 'dark'] as const) {
     page,
   }) => {
     await page.emulateMedia({ colorScheme: theme })
-    for (const path of ['/docs/javascript/', '/website.html', '/examples/shadcn/']) {
+    for (const path of ['/docs/javascript/', '/website.html', '/react']) {
       await page.goto(path)
       const values = await page
         .locator('.package-switch label, .demo-tabs button')
@@ -400,7 +534,7 @@ test('Documentation shares the section navigation across desktop and mobile', as
     await page.setViewportSize({ width, height: 900 })
     for (const [path, current] of [
       ['/website.html', 'JavaScript'],
-      ['/examples/shadcn/', 'React'],
+      ['/react', 'React'],
       ['/docs/', 'Docs'],
     ]) {
       await page.goto(path)
@@ -458,7 +592,7 @@ for (const theme of ['light', 'dark'] as const) {
       '/docs/javascript/',
       '/docs/reference/javascript/medium-zoom/',
       '/website.html',
-      '/examples/shadcn/',
+      '/react',
     ]) {
       await page.goto(path)
       const background = await page

@@ -1,8 +1,9 @@
 import { createServer } from 'node:http'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { resolve, extname, sep } from 'node:path'
 import { pack } from '../scripts/pack.ts'
 import { testPort } from './server-urls.ts'
+import { readExactRedirects } from '../website/build/site-redirects.ts'
 
 const artifact = pack()
 const roots: Record<string, string> = {
@@ -12,12 +13,7 @@ const roots: Record<string, string> = {
   site: resolve('website/dist'),
   analytics: resolve('.cache/analytics-site'),
 }
-const docsRedirects = new Map(
-  readFileSync(resolve(roots.site, '_redirects'), 'utf8')
-    .split('\n')
-    .filter(line => line.startsWith('/docs/'))
-    .map(line => line.trim().split(/\s+/).slice(0, 2) as [string, string])
-)
+const pageRedirects = readExactRedirects(resolve(roots.site, '_redirects'))
 const contentTypes: Record<string, string> = {
   '.js': 'text/javascript',
   '.css': 'text/css',
@@ -36,7 +32,7 @@ const server = createServer((request, response) => {
     response.end('<!doctype html><title>Medium Zoom package tests</title>')
     return
   }
-  const destination = docsRedirects.get(url.pathname.replace(/\/?$/, '/'))
+  const destination = pageRedirects.get(url.pathname)
   if (destination) {
     response.writeHead(301, { Location: destination + url.search }).end()
     return
@@ -46,11 +42,12 @@ const server = createServer((request, response) => {
   let relative = roots[root] ? segments.join('/') : [root, ...segments].join('/')
   if (relative === 'website.html') relative = 'index.html'
   if (!relative || relative.endsWith('/')) relative += 'index.html'
-  const path = resolve(directory, relative)
+  let path = resolve(directory, relative)
   if (!path.startsWith(`${directory}${sep}`)) {
     response.writeHead(403).end()
     return
   }
+  if (!extname(path) && !existsSync(path)) path += '.html'
   try {
     const contents = readFileSync(path)
     const contentType = contentTypes[extname(path)] || 'application/octet-stream'

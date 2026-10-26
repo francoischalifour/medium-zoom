@@ -54,7 +54,7 @@ async function clipboardPermission(
   await session.detach()
 }
 
-for (const path of ['/', '/examples/shadcn/']) {
+for (const path of ['/', '/react']) {
   test(`${path} records successful interactions once with shared context`, async ({
     page,
     context,
@@ -171,7 +171,7 @@ test('local and preview hosts never send events even with a configured key', asy
     )
     await route.fulfill({ response })
   })
-  await page.goto('https://preview.example/examples/shadcn/')
+  await page.goto('https://preview.example/react')
   await page
     .getByRole('region', { name: 'Image zoom examples', exact: true })
     .getByRole('button', { name: 'Zoom image: Ocean sunset', exact: true })
@@ -186,7 +186,7 @@ test('analytics delivery failures do not break zoom or clipboard feedback', asyn
 }) => {
   await intercept(page)
   await page.context().route('https://api.altertable.ai/**', route => route.abort())
-  await page.goto(`${origin}/examples/shadcn/`)
+  await page.goto(`${origin}/react`)
   await clipboardPermission(context, page, 'granted')
   await page
     .locator('.hero-install')

@@ -14,7 +14,7 @@ export function App({ page }: { page: SitePage }) {
         {page === 'javascript' ? <JavaScriptPage /> : <ReactPage />}
         <ClosingInstall page={page} />
       </main>
-      <SiteFooter />
+      <SiteFooter page={page} />
     </div>
   )
 }

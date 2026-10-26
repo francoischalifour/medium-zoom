@@ -7,7 +7,7 @@ const nextDate = new Date(`${snapshot.end}T00:00:00Z`)
 nextDate.setUTCDate(nextDate.getUTCDate() + 1)
 const nextDay = nextDate.toISOString().slice(0, 10)
 
-for (const path of ['/website.html', '/examples/shadcn/']) {
+for (const path of ['/website.html', '/react']) {
   test(`${path} serves the reported downloads without JavaScript`, async ({ browser }) => {
     const context = await browser.newContext({ javaScriptEnabled: false })
     try {
@@ -19,6 +19,7 @@ for (const path of ['/website.html', '/examples/shadcn/']) {
       )
       await expect(stats).toContainText(`${format(snapshot.weekly)} weekly downloads`)
       await expect(stats.locator('time')).toHaveAttribute('datetime', snapshot.end)
+      await expect(stats.locator('.download-digits')).toHaveCSS('opacity', '1')
     } finally {
       await context.close()
     }
@@ -92,16 +93,53 @@ for (const failure of ['unavailable', 'incomplete', 'older'] as const) {
   })
 }
 
-test('download digits enter once and respect reduced motion', async ({ page }) => {
+test('the download number waits until visible and animates through intermediate frames', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.goto('/website.html')
+  const number = page.locator('.download-digits')
+  const edgeFrames = await number.evaluate(async element => {
+    window.scrollTo({
+      top:
+        element.getBoundingClientRect().top +
+        scrollY -
+        innerHeight +
+        element.getBoundingClientRect().height / 4,
+      behavior: 'instant',
+    })
+    const frames: number[] = []
+    for (let index = 0; index < 20; index++) {
+      await new Promise(requestAnimationFrame)
+      frames.push(Number(getComputedStyle(element).opacity))
+    }
+    return frames
+  })
+  expect(edgeFrames.every(opacity => opacity === 0)).toBe(true)
+  const revealFrames = await number.evaluate(async element => {
+    element.scrollIntoView({ block: 'center', behavior: 'instant' })
+    const frames: number[] = []
+    for (let index = 0; index < 40; index++) {
+      await new Promise(requestAnimationFrame)
+      frames.push(Number(getComputedStyle(element).opacity))
+    }
+    return frames
+  })
+  expect(revealFrames.filter(opacity => opacity > 0 && opacity < 1).length).toBeGreaterThan(2)
+  expect(revealFrames.at(-1)).toBe(1)
+  for (let index = 1; index < revealFrames.length; index++) {
+    expect(revealFrames[index]).toBeGreaterThanOrEqual(revealFrames[index - 1])
+  }
+})
+
+test('the download number enters once and respects reduced motion', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' })
   await page.goto('/website.html')
   const stats = page.getByRole('region', { name: 'npm downloads' })
+  await expect(stats.locator('.download-digits')).toHaveCSS('opacity', '0')
   await stats.scrollIntoViewIfNeeded()
   await expect(stats).toHaveAttribute('data-entered', 'true')
-  await expect(stats.locator('.download-digits > span').first()).toHaveCSS(
-    'animation-name',
-    'download-digit-enter'
-  )
+  await expect(stats.locator('.download-digits')).toHaveCSS('opacity', '1')
   await expect
     .poll(() =>
       stats.evaluate(
@@ -123,7 +161,33 @@ test('download digits enter once and respect reduced motion', async ({ page }) =
     )
   ).toBe(0)
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  await expect(stats.locator('.download-digits > span').first()).toHaveCSS('animation-name', 'none')
+  await expect(stats.locator('.download-digits')).toHaveCSS('animation-name', 'none')
+})
+
+test('the download number starts hidden before hydration and reveals without a flash', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1_440, height: 4_000 })
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  let resume!: () => void
+  const hydration = new Promise<void>(resolve => {
+    resume = resolve
+  })
+  await page.route('**/assets/*.js', async route => {
+    await hydration
+    await route.continue()
+  })
+  await page.goto('/website.html', { waitUntil: 'commit' })
+  const number = page.locator('.download-digits')
+  try {
+    await expect(number).toBeInViewport()
+    await expect(number).toHaveCSS('opacity', '0')
+    await expect(page.locator('.download-stats')).toHaveAttribute('data-entered', 'false')
+  } finally {
+    resume()
+  }
+  await expect(page.locator('.download-stats')).toHaveAttribute('data-entered', 'true')
+  await expect(number).toHaveCSS('opacity', '1')
 })
 
 for (const theme of ['light', 'dark'] as const) {

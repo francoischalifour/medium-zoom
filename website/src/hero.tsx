@@ -39,7 +39,7 @@ export function Hero({ page }: { page: SitePage }) {
             <Icon name="code" /> View source
           </a>
         ) : (
-          <a className="button button-secondary" href="/examples/shadcn/">
+          <a className="button button-secondary" href="/react">
             <ReactIcon className="documentation-mark" /> React component
           </a>
         )}

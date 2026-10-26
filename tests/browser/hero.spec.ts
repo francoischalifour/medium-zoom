@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-for (const path of ['/website.html', '/examples/shadcn/']) {
+for (const path of ['/website.html', '/react']) {
   test(`${path} expands the decorative zoom frames independently of its content`, async ({
     page,
   }) => {
@@ -60,7 +60,7 @@ for (const path of ['/website.html', '/examples/shadcn/']) {
   })
 }
 
-for (const path of ['/website.html', '/examples/shadcn/']) {
+for (const path of ['/website.html', '/react']) {
   test(`${path} keeps the mobile hero within the viewport`, async ({ page }) => {
     for (const width of [375, 430]) {
       await page.setViewportSize({ width, height: 844 })

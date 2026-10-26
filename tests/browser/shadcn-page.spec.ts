@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test'
 import { decodeImages, dismissZoom, openImage } from './helpers.ts'
 
-const demo = '/examples/shadcn/'
+const demo = '/react'
 const registry = 'https://medium-zoom.francoischalifour.com/r/image-zoom.json'
 
 async function ready(page: Page) {

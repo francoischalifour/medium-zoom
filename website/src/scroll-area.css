@@ -1,0 +1,56 @@
+.scroll-area {
+  position: relative;
+  min-height: 0;
+  --scroll-area-background: var(--background);
+  --scroll-area-fade: 24px;
+}
+.scroll-area-viewport {
+  max-height: var(--scroll-area-max-height, none);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scroll-padding-block: var(--scroll-area-fade);
+  scrollbar-width: thin;
+}
+.scroll-area[data-scroll-ready] > .scroll-area-viewport {
+  scrollbar-width: none;
+}
+.scroll-area[data-scroll-ready] > .scroll-area-viewport::-webkit-scrollbar {
+  display: none;
+}
+.scroll-area-content {
+  display: flow-root;
+}
+.scroll-area::before,
+.scroll-area::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  inset-inline: 0;
+  height: var(--scroll-area-fade);
+  pointer-events: none;
+  opacity: 0;
+}
+.scroll-area::before {
+  top: 0;
+  background: linear-gradient(to bottom, var(--scroll-area-background), transparent);
+}
+.scroll-area::after {
+  bottom: 0;
+  background: linear-gradient(to top, var(--scroll-area-background), transparent);
+}
+.scroll-area[data-scroll-above]::before,
+.scroll-area[data-scroll-below]::after {
+  opacity: 1;
+}
+@media (forced-colors: active) {
+  .scroll-area::before,
+  .scroll-area::after {
+    display: none;
+  }
+  .scroll-area[data-scroll-ready] > .scroll-area-viewport {
+    scrollbar-width: auto;
+  }
+  .scroll-area[data-scroll-ready] > .scroll-area-viewport::-webkit-scrollbar {
+    display: revert;
+  }
+}
