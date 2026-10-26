@@ -28,6 +28,19 @@ function getOutline(source: string) {
   })
 }
 
+function getSearchExcerpt(source: string) {
+  const paragraph = source
+    .replace(/^```[^\n]*\n[\s\S]*?^```/gm, '')
+    .split(/\n\s*\n/)
+    .map(block => block.trim())
+    .find(block => block && !/^(?:import\b|export\b|#|<)/.test(block))
+  return paragraph
+    ?.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[`*_]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 // The authored headings own both the article anchors and its server-rendered outline.
 export function docsPlugin(): Plugin {
   return {
@@ -47,7 +60,7 @@ export function docsPlugin(): Plugin {
             title: page.title,
             path: page.path,
             group: page.group,
-            description: page.description,
+            description: getSearchExcerpt(source) ?? page.description,
           },
           ...getOutline(source).map(heading => ({
             title: heading.title,
