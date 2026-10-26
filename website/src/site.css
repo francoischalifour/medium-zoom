@@ -371,27 +371,8 @@ h1 {
   .rail-window::after {
     transition: opacity 180ms ease-out;
   }
-  .examples-section:has(:focus-visible) .rail-window,
-  .rail-window[data-scrolling='true'] {
+  .rail-window[data-expanded='true'] {
     --rail-reveal: 1;
-  }
-}
-@media (min-width: 1280px) and (hover: hover) and (pointer: fine) {
-  .examples-section:hover .rail-window {
-    --rail-reveal: 1;
-  }
-  .examples-section:hover .rail-window,
-  .examples-section:hover .rail-window::before,
-  .examples-section:hover .rail-window::after {
-    transition-delay: 160ms;
-  }
-  .examples-section:has(:focus-visible) .rail-window,
-  .examples-section:has(:focus-visible) .rail-window::before,
-  .examples-section:has(:focus-visible) .rail-window::after,
-  .rail-window[data-scrolling='true'],
-  .rail-window[data-scrolling='true']::before,
-  .rail-window[data-scrolling='true']::after {
-    transition-delay: 0s;
   }
 }
 .example-rail {

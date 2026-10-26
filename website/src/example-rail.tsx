@@ -104,39 +104,40 @@ function ExampleCard({
 export function ExampleRail({ kind = 'react' }: { kind?: 'react' | 'javascript' }) {
   const railRef = React.useRef<HTMLDivElement>(null)
   const [edges, setEdges] = React.useState({ start: true, end: false })
-  const [scrolling, setScrolling] = React.useState(false)
+  const [expanded, setExpanded] = React.useState(false)
+  const hoverTimer = React.useRef<number | undefined>(undefined)
 
   React.useEffect(() => {
     const rail = railRef.current!
-    const supportsScrollEnd = 'onscrollend' in rail
-    let idleTimer: number | undefined
     function update() {
       setEdges({
         start: rail.scrollLeft < 2,
         end: rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 2,
       })
     }
-    function endScroll() {
-      setScrolling(false)
-    }
     function onScroll() {
       update()
-      setScrolling(true)
-      if (!supportsScrollEnd) {
-        window.clearTimeout(idleTimer)
-        idleTimer = window.setTimeout(endScroll, 150)
-      }
+      setExpanded(true)
     }
+    const visibility = new IntersectionObserver(
+      entries => {
+        if (entries[0].intersectionRatio < 0.15) {
+          window.clearTimeout(hoverTimer.current)
+          setExpanded(false)
+        }
+      },
+      { threshold: [0, 0.15], rootMargin: '-56px 0px 0px' }
+    )
+    visibility.observe(rail)
     const observer = new ResizeObserver(update)
     observer.observe(rail)
     rail.addEventListener('scroll', onScroll, { passive: true })
-    rail.addEventListener('scrollend', endScroll)
     update()
     return () => {
       observer.disconnect()
       rail.removeEventListener('scroll', onScroll)
-      rail.removeEventListener('scrollend', endScroll)
-      window.clearTimeout(idleTimer)
+      visibility.disconnect()
+      window.clearTimeout(hoverTimer.current)
     }
   }, [])
 
@@ -160,6 +161,16 @@ export function ExampleRail({ kind = 'react' }: { kind?: 'react' | 'javascript' 
       className="examples-section"
       data-example-rail="primary"
       aria-label="Image zoom examples"
+      onPointerEnter={event => {
+        if (event.pointerType !== 'mouse') return
+        window.clearTimeout(hoverTimer.current)
+        hoverTimer.current = window.setTimeout(() => setExpanded(true), 160)
+      }}
+      onPointerLeave={() => window.clearTimeout(hoverTimer.current)}
+      onPointerDown={() => setExpanded(true)}
+      onFocusCapture={event => {
+        if (event.target.matches(':focus-visible')) setExpanded(true)
+      }}
     >
       <div className="rail-heading">
         <h2>Try the zoom.</h2>
@@ -191,7 +202,7 @@ export function ExampleRail({ kind = 'react' }: { kind?: 'react' | 'javascript' 
         className="rail-window"
         data-start={edges.start}
         data-end={edges.end}
-        data-scrolling={scrolling}
+        data-expanded={expanded}
       >
         <div
           className="example-rail"
