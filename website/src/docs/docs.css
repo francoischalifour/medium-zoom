@@ -35,7 +35,7 @@ html:has(.docs-shell) {
 .docs-nav-group p,
 .docs-outline nav > p {
   font-weight: 550;
-  margin: 0 0 8px;
+  margin: 0 0 4px;
 }
 .docs-nav-group a {
   padding: 6px 10px;
