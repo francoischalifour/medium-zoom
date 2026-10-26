@@ -68,7 +68,7 @@ html:has(.docs-shell) {
   color: var(--muted-foreground);
   line-height: 1.5;
 }
-.docs-contents {
+.docs-outline .docs-contents {
   position: relative;
   border-left: 1px solid var(--border);
   padding-left: 12px;
@@ -80,7 +80,7 @@ html:has(.docs-shell) {
   color: var(--foreground);
   text-decoration: none;
 }
-.docs-contents a[aria-current='location']::before {
+.docs-outline .docs-contents a[aria-current='location']::before {
   content: '';
   position: absolute;
   left: -3px;
@@ -295,10 +295,10 @@ html:has(.docs-shell) {
   margin-right: 3px;
   border-right: 1.5px solid var(--muted-foreground);
   border-bottom: 1.5px solid var(--muted-foreground);
-  transform: rotate(45deg) translateY(-2px);
+  transform: rotate(-45deg);
 }
 .docs-shell details[open] > summary::after {
-  transform: rotate(225deg) translate(-1px, -1px);
+  transform: rotate(45deg);
 }
 @media (hover: hover) and (pointer: fine) {
   .docs-shell details > summary:hover {
@@ -348,10 +348,10 @@ html:has(.docs-shell) {
   .docs-mobile-navigation .scroll-area {
     --scroll-area-background: var(--surface);
     --scroll-area-max-height: min(50dvh, 360px);
-    margin: 4px 8px 6px;
+    margin: 0 0 6px;
   }
   .docs-mobile-navigation .scroll-area-viewport {
-    padding: 12px 12px 16px;
+    padding: 4px 12px 12px;
   }
   .docs-mobile-navigation summary {
     font-size: 13px;

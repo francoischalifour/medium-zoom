@@ -75,6 +75,10 @@ select {
 button {
   cursor: pointer;
 }
+.site-shell :is(button, summary, .button, .section-links a, .package-switch label) {
+  -webkit-user-select: none;
+  user-select: none;
+}
 a {
   color: inherit;
   text-decoration: none;
