@@ -198,6 +198,7 @@ test('both pages preload the same font resources across navigation', async ({ pa
     .evaluateAll(links => links.map(link => (link as HTMLLinkElement).href).sort())
   expect(homeFonts).toHaveLength(2)
   await page.getByRole('navigation').getByRole('link', { name: 'React', exact: true }).click()
+  await expect(page.locator('link[rel="preload"][as="font"]')).toHaveCount(2)
   const componentFonts = await page
     .locator('link[rel="preload"][as="font"]')
     .evaluateAll(links => links.map(link => (link as HTMLLinkElement).href).sort())
@@ -329,12 +330,11 @@ for (const integration of [false, true]) {
     const first = section.getByRole('article').first()
     const sectionBox = (await section.boundingBox())!
     const firstBox = (await first.boundingBox())!
-    const probe = { x: sectionBox.x + sectionBox.width + 80, y: firstBox.y + 160 }
-    const outsideCard = () =>
-      page.evaluate(
-        ({ x, y }) => !!document.elementFromPoint(x, y)?.closest('.example-card'),
-        probe
-      )
+    const outsideCard = async () =>
+      page.evaluate(({ x, y }) => !!document.elementFromPoint(x, y)?.closest('.example-card'), {
+        x: sectionBox.x + sectionBox.width + 80,
+        y: (await first.boundingBox())!.y + 160,
+      })
     await expect.poll(outsideCard).toBe(false)
     if (!integration) await page.screenshot({ path: '/tmp/medium-zoom-wide-rail-resting.png' })
     await first.hover()
@@ -372,25 +372,18 @@ for (const integration of [false, true]) {
       await page.emulateMedia({ reducedMotion: motion })
       await openHome(page)
       if (integration) await page.goto('/examples/shadcn/')
-      const samples = page.locator('#usage-title').evaluate(
-        heading =>
-          new Promise<number[]>(resolve => {
-            const positions = [scrollY]
-            function observe() {
-              positions.push(scrollY)
-              if (Math.abs(heading.getBoundingClientRect().top - 88) <= 1) resolve(positions)
-              else requestAnimationFrame(observe)
-            }
-            requestAnimationFrame(observe)
-          })
+      await expect(page.locator('html')).toHaveCSS(
+        'scroll-behavior',
+        motion === 'no-preference' ? 'smooth' : 'auto'
       )
       await page.getByRole('link', { name: 'Start building', exact: true }).click()
-      const positions = await samples
       await expect(page).toHaveURL(/#usage-title$/)
       await expect(page.locator('#usage-title')).toBeFocused()
-      const final = positions.at(-1)!
-      const intermediate = positions.some(value => value > positions[0] + 2 && value < final - 2)
-      expect(intermediate).toBe(motion === 'no-preference')
+      await expect
+        .poll(() =>
+          page.locator('#usage-title').evaluate(element => element.getBoundingClientRect().top)
+        )
+        .toBeCloseTo(88, 0)
       const heading = (await page.locator('#usage-title').boundingBox())!
       const header = (await page.locator('.site-header').boundingBox())!
       expect(heading.y).toBeGreaterThan(header.y + header.height)

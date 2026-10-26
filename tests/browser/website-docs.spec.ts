@@ -199,9 +199,9 @@ test('mobile navigation and outline work without horizontal page overflow', asyn
 })
 
 for (const theme of ['light', 'dark'] as const) {
-  test(`docs are accessible in ${theme} theme on desktop and mobile`, async ({ page }) => {
-    await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' })
-    for (const [path] of pages) {
+  for (const [path] of pages) {
+    test(`${path} is accessible in ${theme} theme on desktop and mobile`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' })
       await page.goto(path)
       for (const width of [1_440, 390]) {
         await page.setViewportSize({ width, height: 900 })
@@ -212,8 +212,8 @@ for (const theme of ['light', 'dark'] as const) {
           .analyze()
         expect(result.violations).toEqual([])
       }
-    }
-  })
+    })
+  }
 }
 
 test('section links and sticky navigation clear the header', async ({ page }) => {
