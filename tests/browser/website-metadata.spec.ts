@@ -15,6 +15,11 @@ test('both pages ship readable HTML and complete sharing metadata without JavaSc
       ['/examples/shadcn/', '/examples/shadcn/', 'Your images,', 'og-shadcn.jpg'],
     ]) {
       await page.goto(path)
+      await expect(page).toHaveTitle(/Lightweight/i)
+      await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+        'content',
+        /lightweight.*lightbox alternative/i
+      )
       await expect(page.getByRole('heading', { level: 1 })).toContainText(heading)
       await expect(page.locator('.hero-install')).toContainText(
         canonical === '/' ? 'npm install medium-zoom' : 'shadcn@latest add'

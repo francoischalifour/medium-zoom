@@ -10,6 +10,8 @@ import { checkConsumers } from './check-package-consumers.ts'
 const artifact = pack()
 try {
   const metadata = JSON.parse(readFileSync(join(artifact.root, 'package.json'), 'utf8'))
+  assert.equal(metadata.homepage, 'https://medium-zoom.francoischalifour.com')
+  assert.match(metadata.description, /lightweight.*lightbox alternative/i)
   assert.equal(metadata.main, 'dist/medium-zoom.min.js')
   assert.equal(metadata.module, 'dist/medium-zoom.esm.js')
   assert.equal(metadata.types, 'dist/medium-zoom.d.ts')

@@ -96,10 +96,10 @@ test('documentation navigation preserves package manager and theme preferences',
     .getByRole('link', { name: /JavaScript quickstart/ })
     .click()
   await page
-    .locator('#library-installation')
+    .locator('#javascript-installation')
     .getByRole('radio', { name: 'bun', exact: true })
     .check()
-  await expect(page.locator('#library-installation')).toContainText('bun add medium-zoom')
+  await expect(page.locator('#javascript-installation')).toContainText('bun add medium-zoom')
   await page
     .getByRole('navigation', { name: 'Main navigation', exact: true })
     .locator('a[href="/docs/"]')
@@ -126,7 +126,7 @@ test('documentation navigation preserves package manager and theme preferences',
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Options')
   await page.locator('.docs-sidebar a[href="/docs/javascript/"]').click()
   await expect(
-    page.locator('#library-installation').getByRole('radio', { name: 'bun', exact: true })
+    page.locator('#javascript-installation').getByRole('radio', { name: 'bun', exact: true })
   ).toBeChecked()
   expect(errors).toEqual([])
 })

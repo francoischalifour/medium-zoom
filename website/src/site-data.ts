@@ -9,4 +9,12 @@ export const githubStarLabel = new Intl.NumberFormat('en', {
 
 export const repositoryUrl = 'https://github.com/francoischalifour/medium-zoom'
 
-export type SitePage = 'library' | 'shadcn'
+export type SitePage = 'javascript' | 'react'
+
+export function getSitePage(pathname: string): SitePage | 'docs' | null {
+  const path = pathname.replace(/\/?$/, '/')
+  if (path === '/') return 'javascript'
+  if (path === '/examples/shadcn/') return 'react'
+  if (path.startsWith('/docs/')) return 'docs'
+  return null
+}

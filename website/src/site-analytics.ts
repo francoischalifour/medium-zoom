@@ -1,5 +1,6 @@
 import { altertable, type Altertable, type EventProperties } from '@altertable/altertable-js'
 import { getPackageManager } from './package-manager'
+import { getSitePage } from './site-data'
 
 const apiKey = import.meta.env.VITE_ALTERTABLE_API_KEY
 const enabled =
@@ -19,14 +20,7 @@ function getClient() {
       transformEvent(event) {
         const url = event.properties?.$url
         const path = new URL(typeof url === 'string' ? url : location.href).pathname
-        const page =
-          path === '/'
-            ? 'library'
-            : path === '/examples/shadcn/'
-              ? 'shadcn'
-              : path.startsWith('/docs/')
-                ? 'docs'
-                : null
+        const page = getSitePage(path)
         if (!page) return null
         if (event.event === '$pageview') {
           if (lastPage === path) return null

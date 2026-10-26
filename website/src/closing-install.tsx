@@ -6,7 +6,7 @@ export function ClosingInstall({ page }: { page: SitePage }) {
     <section className="closing-install" aria-labelledby="closing-title">
       <h2 id="closing-title">Add zoom to your project.</h2>
       <p>
-        {page === 'library'
+        {page === 'javascript'
           ? 'Start with a few lines of JavaScript.'
           : 'Install with shadcn/ui. Make the component yours.'}
       </p>

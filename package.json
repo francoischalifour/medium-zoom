@@ -1,7 +1,7 @@
 {
   "name": "medium-zoom",
   "version": "1.1.2",
-  "description": "A JavaScript library for zooming images like Medium. Works with React and any web framework.",
+  "description": "A lightweight JavaScript image zoom library and lightbox alternative. Zero dependencies. Works with any framework.",
   "keywords": [
     "click-to-zoom",
     "dependency-free",
@@ -30,6 +30,7 @@
     "zoom-image",
     "zoomable"
   ],
+  "homepage": "https://medium-zoom.francoischalifour.com",
   "license": "MIT",
   "author": {
     "name": "Francois Chalifour",

@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import { usePackageManager, setPackageManager, packageManagers } from './package-manager'
-import { libraryCommands, componentCommands } from './install-commands'
+import { javascriptCommands, componentCommands } from './install-commands'
 import { CopyButton, CodeTokens } from './site-components'
 import { trackInstallCopied } from './site-analytics'
 import type { SitePage } from './site-data'
@@ -16,7 +16,7 @@ export function InstallCommand({
 }) {
   const groupName = useId()
   const manager = usePackageManager()
-  const commands = page === 'library' ? libraryCommands : componentCommands
+  const commands = page === 'javascript' ? javascriptCommands : componentCommands
   const command = commands[manager]
   return (
     <div className={`code-block install-block ${className}`} id={id} aria-label="Installation">
