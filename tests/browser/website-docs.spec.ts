@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright'
-import { test, expect } from '@playwright/test'
+import { test, expect } from './website-fixture'
 
 const origin = 'https://medium-zoom.francoischalifour.com'
 const pages = [

@@ -1,3 +1,4 @@
+import { DownloadStats } from './download-stats'
 import { Icon, CopyButton, CodeTokens } from './site-components'
 import { ExampleRail } from './example-rail'
 import { javascriptUsageCode } from './gallery'
@@ -25,6 +26,8 @@ export function JavaScriptPage() {
           <p>Load high-resolution images on zoom.</p>
         </div>
       </section>
+
+      <DownloadStats />
 
       <section className="guide-section" id="usage" aria-labelledby="usage-title">
         <div className="guide-heading">

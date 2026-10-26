@@ -1,3 +1,4 @@
+import { DownloadStats } from './download-stats'
 import { Icon } from './site-components'
 import { ExampleRail } from './example-rail'
 import { UsageExamples } from './usage-examples'
@@ -24,6 +25,8 @@ export function ReactPage() {
           <p>An overlay that matches your background.</p>
         </div>
       </section>
+
+      <DownloadStats />
 
       <section className="guide-section" id="usage" aria-labelledby="usage-title">
         <div className="guide-heading">

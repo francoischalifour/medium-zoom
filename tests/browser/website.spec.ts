@@ -1,4 +1,5 @@
-import { test, expect, type Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
+import { test, expect } from './website-fixture'
 import { testUrl } from '../server-urls.ts'
 import { decodeImages, dismissZoom, openImage } from './helpers.ts'
 
