@@ -116,24 +116,24 @@ export function DocsPage({ path }: { path: string }) {
           }
         </style>
       </noscript>
-      <div className="docs-mobile-navigation">
-        <nav className="section-links" aria-label="Product navigation">
-          <SectionLinks page="docs" />
-        </nav>
-        <details>
-          <summary>Documentation</summary>
-          <ScrollArea>{navigation}</ScrollArea>
-        </details>
-        {!isOverview && (
-          <details>
-            <summary>On this page</summary>
-            <ScrollArea>{contents}</ScrollArea>
-          </details>
-        )}
-      </div>
       <div className="docs-layout">
         <ScrollArea className="docs-sidebar">{navigation}</ScrollArea>
         <main id="main" className="docs-main">
+          <div className="docs-mobile-navigation">
+            <nav className="section-links" aria-label="Product navigation">
+              <SectionLinks page="docs" />
+            </nav>
+            <details>
+              <summary>Documentation</summary>
+              <ScrollArea>{navigation}</ScrollArea>
+            </details>
+            {!isOverview && (
+              <details>
+                <summary>On this page</summary>
+                <ScrollArea>{contents}</ScrollArea>
+              </details>
+            )}
+          </div>
           <article ref={articleRef} className="docs-article">
             <header className="docs-heading">
               <p>{page.group}</p>

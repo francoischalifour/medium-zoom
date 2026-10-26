@@ -78,7 +78,7 @@ html:has(.docs-shell) {
 }
 .docs-contents a[aria-current='location'] {
   color: var(--foreground);
-  background: var(--selected);
+  text-decoration: none;
 }
 .docs-contents a[aria-current='location']::before {
   content: '';
@@ -117,8 +117,6 @@ html:has(.docs-shell) {
   margin: 18px 0;
 }
 .docs-article h2 {
-  position: relative;
-  isolation: isolate;
   font-size: 21px;
   font-weight: 550;
   line-height: 1.4;
@@ -333,9 +331,7 @@ html:has(.docs-shell) {
   }
   .docs-mobile-navigation {
     display: block;
-    max-width: 1000px;
-    padding: 0 var(--site-gutter);
-    margin: 20px auto 0;
+    margin-bottom: 28px;
   }
   .docs-mobile-navigation > details:first-of-type {
     display: none;
@@ -358,7 +354,6 @@ html:has(.docs-shell) {
     padding: 12px 12px 16px;
   }
   .docs-mobile-navigation summary {
-    cursor: pointer;
     font-size: 13px;
   }
   .docs-mobile-navigation nav {
@@ -378,6 +373,11 @@ html:has(.docs-shell) {
     min-height: 36px;
     display: flex;
     align-items: center;
+  }
+}
+@media (min-width: 761px) {
+  .docs-overview .docs-mobile-navigation {
+    display: none;
   }
 }
 @media (max-width: 760px) {
@@ -614,10 +614,6 @@ html:has(.docs-shell) {
 .docs-installation-option {
   border-bottom: 1px solid var(--border);
   padding: 12px 0;
-}
-.docs-installation-option summary {
-  cursor: pointer;
-  font-weight: 550;
 }
 .docs-example {
   margin: 24px 0 32px;

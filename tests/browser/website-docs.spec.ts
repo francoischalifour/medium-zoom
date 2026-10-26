@@ -20,6 +20,43 @@ const pages = [
   ['/docs/reference/react/composition/', 'Composition'],
 ] as const
 
+test('collapsed docs navigation stays inside the article column on phones and tablets', async ({
+  page,
+}) => {
+  await page.goto('/docs/javascript/')
+  for (const width of [390, 1_024]) {
+    await page.setViewportSize({ width, height: 900 })
+    const main = page.locator('.docs-main')
+    const menus = main.locator('.docs-mobile-navigation')
+    await expect(menus).toBeVisible()
+    const mainBounds = (await main.boundingBox())!
+    const menuBounds = (await menus.boundingBox())!
+    expect(menuBounds.x).toBe(mainBounds.x)
+    expect(menuBounds.width).toBe(mainBounds.width)
+    const documentation = menus.getByText('Documentation', { exact: true }).first()
+    if (width === 390) await expect(documentation).toBeVisible()
+    else await expect(documentation).toBeHidden()
+    await expect(menus.locator('summary').last()).toHaveText('On this page')
+  }
+  await page.setViewportSize({ width: 1_024, height: 900 })
+  await page.goto('/docs/')
+  await expect(page.locator('.docs-mobile-navigation')).toBeHidden()
+})
+
+test('the active outline section keeps its rail marker without a fill or underline', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1_440, height: 900 })
+  await page.goto('/docs/javascript/')
+  const link = page.locator('.docs-outline a[href="#initialize-the-zoom"]')
+  await link.click()
+  await expect(link).toHaveAttribute('aria-current', 'location')
+  await link.hover()
+  await expect(link).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+  await expect(link).toHaveCSS('text-decoration-line', 'none')
+  expect(await link.evaluate(element => getComputedStyle(element, '::before').width)).toBe('2px')
+})
+
 for (const theme of ['light', 'dark'] as const) {
   test(`docs scroll indicators follow overflow and keyboard focus in ${theme} mode`, async ({
     page,
