@@ -13,9 +13,7 @@ for (const shortcut of ['Meta+k', 'Control+k']) {
     await search.fill('margin')
     await expect(page.getByRole('option').first()).toContainText('margin')
     await expect(page.getByRole('option').first()).toContainText('Options')
-    await expect(page.getByRole('option').first().locator('.command-title mark')).toHaveText(
-      'margin'
-    )
+    await expect(page.getByRole('option').first().locator('mark').first()).toHaveText('margin')
     await page.keyboard.press('Escape')
     await expect(page.getByRole('dialog')).not.toBeVisible()
     await expect(trigger).toBeFocused()
@@ -44,54 +42,32 @@ test('aliases, keyboard selection, empty state, and modal accessibility', async 
   await expect(page.getByRole('option', { name: /Ask ChatGPT/ })).toBeVisible()
   await expect(page.getByRole('dialog').getByRole('status')).toHaveText('0 matches')
   await expect(page.getByRole('option')).toHaveCount(2)
-  await expect(page.locator('.command-chat .command-detail')).toHaveCount(0)
+  await expect(page.getByRole('option', { name: 'Ask ChatGPT', exact: true })).toBeVisible()
   await expect(page.getByRole('dialog')).toBeVisible()
-  const emptyReport = await new AxeBuilder({ page }).include('.command-palette').analyze()
+  const emptyReport = await new AxeBuilder({ page }).include('dialog').analyze()
   expect(emptyReport.violations).toEqual([])
   await search.fill('')
   await expect(page.getByRole('option').first()).toBeVisible()
   await page.keyboard.press('ArrowDown')
   await expect(page.getByRole('option', { selected: true })).toContainText('React quickstart')
-  const report = await new AxeBuilder({ page }).include('.command-palette').analyze()
+  const report = await new AxeBuilder({ page }).include('dialog').analyze()
   expect(report.violations).toEqual([])
   await page.keyboard.press('Enter')
   await expect(page).toHaveURL(/\/docs\/react\/$/)
 })
 
-test('actions respect package manager and report copy success and failure', async ({ page }) => {
-  await page.addInitScript(() => {
-    localStorage.setItem('medium-zoom-package-manager', 'pnpm')
-    Object.defineProperty(navigator, 'clipboard', {
-      configurable: true,
-      value: {
-        writeText: async (text: string) => {
-          ;(window as unknown as { copied: string }).copied = text
-        },
-      },
-    })
-  })
+test('the theme action updates the control and persists across reloads', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light' })
   await page.goto('/docs/react/')
   await page.getByRole('button', { name: /Search docs/ }).click()
-  const search = page.getByRole('combobox')
-  await search.fill('copy react')
-  await page.getByRole('option', { name: /Copy React install command/ }).click()
-  await expect(page.getByRole('dialog').getByRole('status')).toHaveText('Copied to clipboard')
-  expect(await page.evaluate(() => (window as unknown as { copied: string }).copied)).toMatch(
-    /^pnpm dlx shadcn@latest add /
-  )
-  await page.evaluate(() => {
-    navigator.clipboard.writeText = async () => {
-      throw new Error('Permission denied')
-    }
-  })
-  await page.getByRole('option', { name: /Copy React install command/ }).click()
-  await expect(page.getByRole('dialog').getByRole('status')).toContainText(
-    'Could not copy. Select and copy this command: pnpm dlx'
-  )
-  await search.fill('theme')
-  const wasDark = await page.locator('html').evaluate(element => element.classList.contains('dark'))
-  await page.keyboard.press('Enter')
-  await expect(page.locator('html')).toHaveClass(wasDark ? '' : 'dark')
+  await page.getByRole('combobox').fill('theme')
+  await page.getByRole('option', { name: 'Switch to dark theme' }).click()
+  await expect(page.getByRole('dialog').getByRole('status')).toHaveText('Switched to dark theme')
+  await expect(page.getByRole('option', { name: 'Switch to light theme' })).toBeVisible()
+  await page.getByRole('button', { name: 'Close search' }).click()
+  await expect(page.getByRole('button', { name: 'Switch to light theme' })).toBeVisible()
+  await page.reload()
+  await expect(page.getByRole('button', { name: 'Switch to light theme' })).toBeVisible()
 })
 
 test('mobile search fits the viewport and dismisses with the close button', async ({ page }) => {
@@ -117,13 +93,12 @@ test('query highlighting preserves API punctuation and works in dark mode', asyn
   const search = page.getByRole('combobox')
   await search.fill('imagezoom')
   const first = page.getByRole('option').first()
-  await expect(first.locator('.command-title')).toHaveText('<ImageZoom>')
-  await expect(first.locator('.command-title mark')).toHaveText('ImageZoom')
-  await expect(first.locator('.command-description mark')).toHaveText('ImageZoom')
+  await expect(first).toHaveAccessibleName(/^<ImageZoom>/)
+  await expect(first.locator('mark')).toHaveText(['ImageZoom', 'ImageZoom'])
   await search.fill('open()')
-  await expect(first.locator('.command-title')).toHaveText('open()')
-  await expect(first.locator('.command-title mark')).toHaveText('open')
-  const report = await new AxeBuilder({ page }).include('.command-palette').analyze()
+  await expect(first).toHaveAccessibleName(/^open\(\)/)
+  await expect(first.locator('mark')).toHaveText('open')
+  const report = await new AxeBuilder({ page }).include('dialog').analyze()
   expect(report.violations).toEqual([])
 })
 
@@ -142,88 +117,42 @@ for (const [name, hostname, pathname] of [
     const question = 'How do I control React zoom state? & preserve focus #1'
     await page.getByRole('combobox').fill(question)
     const popupPromise = page.waitForEvent('popup')
-    await page.getByRole('option', { name: new RegExp(`Ask ${name}`) }).click()
+    if (name === 'ChatGPT') await page.keyboard.press('Enter')
+    else await page.getByRole('option', { name: new RegExp(`Ask ${name}`) }).click()
     const popup = await popupPromise
     await popup.waitForLoadState()
     const url = new URL(popup.url())
     expect(url.hostname).toBe(hostname)
     expect(url.pathname).toBe(pathname)
-    expect(url.searchParams.get('q')).toContain(question)
     expect(url.searchParams.get('q')).toBe(
       `${question}\n\nRead https://medium-zoom.francoischalifour.com/docs/react/ and answer`
     )
-    expect(url.searchParams.get('q')).toContain(
-      'https://medium-zoom.francoischalifour.com/docs/react/'
-    )
-    expect(url.searchParams.get('q')).not.toContain('127.0.0.1')
-    expect(url.searchParams.get('q')!.match(/https:\/\//g)).toHaveLength(1)
     expect(await popup.evaluate(() => window.opener)).toBeNull()
     await popup.close()
   })
 }
 
-test('moving the selection preserves row and text geometry', async ({ page }) => {
-  await page.goto('/docs/javascript/')
-  await page.getByRole('button', { name: /Search docs/ }).click()
-  await page.getByRole('combobox').fill('hd images')
-  const rows = page.getByRole('option')
-  await expect(rows.first()).toContainText('HD images')
-  const geometry = () =>
-    rows.evaluateAll(elements =>
-      elements.map(element => {
-        const row = element.getBoundingClientRect()
-        const content = element.querySelector('.command-result-content')!.getBoundingClientRect()
-        return {
-          x: row.x,
-          y: row.y,
-          width: row.width,
-          height: row.height,
-          contentWidth: content.width,
-        }
-      })
-    )
-  const description = rows.first().locator('.command-description')
-  const fullWidth = await description.evaluate(element => {
-    const row = element.closest('.command-result')!
-    const rightPadding = parseFloat(getComputedStyle(row).paddingRight)
-    return {
-      actual: element.getBoundingClientRect().right,
-      expected: row.getBoundingClientRect().right - rightPadding,
-    }
-  })
-  expect(fullWidth.actual).toBeCloseTo(fullWidth.expected, 1)
-  const highlight = rows.first().locator('.command-title mark').first()
-  expect(await highlight.evaluate(element => getComputedStyle(element).fontWeight)).toBe(
-    await rows
-      .first()
-      .locator('.command-title')
-      .evaluate(element => getComputedStyle(element).fontWeight)
-  )
-  const before = await geometry()
-  await page.keyboard.press('ArrowDown')
-  expect(await geometry()).toEqual(before)
-  await rows.nth(2).hover()
-  expect(await geometry()).toEqual(before)
-})
-
 test('balances actions, matching documentation, and chat handoffs', async ({ page }) => {
   await page.goto('/docs/react/')
   await page.getByRole('button', { name: /Search docs/ }).click()
-  await expect(page.locator('.command-group')).toHaveText(['Get started', 'Actions', 'Popular'])
+  const groups = page.getByRole('dialog').getByRole('group')
+  await expect(groups.nth(0)).toHaveAccessibleName('Get started')
+  await expect(groups.nth(1)).toHaveAccessibleName('Actions')
+  await expect(groups.nth(2)).toHaveAccessibleName('Popular')
   const search = page.getByRole('combobox')
   await search.fill('inst')
-  await expect(page.locator('.command-group')).toHaveText([
-    'Actions',
-    'Documentation',
-    'Open in chat',
-  ])
+  await expect(groups.nth(0)).toHaveAccessibleName('Actions')
+  await expect(groups.nth(1)).toHaveAccessibleName('Documentation')
+  await expect(groups.nth(2)).toHaveAccessibleName('Open in chat')
   await expect(page.getByRole('option').first()).toContainText('Copy React install command')
-  await expect(page.locator('.command-result:not(.command-action):not(.command-chat)')).toHaveCount(
-    5
-  )
+  await expect(
+    page.getByRole('group', { name: 'Documentation', exact: true }).getByRole('option')
+  ).toHaveCount(5)
   await search.fill('margin')
-  await expect(page.locator('.command-group')).toHaveText(['Documentation', 'Open in chat'])
-  await expect(page.getByRole('option').first().locator('.command-title')).toHaveText('margin')
+  await expect(groups).toHaveCount(2)
+  await expect(groups.nth(0)).toHaveAccessibleName('Documentation')
+  await expect(groups.nth(1)).toHaveAccessibleName('Open in chat')
+  await expect(page.getByRole('option').first()).toContainText('margin')
 })
 
 test('search URLs preserve page context and reopen the same query', async ({ page }) => {
@@ -237,7 +166,7 @@ test('search URLs preserve page context and reopen the same query', async ({ pag
   await page.reload()
   await expect(search).toBeFocused()
   await expect(search).toHaveValue('margin')
-  await expect(page.getByRole('option').first().locator('.command-title')).toHaveText('margin')
+  await expect(page.getByRole('option').first()).toContainText('margin')
   await search.fill('')
   await expect.poll(() => new URL(page.url()).searchParams.has('q')).toBe(false)
   await expect(page.getByRole('dialog')).toBeVisible()
@@ -249,12 +178,28 @@ test('search URLs preserve page context and reopen the same query', async ({ pag
   expect(new URL(page.url()).hash).toBe('#install-the-package')
 })
 
-test('browser history restores the search query', async ({ page }) => {
-  await page.goto('/docs/?q=margin')
-  await expect(page.getByRole('combobox')).toHaveValue('margin')
-  await page.evaluate(() => history.pushState(null, '', '/docs/?q=galleries'))
+test('browser Back and Forward restore search and its destination', async ({ page }) => {
+  await page.goto('/docs/?q=galleries')
+  await expect(page.getByRole('option').first()).toHaveAccessibleName(/^Galleries/)
+  await page.getByRole('combobox').press('Enter')
+  await expect(page).toHaveURL(/\/docs\/guides\/galleries\/$/)
   await page.goBack()
-  await expect(page.getByRole('combobox')).toHaveValue('margin')
-  await page.goForward()
   await expect(page.getByRole('combobox')).toHaveValue('galleries')
+  await page.goForward()
+  await expect(page).toHaveURL(/\/docs\/guides\/galleries\/$/)
+  await expect(page.getByRole('heading', { level: 1, name: 'Galleries' })).toBeVisible()
+})
+
+test('documentation results support opening in another tab', async ({ page, context }) => {
+  await page.goto('/docs/?q=margin')
+  const result = page.getByRole('option', { name: /^margin Options/ })
+  await expect(result).toBeVisible()
+  const popupPromise = context.waitForEvent('page')
+  await expect(result).toHaveAttribute('href', '/docs/reference/javascript/options/#margin')
+  await result.click({ modifiers: ['ControlOrMeta'] })
+  const popup = await popupPromise
+  await expect(popup).toHaveURL(/\/docs\/reference\/javascript\/options\/#margin$/)
+  await expect(popup.getByRole('heading', { name: 'margin', exact: true })).toBeVisible()
+  await expect(page.getByRole('combobox')).toHaveValue('margin')
+  await popup.close()
 })

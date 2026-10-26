@@ -1,11 +1,8 @@
-import type { SearchEntry } from './docs-search'
-
 const docsOrigin = 'https://medium-zoom.francoischalifour.com'
 
-export function getChatLinks(question: string, results: SearchEntry[], react: boolean) {
-  if (!question.trim()) return []
-  const reference = results[0]?.path ?? (react ? '/docs/react/' : '/docs/javascript/')
-  const prompt = [question.trim(), `Read ${docsOrigin + reference} and answer`].join('\n\n')
+export function getChatLinks(query: string, referencePath: string) {
+  if (!query.trim()) return []
+  const prompt = [query.trim(), `Read ${docsOrigin + referencePath} and answer`].join('\n\n')
   return [
     { key: 'chatgpt', title: 'Ask ChatGPT', base: 'https://chatgpt.com/' },
     { key: 'claude', title: 'Ask Claude', base: 'https://claude.ai/new' },

@@ -1,9 +1,11 @@
+import type { SitePage } from './site-data'
+
 export type SearchEntry = {
   title: string
   path: string
-  parent: string
+  parent?: string
   group: string
-  description: string
+  description?: string
 }
 
 const aliases: Record<string, string> = {
@@ -14,13 +16,12 @@ const aliases: Record<string, string> = {
   '/docs/javascript/': 'install installation setup vanilla npm',
   '/docs/react/': 'install installation setup shadcn npm',
 }
-const normalize = (value: string) =>
-  value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim()
+export function getSearchTerms(value: string) {
+  return value.toLowerCase().match(/[a-z0-9]+/g) ?? []
+}
+const normalize = (value: string) => getSearchTerms(value).join(' ')
 
-export function searchDocs(entries: SearchEntry[], query: string, react: boolean) {
+export function searchDocs(entries: SearchEntry[], query: string, framework: SitePage) {
   const normalized = normalize(query)
   if (!normalized) {
     const popular = [
@@ -36,9 +37,9 @@ export function searchDocs(entries: SearchEntry[], query: string, react: boolean
   return entries
     .map(entry => {
       const title = normalize(entry.title)
-      const parent = normalize(entry.parent)
+      const parent = normalize(entry.parent ?? '')
       const terms = normalize(
-        `${entry.title} ${entry.parent} ${entry.group} ${entry.parent ? '' : entry.description} ${aliases[entry.path] ?? ''}`
+        `${entry.title} ${entry.parent ?? ''} ${entry.group} ${entry.description ?? ''} ${aliases[entry.path] ?? ''}`
       )
       if (!words.every(word => terms.includes(word))) return { entry, score: 0 }
       const score =
@@ -51,7 +52,7 @@ export function searchDocs(entries: SearchEntry[], query: string, react: boolean
               : 0) +
         words.filter(word => title.includes(word)).length * 10 +
         words.filter(word => parent.includes(word)).length * 5 +
-        (entry.group.toLowerCase().includes(react ? 'react' : 'javascript') ? 3 : 0) +
+        (entry.group.toLowerCase().includes(framework) ? 3 : 0) +
         1
       return { entry, score }
     })

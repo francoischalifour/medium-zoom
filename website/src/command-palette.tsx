@@ -1,17 +1,15 @@
 import * as React from 'react'
 import { Icon } from './site-components'
-import { searchDocs, type SearchEntry } from './docs-search'
+import { getSearchTerms, type SearchEntry } from './docs-search'
+import { getCommandGroups, commandVerbs, type CommandItem } from './command-items'
+import type { SitePage } from './site-data'
 import { getTheme, getServerTheme, setTheme, subscribeTheme } from './site-theme'
 import { usePackageManager } from './package-manager'
-import { javascriptCommands, componentCommands } from './install-commands'
 import { trackInstallCopied } from './site-analytics'
-import { getChatLinks } from './chat-links'
 import './command-palette.css'
 
 function Highlight({ text, query }: { text: string; query: string }) {
-  const words = [...new Set(query.toLowerCase().match(/[a-z0-9]+/g) ?? [])].sort(
-    (a, b) => b.length - a.length
-  )
+  const words = [...new Set(getSearchTerms(query))].sort((a, b) => b.length - a.length)
   if (!words.length) return text
   // Tokens contain only letters and numbers, so the expression treats user input literally.
   return text
@@ -19,6 +17,69 @@ function Highlight({ text, query }: { text: string; query: string }) {
     .map((part, index) =>
       words.includes(part.toLowerCase()) ? <mark key={index}>{part}</mark> : part
     )
+}
+
+function CommandOption({
+  command,
+  query,
+  selected,
+  id,
+  onSelect,
+  onActivate,
+}: {
+  command: CommandItem
+  query: string
+  selected: boolean
+  id: string
+  onSelect: () => void
+  onActivate: () => void
+}) {
+  const isLink = command.kind === 'navigate' || command.kind === 'chat'
+  const OptionElement = isLink ? 'a' : 'button'
+  return (
+    <OptionElement
+      id={id}
+      role="option"
+      aria-selected={selected}
+      tabIndex={-1}
+      type={isLink ? undefined : 'button'}
+      href={isLink ? command.url : undefined}
+      target={command.kind === 'chat' ? '_blank' : undefined}
+      rel={command.kind === 'chat' ? 'noopener noreferrer' : undefined}
+      className={`command-result${command.kind === 'chat' ? ' command-chat' : command.kind === 'navigate' ? '' : ' command-action'}`}
+      onMouseDown={event => {
+        if (event.button === 0) event.preventDefault()
+      }}
+      onPointerMove={onSelect}
+      onClick={onActivate}
+    >
+      <span className="command-result-icon">
+        <Icon name={command.icon} />
+      </span>
+      <span className="command-result-content">
+        <span className="command-title">
+          <Highlight text={command.title} query={query} />
+        </span>
+        {command.detail && (
+          <span className="command-detail">
+            <Highlight text={command.detail} query={query} />
+          </span>
+        )}
+        {query.trim() && command.description && (
+          <span className="command-description">
+            <Highlight text={command.description} query={query} />
+          </span>
+        )}
+      </span>
+      <span className="command-result-tail" aria-hidden="true">
+        {command.kind === 'chat' ? (
+          <Icon name="external" className="command-external" />
+        ) : (
+          <span className="command-enter">↵</span>
+        )}
+      </span>
+    </OptionElement>
+  )
 }
 
 function replaceSearchQuery(query: string) {
@@ -29,14 +90,14 @@ function replaceSearchQuery(query: string) {
   if (url.href !== window.location.href) window.history.replaceState(window.history.state, '', url)
 }
 
-export function CommandPalette({ react }: { react: boolean }) {
+export function CommandPalette({ framework }: { framework: SitePage }) {
   const trigger = React.useRef<HTMLButtonElement>(null)
   const dialog = React.useRef<HTMLDialogElement>(null)
   const input = React.useRef<HTMLInputElement>(null)
   const returnFocus = React.useRef<HTMLElement | null>(null)
   const [open, setOpen] = React.useState(false)
   const [query, setQuery] = React.useState('')
-  const [active, setActive] = React.useState(0)
+  const [activeIndex, setActiveIndex] = React.useState(0)
   const [entries, setEntries] = React.useState<SearchEntry[] | null>(null)
   const [loadError, setLoadError] = React.useState(false)
   const [status, setStatus] = React.useState('')
@@ -54,7 +115,7 @@ export function CommandPalette({ react }: { react: boolean }) {
       dialog.current?.showModal()
     }
     setQuery(value)
-    setActive(0)
+    setActiveIndex(0)
     setStatus('')
     input.current?.focus()
     setOpen(true)
@@ -122,114 +183,44 @@ export function CommandPalette({ react }: { react: boolean }) {
     }
   }, [open, entries])
 
-  const docs = entries ? searchDocs(entries, query, react) : []
-  const actions = [
-    {
-      key: 'javascript',
-      title: 'Copy JavaScript install command',
-      detail: manager,
-      icon: 'copy' as const,
-      terms: 'copy javascript install installation npm pnpm yarn bun',
-    },
-    {
-      key: 'react',
-      title: 'Copy React install command',
-      detail: `shadcn · ${manager}`,
-      icon: 'copy' as const,
-      terms: 'copy react shadcn install installation npm pnpm yarn bun',
-    },
-    {
-      key: 'theme',
-      title: `Switch to ${dark ? 'light' : 'dark'} theme`,
-      detail: '',
-      icon: 'contrast' as const,
-      terms: 'switch theme appearance light dark mode',
-    },
-  ].filter(action =>
-    query
-      .toLowerCase()
-      .trim()
-      .split(/\s+/)
-      .every(word => action.terms.includes(word))
-  )
-  const docResults = docs.map((entry, index) => ({
-    key: entry.path,
-    section: query.trim() ? 'Documentation' : index < 2 ? 'Get started' : 'Popular',
-    title: entry.title,
-    detail: entry.parent
-      ? `${entry.parent} › ${entry.group}`
-      : entry.group === 'Get started' && !query.trim()
-        ? ''
-        : entry.group,
-    description: entry.parent ? '' : entry.description,
-    icon: entry.path.includes('#') ? ('code' as const) : ('book' as const),
-    href: entry.path,
-    chatUrl: undefined,
-  }))
-  const actionResults = actions
-    .sort(
-      (a, b) =>
-        Number(b.key === (react ? 'react' : 'javascript')) -
-        Number(a.key === (react ? 'react' : 'javascript'))
-    )
-    .map(action => ({
-      ...action,
-      section: 'Actions',
-      href: undefined,
-      description: '',
-      chatUrl: undefined,
-    }))
-  const chatResults = getChatLinks(query, docs, react).map(provider => ({
-    key: provider.key,
-    section: 'Open in chat',
-    title: provider.title,
-    detail: '',
-    description: '',
-    icon: 'chat' as const,
-    href: undefined,
-    chatUrl: provider.url,
-  }))
-  const results = query.trim()
-    ? [...actionResults, ...docResults, ...chatResults]
-    : [...docResults.slice(0, 2), ...actionResults, ...docResults.slice(2)]
-  const matchCount = docs.length + actions.length
+  const groups = getCommandGroups({
+    entries: entries ?? [],
+    query,
+    framework,
+    packageManager: manager,
+    dark,
+  })
+  const commands = groups.flatMap(group => group.items)
+  const matchCount = commands.filter(command => command.kind !== 'chat').length
   const noMatches = entries !== null && Boolean(query.trim()) && matchCount === 0
-  const selected = Math.min(active, Math.max(0, results.length - 1))
-
-  const selectedResult = results[selected]
-  const actionHint = selectedResult?.chatUrl
-    ? 'Ask'
-    : selectedResult?.href
-      ? 'Open'
-      : selectedResult?.key === 'theme'
-        ? 'Switch'
-        : 'Copy'
+  const selected = Math.min(activeIndex, Math.max(0, commands.length - 1))
+  const selectedCommand = commands[selected]
+  const selectedId = selectedCommand ? `${id}-${selectedCommand.id}` : undefined
 
   React.useEffect(() => {
-    if (open) document.getElementById(`${id}-${selected}`)?.scrollIntoView({ block: 'nearest' })
-  }, [open, id, selected, query, entries])
+    if (open && selectedId)
+      document.getElementById(selectedId)?.scrollIntoView({ block: 'nearest' })
+  }, [open, selectedId])
 
-  async function activate(index: number) {
-    const result = results[index]
-    if (!result) return
-    if (result.chatUrl) {
-      window.open(result.chatUrl, '_blank', 'noopener,noreferrer')
-    } else if (result.href) {
-      // Keep the search on the previous history entry so Back restores the results.
-      replaceSearchQuery(query)
-      window.location.assign(result.href)
-    } else if (result.key === 'theme') {
-      setTheme(!dark)
-      setStatus(`Switched to ${dark ? 'light' : 'dark'} theme`)
-    } else {
-      const command = (result.key === 'react' ? componentCommands : javascriptCommands)[manager]
-      try {
-        await navigator.clipboard.writeText(command)
-        trackInstallCopied()
-        setStatus('Copied to clipboard')
-      } catch {
-        setStatus(`Could not copy. Select and copy this command: ${command}`)
-      }
+  async function activate(command: CommandItem) {
+    switch (command.kind) {
+      case 'navigate':
+        // Preserve the previous search when following the native link, including Back navigation.
+        replaceSearchQuery(query)
+        break
+      case 'theme':
+        setTheme(command.dark)
+        setStatus(`Switched to ${command.dark ? 'dark' : 'light'} theme`)
+        break
+      case 'copy':
+        try {
+          await navigator.clipboard.writeText(command.text)
+          trackInstallCopied()
+          setStatus('Copied to clipboard')
+        } catch {
+          setStatus(`Could not copy. Select and copy this command: ${command.text}`)
+        }
+        break
     }
   }
 
@@ -269,22 +260,26 @@ export function CommandPalette({ react }: { react: boolean }) {
             <Icon name="search" />
             <input
               ref={input}
+              autoFocus
               placeholder="Search documentation…"
               aria-label="Search documentation"
               role="combobox"
               aria-expanded={open}
               aria-controls={`${id}-results`}
               aria-autocomplete="list"
-              aria-activedescendant={results.length ? `${id}-${selected}` : undefined}
+              aria-activedescendant={selectedId}
               value={query}
               onChange={event => {
                 setQuery(event.target.value)
-                setActive(0)
+                setActiveIndex(0)
                 setStatus('')
               }}
               onKeyDown={event => {
                 if (event.nativeEvent.isComposing) return
-                if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key) && results.length) {
+                if (
+                  ['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key) &&
+                  commands.length
+                ) {
                   // Home/End retain normal text editing unless combined with Control/Command.
                   if (
                     (event.key === 'Home' || event.key === 'End') &&
@@ -292,17 +287,17 @@ export function CommandPalette({ react }: { react: boolean }) {
                   )
                     return
                   event.preventDefault()
-                  setActive(
+                  setActiveIndex(
                     event.key === 'Home'
                       ? 0
                       : event.key === 'End'
-                        ? results.length - 1
-                        : (selected + (event.key === 'ArrowDown' ? 1 : -1) + results.length) %
-                          results.length
+                        ? commands.length - 1
+                        : (selected + (event.key === 'ArrowDown' ? 1 : -1) + commands.length) %
+                          commands.length
                   )
                 } else if (event.key === 'Enter') {
                   event.preventDefault()
-                  void activate(selected)
+                  if (selectedId) document.getElementById(selectedId)?.click()
                 }
               }}
             />
@@ -334,49 +329,23 @@ export function CommandPalette({ react }: { react: boolean }) {
                 <p>Try another search, or ask your question in chat.</p>
               </div>
             )}
-            {results.map((result, index) => (
-              <React.Fragment key={result.key}>
-                {result.section !== results[index - 1]?.section && (
-                  <div className="command-group" role="presentation">
-                    {result.section}
-                  </div>
-                )}
-                <div
-                  id={`${id}-${index}`}
-                  role="option"
-                  aria-selected={selected === index}
-                  className={`command-result${result.chatUrl ? ' command-chat' : result.href ? '' : ' command-action'}`}
-                  onMouseDown={event => event.preventDefault()}
-                  onPointerMove={() => setActive(index)}
-                  onClick={() => void activate(index)}
-                >
-                  <span className="command-result-icon">
-                    <Icon name={result.icon} />
-                  </span>
-                  <div className="command-result-content">
-                    <span className="command-title">
-                      <Highlight text={result.title} query={query} />
-                    </span>
-                    {result.detail && (
-                      <span className="command-detail">
-                        <Highlight text={result.detail} query={result.chatUrl ? '' : query} />
-                      </span>
-                    )}
-                    {query.trim() && result.description && (
-                      <span className="command-description">
-                        <Highlight text={result.description} query={query} />
-                      </span>
-                    )}
-                  </div>
-                  <span className="command-result-tail" aria-hidden="true">
-                    {result.chatUrl ? (
-                      <Icon name="external" className="command-external" />
-                    ) : (
-                      <span className="command-enter">↵</span>
-                    )}
-                  </span>
+            {groups.map(group => (
+              <div role="group" aria-label={group.title} key={group.title}>
+                <div className="command-group" aria-hidden="true">
+                  {group.title}
                 </div>
-              </React.Fragment>
+                {group.items.map(command => (
+                  <CommandOption
+                    key={command.id}
+                    id={`${id}-${command.id}`}
+                    command={command}
+                    query={query}
+                    selected={command === selectedCommand}
+                    onSelect={() => setActiveIndex(commands.indexOf(command))}
+                    onActivate={() => void activate(command)}
+                  />
+                ))}
+              </div>
             ))}
           </div>
           {status && (
@@ -390,13 +359,13 @@ export function CommandPalette({ react }: { react: boolean }) {
               <kbd>↓</kbd> Navigate
             </span>
             <span>
-              <kbd>↵</kbd> {actionHint}
+              <kbd>↵</kbd> {selectedCommand ? commandVerbs[selectedCommand.kind] : 'Open'}
             </span>
             <span className="command-count" role={status ? undefined : 'status'}>
               {entries
                 ? query.trim()
                   ? `${matchCount} ${matchCount === 1 ? 'match' : 'matches'}`
-                  : `${results.length} shortcuts`
+                  : `${commands.length} shortcuts`
                 : ''}
             </span>
           </footer>

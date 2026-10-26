@@ -410,3 +410,16 @@
   height: 14px;
   color: var(--command-muted);
 }
+
+.command-result:any-link:hover {
+  text-decoration: none;
+}
+
+button.command-result {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}

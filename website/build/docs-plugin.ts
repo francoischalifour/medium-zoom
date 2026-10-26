@@ -46,7 +46,6 @@ export function docsPlugin(): Plugin {
           {
             title: page.title,
             path: page.path,
-            parent: '',
             group: page.group,
             description: page.description,
           },
@@ -55,7 +54,6 @@ export function docsPlugin(): Plugin {
             path: `${page.path}#${heading.id}`,
             parent: page.title,
             group: page.group,
-            description: page.description,
           })),
         ]
       })

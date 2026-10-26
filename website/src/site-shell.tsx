@@ -26,10 +26,10 @@ export function SectionLinks({ page }: { page: SitePage | 'docs' }) {
 
 export function SiteHeader({
   page,
-  reactContext = page === 'react',
+  searchFramework = page === 'react' ? 'react' : 'javascript',
 }: {
   page: SitePage | 'docs'
-  reactContext?: boolean
+  searchFramework?: SitePage
 }) {
   const dark = React.useSyncExternalStore(subscribeTheme, getTheme, getServerTheme)
   return (
@@ -47,7 +47,7 @@ export function SiteHeader({
             <SectionLinks page={page} />
           </div>
           <div className="nav-links">
-            <CommandPalette react={reactContext} />
+            <CommandPalette framework={searchFramework} />
             <a
               className="button button-ghost github-link"
               href={repositoryUrl}
