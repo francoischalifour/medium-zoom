@@ -64,6 +64,7 @@ npx doctoc README.md --maxlevel 3
 - [Examples](#examples)
 - [Debugging](#debugging)
 - [Browser support](#browser-support)
+- [Used by](#used-by)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -545,6 +546,12 @@ If that's the case, you can provide a `z-index` value in your CSS:
     </a>
   </p>
 </blockquote>
+
+## Used by
+
+[![Dependents](https://api.usedby.dev/npm/medium-zoom?max=50&sort=stars)](https://github.com/francoischalifour/medium-zoom/network/dependents)
+
+<sub>Generated with <a href="https://usedby.dev/">usedby.dev</a></sub>
 
 ## Contributing
 
