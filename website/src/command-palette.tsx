@@ -155,7 +155,7 @@ export function CommandPalette({ react }: { react: boolean }) {
     key: provider.key,
     section: 'Open in chat',
     title: provider.title,
-    detail: query.trim(),
+    detail: '',
     description: '',
     icon: 'chat' as const,
     href: undefined,
@@ -164,6 +164,8 @@ export function CommandPalette({ react }: { react: boolean }) {
   const results = query.trim()
     ? [...actionResults, ...docResults, ...chatResults]
     : [...docResults.slice(0, 2), ...actionResults, ...docResults.slice(2)]
+  const matchCount = docs.length + actions.length
+  const noMatches = entries !== null && Boolean(query.trim()) && matchCount === 0
   const selected = Math.min(active, Math.max(0, results.length - 1))
 
   React.useEffect(() => {
@@ -270,7 +272,7 @@ export function CommandPalette({ react }: { react: boolean }) {
             </button>
           </div>
           <div
-            className="command-results"
+            className={`command-results${noMatches ? ' is-empty' : ''}`}
             role="listbox"
             id={`${id}-results`}
             aria-label="Search results"
@@ -282,10 +284,11 @@ export function CommandPalette({ react }: { react: boolean }) {
                   : 'Loading documentation…'}
               </p>
             )}
-            {entries && !docs.length && !actions.length && (
-              <p className="command-empty">
-                No results for “{query}”. Try “React”, “margin”, or “HD images”.
-              </p>
+            {noMatches && (
+              <div className="command-empty">
+                <p className="command-empty-title">No matches found</p>
+                <p>Try another search, or ask your question in chat.</p>
+              </div>
             )}
             {results.map((result, index) => (
               <React.Fragment key={result.key}>
@@ -346,7 +349,11 @@ export function CommandPalette({ react }: { react: boolean }) {
               <kbd>↵</kbd> {results[selected]?.chatUrl ? 'Ask' : 'Open'}
             </span>
             <span className="command-count" role={status ? undefined : 'status'}>
-              {entries ? `${results.length} results` : ''}
+              {entries
+                ? query.trim()
+                  ? `${matchCount} ${matchCount === 1 ? 'match' : 'matches'}`
+                  : `${results.length} shortcuts`
+                : ''}
             </span>
           </footer>
         </div>

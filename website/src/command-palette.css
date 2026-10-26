@@ -238,9 +238,27 @@
   font-size: 12px;
 }
 .command-empty {
-  padding: 28px 16px;
-  font-size: 13px;
+  margin: 0;
+  padding: 20px 12px 16px;
+  font-size: 12px;
+  line-height: 18px;
   color: var(--command-muted);
+}
+.command-empty p {
+  margin: 0;
+}
+.command-empty .command-empty-title {
+  margin-bottom: 4px;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground);
+}
+.command-results.is-empty .command-group {
+  padding-top: 4px;
+}
+.command-chat {
+  min-height: 44px;
 }
 .command-feedback {
   padding: 10px 20px;
@@ -316,11 +334,6 @@
   }
 }
 
-.command-chat .command-detail {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 .command-external {
   width: 14px;
   height: 14px;
