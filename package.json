@@ -1,7 +1,7 @@
 {
   "name": "medium-zoom",
   "version": "1.1.2",
-  "description": "A lightweight JavaScript image zoom library and lightbox alternative. Zero dependencies. Works with any framework.",
+  "description": "Lightweight Medium-style image zoom for the web. Zero dependencies, any framework, React component via shadcn.",
   "keywords": [
     "click-to-zoom",
     "dependency-free",
@@ -20,6 +20,7 @@
     "photo-zoom",
     "picture",
     "react",
+    "shadcn",
     "svelte",
     "typescript",
     "vanilla",
