@@ -17,6 +17,7 @@ import * as Events from './events.mdx'
 import * as ImageZoom from './image-zoom.mdx'
 import * as CompositionAPI from './composition-api.mdx'
 import { CodeFence } from './doc-components'
+import { useDocsNavigation } from './use-docs-navigation'
 import './docs.css'
 
 const pageContent = {
@@ -63,6 +64,7 @@ function ArticleHeading({ children }: { children: ReactNode }) {
 }
 
 export function DocsPage({ path }: { path: string }) {
+  const activeId = useDocsNavigation(path)
   const page = docsPages.find(page => page.path === path)
   if (!page) throw new Error(`Unknown documentation page: ${path}`)
   const { default: Content, outline } = pageContent[page.path]
@@ -90,10 +92,14 @@ export function DocsPage({ path }: { path: string }) {
     </nav>
   )
   const contents = (
-    <nav aria-label="On this page">
-      <p>On this page</p>
+    <nav className="docs-contents" aria-label="On this page">
+      <p className="docs-contents-title">On this page</p>
       {outline.map(item => (
-        <a key={item.id} href={`#${item.id}`}>
+        <a
+          key={item.id}
+          href={`#${item.id}`}
+          aria-current={activeId === item.id ? 'location' : undefined}
+        >
           {item.title}
         </a>
       ))}

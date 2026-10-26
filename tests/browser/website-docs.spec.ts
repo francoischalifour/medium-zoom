@@ -20,6 +20,66 @@ const pages = [
   ['/docs/reference/react/composition/', 'Composition'],
 ] as const
 
+test('anchor arrival waits for scrolling, fades away, and repeats for the same destination', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1_440, height: 900 })
+  await page.goto('/docs/reference/javascript/methods/')
+  const link = page.locator('.docs-outline a[href="#getzoomedimage"]')
+  const heading = page.locator('h2#getzoomedimage')
+  await link.click()
+  await expect(heading).toHaveAttribute('data-anchor-arrival', '')
+  await expect(heading).toBeInViewport()
+  await expect(link).toHaveAttribute('aria-current', 'location')
+  const position = await page.evaluate(() => window.scrollY)
+  await expect(heading).not.toHaveAttribute('data-anchor-arrival', '', { timeout: 3_000 })
+  expect(await page.evaluate(() => window.scrollY)).toBe(position)
+  await link.click()
+  await expect(heading).toHaveAttribute('data-anchor-arrival', '')
+  await page.locator('.docs-outline a[href="#open"]').click()
+  await expect(page.locator('#open')).toHaveAttribute('data-anchor-arrival', '')
+  await expect(heading).not.toHaveAttribute('data-anchor-arrival', '')
+  await page.goBack()
+  await expect(heading).toHaveAttribute('data-anchor-arrival', '')
+})
+
+test('mobile contents menus close before landing and transfer keyboard focus', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/docs/guides/custom-react-triggers/')
+  const menu = page.locator('.docs-mobile-navigation details').last()
+  await menu.locator('summary').focus()
+  await page.keyboard.press('Enter')
+  await expect(menu).toHaveAttribute('open', '')
+  await expect(menu.locator('.docs-contents-title')).toBeHidden()
+  const link = menu.getByRole('link', { name: 'Style the trigger', exact: true })
+  await link.focus()
+  await page.keyboard.press('Enter')
+  await expect(menu).not.toHaveAttribute('open', '')
+  const heading = page.locator('#style-the-trigger')
+  await expect(heading).toHaveAttribute('data-anchor-arrival', '')
+  await expect(heading).toBeFocused()
+  await expect(heading).toBeInViewport()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390)
+})
+
+test('deep links and compatibility markers show static arrival feedback with reduced motion', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/docs/javascript/#add-an-image')
+  const heading = page.locator('#add-an-image')
+  await expect(heading).toHaveAttribute('data-anchor-arrival', '')
+  expect(
+    await heading.evaluate(element => getComputedStyle(element, '::before').animationName)
+  ).toBe('none')
+  await expect(heading).not.toHaveAttribute('data-anchor-arrival', '', { timeout: 3_000 })
+  await page.goto('/docs/guides/hd-images/#data-zoom-src')
+  await expect(page.locator('[data-anchor-arrival]')).toBeVisible()
+  await expect(page.locator('#data-zoom-src')).not.toHaveAttribute('data-anchor-arrival', '')
+  await page.goto('/docs/javascript/#%E0%A4%A')
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+})
+
 for (const [path, title] of pages) {
   test(`${title} ships complete HTML, anchors and metadata`, async ({ browser }) => {
     const context = await browser.newContext({ javaScriptEnabled: false })

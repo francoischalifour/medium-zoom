@@ -55,6 +55,28 @@ html:has(.docs-shell) {
   color: var(--muted-foreground);
   line-height: 1.5;
 }
+.docs-contents {
+  position: relative;
+  border-left: 1px solid var(--border);
+  padding-left: 12px;
+}
+.docs-contents a {
+  position: relative;
+}
+.docs-contents a[aria-current='location'] {
+  color: var(--foreground);
+  background: var(--selected);
+}
+.docs-contents a[aria-current='location']::before {
+  content: '';
+  position: absolute;
+  left: -3px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--foreground);
+}
 .docs-main {
   min-width: 0;
 }
@@ -82,11 +104,45 @@ html:has(.docs-shell) {
   margin: 18px 0;
 }
 .docs-article h2 {
+  position: relative;
+  isolation: isolate;
   font-size: 21px;
   font-weight: 550;
   line-height: 1.4;
   letter-spacing: -0.4px;
   margin: 44px 0 16px;
+}
+.docs-article [data-anchor-arrival] {
+  position: relative;
+  isolation: isolate;
+}
+.docs-article [data-anchor-arrival]::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -8px -12px;
+  border-radius: 6px;
+  border-left: 2px solid var(--foreground);
+  background: var(--selected);
+  pointer-events: none;
+  animation: docs-anchor-arrival 1800ms ease-out both;
+}
+@keyframes docs-anchor-arrival {
+  0% {
+    opacity: 0;
+  }
+  10%,
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .docs-article [data-anchor-arrival]::before {
+    animation: none;
+  }
 }
 .docs-article h2 a {
   text-decoration: none;
@@ -206,20 +262,51 @@ html:has(.docs-shell) {
   outline: 2px solid var(--ring);
   outline-offset: 3px;
 }
+.docs-shell details > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  list-style: none;
+  cursor: pointer;
+  font-weight: 550;
+}
+.docs-shell details > summary::-webkit-details-marker {
+  display: none;
+}
+.docs-shell details > summary::after {
+  content: '';
+  flex: 0 0 6px;
+  width: 6px;
+  height: 6px;
+  margin-right: 3px;
+  border-right: 1.5px solid var(--muted-foreground);
+  border-bottom: 1.5px solid var(--muted-foreground);
+  transform: rotate(45deg) translateY(-2px);
+}
+.docs-shell details[open] > summary::after {
+  transform: rotate(225deg) translate(-1px, -1px);
+}
 @media (hover: hover) and (pointer: fine) {
+  .docs-shell details > summary:hover {
+    background: var(--hover);
+  }
   .docs-article p a:hover,
   .docs-article li a:hover {
     text-decoration-color: var(--foreground);
   }
   .docs-nav-group a:hover,
-  .docs-outline a:hover,
-  .docs-mobile-navigation nav[aria-label='On this page'] a:hover {
+  .docs-outline a:not([aria-current]):hover,
+  .docs-mobile-navigation nav[aria-label='On this page'] a:not([aria-current]):hover {
     color: var(--foreground);
     text-decoration: none;
   }
   .docs-nav-group a:not([aria-current='page']):hover,
-  .docs-outline a:hover,
-  .docs-mobile-navigation nav[aria-label='On this page'] a:hover {
+  .docs-outline a:not([aria-current]):hover,
+  .docs-mobile-navigation nav[aria-label='On this page'] a:not([aria-current]):hover {
     background: color-mix(in srgb, var(--foreground) 2%, transparent);
   }
 }
@@ -242,16 +329,36 @@ html:has(.docs-shell) {
     display: none;
   }
   .docs-mobile-navigation details {
-    border-bottom: 1px solid var(--border);
-    padding: 12px 0;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 4px;
+    background: var(--surface);
+  }
+  .docs-mobile-navigation details + details {
+    margin-top: 8px;
   }
   .docs-mobile-navigation summary {
     cursor: pointer;
     font-size: 13px;
   }
   .docs-mobile-navigation nav {
-    margin-top: 16px;
+    margin: 8px 8px 12px;
+    padding: 4px 12px;
+    max-height: min(55dvh, 420px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
     font-size: 13px;
+  }
+  .docs-mobile-navigation .docs-contents-title {
+    display: none;
+  }
+  .docs-mobile-navigation .docs-contents {
+    gap: 2px;
+  }
+  .docs-mobile-navigation .docs-contents a {
+    min-height: 36px;
+    display: flex;
+    align-items: center;
   }
 }
 @media (max-width: 760px) {
@@ -276,9 +383,6 @@ html:has(.docs-shell) {
   }
   .docs-nav-group {
     margin-bottom: 12px;
-  }
-  .docs-mobile-navigation a {
-    padding: 8px 0;
   }
 }
 
