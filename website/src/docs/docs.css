@@ -1,5 +1,12 @@
 html:has(.docs-shell) {
+  --site-header-height: 52px;
   scroll-padding-top: calc(var(--site-header-height) + 32px);
+}
+.docs-shell {
+  --docs-anchor-highlight: rgb(139 92 246 / 12%);
+}
+.dark .docs-shell {
+  --docs-anchor-highlight: rgb(167 139 250 / 18%);
 }
 .docs-layout {
   display: grid;
@@ -14,12 +21,18 @@ html:has(.docs-shell) {
 .docs-outline {
   position: sticky;
   top: calc(var(--site-header-height) + 32px);
-  max-height: calc(100dvh - var(--site-header-height) - 64px);
-  overflow-y: auto;
-  scrollbar-width: thin;
-  padding-left: 10px;
+  --scroll-area-max-height: calc(100dvh - var(--site-header-height) - 64px);
   margin-left: -10px;
   font-size: 13px;
+}
+.docs-sidebar .scroll-area-viewport,
+.docs-outline .scroll-area-viewport {
+  padding: 4px 10px 12px;
+}
+.docs-sidebar a:focus-visible,
+.docs-outline a:focus-visible,
+.docs-mobile-navigation .scroll-area a:focus-visible {
+  outline-offset: -2px;
 }
 .docs-sidebar nav,
 .docs-outline nav,
@@ -122,8 +135,7 @@ html:has(.docs-shell) {
   z-index: -1;
   inset: -8px -12px;
   border-radius: 6px;
-  border-left: 2px solid var(--foreground);
-  background: var(--selected);
+  background: linear-gradient(90deg, var(--docs-anchor-highlight) 40%, transparent);
   pointer-events: none;
   animation: docs-anchor-arrival 1800ms ease-out both;
 }
@@ -267,8 +279,8 @@ html:has(.docs-shell) {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  min-height: 44px;
-  padding: 10px 12px;
+  min-height: 36px;
+  padding: 6px 12px;
   border-radius: 6px;
   list-style: none;
   cursor: pointer;
@@ -337,17 +349,24 @@ html:has(.docs-shell) {
   .docs-mobile-navigation details + details {
     margin-top: 8px;
   }
+  .docs-mobile-navigation .scroll-area {
+    --scroll-area-background: var(--surface);
+    --scroll-area-max-height: min(50dvh, 360px);
+    margin: 4px 8px 6px;
+  }
+  .docs-mobile-navigation .scroll-area-viewport {
+    padding: 12px 12px 16px;
+  }
   .docs-mobile-navigation summary {
     cursor: pointer;
     font-size: 13px;
   }
   .docs-mobile-navigation nav {
-    margin: 8px 8px 12px;
-    padding: 4px 12px;
-    max-height: min(55dvh, 420px);
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    margin: 0;
     font-size: 13px;
+  }
+  .docs-mobile-navigation .docs-nav-group:last-child {
+    margin-bottom: 0;
   }
   .docs-mobile-navigation .docs-contents-title {
     display: none;

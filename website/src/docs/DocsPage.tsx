@@ -18,6 +18,7 @@ import * as ImageZoom from './image-zoom.mdx'
 import * as CompositionAPI from './composition-api.mdx'
 import { CodeFence } from './doc-components'
 import { useDocsNavigation } from './use-docs-navigation'
+import { ScrollArea } from '../scroll-area'
 import './docs.css'
 
 const pageContent = {
@@ -121,17 +122,17 @@ export function DocsPage({ path }: { path: string }) {
         </nav>
         <details>
           <summary>Documentation</summary>
-          {navigation}
+          <ScrollArea>{navigation}</ScrollArea>
         </details>
         {!isOverview && (
           <details>
             <summary>On this page</summary>
-            {contents}
+            <ScrollArea>{contents}</ScrollArea>
           </details>
         )}
       </div>
       <div className="docs-layout">
-        <div className="docs-sidebar">{navigation}</div>
+        <ScrollArea className="docs-sidebar">{navigation}</ScrollArea>
         <main id="main" className="docs-main">
           <article className="docs-article">
             <header className="docs-heading">
@@ -162,7 +163,7 @@ export function DocsPage({ path }: { path: string }) {
             </nav>
           )}
         </main>
-        {!isOverview && <div className="docs-outline">{contents}</div>}
+        {!isOverview && <ScrollArea className="docs-outline">{contents}</ScrollArea>}
       </div>
       <SiteFooter />
     </div>

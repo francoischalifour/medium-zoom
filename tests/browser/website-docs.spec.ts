@@ -20,6 +20,43 @@ const pages = [
   ['/docs/reference/react/composition/', 'Composition'],
 ] as const
 
+for (const theme of ['light', 'dark'] as const) {
+  test(`docs scroll indicators follow overflow and keyboard focus in ${theme} mode`, async ({
+    page,
+  }) => {
+    await page.emulateMedia({ colorScheme: theme })
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/docs/guides/hd-images/')
+    const menu = page.locator('.docs-mobile-navigation details').first()
+    await menu.locator('summary').click()
+    const area = menu.locator('.scroll-area')
+    const viewport = area.locator('.scroll-area-viewport')
+    await expect(area).not.toHaveAttribute('data-scroll-above')
+    await expect(area).toHaveAttribute('data-scroll-below', '')
+    expect(await area.evaluate(element => getComputedStyle(element, '::after').opacity)).toBe('1')
+    await viewport.evaluate(element => {
+      element.scrollTop = (element.scrollHeight - element.clientHeight) / 2
+    })
+    await expect(area).toHaveAttribute('data-scroll-above', '')
+    await expect(area).toHaveAttribute('data-scroll-below', '')
+    await area.getByRole('link', { name: 'Composition', exact: true }).focus()
+    await expect(area).toHaveAttribute('data-scroll-above', '')
+    await expect(area).not.toHaveAttribute('data-scroll-below')
+    expect(await area.evaluate(element => getComputedStyle(element, '::after').opacity)).toBe('0')
+    await menu.locator('summary').click()
+    await menu.locator('summary').click()
+    await expect(area).toHaveAttribute('data-scroll-above', '')
+    const contents = page.locator('.docs-mobile-navigation details').last()
+    await contents.locator('summary').click()
+    await expect(contents.locator('.scroll-area')).not.toHaveAttribute('data-scroll-above')
+    await expect(contents.locator('.scroll-area')).not.toHaveAttribute('data-scroll-below')
+    await page.setViewportSize({ width: 1_440, height: 600 })
+    await expect(page.locator('.docs-sidebar')).toHaveAttribute('data-scroll-below', '')
+    await page.setViewportSize({ width: 1_440, height: 1_500 })
+    await expect(page.locator('.docs-sidebar')).not.toHaveAttribute('data-scroll-below')
+  })
+}
+
 test('anchor arrival waits for scrolling, fades away, and repeats for the same destination', async ({
   page,
 }) => {
