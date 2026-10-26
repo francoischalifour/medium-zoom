@@ -122,7 +122,7 @@ async function checkBundlerResolution(consumer: string, packageRoot: string) {
   try {
     for (const [specifier, path] of [
       ['medium-zoom/pure', 'dist/pure/index.mjs'],
-      ['medium-zoom/core/pure', 'dist/core/pure/index.mjs'],
+      ['medium-zoom/style.css', 'dist/style.css'],
       ['medium-zoom/core', 'dist/core/index.mjs'],
       ['medium-zoom/features', 'dist/features/index.mjs'],
       ['medium-zoom', 'dist/medium-zoom.esm.js'],

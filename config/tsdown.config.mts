@@ -167,15 +167,11 @@ function browserBundle(
   }
 }
 
-function featureBundle(
-  name: 'core' | 'features' | 'pure' | 'core/pure',
-  format: 'esm' | 'cjs'
-): UserConfig {
+function featureBundle(name: 'core' | 'features' | 'pure', format: 'esm' | 'cjs'): UserConfig {
   const sources = {
     core: 'src/core.ts',
     features: 'src/features/index.ts',
     pure: format === 'cjs' ? 'src/pure-commonjs.ts' : 'src/pure.ts',
-    'core/pure': 'src/core-pure.ts',
   }
   const source = sources[name]
   return {
@@ -184,7 +180,7 @@ function featureBundle(
     // Keep the opaque feature type shared with the core declaration entry.
     deps: { neverBundle: ['medium-zoom/core'] },
     dts: { generator: 'oxc', cjsDefault: name === 'pure' && format === 'cjs' },
-    plugins: [...(name === 'core' ? [stylesheet()] : []), legacySyntax(true)],
+    plugins: [legacySyntax(true)],
     ...(name === 'pure' &&
       format === 'cjs' && {
         onSuccess(config) {
@@ -227,6 +223,4 @@ export default defineConfig([
   featureBundle('features', 'cjs'),
   featureBundle('pure', 'esm'),
   featureBundle('pure', 'cjs'),
-  featureBundle('core/pure', 'esm'),
-  featureBundle('core/pure', 'cjs'),
 ])

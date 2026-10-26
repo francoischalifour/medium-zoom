@@ -54,6 +54,7 @@ export async function loadBundle(
       )) as typeof import('../../src/features')
       window.mediumZoom = createMediumZoom({ features: [template(), container(), hdImage()] })
     })
+    await page.addStyleTag({ url: '/package/dist/style.css' })
     return
   }
   const { file, format } = bundles[bundle]

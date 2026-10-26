@@ -25,8 +25,6 @@ try {
   assert.deepEqual(files.filter(path => /\.(?:[mc])?js$/.test(path)).sort(), [
     'core/index.cjs',
     'core/index.mjs',
-    'core/pure/index.cjs',
-    'core/pure/index.mjs',
     'features/index.cjs',
     'features/index.mjs',
     'medium-zoom.esm.js',

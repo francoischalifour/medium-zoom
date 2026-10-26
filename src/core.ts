@@ -1,4 +1,3 @@
-import './medium-zoom.css'
 import type { CoreZoomOptions, Zoom as ZoomInstance, ZoomFactory as Factory } from './types'
 
 export { createMediumZoom } from './factory'

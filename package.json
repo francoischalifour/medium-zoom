@@ -52,9 +52,7 @@
     "./dist/medium-zoom.js",
     "./dist/medium-zoom.min.js",
     "./dist/medium-zoom.esm.js",
-    "**/*.css",
-    "./dist/core/index.mjs",
-    "./dist/core/index.cjs"
+    "**/*.css"
   ],
   "main": "dist/medium-zoom.min.js",
   "module": "dist/medium-zoom.esm.js",
@@ -170,16 +168,7 @@
         "default": "./dist/pure/index.cjs"
       }
     },
-    "./core/pure": {
-      "import": {
-        "types": "./dist/core/pure/index.d.mts",
-        "default": "./dist/core/pure/index.mjs"
-      },
-      "require": {
-        "types": "./dist/core/pure/index.d.cts",
-        "default": "./dist/core/pure/index.cjs"
-      }
-    }
+    "./style.css": "./dist/style.css"
   },
   "typesVersions": {
     "*": {
@@ -197,9 +186,6 @@
       ],
       "pure": [
         "dist/pure/index.d.mts"
-      ],
-      "core/pure": [
-        "dist/core/pure/index.d.cts"
       ]
     }
   }

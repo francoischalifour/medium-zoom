@@ -39,9 +39,3 @@ const reversed = createMediumZoom({ features: [template(), container(), hdImage(
 reversed({ container: '#gallery', template: '#template' })
 // @ts-expect-error feature option values remain checked
 full().update({ container: 42 })
-
-import { createMediumZoom as createPure } from 'medium-zoom/core/pure'
-const pureCore = createPure({ features: [container(), template()] })
-pureCore('img', { container: '#gallery', template: '#template' })
-// @ts-expect-error pure core still rejects unsupported options
-createPure()({ template: '#template' })

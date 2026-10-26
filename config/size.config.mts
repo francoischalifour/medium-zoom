@@ -4,12 +4,10 @@ interface BundleBudget {
 }
 
 export default [
-  { path: 'dist/core/index.mjs', maxBytes: 3_200 },
-  { path: 'dist/core/index.cjs', maxBytes: 3_328 },
+  { path: 'dist/core/index.mjs', maxBytes: 2_944 },
+  { path: 'dist/core/index.cjs', maxBytes: 3_072 },
   { path: 'dist/features/index.mjs', maxBytes: 1_152 },
   { path: 'dist/features/index.cjs', maxBytes: 1_216 },
-  { path: 'dist/core/pure/index.mjs', maxBytes: 2_944 },
-  { path: 'dist/core/pure/index.cjs', maxBytes: 3_072 },
   { path: 'dist/pure/index.mjs', maxBytes: 3_584 },
   { path: 'dist/pure/index.cjs', maxBytes: 3_584 },
   { path: 'dist/style.css', maxBytes: 260 },
