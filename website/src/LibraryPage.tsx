@@ -2,6 +2,7 @@ import { Icon, CopyButton, CodeTokens } from './site-components'
 import { ExampleRail } from './example-rail'
 import { javascriptUsageCode } from './gallery'
 import { repositoryUrl } from './site-data'
+import { trackSiteEvent } from './site-analytics'
 import './library.css'
 
 export function LibraryPage() {
@@ -41,7 +42,11 @@ export function LibraryPage() {
         <div className="code-block">
           <div className="code-caption">
             <span>app.js</span>
-            <CopyButton text={javascriptUsageCode} label="Copy usage code" />
+            <CopyButton
+              text={javascriptUsageCode}
+              label="Copy usage code"
+              onCopied={() => trackSiteEvent('Code Copied', { snippet: 'usage' })}
+            />
           </div>
           <pre tabIndex={0}>
             <code id="usage-code">

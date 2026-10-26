@@ -1,7 +1,10 @@
 import { StrictMode } from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import { App } from './App'
+import { initSiteAnalytics } from './site-analytics'
 import './site.css'
+
+initSiteAnalytics()
 
 const root = document.getElementById('root')!
 const page = location.pathname.startsWith('/examples/shadcn') ? 'shadcn' : 'library'

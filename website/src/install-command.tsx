@@ -2,6 +2,7 @@ import { useId } from 'react'
 import { usePackageManager, setPackageManager, packageManagers } from './package-manager'
 import { libraryCommands, componentCommands } from './install-commands'
 import { CopyButton, CodeTokens } from './site-components'
+import { trackInstallCopied } from './site-analytics'
 import type { SitePage } from './site-data'
 
 export function InstallCommand({
@@ -38,7 +39,12 @@ export function InstallCommand({
             </label>
           ))}
         </fieldset>
-        <CopyButton key={command} text={command} label="Copy install command" />
+        <CopyButton
+          key={command}
+          text={command}
+          label="Copy install command"
+          onCopied={trackInstallCopied}
+        />
       </div>
       <pre tabIndex={0}>
         <code>

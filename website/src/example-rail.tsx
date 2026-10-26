@@ -1,3 +1,4 @@
+import { trackSiteEvent } from './site-analytics'
 import * as React from 'react'
 import * as ImageZoom from '../../examples/shadcn/src/components/ui/image-zoom'
 import { CopyButton, HighlightedCode } from './site-components'
@@ -76,7 +77,17 @@ function ExampleCard({
           <div className="demo-code">
             <div className="code-caption">
               <span>{kind === 'react' ? 'photo.tsx' : 'photo.html'}</span>
-              <CopyButton text={code} label={`Copy ${image.id} code`} />
+              <CopyButton
+                text={code}
+                label={`Copy ${image.id} code`}
+                onCopied={() =>
+                  trackSiteEvent('Code Copied', {
+                    snippet: 'example',
+                    example: image.id,
+                    rail: 'primary',
+                  })
+                }
+              />
             </div>
             <HighlightedCode code={code} />
           </div>

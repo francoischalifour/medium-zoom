@@ -3,6 +3,7 @@ import { ImageZoom } from '../../examples/shadcn/src/components/ui/image-zoom'
 import * as ZoomParts from '../../examples/shadcn/src/components/ui/image-zoom'
 import { photos, galleryAssetBase } from './gallery'
 import { CopyButton, HighlightedCode } from './site-components'
+import { trackSiteEvent } from './site-analytics'
 import { usageExamples } from './usage-snippets'
 import { TabList } from './site-tabs'
 
@@ -31,7 +32,13 @@ export function UsageExamples() {
             <div className="code-block">
               <div className="code-caption">
                 <span>components/{example.id === 'gallery' ? 'gallery' : 'photo'}.tsx</span>
-                <CopyButton text={example.code} label="Copy usage code" />
+                <CopyButton
+                  text={example.code}
+                  label="Copy usage code"
+                  onCopied={() =>
+                    trackSiteEvent('Code Copied', { snippet: 'usage', example: example.id })
+                  }
+                />
               </div>
               <HighlightedCode code={example.code} />
             </div>
