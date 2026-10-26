@@ -18,6 +18,12 @@
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "paths": {
+      "medium-zoom/core/pure": [
+        "./src/core-pure.ts"
+      ],
+      "medium-zoom/pure": [
+        "./src/pure.ts"
+      ],
       "medium-zoom/core": [
         "./src/core.ts"
       ],

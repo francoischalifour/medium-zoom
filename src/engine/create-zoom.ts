@@ -5,11 +5,19 @@ import {
   cloneTarget,
   createCustomEvent,
   createOverlay,
-  getImagesFromSelector,
+  getImagesFromSelectors,
   isSvg,
 } from '../utils'
 
-export const createZoomFactory = (features: readonly FeatureHooks[] = []): ZoomFactory => {
+const transformNodes = (session: Session, transform: string) => {
+  ;(session.__mz_nodes || []).forEach(node => {
+    if (node.tagName === 'IMG') node.style.transform = transform
+  })
+}
+
+export const createZoomFactory = ({
+  features = [],
+}: { features?: readonly FeatureHooks[] } = {}): ZoomFactory => {
   // A factory keeps its capabilities even if the caller later edits its array.
   features = features.slice()
   const hooks = features.reduce<FeatureHooks>(
@@ -137,13 +145,7 @@ export const createZoomFactory = (features: readonly FeatureHooks[] = []): ZoomF
     }
 
     const attach = (...selectors: ZoomSelector[]) => {
-      const newImages = selectors.reduce<HTMLImageElement[]>(
-        (imagesAccumulator, currentSelector) => [
-          ...imagesAccumulator,
-          ...getImagesFromSelector(currentSelector),
-        ],
-        []
-      )
+      const newImages = getImagesFromSelectors(selectors)
 
       newImages
         .filter(newImage => images.indexOf(newImage) === -1)
@@ -168,16 +170,7 @@ export const createZoomFactory = (features: readonly FeatureHooks[] = []): ZoomF
         void close()
       }
 
-      const imagesToDetach =
-        selectors.length > 0
-          ? selectors.reduce<HTMLImageElement[]>(
-              (imagesAccumulator, currentSelector) => [
-                ...imagesAccumulator,
-                ...getImagesFromSelector(currentSelector),
-              ],
-              []
-            )
-          : images
+      const imagesToDetach = selectors.length > 0 ? getImagesFromSelectors(selectors) : images
 
       imagesToDetach.forEach(image => {
         image.classList.remove('medium-zoom-image')
@@ -236,7 +229,7 @@ export const createZoomFactory = (features: readonly FeatureHooks[] = []): ZoomF
 
     const open = ({ target }: ZoomOpenOptions = {}) => {
       const current: Session = {}
-      const _animate = () => {
+      const _animate = (zoomTarget = current.__mz_original!) => {
         const margin = zoomOptions.margin!
         let viewport = {
           width: document.documentElement.clientWidth - margin * 2,
@@ -252,7 +245,6 @@ export const createZoomFactory = (features: readonly FeatureHooks[] = []): ZoomF
           top: viewportTop,
         } = viewport
 
-        const zoomTarget = current.__mz_zoomedHd || current.__mz_original!
         const naturalWidth = isSvg(zoomTarget)
           ? viewportWidth
           : zoomTarget.naturalWidth || viewportWidth
@@ -270,11 +262,7 @@ export const createZoomFactory = (features: readonly FeatureHooks[] = []): ZoomF
         const translateY = (-top + (viewportHeight - height) / 2 + viewportTop) / scale
         const transform = `scale(${scale}) translate3d(${translateX}px, ${translateY}px, 0)`
 
-        current.__mz_zoomed!.style.transform = transform
-
-        if (current.__mz_zoomedHd) {
-          current.__mz_zoomedHd.style.transform = transform
-        }
+        transformNodes(current, transform)
       }
 
       return new Promise<Zoom>(resolve => {
@@ -284,13 +272,13 @@ export const createZoomFactory = (features: readonly FeatureHooks[] = []): ZoomF
         }
         active = current
 
-        let cancelTransition = () => {}
-        let cancelImage = () => {}
+        let cancelTransition: (() => void) | undefined
+        let cancelImage: (() => void) | undefined
         let frame: number
         const finishOpening = (opened = false) => {
           if (!current.__mz_cancelOpen) return
-          cancelTransition()
-          cancelImage()
+          if (cancelTransition) cancelTransition()
+          if (cancelImage) cancelImage()
           window.cancelAnimationFrame(frame)
           current.__mz_cancelOpen = null
           isAnimating = false
@@ -315,6 +303,7 @@ export const createZoomFactory = (features: readonly FeatureHooks[] = []): ZoomF
         scrollTop =
           window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
         current.__mz_zoomed = cloneTarget(current.__mz_original)
+        current.__mz_nodes = [current.__mz_zoomed, overlay]
 
         document.body.appendChild(overlay)
 
@@ -342,13 +331,13 @@ export const createZoomFactory = (features: readonly FeatureHooks[] = []): ZoomF
 
         current.__mz_zoomed.addEventListener('click', _close)
 
-        const animate = () => {
-          _animate()
+        const animate = (target?: HTMLImageElement) => {
+          _animate(target)
           cancelTransition = waitForTransition(current.__mz_zoomed!, () => finishOpening(true))
         }
 
-        cancelImage = (hooks.load && hooks.load(current, animate, _close)) || (() => {})
-        if (!hooks.load || !current.__mz_zoomedHd) animate()
+        if (hooks.load) cancelImage = hooks.load(current, animate, _close)
+        if (!cancelImage) animate()
       })
     }
 
@@ -366,13 +355,10 @@ export const createZoomFactory = (features: readonly FeatureHooks[] = []): ZoomF
         isAnimating = true
         const finishClosing = () => {
           current.__mz_original!.classList.remove('medium-zoom-image--hidden')
-          ;[current.__mz_zoomed, current.__mz_zoomedHd, current.__mz_template, overlay].forEach(
-            node => {
-              if (!node) return
-              node.removeEventListener('click', _close)
-              if (node.parentNode) node.parentNode.removeChild(node)
-            }
-          )
+          ;(current.__mz_nodes || []).forEach(node => {
+            node.removeEventListener('click', _close)
+            if (node.parentNode) node.parentNode.removeChild(node)
+          })
           active = {}
           isAnimating = false
           _updateGlobalEvents(false)
@@ -383,8 +369,7 @@ export const createZoomFactory = (features: readonly FeatureHooks[] = []): ZoomF
         // Install completion before dispatching events, whose listeners may interact again.
         if (current.__mz_zoomed) waitForTransition(current.__mz_zoomed!, finishClosing)
         document.body.classList.remove('medium-zoom--opened')
-        if (current.__mz_zoomed) current.__mz_zoomed!.style.transform = ''
-        if (current.__mz_zoomedHd) current.__mz_zoomedHd.style.transform = ''
+        transformNodes(current, '')
         if (hooks.closing) hooks.closing(current)
         _dispatchEvent(current.__mz_original!, 'close')
         if (!current.__mz_zoomed) finishClosing()

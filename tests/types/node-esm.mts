@@ -9,3 +9,11 @@ const factory: (options?: ZoomOptions) => Zoom = mediumZoom
 const pure: (options?: ZoomOptions) => Zoom = pureZoom
 void factory
 void pure
+
+import fullPure from 'medium-zoom/pure'
+const pureFactory: (options?: ZoomOptions) => Zoom = fullPure
+void pureFactory
+
+import type { Zoom as PureZoom, ZoomOptions as PureOptions } from 'medium-zoom/pure'
+const typedPureFactory: (options?: PureOptions) => PureZoom = pureFactory
+void typedPureFactory

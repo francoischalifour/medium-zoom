@@ -1,4 +1,4 @@
-import type { Zoom } from './types'
+import type { Zoom, ZoomSelector } from './types'
 
 export const isSupported = (node: Element): node is HTMLImageElement => node.tagName === 'IMG'
 
@@ -45,6 +45,12 @@ export const getImagesFromSelector = (selector: unknown): HTMLImageElement[] => 
     )
   }
 }
+
+export const getImagesFromSelectors = (selectors: ZoomSelector[]): HTMLImageElement[] =>
+  selectors.reduce<HTMLImageElement[]>(
+    (images, selector) => images.concat(getImagesFromSelector(selector)),
+    []
+  )
 
 export const createOverlay = (background: string | undefined): HTMLDivElement => {
   const overlay = document.createElement('div')

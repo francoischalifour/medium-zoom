@@ -24,6 +24,7 @@ assert.equal(typeof (await import('medium-zoom/dist/pure')).default, 'function')
 
 for (const [entry, names] of Object.entries({
   core: ['createMediumZoom'],
+  'core/pure': ['createMediumZoom'],
   features: ['hdImage', 'container', 'template'],
 })) {
   const esm = await import(`medium-zoom/${entry}`)
@@ -47,3 +48,6 @@ for (const path of [
     require.resolve(`medium-zoom/dist/${path}.js`)
   )
 }
+
+assert.equal(typeof (await import('medium-zoom/pure')).default, 'function')
+assert.equal(typeof require('medium-zoom/pure'), 'function')

@@ -4,8 +4,7 @@ export type Cleanup = () => void
 export interface Session {
   __mz_original?: HTMLImageElement
   __mz_zoomed?: HTMLImageElement
-  __mz_zoomedHd?: HTMLImageElement | null
-  __mz_template?: HTMLDivElement
+  __mz_nodes?: HTMLElement[]
   __mz_closing?: boolean
   __mz_cancelOpen?: ((opened?: boolean) => void) | null
   __mz_viewportScale?: number
@@ -26,6 +25,10 @@ export interface FeatureHooks {
   update?: (options: ZoomOptions, previous: ZoomOptions) => void
   viewport?: (options: ZoomOptions, viewport: Viewport) => Viewport
   mount?: (session: Session, options: ZoomOptions) => void
-  load?: (session: Session, ready: () => void, close: () => void) => Cleanup | undefined
+  load?: (
+    session: Session,
+    ready: (target?: HTMLImageElement) => void,
+    close: () => void
+  ) => Cleanup | undefined
   closing?: (session: Session) => void
 }

@@ -25,12 +25,16 @@ try {
   assert.deepEqual(files.filter(path => /\.(?:[mc])?js$/.test(path)).sort(), [
     'core/index.cjs',
     'core/index.mjs',
+    'core/pure/index.cjs',
+    'core/pure/index.mjs',
     'features/index.cjs',
     'features/index.mjs',
     'medium-zoom.esm.js',
     'medium-zoom.js',
     'medium-zoom.min.js',
+    'pure/index.cjs',
     'pure/index.js',
+    'pure/index.mjs',
     'pure/medium-zoom.min.umd.js',
     'pure/medium-zoom.umd.js',
   ])
@@ -63,7 +67,9 @@ try {
       const commonjs = { exports: {} as Record<string, unknown> }
       runInNewContext(code, { module: commonjs, exports: commonjs.exports })
       assert.equal(
-        typeof commonjs.exports[path.startsWith('core/') ? 'createMediumZoom' : 'hdImage'],
+        typeof (path === 'pure/index.cjs'
+          ? commonjs.exports
+          : commonjs.exports[path.startsWith('core/') ? 'createMediumZoom' : 'hdImage']),
         'function'
       )
       continue

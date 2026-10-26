@@ -1,4 +1,5 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { transformSync } from '@babel/core'
@@ -14,7 +15,7 @@ const banner = `/*! ${pkg.name} ${pkg.version} | ${pkg.license} License | https:
 const stylesheetPath = new URL('../src/medium-zoom.css', import.meta.url)
 // Restrict property mangling to private per-opening state, excluding public options and DOM APIs.
 const privateSessionProperties =
-  /^__mz_(original|zoomed|zoomedHd|template|closing|cancelOpen|viewportScale|isPinching|scrollTimer)$/
+  /^__mz_(original|zoomed|nodes|template|closing|cancelOpen|viewportScale|isPinching|scrollTimer)$/
 
 function stylesheet(): TsdownPlugin {
   return {
@@ -92,7 +93,7 @@ function legacySyntax(minify: boolean): TsdownPlugin {
                   props: {
                     $__mz_original: 'o',
                     $__mz_zoomed: 'z',
-                    $__mz_zoomedHd: 'h',
+                    $__mz_nodes: 'n',
                     $__mz_template: 't',
                     $__mz_closing: 'c',
                     $__mz_cancelOpen: 'a',
@@ -166,15 +167,47 @@ function browserBundle(
   }
 }
 
-function featureBundle(name: 'core' | 'features', format: 'esm' | 'cjs'): UserConfig {
-  const source = name === 'core' ? 'src/core.ts' : 'src/features/index.ts'
+function featureBundle(
+  name: 'core' | 'features' | 'pure' | 'core/pure',
+  format: 'esm' | 'cjs'
+): UserConfig {
+  const sources = {
+    core: 'src/core.ts',
+    features: 'src/features/index.ts',
+    pure: format === 'cjs' ? 'src/pure-commonjs.ts' : 'src/pure.ts',
+    'core/pure': 'src/core-pure.ts',
+  }
+  const source = sources[name]
   return {
     ...browserBundle(source, `${name}/index.${format === 'esm' ? 'mjs' : 'cjs'}`, format),
     entry: { [`${name}/index`]: source },
     // Keep the opaque feature type shared with the core declaration entry.
     deps: { neverBundle: ['medium-zoom/core'] },
-    dts: { generator: 'oxc' },
+    dts: { generator: 'oxc', cjsDefault: name === 'pure' && format === 'cjs' },
     plugins: [...(name === 'core' ? [stylesheet()] : []), legacySyntax(true)],
+    ...(name === 'pure' &&
+      format === 'cjs' && {
+        onSuccess(config) {
+          // CJS declarations are emitted in a separate pipeline without runtime plugins.
+          const path = join(config.outDir, 'pure/index.d.cts')
+          const names = ['ZoomOptions', 'ZoomSelector', 'ZoomContainer', 'ZoomOpenOptions']
+          const aliases = names
+            .map(name => `type ${name} = import('medium-zoom').${name};`)
+            .join('\n')
+          const zoom = `type Zoom<Options extends import('medium-zoom/core').CoreZoomOptions = import('medium-zoom').ZoomOptions> = import('medium-zoom').Zoom<Options>;`
+          const declaration = readFileSync(path, 'utf8')
+          if (!declaration.includes('export = mediumZoom;')) {
+            throw new Error(
+              'The pure CommonJS declaration no longer has the expected callable export'
+            )
+          }
+          const code = declaration.replace(
+            'export = mediumZoom;',
+            `declare namespace mediumZoom { ${zoom}\n${aliases} }\nexport = mediumZoom;`
+          )
+          writeFileSync(path, code)
+        },
+      }),
   }
 }
 
@@ -192,4 +225,8 @@ export default defineConfig([
   featureBundle('features', 'esm'),
   featureBundle('core', 'cjs'),
   featureBundle('features', 'cjs'),
+  featureBundle('pure', 'esm'),
+  featureBundle('pure', 'cjs'),
+  featureBundle('core/pure', 'esm'),
+  featureBundle('core/pure', 'cjs'),
 ])

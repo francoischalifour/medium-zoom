@@ -13,7 +13,6 @@ export function hdImage(): ZoomFeature<{}> {
       ;(Array.prototype.slice.call(zoomed.attributes) as Attr[]).forEach(({ name, value }) => {
         if (!/^(src|srcset|sizes|loading)$/.test(name)) hd.setAttribute(name, value)
       })
-      session.__mz_zoomedHd = hd
       const cleanup = () => {
         hd.removeEventListener('load', finish)
         hd.removeEventListener('error', finish)
@@ -25,11 +24,11 @@ export function hdImage(): ZoomFeature<{}> {
           hd.classList.add('medium-zoom-image--opened')
           hd.addEventListener('click', close)
           document.body.appendChild(hd)
+          session.__mz_nodes!.push(hd)
         } else {
           console.warn(`Unable to reach the zoom image target ${hd.currentSrc || hd.src}`)
-          session.__mz_zoomedHd = null
         }
-        ready()
+        ready(hd.naturalWidth ? hd : undefined)
       }
       hd.addEventListener('load', finish)
       hd.addEventListener('error', finish)

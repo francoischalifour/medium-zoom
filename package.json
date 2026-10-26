@@ -159,7 +159,27 @@
     "./dist/pure/index": "./dist/pure/index.js",
     "./dist/pure/medium-zoom.umd": "./dist/pure/medium-zoom.umd.js",
     "./dist/pure/medium-zoom.min.umd": "./dist/pure/medium-zoom.min.umd.js",
-    "./*": "./*"
+    "./*": "./*",
+    "./pure": {
+      "import": {
+        "types": "./dist/pure/index.d.mts",
+        "default": "./dist/pure/index.mjs"
+      },
+      "require": {
+        "types": "./dist/pure/index.d.cts",
+        "default": "./dist/pure/index.cjs"
+      }
+    },
+    "./core/pure": {
+      "import": {
+        "types": "./dist/core/pure/index.d.mts",
+        "default": "./dist/core/pure/index.mjs"
+      },
+      "require": {
+        "types": "./dist/core/pure/index.d.cts",
+        "default": "./dist/core/pure/index.cjs"
+      }
+    }
   },
   "typesVersions": {
     "*": {
@@ -174,6 +194,12 @@
       ],
       "*": [
         "*"
+      ],
+      "pure": [
+        "dist/pure/index.d.mts"
+      ],
+      "core/pure": [
+        "dist/core/pure/index.d.cts"
       ]
     }
   }

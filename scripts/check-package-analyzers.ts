@@ -42,7 +42,7 @@ async function checkPublint(archive: string) {
 }
 
 function checkAttw(archive: string) {
-  // Include legacy pure paths and both new typed entries. Other UMD paths
+  // Include legacy pure paths and every new typed entry. Other UMD paths
   // are runtime-only and are checked separately.
   const attw = spawnSync(
     resolve('node_modules/.bin/attw'),
@@ -54,6 +54,8 @@ function checkAttw(archive: string) {
       './dist/pure/index.js',
       './core',
       './features',
+      './pure',
+      './core/pure',
       '--format',
       'json',
     ],
@@ -85,7 +87,15 @@ function checkAttw(archive: string) {
       files: ['/node_modules/medium-zoom/dist/pure/index.js'],
     },
   ])
-  const entrypoints = ['.', './dist/pure', './dist/pure/index.js', './core', './features']
+  const entrypoints = [
+    '.',
+    './dist/pure',
+    './dist/pure/index.js',
+    './core',
+    './features',
+    './pure',
+    './core/pure',
+  ]
   const modes = ['node10', 'node16-cjs', 'node16-esm', 'bundler']
   assert.deepEqual(Object.keys(analysis.entrypoints), entrypoints)
   for (const entry of entrypoints) {
