@@ -101,7 +101,10 @@ export function DocsPage({ path }: { path: string }) {
   )
   return (
     <div className={`site-shell docs-shell${isOverview ? ' docs-overview' : ''}`}>
-      <SiteHeader page="docs" />
+      <SiteHeader
+        page="docs"
+        reactContext={page.group.includes('React') || page.path === '/docs/react/'}
+      />
       <noscript>
         <style>
           {

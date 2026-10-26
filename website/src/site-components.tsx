@@ -2,6 +2,12 @@ import snippets from './highlighted-snippets.json'
 import * as React from 'react'
 
 const iconPaths = {
+  search: (
+    <>
+      <circle cx="10.5" cy="10.5" r="7" />
+      <path d="m16 16 5 5" />
+    </>
+  ),
   book: (
     <>
       <path d="M12 7v14" />

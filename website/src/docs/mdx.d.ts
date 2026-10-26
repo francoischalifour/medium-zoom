@@ -4,3 +4,8 @@ declare module '*.mdx' {
   export const outline: { title: string; id: string }[]
   export default Content
 }
+
+declare module 'virtual:docs-search' {
+  const entries: import('../docs-search').SearchEntry[]
+  export default entries
+}

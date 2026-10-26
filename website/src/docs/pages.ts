@@ -2,6 +2,7 @@
 export const docsPages = [
   {
     path: '/docs/',
+    source: 'overview.mdx',
     title: 'Overview',
     group: 'Get started',
     description:
@@ -9,6 +10,7 @@ export const docsPages = [
   },
   {
     path: '/docs/javascript/',
+    source: 'javascript-quickstart.mdx',
     title: 'JavaScript quickstart',
     group: 'Get started',
     description:
@@ -16,6 +18,7 @@ export const docsPages = [
   },
   {
     path: '/docs/react/',
+    source: 'react-quickstart.mdx',
     title: 'React quickstart',
     group: 'Get started',
     description:
@@ -23,6 +26,7 @@ export const docsPages = [
   },
   {
     path: '/docs/guides/hd-images/',
+    source: 'hd-images.mdx',
     title: 'HD images',
     group: 'Guides',
     description:
@@ -30,6 +34,7 @@ export const docsPages = [
   },
   {
     path: '/docs/guides/galleries/',
+    source: 'galleries.mdx',
     title: 'Galleries',
     group: 'Guides',
     description:
@@ -37,6 +42,7 @@ export const docsPages = [
   },
   {
     path: '/docs/guides/styling/',
+    source: 'styling.mdx',
     title: 'Styling',
     group: 'Guides',
     description:
@@ -44,6 +50,7 @@ export const docsPages = [
   },
   {
     path: '/docs/guides/custom-react-triggers/',
+    source: 'custom-react-triggers.mdx',
     title: 'Custom triggers',
     group: 'React guides',
     description:
@@ -51,6 +58,7 @@ export const docsPages = [
   },
   {
     path: '/docs/guides/controlled-state/',
+    source: 'controlled-state.mdx',
     title: 'Controlled state',
     group: 'React guides',
     description:
@@ -58,6 +66,7 @@ export const docsPages = [
   },
   {
     path: '/docs/guides/server-rendering/',
+    source: 'server-rendering.mdx',
     title: 'Server rendering',
     group: 'React guides',
     description:
@@ -65,6 +74,7 @@ export const docsPages = [
   },
   {
     path: '/docs/reference/javascript/medium-zoom/',
+    source: 'javascript-api.mdx',
     title: 'mediumZoom()',
     group: 'JavaScript reference',
     description:
@@ -72,6 +82,7 @@ export const docsPages = [
   },
   {
     path: '/docs/reference/javascript/options/',
+    source: 'options.mdx',
     title: 'Options',
     group: 'JavaScript reference',
     description:
@@ -79,6 +90,7 @@ export const docsPages = [
   },
   {
     path: '/docs/reference/javascript/methods/',
+    source: 'methods.mdx',
     title: 'Methods',
     group: 'JavaScript reference',
     description:
@@ -86,6 +98,7 @@ export const docsPages = [
   },
   {
     path: '/docs/reference/javascript/events/',
+    source: 'events.mdx',
     title: 'Events',
     group: 'JavaScript reference',
     description:
@@ -93,6 +106,7 @@ export const docsPages = [
   },
   {
     path: '/docs/reference/react/image-zoom/',
+    source: 'image-zoom.mdx',
     title: '<ImageZoom>',
     group: 'React reference',
     description:
@@ -100,6 +114,7 @@ export const docsPages = [
   },
   {
     path: '/docs/reference/react/composition/',
+    source: 'composition-api.mdx',
     title: 'Composition',
     group: 'React reference',
     description:
