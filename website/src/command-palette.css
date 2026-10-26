@@ -79,6 +79,7 @@
   color: var(--muted-foreground);
 }
 .command-palette {
+  --command-gutter: 20px;
   --command-muted: #686870;
   --command-match: #086646;
   --command-match-background: #e5f7ef;
@@ -123,7 +124,7 @@
   flex-shrink: 0;
   align-items: center;
   gap: 12px;
-  padding: 0 20px;
+  padding: 0 var(--command-gutter);
   min-height: 64px;
   border-bottom: 1px solid var(--border);
   color: var(--command-muted);
@@ -167,7 +168,7 @@
   max-height: 480px;
 }
 .command-group {
-  padding: 12px 12px 6px;
+  padding: 12px calc(var(--command-gutter) - 8px) 6px;
   color: var(--command-muted);
   font-size: 11px;
   font-weight: 500;
@@ -180,7 +181,7 @@
   align-items: center;
   gap: 12px;
   min-height: 52px;
-  padding: 8px 12px;
+  padding: 8px calc(var(--command-gutter) - 8px);
   border-radius: 7px;
   cursor: pointer;
 }
@@ -192,8 +193,8 @@
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
+  width: 20px;
+  height: 20px;
   color: var(--command-muted);
 }
 .command-result-icon svg {
@@ -264,7 +265,7 @@
 .command-result-tail {
   position: absolute;
   top: 10px;
-  right: 12px;
+  right: calc(var(--command-gutter) - 8px);
   display: grid;
   place-items: center;
   width: 22px;
@@ -289,7 +290,7 @@
 }
 .command-empty {
   margin: 0;
-  padding: 20px 12px 16px;
+  padding: 20px calc(var(--command-gutter) - 8px) 16px;
   font-size: 12px;
   line-height: 18px;
   color: var(--command-muted);
@@ -311,7 +312,7 @@
   min-height: 44px;
 }
 .command-feedback {
-  padding: 10px 20px;
+  padding: 10px var(--command-gutter);
   border-top: 1px solid var(--border);
   font-size: 12px;
   color: var(--foreground);
@@ -323,7 +324,7 @@
   align-items: center;
   gap: 18px;
   border-top: 1px solid var(--border);
-  padding: 10px 20px;
+  padding: 10px var(--command-gutter);
   font-size: 11px;
   line-height: 20px;
   color: var(--command-muted);
@@ -392,16 +393,9 @@
 }
 @media (max-width: 680px) {
   .command-palette {
+    --command-gutter: 16px;
     margin-top: 16px;
     max-height: calc(100dvh - 32px);
-  }
-  .command-search {
-    padding: 0 16px;
-  }
-  .command-result {
-    gap: 10px;
-    padding-left: 8px;
-    padding-right: 8px;
   }
   .command-action .command-result-content {
     display: block;
@@ -410,7 +404,6 @@
     font-size: 11px;
   }
   .command-footer {
-    padding: 10px 16px;
     gap: 12px;
   }
   .command-dismiss {
