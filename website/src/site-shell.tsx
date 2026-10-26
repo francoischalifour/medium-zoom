@@ -6,34 +6,34 @@ import { getTheme, getServerTheme, setTheme, subscribeTheme } from './site-theme
 
 const siteSections = [
   {
-    page: 'javascript',
+    id: 'javascript',
     href: '/',
     label: 'JavaScript',
-    title: 'JavaScript',
-    mark: <JavaScriptIcon className="documentation-mark" />,
+    footerLabel: 'JavaScript',
+    icon: <JavaScriptIcon className="documentation-mark" />,
   },
   {
-    page: 'react',
+    id: 'react',
     href: '/react',
     label: 'React',
-    title: 'React',
-    mark: <ReactIcon className="documentation-mark" />,
+    footerLabel: 'React',
+    icon: <ReactIcon className="documentation-mark" />,
   },
   {
-    page: 'docs',
+    id: 'docs',
     href: '/docs/',
     label: 'Docs',
-    title: 'Documentation',
-    mark: <Icon name="book" className="documentation-mark" />,
+    footerLabel: 'Documentation',
+    icon: <Icon name="book" className="documentation-mark" />,
   },
 ] as const
 
 export function SectionLinks({ page }: { page: SitePage | 'docs' }) {
   return (
     <>
-      {siteSections.map(({ page: section, href, label, mark }) => (
-        <a key={href} href={href} aria-current={page === section ? 'page' : undefined}>
-          {mark}
+      {siteSections.map(({ id, href, label, icon }) => (
+        <a key={href} href={href} aria-current={page === id ? 'page' : undefined}>
+          {icon}
           {label}
         </a>
       ))}
@@ -89,7 +89,7 @@ export function SiteFooter({ page }: { page: SitePage | 'docs' }) {
           <img src="/brand/mark.svg" width="24" height="24" alt="" />
           medium-zoom
         </a>
-        <p className="footer-description">Image zoom for the web.</p>
+        <p>Image zoom for the web.</p>
         <p className="footer-credit">
           By <a href="https://francoischalifour.com">François Chalifour</a>
         </p>
@@ -98,10 +98,10 @@ export function SiteFooter({ page }: { page: SitePage | 'docs' }) {
         <div className="footer-nav-group">
           <p>Explore</p>
           <ul>
-            {siteSections.map(({ page: section, href, title }) => (
+            {siteSections.map(({ id, href, footerLabel }) => (
               <li key={href}>
-                <a href={href} aria-current={page === section ? 'page' : undefined}>
-                  {title}
+                <a href={href} aria-current={page === id ? 'page' : undefined}>
+                  {footerLabel}
                 </a>
               </li>
             ))}

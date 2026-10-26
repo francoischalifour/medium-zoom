@@ -1,77 +1,102 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+
+function focusAnchorTarget(target: HTMLElement) {
+  const previousTabIndex = target.getAttribute('tabindex')
+  const restoreTabIndex = () => {
+    target.removeEventListener('blur', restoreTabIndex)
+    if (previousTabIndex === null) target.removeAttribute('tabindex')
+    else target.setAttribute('tabindex', previousTabIndex)
+  }
+  target.setAttribute('tabindex', '-1')
+  target.addEventListener('blur', restoreTabIndex, { once: true })
+  target.focus({ preventScroll: true })
+  return restoreTabIndex
+}
 
 export function useDocsNavigation(path: string) {
-  const [activeId, setActiveId] = useState('')
+  const articleRef = useRef<HTMLElement>(null)
+  const [activeHeadingId, setActiveHeadingId] = useState('')
 
   useEffect(() => {
-    const article = document.querySelector('.docs-article')!
-    const headings = [...article.querySelectorAll<HTMLElement>('h2[id]')]
-    let pending: HTMLElement | null = null
-    let highlighted: HTMLElement | null = null
-    let focusDestination = false
-    let settleTimer = 0
-    let highlightTimer = 0
+    const headings = [...articleRef.current!.querySelectorAll<HTMLElement>('h2[id]')]
     let frame = 0
-    let restoreTabIndex = () => {}
-
-    const updateActive = () => {
+    const updateActiveHeading = () => {
       frame = 0
       const offset = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)
-      let current = ''
+      let currentId = ''
       for (const heading of headings) {
         if (heading.getBoundingClientRect().top > offset + 8) break
-        current = heading.id
+        currentId = heading.id
       }
       // The last section may be too short to reach the top of the viewport.
       if (
         window.scrollY > 0 &&
         window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2
       ) {
-        current = headings.at(-1)?.id || current
+        currentId = headings.at(-1)?.id || currentId
       }
-      setActiveId(current)
+      setActiveHeadingId(currentId)
     }
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(updateActiveHeading)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    updateActiveHeading()
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+      window.cancelAnimationFrame(frame)
+    }
+  }, [path])
+
+  useEffect(() => {
+    const article = articleRef.current!
+    let pendingDestination: { element: HTMLElement; focusAfterScroll: boolean } | null = null
+    let highlightedElement: HTMLElement | null = null
+    let scrollIdleTimer = 0
+    let highlightTimer = 0
+    let restoreTargetFocus: (() => void) | undefined
+
     const clearHighlight = () => {
       window.clearTimeout(highlightTimer)
-      highlighted?.removeAttribute('data-anchor-arrival')
-      highlighted = null
+      highlightedElement?.removeAttribute('data-anchor-arrival')
+      highlightedElement = null
     }
-    const arrive = () => {
-      window.clearTimeout(settleTimer)
-      if (!pending) return
-      const target = pending
-      const shouldFocus = focusDestination
-      pending = null
-      focusDestination = false
+    const showDestination = () => {
+      window.clearTimeout(scrollIdleTimer)
+      const destination = pendingDestination
+      pendingDestination = null
+      if (!destination) return
+      const { element: target, focusAfterScroll } = destination
       const bounds = target.getBoundingClientRect()
       if (bounds.bottom < 0 || bounds.top >= window.innerHeight) return
       // Older deep links can point at empty compatibility markers.
-      let content = target
-      while (content.matches('div:empty') && content.nextElementSibling instanceof HTMLElement) {
-        content = content.nextElementSibling
+      let highlightTarget = target
+      while (
+        highlightTarget.matches('div:empty') &&
+        highlightTarget.nextElementSibling instanceof HTMLElement
+      ) {
+        highlightTarget = highlightTarget.nextElementSibling
       }
-      highlighted = content
-      content.setAttribute('data-anchor-arrival', '')
-      if (shouldFocus && !target.matches('div:empty')) {
-        restoreTabIndex()
-        // Keep focus until the reader moves on, without adding a tab stop.
-        const tabindex = target.getAttribute('tabindex')
-        restoreTabIndex = () => {
-          target.removeEventListener('blur', restoreTabIndex)
-          if (tabindex === null) target.removeAttribute('tabindex')
-          else target.setAttribute('tabindex', tabindex)
-        }
-        target.setAttribute('tabindex', '-1')
-        target.addEventListener('blur', restoreTabIndex, { once: true })
-        target.focus({ preventScroll: true })
+      highlightedElement = highlightTarget
+      highlightTarget.setAttribute('data-anchor-arrival', '')
+      if (focusAfterScroll && !target.matches('div:empty')) {
+        restoreTargetFocus?.()
+        restoreTargetFocus = focusAnchorTarget(target)
       }
       highlightTimer = window.setTimeout(clearHighlight, 1_800)
     }
-    const scheduleArrival = (hash: string, focus = false) => {
+    const waitForScroll = () => {
+      if (!pendingDestination) return
+      window.clearTimeout(scrollIdleTimer)
+      scrollIdleTimer = window.setTimeout(showDestination, 160)
+    }
+    const scheduleArrival = (hash: string, focusAfterScroll = false) => {
+      const previousDestination = pendingDestination
+      pendingDestination = null
       clearHighlight()
-      window.clearTimeout(settleTimer)
-      pending = null
-      focusDestination = focus
+      window.clearTimeout(scrollIdleTimer)
       let id: string
       try {
         id = decodeURIComponent(hash.slice(1))
@@ -79,19 +104,17 @@ export function useDocsNavigation(path: string) {
         return
       }
       const target = document.getElementById(id)
-      pending = target instanceof HTMLElement && article.contains(target) ? target : null
-      // Covers instant navigation, repeated anchors, and browsers without scrollend.
-      if (pending) settleTimer = window.setTimeout(arrive, 160)
-    }
-    const onScroll = () => {
-      if (!frame) frame = window.requestAnimationFrame(updateActive)
-      if (pending) {
-        window.clearTimeout(settleTimer)
-        settleTimer = window.setTimeout(arrive, 160)
+      if (!(target instanceof HTMLElement) || !article.contains(target)) return
+      pendingDestination = {
+        element: target,
+        focusAfterScroll:
+          focusAfterScroll ||
+          (previousDestination?.element === target && previousDestination.focusAfterScroll),
       }
+      waitForScroll()
     }
-    const onHashChange = () => scheduleArrival(window.location.hash, focusDestination)
-    const onClick = (event: MouseEvent) => {
+    const onHashChange = () => scheduleArrival(window.location.hash)
+    const onLinkClick = (event: MouseEvent) => {
       if (
         event.defaultPrevented ||
         event.button !== 0 ||
@@ -105,9 +128,9 @@ export function useDocsNavigation(path: string) {
       if (!link || link.hasAttribute('download') || (link.target && link.target !== '_self')) return
       const url = new URL(link.href)
       if (
-        url.origin !== location.origin ||
-        url.pathname !== location.pathname ||
-        url.search !== location.search ||
+        url.origin !== window.location.origin ||
+        url.pathname !== window.location.pathname ||
+        url.search !== window.location.search ||
         !url.hash
       )
         return
@@ -117,28 +140,26 @@ export function useDocsNavigation(path: string) {
     }
     const onLoad = () => scheduleArrival(window.location.hash)
 
-    document.addEventListener('click', onClick)
+    document.addEventListener('click', onLinkClick)
     window.addEventListener('hashchange', onHashChange)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('scrollend', arrive)
-    window.addEventListener('resize', onScroll)
+    window.addEventListener('scroll', waitForScroll, { passive: true })
+    window.addEventListener('scrollend', showDestination)
+    window.addEventListener('resize', waitForScroll)
     window.addEventListener('load', onLoad)
-    updateActive()
     if (document.readyState === 'complete') onLoad()
 
     return () => {
-      document.removeEventListener('click', onClick)
+      document.removeEventListener('click', onLinkClick)
       window.removeEventListener('hashchange', onHashChange)
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('scrollend', arrive)
-      window.removeEventListener('resize', onScroll)
+      window.removeEventListener('scroll', waitForScroll)
+      window.removeEventListener('scrollend', showDestination)
+      window.removeEventListener('resize', waitForScroll)
       window.removeEventListener('load', onLoad)
-      window.cancelAnimationFrame(frame)
-      window.clearTimeout(settleTimer)
+      window.clearTimeout(scrollIdleTimer)
       clearHighlight()
-      restoreTabIndex()
+      restoreTargetFocus?.()
     }
   }, [path])
 
-  return activeId
+  return { articleRef, activeHeadingId }
 }

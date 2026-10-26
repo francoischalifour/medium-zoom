@@ -65,7 +65,7 @@ function ArticleHeading({ children }: { children: ReactNode }) {
 }
 
 export function DocsPage({ path }: { path: string }) {
-  const activeId = useDocsNavigation(path)
+  const { articleRef, activeHeadingId } = useDocsNavigation(path)
   const page = docsPages.find(page => page.path === path)
   if (!page) throw new Error(`Unknown documentation page: ${path}`)
   const { default: Content, outline } = pageContent[page.path]
@@ -99,7 +99,7 @@ export function DocsPage({ path }: { path: string }) {
         <a
           key={item.id}
           href={`#${item.id}`}
-          aria-current={activeId === item.id ? 'location' : undefined}
+          aria-current={activeHeadingId === item.id ? 'location' : undefined}
         >
           {item.title}
         </a>
@@ -134,7 +134,7 @@ export function DocsPage({ path }: { path: string }) {
       <div className="docs-layout">
         <ScrollArea className="docs-sidebar">{navigation}</ScrollArea>
         <main id="main" className="docs-main">
-          <article className="docs-article">
+          <article ref={articleRef} className="docs-article">
             <header className="docs-heading">
               <p>{page.group}</p>
               <h1>{page.title}</h1>

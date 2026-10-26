@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { resolve, extname, sep } from 'node:path'
 import { pack } from '../scripts/pack.ts'
 import { testPort } from './server-urls.ts'
+import { readExactRedirects } from '../website/build/site-redirects.ts'
 
 const artifact = pack()
 const roots: Record<string, string> = {
@@ -12,12 +13,7 @@ const roots: Record<string, string> = {
   site: resolve('website/dist'),
   analytics: resolve('.cache/analytics-site'),
 }
-const pageRedirects = new Map(
-  readFileSync(resolve(roots.site, '_redirects'), 'utf8')
-    .split('\n')
-    .filter(line => line.startsWith('/') && !line.includes('*'))
-    .map(line => line.trim().split(/\s+/).slice(0, 2) as [string, string])
-)
+const pageRedirects = readExactRedirects(resolve(roots.site, '_redirects'))
 const contentTypes: Record<string, string> = {
   '.js': 'text/javascript',
   '.css': 'text/css',

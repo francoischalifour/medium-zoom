@@ -9,7 +9,7 @@ const date = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeZone: '
 export function DownloadStats() {
   const [downloads, setDownloads] = useState(snapshot)
   const [entered, setEntered] = useState(false)
-  const total = useRef<HTMLSpanElement>(null)
+  const totalRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
     let active = true
@@ -23,7 +23,7 @@ export function DownloadStats() {
   }, [])
 
   useEffect(() => {
-    const element = total.current!
+    const element = totalRef.current!
     const observer = new IntersectionObserver(
       entries => {
         if (entries.some(entry => entry.isIntersecting && entry.intersectionRatio >= 0.5)) {
@@ -44,7 +44,7 @@ export function DownloadStats() {
       </noscript>
       <a href="https://www.npmjs.com/package/medium-zoom" className="download-total">
         <span className="sr-only">{number.format(downloads.total)} total downloads on npm</span>
-        <span className="download-digits" aria-hidden="true" ref={total}>
+        <span className="download-digits" aria-hidden="true" ref={totalRef}>
           {number.format(downloads.total)}
         </span>
         <span aria-hidden="true">total downloads</span>

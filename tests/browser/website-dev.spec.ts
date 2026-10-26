@@ -1,5 +1,6 @@
-import { execFileSync } from 'node:child_process'
+import { execFile } from 'node:child_process'
 import { resolve } from 'node:path'
+import { promisify } from 'node:util'
 import { createServer } from 'vite'
 import { test, expect } from './website-fixture'
 
@@ -26,7 +27,7 @@ test('production prerendering preserves a running development site and its numbe
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
 
     // This builds and prerenders a separate artifact while development remains open.
-    execFileSync('bun', ['scripts/build-analytics-fixture.ts'], { stdio: 'pipe' })
+    await promisify(execFile)('bun', ['scripts/build-analytics-fixture.ts'])
     await page.reload()
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
     const number = page.locator('.download-digits')
