@@ -26,12 +26,12 @@ export function DownloadStats() {
     const element = total.current!
     const observer = new IntersectionObserver(
       entries => {
-        if (entries.some(entry => entry.isIntersecting)) {
+        if (entries.some(entry => entry.isIntersecting && entry.intersectionRatio >= 0.5)) {
           setEntered(true)
           observer.disconnect()
         }
       },
-      { threshold: 0.2 }
+      { threshold: 0.5, rootMargin: '0px 0px -32px 0px' }
     )
     observer.observe(element)
     return () => observer.disconnect()

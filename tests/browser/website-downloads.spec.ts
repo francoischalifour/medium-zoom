@@ -93,6 +93,45 @@ for (const failure of ['unavailable', 'incomplete', 'older'] as const) {
   })
 }
 
+test('the download number waits until visible and animates through intermediate frames', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.goto('/website.html')
+  const number = page.locator('.download-digits')
+  const edgeFrames = await number.evaluate(async element => {
+    window.scrollTo({
+      top:
+        element.getBoundingClientRect().top +
+        scrollY -
+        innerHeight +
+        element.getBoundingClientRect().height / 4,
+      behavior: 'instant',
+    })
+    const frames: number[] = []
+    for (let index = 0; index < 20; index++) {
+      await new Promise(requestAnimationFrame)
+      frames.push(Number(getComputedStyle(element).opacity))
+    }
+    return frames
+  })
+  expect(edgeFrames.every(opacity => opacity === 0)).toBe(true)
+  const revealFrames = await number.evaluate(async element => {
+    element.scrollIntoView({ block: 'center', behavior: 'instant' })
+    const frames: number[] = []
+    for (let index = 0; index < 40; index++) {
+      await new Promise(requestAnimationFrame)
+      frames.push(Number(getComputedStyle(element).opacity))
+    }
+    return frames
+  })
+  expect(revealFrames.filter(opacity => opacity > 0 && opacity < 1).length).toBeGreaterThan(2)
+  expect(revealFrames.at(-1)).toBe(1)
+  for (let index = 1; index < revealFrames.length; index++) {
+    expect(revealFrames[index]).toBeGreaterThanOrEqual(revealFrames[index - 1])
+  }
+})
+
 test('the download number enters once and respects reduced motion', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' })
   await page.goto('/website.html')
@@ -122,7 +161,7 @@ test('the download number enters once and respects reduced motion', async ({ pag
     )
   ).toBe(0)
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  await expect(stats.locator('.download-digits')).toHaveCSS('transition-duration', '0s')
+  await expect(stats.locator('.download-digits')).toHaveCSS('animation-name', 'none')
 })
 
 test('the download number starts hidden before hydration and reveals without a flash', async ({
