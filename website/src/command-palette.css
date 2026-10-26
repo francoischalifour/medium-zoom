@@ -52,7 +52,7 @@
   outline-offset: 3px;
   box-shadow: none;
 }
-@media (hover: hover) and (pointer: fine) {
+@media (min-width: 901px) and (hover: hover) and (pointer: fine) {
   .search-trigger:hover {
     border-color: color-mix(in srgb, var(--foreground) 25%, var(--border));
     background: var(--background);
@@ -363,8 +363,35 @@
     min-width: 36px;
     padding: 0;
     justify-content: center;
+    width: 36px;
+    border: 0;
+    border-radius: 6px;
     background: transparent;
-    border-color: transparent;
+    color: var(--muted-foreground);
+    box-shadow: none;
+  }
+  .search-trigger > svg {
+    width: 18px;
+    height: 18px;
+    color: inherit;
+  }
+  .search-trigger:focus-visible {
+    outline-offset: 2px;
+  }
+  .search-trigger:active {
+    transform: scale(0.97);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .search-trigger:hover {
+      background: var(--hover);
+      color: var(--foreground);
+    }
+  }
+  @supports (corner-shape: squircle) {
+    .search-trigger {
+      border-radius: 12px;
+      corner-shape: squircle;
+    }
   }
   .search-trigger > span {
     display: none;
