@@ -79,7 +79,7 @@
     "test:package": "bun scripts/check-package.ts",
     "test:size": "bun scripts/check-size.ts",
     "check": "bun run check:library && bun run build:demo && bun run test:examples && bun run test:browser && bun run test:rsc && bun run test:analytics",
-    "check:library": "bun run format:check && bun run lint && bun run build && bun run typecheck && bun run test:size && bun run test:package",
+    "check:library": "bun run format:check && bun run build && bun run lint && bun run typecheck && bun run test:size && bun run test:package",
     "prepublishOnly": "bun run check",
     "dev:example": "bun scripts/dev-example.ts",
     "test:examples": "bun scripts/check-examples.ts",
