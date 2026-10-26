@@ -81,7 +81,9 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
         'modern/index.cjs',
         'modern/index.mjs',
         'pure/index.cjs',
-        'pure/index.mjs'
+        'pure/index.mjs',
+        'renderers/index.cjs',
+        'renderers/index.mjs'
       )
     }
     assert.deepEqual(
@@ -92,7 +94,7 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
     for (const path of files.filter(path => /\.(?:[mc])?js$/.test(path))) {
       const code = readFileSync(join(artifact.root, 'dist', path), 'utf8')
       const esm = path.endsWith('.mjs') || path.endsWith('.esm.js') || path === 'pure/index.js'
-      const modern = /^(core|features|modern)\//.test(path)
+      const modern = /^(core|features|modern|renderers)\//.test(path)
       parse(code, {
         ecmaVersion: modern ? 2_020 : esm ? 2_015 : 5,
         sourceType: esm ? 'module' : 'script',
@@ -135,7 +137,9 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
             ? loaded.createMediumZoom
             : path.startsWith('features/')
               ? loaded.hdImage
-              : loaded.default),
+              : path.startsWith('renderers/')
+                ? loaded.dialog
+                : loaded.default),
           'function'
         )
         continue
@@ -144,9 +148,15 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
         const commonjs = { exports: {} as Record<string, unknown> }
         runInNewContext(code, { module: commonjs, exports: commonjs.exports })
         assert.equal(
-          typeof (!/^(core|features)\//.test(path)
+          typeof (!/^(core|features|renderers)\//.test(path)
             ? commonjs.exports
-            : commonjs.exports[path.startsWith('core/') ? 'createMediumZoom' : 'hdImage']),
+            : commonjs.exports[
+                path.startsWith('core/')
+                  ? 'createMediumZoom'
+                  : path.startsWith('renderers/')
+                    ? 'dialog'
+                    : 'hdImage'
+              ]),
           'function'
         )
         continue
@@ -174,6 +184,10 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
     assert.equal(
       readFileSync(join(artifact.root, 'dist/medium-zoom.d.ts'), 'utf8'),
       readFileSync(join(artifact.root, 'dist/pure/index.d.ts'), 'utf8')
+    )
+    assert(
+      !readFileSync(join(artifact.root, 'dist/medium-zoom.d.ts'), 'utf8').includes('trigger?:'),
+      'Release declarations must not expose modal trigger options'
     )
     const css = readFileSync(join(artifact.root, 'dist/style.css'), 'utf8')
     assert(css.includes('cursor:pointer') && css.includes('cursor:zoom-in'))

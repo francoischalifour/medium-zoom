@@ -14,6 +14,8 @@ const variants = {
   'core + container': ['container'],
   'core + template': ['template'],
   'core + all features': ['hdImage', 'container', 'template'],
+  'core + dialog': [],
+  'dialog + all features': ['hdImage', 'container', 'template'],
   full: null,
   'pure full': null,
   'compat full': null,
@@ -32,10 +34,12 @@ try {
   const results: Record<string, number> = {}
   for (const [index, [name, features]] of Object.entries(variants).entries()) {
     const entry = join(directory, `${index}.ts`)
+    const modal = name.includes('dialog')
     const source = features
       ? `import { createMediumZoom } from ${JSON.stringify(resolve('dist/core/index.mjs'))};
          import { hdImage, container, template } from ${JSON.stringify(resolve('dist/features/index.mjs'))};
-         globalThis.zoom = createMediumZoom({ features: [${features.map(name => `${name}()`).join(',')}] })('img');`
+         ${modal ? `import { dialog } from ${JSON.stringify(resolve('dist/renderers/index.mjs'))};` : ''}
+         globalThis.zoom = createMediumZoom({ ${modal ? 'renderer: dialog(),' : ''} features: [${features.map(name => `${name}()`).join(',')}] })('img');`
       : `import mediumZoom from ${JSON.stringify(resolve(fullEntries[name]))}; globalThis.zoom = mediumZoom('img');`
     writeFileSync(entry, source)
     const output = join(directory, `output-${index}`)
@@ -63,6 +67,7 @@ try {
       assert(!code.includes('initCustomEvent'), `${name}: no legacy event fallback`)
       assert(!code.includes('.keyCode'), `${name}: no legacy keyboard fallback`)
     }
+    assert.equal(code.includes('showModal'), modal, `${name}: dialog renderer isolation`)
     const included = features || variants['core + all features']
     assert.equal(
       code.includes('data-zoom-src'),

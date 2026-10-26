@@ -39,3 +39,18 @@ const reversed = createMediumZoom({ features: [template(), container(), hdImage(
 reversed({ container: '#gallery', template: '#template' })
 // @ts-expect-error feature option values remain checked
 full().update({ container: 42 })
+
+import { dialog } from 'medium-zoom/renderers'
+const modal = createMediumZoom({
+  renderer: dialog({ label: 'Photo', closeLabel: 'Close' }),
+  features: [template(), hdImage()],
+})
+const modalZoom = modal('img', { template: '#template' })
+void modalZoom.open({ trigger: document.createElement('button') })
+modalZoom.clone().update({ template: null })
+// @ts-expect-error renderer does not enable the container feature
+modalZoom.update({ container: '#gallery' })
+// @ts-expect-error renderers are fixed at creation
+modalZoom.update({ renderer: dialog() })
+// @ts-expect-error renderer configuration remains typed
+dialog({ label: 42 })

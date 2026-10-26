@@ -2,6 +2,8 @@ import type { ZoomOptions } from '../types'
 
 export type Cleanup = () => void
 export interface Session {
+  __mz_host?: HTMLElement
+  __mz_disposeHost?: Cleanup
   __mz_original?: HTMLImageElement
   __mz_zoomed?: HTMLImageElement
   __mz_nodes?: HTMLElement[]
@@ -31,4 +33,16 @@ export interface FeatureHooks {
     close: () => void
   ) => Cleanup | undefined
   __mz_closing?: (session: Session) => void
+}
+
+export interface RendererHooks {
+  mount: (
+    image: HTMLImageElement,
+    original: HTMLImageElement,
+    close: Cleanup,
+    trigger?: HTMLElement
+  ) => {
+    element: HTMLElement
+    dispose: Cleanup
+  }
 }

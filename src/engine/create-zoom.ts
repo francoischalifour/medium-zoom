@@ -3,7 +3,7 @@ import { getPromise, createCustomEvent, getScrollY, isEscape, assign } from '#pl
 import type { Zoom, ZoomFactory, ZoomOptions, ZoomSelector, ZoomOpenOptions } from '../types'
 import { cloneTarget, createOverlay, getImagesFromSelectors, isSvg } from '../utils'
 import { waitForTransition } from './transition'
-import type { FeatureHooks, Session } from './types'
+import type { FeatureHooks, Session, RendererHooks } from './types'
 
 const transformNodes = (session: Session, transform: string) => {
   ;(session.__mz_nodes || []).forEach(node => {
@@ -13,7 +13,7 @@ const transformNodes = (session: Session, transform: string) => {
   })
 }
 
-export const createZoom = (hooks: Required<FeatureHooks>): ZoomFactory => {
+export const createZoom = (hooks: Required<FeatureHooks>, renderer?: RendererHooks): ZoomFactory => {
   const mediumZoom: ZoomFactory = (
     selector?: ZoomSelector | ZoomOptions,
     options: ZoomOptions = {}
@@ -34,6 +34,8 @@ export const createZoom = (hooks: Required<FeatureHooks>): ZoomFactory => {
         void close()
         return
       }
+
+      if (renderer && active.__mz_original) return
 
       if (images.indexOf(target as HTMLImageElement) === -1) {
         return
@@ -185,7 +187,7 @@ export const createZoom = (hooks: Required<FeatureHooks>): ZoomFactory => {
 
     const _updateGlobalEvents = (enabled: boolean) => {
       const method = enabled ? 'addEventListener' : 'removeEventListener'
-      document[method]('keyup', _handleKeyUp as EventListener)
+      if (!renderer) document[method]('keyup', _handleKeyUp as EventListener)
       document[method]('scroll', _handleScroll)
       const touchOptions = { passive: true }
       ;['touchstart', 'touchend', 'touchcancel'].forEach(type =>
@@ -194,7 +196,7 @@ export const createZoom = (hooks: Required<FeatureHooks>): ZoomFactory => {
       window[method]('resize', _close)
     }
 
-    const open = ({ target }: ZoomOpenOptions = {}) => {
+    const open = ({ target, trigger }: ZoomOpenOptions = {}) => {
       const current: Session = {}
       const _animate = (zoomTarget = current.__mz_original!) => {
         const margin = zoomOptions.margin!
@@ -234,7 +236,7 @@ export const createZoom = (hooks: Required<FeatureHooks>): ZoomFactory => {
         transformNodes(current, transform)
       }
 
-      return new Promise<Zoom>(resolve => {
+      return new Promise<Zoom>((resolve, reject) => {
         if (active.__mz_original || (target && images.indexOf(target as HTMLImageElement) === -1)) {
           resolve(zoom)
           return
@@ -281,7 +283,19 @@ export const createZoom = (hooks: Required<FeatureHooks>): ZoomFactory => {
         current.__mz_zoomed = cloneTarget(current.__mz_original)
         current.__mz_nodes = [current.__mz_zoomed, overlay]
 
-        document.body.appendChild(overlay)
+        try {
+          const host = renderer?.mount(current.__mz_zoomed, current.__mz_original, _close, trigger)
+          current.__mz_host = host ? host.element : document.body
+          current.__mz_disposeHost = host?.dispose
+        } catch (error) {
+          reject(error)
+          finishOpening()
+          active = {}
+          _updateGlobalEvents(false)
+          return
+        }
+        if (current.__mz_closing) return
+        current.__mz_host.appendChild(overlay)
 
         hooks.__mz_mount(current, zoomOptions)
 
@@ -296,7 +310,7 @@ export const createZoom = (hooks: Required<FeatureHooks>): ZoomFactory => {
           current.__mz_zoomed.src = current.__mz_original.currentSrc
         }
 
-        document.body.appendChild(current.__mz_zoomed)
+        current.__mz_host.appendChild(current.__mz_zoomed)
 
         frame = window.requestAnimationFrame(() => {
           document.body.classList.add('medium-zoom--opened')
@@ -341,9 +355,11 @@ export const createZoom = (hooks: Required<FeatureHooks>): ZoomFactory => {
               node.parentNode.removeChild(node)
             }
           })
+          const disposeHost = current.__mz_disposeHost
           active = {}
           isAnimating = false
           _updateGlobalEvents(false)
+          if (disposeHost) disposeHost()
           resolve(zoom)
           _dispatchEvent(current.__mz_original!, 'closed')
         }
@@ -361,12 +377,12 @@ export const createZoom = (hooks: Required<FeatureHooks>): ZoomFactory => {
         }
       })
 
-    const toggle = ({ target }: ZoomOpenOptions = {}) => {
+    const toggle = (options: ZoomOpenOptions = {}) => {
       if (active.__mz_original) {
         return close()
       }
 
-      return open({ target })
+      return open(options)
     }
 
     const getOptions = () => zoomOptions

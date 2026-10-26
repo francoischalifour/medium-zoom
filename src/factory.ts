@@ -1,10 +1,11 @@
 import { assign } from '#platform'
 
 import { createZoom } from './engine/create-zoom'
-import type { FeatureHooks } from './engine/types'
-import type { FeatureOptions, ZoomFactory, ZoomFeature } from './types'
+import type { FeatureHooks, RendererHooks } from './engine/types'
+import type { FeatureOptions, ZoomFactory, ZoomFeature, ZoomRenderer } from './types'
 
 type CreateMediumZoom = <const Features extends readonly ZoomFeature[] = []>(config?: {
+  renderer?: ZoomRenderer
   features?: Features
 }) => ZoomFactory<FeatureOptions<Features>>
 
@@ -12,7 +13,8 @@ const noop = () => undefined
 
 const createZoomFactory = ({
   features = [],
-}: { features?: readonly FeatureHooks[] } = {}): ZoomFactory => {
+  renderer,
+}: { features?: readonly FeatureHooks[]; renderer?: RendererHooks } = {}): ZoomFactory => {
   // A factory keeps its capabilities even if the caller later edits its array.
   features = features.slice()
   const hooks: Required<FeatureHooks> = {
@@ -35,7 +37,7 @@ const createZoomFactory = ({
       }
     })
   }
-  return createZoom(hooks)
+  return createZoom(hooks, renderer)
 }
 
 // The public signature infers feature options; the engine accepts the internal hooks.

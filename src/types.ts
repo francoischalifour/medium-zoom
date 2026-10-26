@@ -51,6 +51,9 @@ export interface ZoomOpenOptions {
    * @default null
    */
   target?: HTMLElement
+
+  /** The control that opened the zoom; receives focus when a modal renderer closes. */
+  trigger?: HTMLElement
 }
 
 export interface Zoom<Options extends CoreZoomOptions = ZoomOptions> {
@@ -177,3 +180,9 @@ export type FeatureOptions<Features extends readonly ZoomFeature[]> = CoreZoomOp
   (FeatureOptionFunctions<Features[number]> extends (options: infer Options) => void
     ? Options
     : object)
+
+// Renderers are fixed at factory creation, like features.
+declare const rendererType: unique symbol
+export interface ZoomRenderer {
+  readonly [rendererType]: true
+}

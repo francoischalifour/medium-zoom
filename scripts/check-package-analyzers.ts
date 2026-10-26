@@ -59,6 +59,7 @@ function checkAttw(archive: string, experimental: boolean) {
         './dist/pure/index.js',
         './core',
         './features',
+        './renderers',
         './pure',
         './compat',
         './compat/pure',

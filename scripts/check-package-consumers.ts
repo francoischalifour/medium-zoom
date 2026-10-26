@@ -32,6 +32,9 @@ export async function checkConsumers(artifact: ReturnType<typeof pack>, experime
     const unpublished = [
       'core',
       'features',
+      'renderers',
+      'dist/renderers/index.mjs',
+      'dist/renderers/index.cjs',
       'compat',
       'compat/pure',
       'modern',
@@ -50,7 +53,8 @@ export async function checkConsumers(artifact: ReturnType<typeof pack>, experime
           (path, index) =>
             `// @ts-expect-error Unpublished APIs must not resolve from the release tarball.\nimport * as candidate${index} from 'medium-zoom/${path}'\nvoid candidate${index}`
         )
-        .join('\n')
+        .join('\n') +
+        `\nimport mediumZoom from 'medium-zoom'\n// @ts-expect-error Modal trigger options are private to the experimental core.\nvoid mediumZoom().open({ trigger: document.createElement('button') })`
     )
   }
 
@@ -184,7 +188,8 @@ async function checkBundlerResolution(
         ['medium-zoom/pure', 'dist/pure/index.mjs'],
         ['medium-zoom/style.css', 'dist/style.css'],
         ['medium-zoom/core', 'dist/core/index.mjs'],
-        ['medium-zoom/features', 'dist/features/index.mjs']
+        ['medium-zoom/features', 'dist/features/index.mjs'],
+        ['medium-zoom/renderers', 'dist/renderers/index.mjs']
       )
     }
     for (const [specifier, path] of paths) {

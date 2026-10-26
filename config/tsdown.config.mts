@@ -15,7 +15,7 @@ const banner = `/*! ${pkg.name} ${pkg.version} | ${pkg.license} License | https:
 const stylesheetPath = new URL('../src/medium-zoom.css', import.meta.url)
 // Mangle only private session state and feature hooks; preserve public options and DOM APIs.
 const privateProperties =
-  /^__mz_(original|zoomed|nodes|template|closing|cancelOpen|viewportScale|isPinching|scrollTimer|defaults|update|viewport|mount|load)$/
+  /^__mz_(original|zoomed|nodes|template|closing|cancelOpen|viewportScale|isPinching|scrollTimer|defaults|update|viewport|mount|load|host|disposeHost)$/
 
 type Profile = 'modern' | 'compat'
 
@@ -73,6 +73,7 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
         if (declaration?.type !== 'chunk') {
           continue
         }
+        declaration.code = declaration.code.replace(/\n[ \t]*\/\*\* The control that opened the zoom;[^\n]*\*\/\n[ \t]*trigger\?: HTMLElement;/, '')
         declaration.code = declaration.code.replace(
           /export \{([^}]+)\}/g,
           (_match, names: string) => `export {${names.replace(/\btype\s+/g, '')}}`
@@ -134,6 +135,8 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
                     $__mz_viewport: 'w',
                     $__mz_mount: 'm',
                     $__mz_load: 'l',
+                    $__mz_host: 'h',
+                    $__mz_disposeHost: 'j',
                   },
                 },
               },
@@ -211,11 +214,12 @@ function browserBundle(
 }
 
 function featureBundle(
-  name: 'core' | 'features' | 'pure' | 'compat' | 'compat/pure' | 'modern',
+  name: 'core' | 'features' | 'pure' | 'compat' | 'compat/pure' | 'modern' | 'renderers',
   format: 'esm' | 'cjs'
 ): UserConfig {
   const sources = {
     core: 'src/core.ts',
+    renderers: 'src/renderers/index.ts',
     features: 'src/features/index.ts',
     pure: format === 'cjs' ? 'src/pure-commonjs.ts' : 'src/pure.ts',
     'compat/pure': format === 'cjs' ? 'src/pure-commonjs.ts' : 'src/pure.ts',
@@ -229,7 +233,7 @@ function featureBundle(
       : name === 'pure'
         ? defaultProfile
         : 'modern'
-  const full = name !== 'core' && name !== 'features'
+  const full = name !== 'core' && name !== 'features' && name !== 'renderers'
   return {
     ...browserBundle(
       source,
@@ -296,6 +300,8 @@ export default defineConfig([
   browserBundle('src/medium-zoom.ts', 'pure/medium-zoom.umd.js', 'umd', false),
   browserBundle('src/medium-zoom.ts', 'pure/medium-zoom.min.umd.js', 'umd'),
   featureBundle('core', 'esm'),
+  featureBundle('renderers', 'esm'),
+  featureBundle('renderers', 'cjs'),
   featureBundle('features', 'esm'),
   featureBundle('core', 'cjs'),
   featureBundle('features', 'cjs'),

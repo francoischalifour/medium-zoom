@@ -28,7 +28,8 @@ export const loadHdImage: NonNullable<FeatureHooks['__mz_load']> = (session, rea
     if (hd.naturalWidth) {
       hd.classList.add('medium-zoom-image--opened')
       hd.addEventListener('click', close)
-      document.body.appendChild(hd)
+      zoomed.setAttribute('aria-hidden', 'true')
+      session.__mz_host!.appendChild(hd)
       session.__mz_nodes!.push(hd)
     } else {
       console.warn(`Unable to reach the zoom image target ${hd.currentSrc || hd.src}`)

@@ -106,3 +106,77 @@ The planned v2 default is the modern profile, including the `pure` entry. Explic
 `compat` and `compat/pure` imports retain their meaning across that switch. Core
 stays CSS-free. Reduced motion, cancellation, image loading, responsive sources,
 and pinch handling are supported by both profiles.
+
+## Native dialog renderer
+
+Use the opt-in native dialog renderer for modal focus containment, an accessible name,
+a visible close button, and focus return. Import the stylesheet explicitly:
+
+```html
+<button type="button" id="enlarge" aria-label="Enlarge sunset photograph">
+  <img id="sunset" src="sunset.jpg" alt="Sunset over the ocean" />
+</button>
+```
+
+```js
+import { createMediumZoom } from 'medium-zoom/core'
+import { hdImage, container, template } from 'medium-zoom/features'
+import { dialog } from 'medium-zoom/renderers'
+import 'medium-zoom/style.css'
+
+const mediumZoom = createMediumZoom({
+  renderer: dialog({ closeLabel: 'Close image' }),
+  features: [hdImage(), container(), template()],
+})
+const image = document.querySelector('#sunset')
+const trigger = document.querySelector('#enlarge')
+const zoom = mediumZoom(image)
+trigger.addEventListener('click', () => {
+  void zoom.open({ target: image, trigger })
+})
+```
+
+The native button activates with Enter, Space, or a pointer. In React, Vue, or Svelte,
+render the button in your component and call `zoom.open({ target: imageRef, trigger: buttonRef })`
+from its click handler. Keep references to the actual elements and detach the instance
+on unmount. Medium Zoom does not wrap, replace, or move your original image or trigger,
+and does not add roles or keyboard listeners to framework-owned elements. An image
+alone remains a pointer trigger; provide a button for keyboard access.
+
+`dialog({ label, closeLabel })` fixes the renderer at factory creation. `label` defaults
+to the image's nonempty alt text, then `"Zoomed image"`; provide a meaningful label for
+decorative images and localize both labels as needed. The close button receives initial
+focus. The `trigger` passed to `open()` or `toggle()` receives focus after closing;
+otherwise the previously focused element is used if it remains connected. `clone()`
+retains the renderer and features, with independent opening state.
+
+The dialog uses `showModal()` and the browser's top layer. All zoomed images, HD images,
+and cloned template content mount inside it, so they remain interactive while the page
+is inert. A custom container controls the image's bounds; it does not become the modal's
+DOM parent. The viewport host preserves geometry on scrolled pages and above stacking
+contexts. Element containers retain their DOM identity when updated, rather than being
+merged as coordinate objects. Avoid overriding `.medium-zoom-dialog` positioning or transforming the host.
+Templates can include focusable controls; wire dismissal to `zoom.close()` so the closing
+animation completes. Native `method="dialog"` form submissions also use this lifecycle. Escape, the backdrop, the zoomed image, and the
+close button use the same close lifecycle. Escape's native `cancel` event is prevented until the animation
+finishes, then the renderer calls `dialog.close()`. Reduced-motion styles still apply.
+
+This option requires native `HTMLDialogElement.showModal()` (Chrome 37+, Firefox 98+,
+Safari/iOS 15.4+, Chromium Edge 79+). See the [HTML dialog specification](https://html.spec.whatwg.org/multipage/interactive-elements.html#the-dialog-element)
+and [MDN showModal documentation](https://developer.mozilla.org/en-US/docs/Web/API/HTMLDialogElement/showModal).
+There is no automatic fallback or polyfill; unsupported browsers reject `open()` without
+leaving an active session. To select the legacy renderer there, check for
+`typeof HTMLDialogElement !== 'undefined' && typeof HTMLDialogElement.prototype.showModal === 'function'`
+before passing `renderer: dialog()` to the factory. The default renderer retains legacy
+browser support. Neither core nor the renderer injects the shared stylesheet. Only the
+opt-in renderer creates its own scoped backdrop rule and control styles.
+
+The shared rendering host increases modern core ESM from 2,575 to 2,667 bytes gzip
+(+92 bytes). The compatibility stylesheet stays at 258 bytes gzip; modern CSS is 251 bytes.
+ES2020 consumer bundles measured with `bun run test:size` are 2,648 bytes for core,
+3,782 bytes for the compat/default full factory, 3,466 bytes for the modern full factory,
+3,276 bytes for core plus dialog, and 3,907 bytes for dialog with all three features.
+The renderer is modern-only and uses the modern core; the modern platform requirements
+above apply in addition to native dialog support. It and its styles are excluded from
+default/core consumers. Its proposed import is confined to this private fixture and
+is deliberately absent from the release tarball.

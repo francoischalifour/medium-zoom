@@ -28,7 +28,7 @@ export const mountTemplate: NonNullable<FeatureHooks['__mz_mount']> = (
   const target = resolveTemplate(options.template)!
   session.__mz_template = document.createElement('div')
   session.__mz_template.appendChild(target.content.cloneNode(true))
-  document.body.appendChild(session.__mz_template)
+  session.__mz_host!.appendChild(session.__mz_template)
   session.__mz_nodes!.push(session.__mz_template)
 }
 

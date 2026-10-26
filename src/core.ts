@@ -6,6 +6,7 @@ export type {
   ZoomSelector,
   ZoomOpenOptions,
   ZoomFeature,
+  ZoomRenderer,
   ContainerOptions,
   TemplateOptions,
 } from './types'

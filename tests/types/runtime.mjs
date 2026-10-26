@@ -48,6 +48,11 @@ assert.equal(
 for (const path of [
   'core',
   'features',
+  'renderers',
+  'dist/renderers/index.mjs',
+  'dist/renderers/index.cjs',
+  'dist/renderers/index.d.mts',
+  'dist/renderers/index.d.cts',
   'modern',
   'compat',
   'pure',
