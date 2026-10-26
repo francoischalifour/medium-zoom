@@ -18,3 +18,10 @@ void pureFactory
 import type { Zoom as PureZoom, ZoomOptions as PureOptions } from 'medium-zoom/pure'
 const typedPureFactory: (options?: PureOptions) => PureZoom = pureFactory
 void typedPureFactory
+
+import compat from 'medium-zoom/compat'
+import compatPure from 'medium-zoom/compat/pure'
+import modern from 'medium-zoom/modern'
+import type { Zoom as ModernZoom } from 'medium-zoom/modern'
+const profileFactories: ((options?: ZoomOptions) => ModernZoom)[] = [compat, compatPure, modern]
+void profileFactories

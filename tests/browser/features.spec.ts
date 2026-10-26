@@ -35,7 +35,7 @@ for (const features of combinations) {
       })
     }, features)
     await expect(page.locator('style')).toHaveCount(0)
-    await page.addStyleTag({ url: '/package/dist/style.css' })
+    await page.addStyleTag({ url: '/package/dist/modern/style.css' })
     const options = await page.evaluate(() => window.zoom.getOptions())
     expect('container' in options).toBe(features.includes('container'))
     expect('template' in options).toBe(features.includes('template'))

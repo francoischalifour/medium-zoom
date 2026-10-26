@@ -4,12 +4,19 @@ interface BundleBudget {
 }
 
 export default [
-  { path: 'dist/core/index.mjs', maxBytes: 2_944 },
-  { path: 'dist/core/index.cjs', maxBytes: 3_072 },
-  { path: 'dist/features/index.mjs', maxBytes: 1_152 },
-  { path: 'dist/features/index.cjs', maxBytes: 1_216 },
+  { path: 'dist/core/index.mjs', maxBytes: 2_656 },
+  { path: 'dist/core/index.cjs', maxBytes: 2_688 },
+  { path: 'dist/features/index.mjs', maxBytes: 1_056 },
+  { path: 'dist/features/index.cjs', maxBytes: 1_120 },
   { path: 'dist/pure/index.mjs', maxBytes: 3_584 },
   { path: 'dist/pure/index.cjs', maxBytes: 3_584 },
+  { path: 'dist/compat/index.mjs', maxBytes: 3_840 },
+  { path: 'dist/compat/index.cjs', maxBytes: 3_840 },
+  { path: 'dist/compat/pure/index.mjs', maxBytes: 3_584 },
+  { path: 'dist/compat/pure/index.cjs', maxBytes: 3_584 },
+  { path: 'dist/modern/index.mjs', maxBytes: 3_456 },
+  { path: 'dist/modern/index.cjs', maxBytes: 3_456 },
+  { path: 'dist/modern/style.css', maxBytes: 256 },
   { path: 'dist/style.css', maxBytes: 260 },
   { path: 'dist/medium-zoom.esm.js', maxBytes: 3_840 },
   { path: 'dist/medium-zoom.min.js', maxBytes: 3_840 },

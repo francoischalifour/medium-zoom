@@ -23,6 +23,10 @@ try {
 
   const files = readdirSync(join(artifact.root, 'dist'), { recursive: true, encoding: 'utf8' })
   assert.deepEqual(files.filter(path => /\.(?:[mc])?js$/.test(path)).sort(), [
+    'compat/index.cjs',
+    'compat/index.mjs',
+    'compat/pure/index.cjs',
+    'compat/pure/index.mjs',
     'core/index.cjs',
     'core/index.mjs',
     'features/index.cjs',
@@ -30,6 +34,8 @@ try {
     'medium-zoom.esm.js',
     'medium-zoom.js',
     'medium-zoom.min.js',
+    'modern/index.cjs',
+    'modern/index.mjs',
     'pure/index.cjs',
     'pure/index.js',
     'pure/index.mjs',
@@ -40,12 +46,35 @@ try {
   for (const path of files.filter(path => /\.(?:[mc])?js$/.test(path))) {
     const code = readFileSync(join(artifact.root, 'dist', path), 'utf8')
     const esm = path.endsWith('.mjs') || path.endsWith('.esm.js') || path === 'pure/index.js'
-    parse(code, { ecmaVersion: esm ? 2_015 : 5, sourceType: esm ? 'module' : 'script' })
+    const modern = /^(core|features|modern)\//.test(path)
+    parse(code, {
+      ecmaVersion: modern ? 2_020 : esm ? 2_015 : 5,
+      sourceType: esm ? 'module' : 'script',
+    })
     // ESM syntax is intentionally retained; its implementation must still be ES5.
-    if (esm) parse(code.replace(/export\s*\{[^}]+\};?\s*$/, ''), { ecmaVersion: 5 })
+    if (esm && !modern) parse(code.replace(/export\s*\{[^}]+\};?\s*$/, ''), { ecmaVersion: 5 })
     const banner = `/*! medium-zoom ${metadata.version} | MIT License | https://github.com/francoischalifour/medium-zoom */`
     assert(code.startsWith(banner + '\n'), `${path} must start with the release banner`)
     assert.equal(code.split(banner).length - 1, 1, `${path} must contain exactly one banner`)
+    assert(!code.includes('#platform'), `${path} must resolve its platform at build time`)
+    if (!modern) {
+      for (const fallback of [
+        'initCustomEvent',
+        '.keyCode',
+        '.addListener(',
+        'documentElement.scrollTop',
+      ])
+        assert(code.includes(fallback), `${path} must retain ${fallback}`)
+    }
+    if (modern) {
+      for (const fallback of [
+        'initCustomEvent',
+        '.keyCode',
+        '.addListener(',
+        'documentElement.scrollTop',
+      ])
+        assert(!code.includes(fallback), `${path} must not ship ${fallback}`)
+    }
     assert(!code.includes('__TEST__'), `${path} must not ship test branches`)
     if (esm) {
       const loaded = await import(
@@ -65,7 +94,7 @@ try {
       const commonjs = { exports: {} as Record<string, unknown> }
       runInNewContext(code, { module: commonjs, exports: commonjs.exports })
       assert.equal(
-        typeof (path === 'pure/index.cjs'
+        typeof (!/^(core|features)\//.test(path)
           ? commonjs.exports
           : commonjs.exports[path.startsWith('core/') ? 'createMediumZoom' : 'hdImage']),
         'function'
@@ -100,9 +129,15 @@ try {
   assert(css.includes('cursor:pointer') && css.includes('cursor:zoom-in'))
   assert(css.includes('cursor:zoom-out'))
 
+  const modernCss = readFileSync(join(artifact.root, 'dist/modern/style.css'), 'utf8')
+  assert(!modernCss.includes('cursor:pointer'))
+  assert(modernCss.includes('cursor:zoom-in') && modernCss.includes('cursor:zoom-out'))
+
   await checkAnalyzers(artifact.archive)
   await checkConsumers(artifact)
-  console.log('Packed package paths, modules, ES5 syntax, CSS, license, and declarations verified.')
+  console.log(
+    'Packed package paths, modules, profile syntax, CSS, license, and declarations verified.'
+  )
 } finally {
   artifact.cleanup()
 }

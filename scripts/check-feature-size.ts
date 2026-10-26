@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path'
 import { gzipSync } from 'node:zlib'
 import { build } from 'tsdown'
 
-// Measure consumer bundles; only the default full entry injects CSS.
+// Measure consumers targeting ES2020, including styled compat and modern full entries.
 // Import every feature in each fixture to verify unused exports are eliminated.
 const variants = {
   core: [],
@@ -15,7 +15,17 @@ const variants = {
   'core + all features': ['hdImage', 'container', 'template'],
   full: null,
   'pure full': null,
+  'compat full': null,
+  'compat pure': null,
+  'modern full': null,
 } satisfies Record<string, string[] | null>
+const fullEntries: Record<string, string> = {
+  full: 'dist/medium-zoom.esm.js',
+  'pure full': 'dist/pure/index.mjs',
+  'compat full': 'dist/compat/index.mjs',
+  'compat pure': 'dist/compat/pure/index.mjs',
+  'modern full': 'dist/modern/index.mjs',
+}
 const directory = mkdtempSync(join(tmpdir(), 'medium-zoom-size-'))
 try {
   const results: Record<string, number> = {}
@@ -25,7 +35,7 @@ try {
       ? `import { createMediumZoom } from ${JSON.stringify(resolve('dist/core/index.mjs'))};
          import { hdImage, container, template } from ${JSON.stringify(resolve('dist/features/index.mjs'))};
          globalThis.zoom = createMediumZoom({ features: [${features.map(name => `${name}()`).join(',')}] })('img');`
-      : `import mediumZoom from ${JSON.stringify(resolve(name === 'pure full' ? 'dist/pure/index.mjs' : 'dist/medium-zoom.esm.js'))}; globalThis.zoom = mediumZoom('img');`
+      : `import mediumZoom from ${JSON.stringify(resolve(fullEntries[name]))}; globalThis.zoom = mediumZoom('img');`
     writeFileSync(entry, source)
     const output = join(directory, `output-${index}`)
     await build({
@@ -33,7 +43,7 @@ try {
       entry: { index: entry },
       outDir: output,
       platform: 'browser',
-      target: 'es2015',
+      target: 'es2020',
       format: 'esm',
       minify: true,
       dts: false,
@@ -45,9 +55,13 @@ try {
     results[label] = gzipSync(code, { level: 9 }).length
     assert.equal(
       code.includes('prefers-reduced-motion:reduce'),
-      name === 'full',
+      !features && !['pure full', 'compat pure'].includes(name),
       `${label}: CSS injection`
     )
+    if (features || name === 'modern full') {
+      assert(!code.includes('initCustomEvent'), `${name}: no legacy event fallback`)
+      assert(!code.includes('.keyCode'), `${name}: no legacy keyboard fallback`)
+    }
     const included = features || variants['core + all features']
     assert.equal(
       code.includes('data-zoom-src'),

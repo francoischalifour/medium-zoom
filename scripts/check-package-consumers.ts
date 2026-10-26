@@ -121,6 +121,11 @@ async function checkBundlerResolution(consumer: string, packageRoot: string) {
   })
   try {
     for (const [specifier, path] of [
+      ['medium-zoom/compat', 'dist/compat/index.mjs'],
+      ['medium-zoom/compat/pure', 'dist/compat/pure/index.mjs'],
+      ['medium-zoom/modern', 'dist/modern/index.mjs'],
+      ['medium-zoom/modern/style.css', 'dist/modern/style.css'],
+      ['medium-zoom/compat/style.css', 'dist/style.css'],
       ['medium-zoom/pure', 'dist/pure/index.mjs'],
       ['medium-zoom/style.css', 'dist/style.css'],
       ['medium-zoom/core', 'dist/core/index.mjs'],

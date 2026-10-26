@@ -10,13 +10,11 @@
 }
 
 .medium-zoom--opened .medium-zoom-overlay {
-  cursor: pointer;
   cursor: zoom-out;
   opacity: 1;
 }
 
 .medium-zoom-image {
-  cursor: pointer;
   cursor: zoom-in;
   /*
     The `transition` is marked as "!important" for the animation to happen
@@ -36,7 +34,6 @@
 
 .medium-zoom-image--opened {
   position: relative;
-  cursor: pointer;
   cursor: zoom-out;
   will-change: transform;
 }

@@ -1,13 +1,8 @@
+import { getPromise, createCustomEvent, getScrollY, isEscape } from '#platform'
 import type { Zoom, ZoomFactory, ZoomOptions, ZoomSelector, ZoomOpenOptions } from '../types'
 import type { FeatureHooks, Session } from './types'
 import { waitForTransition } from './transition'
-import {
-  cloneTarget,
-  createCustomEvent,
-  createOverlay,
-  getImagesFromSelectors,
-  isSvg,
-} from '../utils'
+import { cloneTarget, createOverlay, getImagesFromSelectors, isSvg } from '../utils'
 
 const transformNodes = (session: Session, transform: string) => {
   ;(session.__mz_nodes || []).forEach(node => {
@@ -32,15 +27,7 @@ export const createZoomFactory = ({
     selector?: ZoomSelector | ZoomOptions,
     options: ZoomOptions = {}
   ) => {
-    /**
-     * Ensure the compatibility with IE11 if no Promise polyfill are used.
-     */
-    const Promise =
-      window.Promise ||
-      function Promise(fn: (resolve: (value: Zoom) => void, reject: () => void) => void) {
-        function noop() {}
-        fn(noop, noop)
-      }
+    const Promise = getPromise()
 
     const _close = () => {
       void close()
@@ -69,8 +56,7 @@ export const createZoomFactory = ({
         return
       }
 
-      const currentScroll =
-        window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
+      const currentScroll = getScrollY()
 
       // Pinching and panning a magnified page must keep the full-size image open.
       if (
@@ -102,10 +88,7 @@ export const createZoomFactory = ({
     }
 
     const _handleKeyUp = (event: KeyboardEvent) => {
-      const key = event.key || event.keyCode
-
-      // Close if escape key is pressed
-      if (key === 'Escape' || key === 'Esc' || key === 27) {
+      if (isEscape(event)) {
         void close()
       }
     }
@@ -300,8 +283,7 @@ export const createZoomFactory = ({
         _dispatchEvent(current.__mz_original!, 'open')
         if (current.__mz_closing) return
 
-        scrollTop =
-          window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
+        scrollTop = getScrollY()
         current.__mz_zoomed = cloneTarget(current.__mz_original)
         current.__mz_nodes = [current.__mz_zoomed, overlay]
 
@@ -400,21 +382,7 @@ export const createZoomFactory = ({
     let zoomOptions: ZoomOptions = options
     let active: Session = {}
 
-    // If the selector is omitted, it's replaced by the options
-    if (Object.prototype.toString.call(selector) === '[object Object]') {
-      zoomOptions = selector as ZoomOptions
-    } else if (
-      selector ||
-      typeof selector === 'string' // to process empty string as a selector
-    ) {
-      attach(selector as ZoomSelector)
-    }
-
-    // Apply the default option values
-    zoomOptions = { ...hooks.defaults, ...zoomOptions }
-
-    const overlay = createOverlay(zoomOptions.background)
-
+    // Construct the public instance before attach() returns it.
     const zoom: Zoom = {
       open,
       close,
@@ -430,6 +398,21 @@ export const createZoomFactory = ({
       // Preserve the legacy declaration; a closed zoom returns null at runtime.
       getZoomedImage: getZoomedImage as Zoom['getZoomedImage'],
     }
+
+    // If the selector is omitted, it's replaced by the options
+    if (Object.prototype.toString.call(selector) === '[object Object]') {
+      zoomOptions = selector as ZoomOptions
+    } else if (
+      selector ||
+      typeof selector === 'string' // to process empty string as a selector
+    ) {
+      attach(selector as ZoomSelector)
+    }
+
+    // Apply the default option values
+    zoomOptions = { ...hooks.defaults, ...zoomOptions }
+
+    const overlay = createOverlay(zoomOptions.background)
 
     return zoom
   }

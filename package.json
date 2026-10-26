@@ -52,7 +52,11 @@
     "./dist/medium-zoom.js",
     "./dist/medium-zoom.min.js",
     "./dist/medium-zoom.esm.js",
-    "**/*.css"
+    "**/*.css",
+    "./dist/compat/index.mjs",
+    "./dist/compat/index.cjs",
+    "./dist/modern/index.mjs",
+    "./dist/modern/index.cjs"
   ],
   "main": "dist/medium-zoom.min.js",
   "module": "dist/medium-zoom.esm.js",
@@ -168,7 +172,39 @@
         "default": "./dist/pure/index.cjs"
       }
     },
-    "./style.css": "./dist/style.css"
+    "./style.css": "./dist/style.css",
+    "./compat": {
+      "import": {
+        "types": "./dist/compat/index.d.mts",
+        "default": "./dist/compat/index.mjs"
+      },
+      "require": {
+        "types": "./dist/compat/index.d.cts",
+        "default": "./dist/compat/index.cjs"
+      }
+    },
+    "./modern": {
+      "import": {
+        "types": "./dist/modern/index.d.mts",
+        "default": "./dist/modern/index.mjs"
+      },
+      "require": {
+        "types": "./dist/modern/index.d.cts",
+        "default": "./dist/modern/index.cjs"
+      }
+    },
+    "./compat/pure": {
+      "import": {
+        "types": "./dist/compat/pure/index.d.mts",
+        "default": "./dist/compat/pure/index.mjs"
+      },
+      "require": {
+        "types": "./dist/compat/pure/index.d.cts",
+        "default": "./dist/compat/pure/index.cjs"
+      }
+    },
+    "./compat/style.css": "./dist/style.css",
+    "./modern/style.css": "./dist/modern/style.css"
   },
   "typesVersions": {
     "*": {
@@ -186,6 +222,15 @@
       ],
       "pure": [
         "dist/pure/index.d.mts"
+      ],
+      "compat": [
+        "dist/compat/index.d.mts"
+      ],
+      "modern": [
+        "dist/modern/index.d.mts"
+      ],
+      "compat/pure": [
+        "dist/compat/pure/index.d.mts"
       ]
     }
   }

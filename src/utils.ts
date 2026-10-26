@@ -1,4 +1,5 @@
-import type { Zoom, ZoomSelector } from './types'
+import { getScrollX, getScrollY } from '#platform'
+import type { ZoomSelector } from './types'
 
 export const isSupported = (node: Element): node is HTMLImageElement => node.tagName === 'IMG'
 
@@ -63,10 +64,8 @@ export const createOverlay = (background: string | undefined): HTMLDivElement =>
 export const cloneTarget = (template: HTMLImageElement): HTMLImageElement => {
   const { top, left, width, height } = template.getBoundingClientRect()
   const clone = template.cloneNode() as HTMLImageElement
-  const scrollTop =
-    window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
-  const scrollLeft =
-    window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0
+  const scrollTop = getScrollY()
+  const scrollLeft = getScrollX()
 
   clone.removeAttribute('id')
   clone.style.position = 'absolute'
@@ -77,18 +76,4 @@ export const cloneTarget = (template: HTMLImageElement): HTMLImageElement => {
   clone.style.transform = ''
 
   return clone
-}
-
-export const createCustomEvent = (
-  type: string,
-  detail: { zoom: Zoom }
-): CustomEvent<{ zoom: Zoom }> => {
-  if (typeof window.CustomEvent === 'function') {
-    return new CustomEvent(type, { detail })
-  }
-
-  const customEvent = document.createEvent('CustomEvent')
-  customEvent.initCustomEvent(type, false, false, detail)
-
-  return customEvent
 }

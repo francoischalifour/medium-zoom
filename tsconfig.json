@@ -35,6 +35,18 @@
       ],
       "medium-zoom/dist/pure/index.js": [
         "./src/medium-zoom.ts"
+      ],
+      "#platform": [
+        "./src/platform/modern.ts"
+      ],
+      "medium-zoom/modern": [
+        "./src/index.ts"
+      ],
+      "medium-zoom/compat": [
+        "./src/index.ts"
+      ],
+      "medium-zoom/compat/pure": [
+        "./src/pure.ts"
       ]
     },
     "jsx": "react-jsx"

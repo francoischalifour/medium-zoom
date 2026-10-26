@@ -1,3 +1,5 @@
+import { listenForMotionChange } from '#platform'
+
 // A transition may be disabled, cancelled, or have no change to animate.
 export const waitForTransition = (image: HTMLImageElement, done: () => void): (() => void) => {
   let timer: ReturnType<typeof setTimeout>
@@ -18,10 +20,10 @@ export const waitForTransition = (image: HTMLImageElement, done: () => void): ((
     clearTimeout(timer)
     window.cancelAnimationFrame(frame)
     image.removeEventListener('transitionend', finish)
-    query.removeListener(motionChange)
+    stopMotion()
   }
   image.addEventListener('transitionend', finish)
-  query.addListener(motionChange)
+  const stopMotion = listenForMotionChange(query, motionChange)
   const style = window.getComputedStyle(image)
   // Keep a fallback independent of animation frames, which pause in hidden tabs.
   const duration = (getTime(style.transitionDuration) + getTime(style.transitionDelay)) * 1_000

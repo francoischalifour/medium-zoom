@@ -470,6 +470,11 @@ for (const fallback of [false, true]) {
   test(`${fallback ? 'legacy' : 'native'} CustomEvent preserves event semantics`, async ({
     page,
   }) => {
+    test.skip(
+      fallback &&
+        !!(test.info().project.metadata.composed || test.info().project.metadata.modernFull),
+      'Modern profiles require native CustomEvent'
+    )
     const result = await page.evaluate(fallback => {
       if (fallback) {
         Object.defineProperty(window, 'CustomEvent', { value: undefined, configurable: true })

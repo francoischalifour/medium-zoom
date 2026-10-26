@@ -55,3 +55,15 @@ assert.equal(
   require.resolve('medium-zoom/style.css'),
   require.resolve('medium-zoom/dist/style.css')
 )
+assert.match(require.resolve('medium-zoom/modern/style.css'), /\/dist\/modern\/style\.css$/)
+assert.equal(
+  require.resolve('medium-zoom/compat/style.css'),
+  require.resolve('medium-zoom/dist/style.css')
+)
+
+for (const profile of ['compat', 'compat/pure', 'modern']) {
+  assert.equal(typeof (await import(`medium-zoom/${profile}`)).default, 'function')
+  assert.equal(typeof require(`medium-zoom/${profile}`), 'function')
+}
+
+assert.notEqual(require.resolve('medium-zoom/compat/pure'), require.resolve('medium-zoom/pure'))

@@ -55,6 +55,9 @@ function checkAttw(archive: string) {
       './core',
       './features',
       './pure',
+      './compat',
+      './compat/pure',
+      './modern',
       '--format',
       'json',
     ],
@@ -86,7 +89,17 @@ function checkAttw(archive: string) {
       files: ['/node_modules/medium-zoom/dist/pure/index.js'],
     },
   ])
-  const entrypoints = ['.', './dist/pure', './dist/pure/index.js', './core', './features', './pure']
+  const entrypoints = [
+    '.',
+    './dist/pure',
+    './dist/pure/index.js',
+    './core',
+    './features',
+    './pure',
+    './compat',
+    './compat/pure',
+    './modern',
+  ]
   const modes = ['node10', 'node16-cjs', 'node16-esm', 'bundler']
   assert.deepEqual(Object.keys(analysis.entrypoints), entrypoints)
   for (const entry of entrypoints) {

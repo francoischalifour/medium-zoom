@@ -23,6 +23,12 @@ export default defineConfig({
       metadata: { composed: true },
       use: { ...devices['Desktop Chrome'] },
     },
+    {
+      name: 'modern-chromium',
+      testMatch: ['**/api.spec.ts', '**/loading.spec.ts', '**/motion.spec.ts'],
+      metadata: { modernFull: true },
+      use: { ...devices['Desktop Chrome'] },
+    },
     { name: 'firefox', testIgnore: '**/mobile.spec.ts', use: { ...devices['Desktop Firefox'] } },
     { name: 'webkit', testIgnore: '**/mobile.spec.ts', use: { ...devices['Desktop Safari'] } },
     { name: 'mobile-chromium', testMatch: '**/mobile.spec.ts', use: { ...devices['Pixel 7'] } },
