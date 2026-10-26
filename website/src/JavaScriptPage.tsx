@@ -68,7 +68,7 @@ export function JavaScriptPage() {
             <p>The same zoom, wherever you build.</p>
           </div>
         </div>
-        <a className="integration-card featured-integration" href="/examples/shadcn/">
+        <a className="integration-card featured-integration" href="/react">
           <span className="integration-symbol" aria-hidden="true">
             <span className="shadcn-mark"></span>
           </span>

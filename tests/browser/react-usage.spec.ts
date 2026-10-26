@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright'
 import { finishAnimations } from './helpers'
 
 test('React usage examples compose, zoom, and copy the selected snippet', async ({ page }) => {
-  await page.goto('/examples/shadcn/')
+  await page.goto('/react')
   const usage = page.locator('#usage')
   const tabs = usage.getByRole('tablist', { name: 'React examples' })
   const panel = usage.getByRole('tabpanel')
@@ -63,7 +63,7 @@ test('HD usage loads the original only when the visitor zooms', async ({ page })
     if (new URL(request.url()).pathname.endsWith('/images/denali.jpg'))
       originals.push(request.url())
   })
-  await page.goto('/examples/shadcn/')
+  await page.goto('/react')
   const usage = page.locator('#usage')
   await usage.getByRole('tab', { name: 'High resolution', exact: true }).click()
   const image = usage.locator('.usage-preview img')
@@ -80,7 +80,7 @@ test('HD usage loads the original only when the visitor zooms', async ({ page })
 })
 
 test('React compositions remain accessible in light and dark themes', async ({ page }) => {
-  await page.goto('/examples/shadcn/')
+  await page.goto('/react')
   for (const theme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: theme })
     if (theme === 'dark') await expect(page.locator('html')).toHaveClass(/dark/)
@@ -100,7 +100,7 @@ test('React compositions remain accessible in light and dark themes', async ({ p
 test('example tabs share hover and keyboard behavior, with code before the preview', async ({
   page,
 }) => {
-  await page.goto('/examples/shadcn/')
+  await page.goto('/react')
   const usage = page.locator('#usage')
   const tabs = usage.getByRole('tablist', { name: 'React examples' })
   const caption = tabs.getByRole('tab', { name: 'With caption', exact: true })

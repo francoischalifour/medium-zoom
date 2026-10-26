@@ -14,7 +14,7 @@ export type SitePage = 'javascript' | 'react'
 export function getSitePage(pathname: string): SitePage | 'docs' | null {
   const path = pathname.replace(/\/?$/, '/')
   if (path === '/') return 'javascript'
-  if (path === '/examples/shadcn/') return 'react'
+  if (path === '/react/') return 'react'
   if (path.startsWith('/docs/')) return 'docs'
   return null
 }

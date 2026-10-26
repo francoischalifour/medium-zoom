@@ -2,6 +2,30 @@ import { test, expect } from './website-fixture'
 
 const origin = 'https://medium-zoom.francoischalifour.com'
 
+test('the React showcase owns /react and redirects its previous URLs', async ({
+  page,
+  request,
+}) => {
+  for (const alias of [
+    '/examples/shadcn',
+    '/examples/shadcn/',
+    '/examples/shadcn/index.html',
+    '/react/',
+    '/react.html',
+  ]) {
+    const response = await request.get(`${alias}?source=old-link`, { maxRedirects: 0 })
+    expect(response.status()).toBe(301)
+    expect(response.headers().location).toBe('/react?source=old-link')
+  }
+  await page.goto('/examples/shadcn/?source=old-link#usage-title')
+  await expect(page).toHaveURL(/\/react\?source=old-link#usage-title$/)
+  await expect(page.locator('.hero-install')).toContainText('shadcn@latest add')
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `${origin}/react`)
+  const sitemap = await (await request.get('/sitemap.xml')).text()
+  expect(sitemap).toContain(`<loc>${origin}/react</loc>`)
+  expect(sitemap).not.toContain('/examples/shadcn/')
+})
+
 // Exercise the built responses rather than injecting server-rendered markup in the test.
 // Search and sharing metadata must be present before any client code runs.
 test('both pages ship readable HTML and complete sharing metadata without JavaScript', async ({
@@ -12,7 +36,7 @@ test('both pages ship readable HTML and complete sharing metadata without JavaSc
   try {
     for (const [path, canonical, heading, image] of [
       ['/website.html', '/', 'Your images,', 'og-home.jpg'],
-      ['/examples/shadcn/', '/examples/shadcn/', 'Your images,', 'og-shadcn.jpg'],
+      ['/react', '/react', 'Your images,', 'og-shadcn.jpg'],
     ]) {
       await page.goto(path)
       await expect(page).toHaveTitle(/Lightweight/i)
@@ -53,13 +77,13 @@ test('both pages ship readable HTML and complete sharing metadata without JavaSc
       expect(sharingImage.headers()['content-type']).toBe('image/jpeg')
     }
     await expect(page.getByRole('article')).toHaveCount(6)
-    const html = await (await context.request.get('/examples/shadcn/')).text()
+    const html = await (await context.request.get('/react')).text()
     expect(html).not.toContain('<div id="root"></div>')
     expect(html).not.toMatch(/rel="preload"[^>]*portrait/)
     expect(html).not.toMatch(/rel="preload"[^>]*panorama/)
     const sitemap = await (await context.request.get('/sitemap.xml')).text()
     expect(sitemap).toContain(`<loc>${origin}/</loc>`)
-    expect(sitemap).toContain(`<loc>${origin}/examples/shadcn/</loc>`)
+    expect(sitemap).toContain(`<loc>${origin}/react</loc>`)
     expect(await (await context.request.get('/robots.txt')).text()).toContain(
       `Sitemap: ${origin}/sitemap.xml`
     )
@@ -76,7 +100,7 @@ test('search pages have distinct metadata and crawlable internal destinations', 
   const titles = new Set<string>()
   const descriptions = new Set<string>()
   try {
-    for (const path of ['/website.html', '/examples/shadcn/']) {
+    for (const path of ['/website.html', '/react']) {
       const response = await page.goto(path)
       expect(response!.status()).toBe(200)
       expect(response!.headers()['x-robots-tag'] || '').not.toMatch(/noindex|nofollow/)

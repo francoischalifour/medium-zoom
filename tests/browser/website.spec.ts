@@ -58,7 +58,7 @@ test('shared navigation preserves theme and typography across both pages and bac
   expect(fonts.every(count => count > 0)).toBe(true)
   await page.getByRole('button', { name: 'Switch to dark theme' }).click()
   await page.getByRole('navigation').getByRole('link', { name: 'React', exact: true }).click()
-  await expect(page).toHaveURL(`${testUrl}/examples/shadcn/`)
+  await expect(page).toHaveURL(`${testUrl}/react`)
   await expect(page.locator('html')).toHaveClass('dark')
   await expect(page.locator('.section-links:visible [aria-current="page"]')).toHaveText('React')
   await expect(page.getByRole('heading', { name: /Your images,/ })).toBeVisible()
@@ -71,7 +71,7 @@ test('shared navigation preserves theme and typography across both pages and bac
   await expect(page.locator('html')).not.toHaveClass('dark')
   await page.getByRole('button', { name: 'Switch to dark theme' }).click()
   await page.goBack()
-  await expect(page).toHaveURL(`${testUrl}/examples/shadcn/`)
+  await expect(page).toHaveURL(`${testUrl}/react`)
   await expect(page.locator('html')).toHaveClass('dark')
   await expect(page.getByRole('button', { name: 'Switch to light theme' })).toBeVisible()
 })
@@ -145,7 +145,7 @@ test('system theme is respected before interaction and explicit preference survi
 test('both pages end with an install action and one curated gallery', async ({ page }) => {
   await openHome(page)
   for (const integration of [false, true]) {
-    if (integration) await page.goto('/examples/shadcn/')
+    if (integration) await page.goto('/react')
     const main = page.getByRole('region', { name: 'Image zoom examples', exact: true })
     await expect(page.getByLabel('Scrollable examples', { exact: true })).toHaveCount(1)
     await expect(main.getByRole('article')).toHaveCount(6)
@@ -174,7 +174,7 @@ test('both pages end with an install action and one curated gallery', async ({ p
 test('rails start on the content grid and scroll across the viewport', async ({ page }) => {
   await openHome(page)
   for (const integration of [false, true]) {
-    if (integration) await page.goto('/examples/shadcn/')
+    if (integration) await page.goto('/react')
     const section = page.getByRole('region', { name: 'Image zoom examples', exact: true })
     const rail = section.locator('.example-rail')
     const first = section.getByRole('article').first()
@@ -247,7 +247,7 @@ test('package manager preference follows navigation, reloads, and other tabs', a
   await expect(page.locator('.hero-install pre')).toContainText('bun add medium-zoom')
 
   const otherTab = await context.newPage()
-  await otherTab.goto('/examples/shadcn/')
+  await otherTab.goto('/react')
   await expect(
     otherTab.locator('.hero-install').getByRole('radio', { name: 'bun', exact: true })
   ).toBeChecked()
@@ -268,7 +268,7 @@ test('package manager preference follows navigation, reloads, and other tabs', a
 
 test('guide links underline only on hover', async ({ page }) => {
   await openHome(page)
-  for (const path of ['/website.html', '/examples/shadcn/']) {
+  for (const path of ['/website.html', '/react']) {
     await page.goto(path)
     const link = page.locator('.guide-note a').first()
     await link.scrollIntoViewIfNeeded()
@@ -285,7 +285,7 @@ test('mobile branding stays in the bar and product navigation is centered in the
   await page.setViewportSize({ width: 390, height: 844 })
   await openHome(page)
   for (const integration of [false, true]) {
-    if (integration) await page.goto('/examples/shadcn/')
+    if (integration) await page.goto('/react')
     for (const width of [320, 390, 680]) {
       await page.setViewportSize({ width, height: 844 })
       const bar = page.getByRole('navigation', { name: 'Main navigation', exact: true })
@@ -325,7 +325,7 @@ for (const integration of [false, true]) {
   }) => {
     await page.setViewportSize({ width: 1_920, height: 1_080 })
     await openHome(page)
-    if (integration) await page.goto('/examples/shadcn/')
+    if (integration) await page.goto('/react')
     const section = page.getByRole('region', { name: 'Image zoom examples', exact: true })
     const rail = section.getByLabel('Scrollable examples', { exact: true })
     const first = section.getByRole('article').first()
@@ -383,7 +383,7 @@ for (const integration of [false, true]) {
     }) => {
       await page.emulateMedia({ reducedMotion: motion })
       await openHome(page)
-      if (integration) await page.goto('/examples/shadcn/')
+      if (integration) await page.goto('/react')
       await expect(page.locator('html')).toHaveCSS(
         'scroll-behavior',
         motion === 'no-preference' ? 'smooth' : 'auto'
@@ -406,7 +406,7 @@ for (const integration of [false, true]) {
 test('the closing action copies the selected installation command', async ({ page }) => {
   await openHome(page)
   for (const integration of [false, true]) {
-    if (integration) await page.goto('/examples/shadcn/')
+    if (integration) await page.goto('/react')
     await page.locator('.hero-install').getByRole('radio', { name: 'pnpm', exact: true }).check()
     await page.evaluate(() => {
       Object.defineProperty(navigator, 'clipboard', {

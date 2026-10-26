@@ -395,7 +395,7 @@ for (const theme of ['light', 'dark'] as const) {
     page,
   }) => {
     await page.emulateMedia({ colorScheme: theme })
-    for (const path of ['/docs/javascript/', '/website.html', '/examples/shadcn/']) {
+    for (const path of ['/docs/javascript/', '/website.html', '/react']) {
       await page.goto(path)
       const values = await page
         .locator('.package-switch label, .demo-tabs button')
@@ -497,7 +497,7 @@ test('Documentation shares the section navigation across desktop and mobile', as
     await page.setViewportSize({ width, height: 900 })
     for (const [path, current] of [
       ['/website.html', 'JavaScript'],
-      ['/examples/shadcn/', 'React'],
+      ['/react', 'React'],
       ['/docs/', 'Docs'],
     ]) {
       await page.goto(path)
@@ -555,7 +555,7 @@ for (const theme of ['light', 'dark'] as const) {
       '/docs/javascript/',
       '/docs/reference/javascript/medium-zoom/',
       '/website.html',
-      '/examples/shadcn/',
+      '/react',
     ]) {
       await page.goto(path)
       const background = await page

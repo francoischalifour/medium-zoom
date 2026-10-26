@@ -12,10 +12,10 @@ const roots: Record<string, string> = {
   site: resolve('website/dist'),
   analytics: resolve('.cache/analytics-site'),
 }
-const docsRedirects = new Map(
+const pageRedirects = new Map(
   readFileSync(resolve(roots.site, '_redirects'), 'utf8')
     .split('\n')
-    .filter(line => line.startsWith('/docs/'))
+    .filter(line => line.startsWith('/') && !line.includes('*'))
     .map(line => line.trim().split(/\s+/).slice(0, 2) as [string, string])
 )
 const contentTypes: Record<string, string> = {
@@ -36,7 +36,7 @@ const server = createServer((request, response) => {
     response.end('<!doctype html><title>Medium Zoom package tests</title>')
     return
   }
-  const destination = docsRedirects.get(url.pathname.replace(/\/?$/, '/'))
+  const destination = pageRedirects.get(url.pathname)
   if (destination) {
     response.writeHead(301, { Location: destination + url.search }).end()
     return
@@ -46,6 +46,7 @@ const server = createServer((request, response) => {
   let relative = roots[root] ? segments.join('/') : [root, ...segments].join('/')
   if (relative === 'website.html') relative = 'index.html'
   if (!relative || relative.endsWith('/')) relative += 'index.html'
+  else if (!extname(relative)) relative += '.html'
   const path = resolve(directory, relative)
   if (!path.startsWith(`${directory}${sep}`)) {
     response.writeHead(403).end()

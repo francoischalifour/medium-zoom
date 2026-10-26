@@ -1,3 +1,8 @@
+/examples/shadcn /react 301
+/examples/shadcn/ /react 301
+/examples/shadcn/index.html /react 301
+/react/ /react 301
+/react.html /react 301
 /assets/images/earth.png /assets/images/earth.webp 301
 /examples/shadcn/images/image-1.jpg /assets/images/ocean-sunset.jpg 301
 /examples/shadcn/images/image-1-preview.webp /assets/images/ocean-sunset-preview.webp 301

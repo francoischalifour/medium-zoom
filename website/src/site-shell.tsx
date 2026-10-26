@@ -11,7 +11,7 @@ export function SectionLinks({ page }: { page: SitePage | 'docs' }) {
         <JavaScriptIcon className="documentation-mark" />
         JavaScript
       </a>
-      <a href="/examples/shadcn/" aria-current={page === 'react' ? 'page' : undefined}>
+      <a href="/react" aria-current={page === 'react' ? 'page' : undefined}>
         <ReactIcon className="documentation-mark" />
         React
       </a>

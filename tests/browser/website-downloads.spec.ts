@@ -7,7 +7,7 @@ const nextDate = new Date(`${snapshot.end}T00:00:00Z`)
 nextDate.setUTCDate(nextDate.getUTCDate() + 1)
 const nextDay = nextDate.toISOString().slice(0, 10)
 
-for (const path of ['/website.html', '/examples/shadcn/']) {
+for (const path of ['/website.html', '/react']) {
   test(`${path} serves the reported downloads without JavaScript`, async ({ browser }) => {
     const context = await browser.newContext({ javaScriptEnabled: false })
     try {
