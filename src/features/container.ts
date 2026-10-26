@@ -6,7 +6,7 @@ import type { FeatureHooks } from '../engine/types'
 import { isNode } from '../utils'
 
 export const updateContainer: NonNullable<FeatureHooks['__mz_update']> = (options, previous) => {
-  if (options.container && options.container instanceof Object) {
+  if (options.container && options.container instanceof Object && !isNode(options.container)) {
     options.container = assign({}, previous.container, options.container)
   }
 }
@@ -20,7 +20,7 @@ export const getContainerViewport: NonNullable<FeatureHooks['__mz_viewport']> = 
     return viewport
   }
   const margin = options.margin!
-  if (target instanceof Object) {
+  if (target instanceof Object && !isNode(target)) {
     const box = assign(
       {
         width: document.documentElement.clientWidth,
