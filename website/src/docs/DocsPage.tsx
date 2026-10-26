@@ -1,43 +1,12 @@
 import { Children, isValidElement, type ReactNode } from 'react'
 import { SiteHeader, SiteFooter, SectionLinks } from '../site-shell'
 import { docsPages, headingId } from './pages'
-import * as Overview from './overview.mdx'
-import * as JavaScriptQuickstart from './javascript-quickstart.mdx'
-import * as ReactQuickstart from './react-quickstart.mdx'
-import * as HDImages from './hd-images.mdx'
-import * as Galleries from './galleries.mdx'
-import * as Styling from './styling.mdx'
-import * as CustomReactTriggers from './custom-react-triggers.mdx'
-import * as ControlledState from './controlled-state.mdx'
-import * as ServerRendering from './server-rendering.mdx'
-import * as JavaScriptAPI from './javascript-api.mdx'
-import * as Options from './options.mdx'
-import * as Methods from './methods.mdx'
-import * as Events from './events.mdx'
-import * as ImageZoom from './image-zoom.mdx'
-import * as CompositionAPI from './composition-api.mdx'
 import { CodeFence } from './doc-components'
 import { useDocsNavigation } from './use-docs-navigation'
 import { ScrollArea } from '../scroll-area'
 import './docs.css'
 
-const pageContent = {
-  '/docs/': Overview,
-  '/docs/javascript/': JavaScriptQuickstart,
-  '/docs/react/': ReactQuickstart,
-  '/docs/guides/hd-images/': HDImages,
-  '/docs/guides/galleries/': Galleries,
-  '/docs/guides/styling/': Styling,
-  '/docs/guides/custom-react-triggers/': CustomReactTriggers,
-  '/docs/guides/controlled-state/': ControlledState,
-  '/docs/guides/server-rendering/': ServerRendering,
-  '/docs/reference/javascript/medium-zoom/': JavaScriptAPI,
-  '/docs/reference/javascript/options/': Options,
-  '/docs/reference/javascript/methods/': Methods,
-  '/docs/reference/javascript/events/': Events,
-  '/docs/reference/react/image-zoom/': ImageZoom,
-  '/docs/reference/react/composition/': CompositionAPI,
-} satisfies Record<(typeof docsPages)[number]['path'], typeof Overview>
+const pageContent = import.meta.glob<typeof import('./overview.mdx')>('./*.mdx', { eager: true })
 
 function getHeadingText(children: ReactNode): string {
   return Children.toArray(children)
@@ -68,7 +37,7 @@ export function DocsPage({ path }: { path: string }) {
   const { articleRef, activeHeadingId } = useDocsNavigation(path)
   const page = docsPages.find(page => page.path === path)
   if (!page) throw new Error(`Unknown documentation page: ${path}`)
-  const { default: Content, outline } = pageContent[page.path]
+  const { default: Content, outline } = pageContent[`./${page.source}`]
   const isOverview = page.path === '/docs/'
   const isReference = page.group === 'JavaScript reference' || page.group === 'React reference'
   const related = docsPages.filter(item => item.group === page.group && item.path !== path)
@@ -108,7 +77,12 @@ export function DocsPage({ path }: { path: string }) {
   )
   return (
     <div className={`site-shell docs-shell${isOverview ? ' docs-overview' : ''}`}>
-      <SiteHeader page="docs" />
+      <SiteHeader
+        page="docs"
+        searchFramework={
+          page.group.includes('React') || page.path === '/docs/react/' ? 'react' : 'javascript'
+        }
+      />
       <noscript>
         <style>
           {

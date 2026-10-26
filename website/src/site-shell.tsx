@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { CommandPalette } from './command-palette'
 import { Icon } from './site-components'
 import { JavaScriptIcon, ReactIcon } from './technology-icons'
 import { githubStars, githubStarLabel, repositoryUrl, type SitePage } from './site-data'
@@ -41,7 +42,13 @@ export function SectionLinks({ page }: { page: SitePage | 'docs' }) {
   )
 }
 
-export function SiteHeader({ page }: { page: SitePage | 'docs' }) {
+export function SiteHeader({
+  page,
+  searchFramework = page === 'react' ? 'react' : 'javascript',
+}: {
+  page: SitePage | 'docs'
+  searchFramework?: SitePage
+}) {
   const dark = React.useSyncExternalStore(subscribeTheme, getTheme, getServerTheme)
   return (
     <>
@@ -58,6 +65,7 @@ export function SiteHeader({ page }: { page: SitePage | 'docs' }) {
             <SectionLinks page={page} />
           </div>
           <div className="nav-links">
+            <CommandPalette framework={searchFramework} />
             <a
               className="button button-ghost github-link"
               href={repositoryUrl}
