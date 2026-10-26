@@ -38,7 +38,7 @@ export function searchDocs(entries: SearchEntry[], query: string, react: boolean
       const title = normalize(entry.title)
       const parent = normalize(entry.parent)
       const terms = normalize(
-        `${entry.title} ${entry.parent} ${entry.group} ${entry.description} ${aliases[entry.path] ?? ''}`
+        `${entry.title} ${entry.parent} ${entry.group} ${entry.parent ? '' : entry.description} ${aliases[entry.path] ?? ''}`
       )
       if (!words.every(word => terms.includes(word))) return { entry, score: 0 }
       const score =

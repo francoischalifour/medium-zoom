@@ -5,7 +5,21 @@ import { getTheme, getServerTheme, setTheme, subscribeTheme } from './site-theme
 import { usePackageManager } from './package-manager'
 import { javascriptCommands, componentCommands } from './install-commands'
 import { trackInstallCopied } from './site-analytics'
+import { getChatLinks } from './chat-links'
 import './command-palette.css'
+
+function Highlight({ text, query }: { text: string; query: string }) {
+  const words = [...new Set(query.toLowerCase().match(/[a-z0-9]+/g) ?? [])].sort(
+    (a, b) => b.length - a.length
+  )
+  if (!words.length) return text
+  // Tokens contain only letters and numbers, so the expression treats user input literally.
+  return text
+    .split(new RegExp(`(${words.join('|')})`, 'gi'))
+    .map((part, index) =>
+      words.includes(part.toLowerCase()) ? <mark key={index}>{part}</mark> : part
+    )
+}
 
 export function CommandPalette({ react }: { react: boolean }) {
   const trigger = React.useRef<HTMLButtonElement>(null)
@@ -114,11 +128,26 @@ export function CommandPalette({ react }: { react: boolean }) {
     ...docs.map(entry => ({
       key: entry.path,
       title: entry.title,
-      detail: entry.parent ? `${entry.parent} · ${entry.group}` : entry.group,
-      icon: 'book' as const,
+      detail: entry.parent
+        ? `${entry.parent} › ${entry.group}`
+        : entry.group === 'Get started' && !query.trim()
+          ? ''
+          : entry.group,
+      description: entry.parent ? '' : entry.description,
+      icon: entry.path.includes('#') ? ('code' as const) : ('book' as const),
       href: entry.path,
+      chatUrl: undefined,
     })),
-    ...actions.map(action => ({ ...action, href: undefined })),
+    ...actions.map(action => ({ ...action, href: undefined, description: '', chatUrl: undefined })),
+    ...getChatLinks(query, docs, react).map(provider => ({
+      key: provider.key,
+      title: provider.title,
+      detail: query.trim(),
+      description: '',
+      icon: 'chat' as const,
+      href: undefined,
+      chatUrl: provider.url,
+    })),
   ]
   const selected = Math.min(active, Math.max(0, results.length - 1))
 
@@ -129,7 +158,9 @@ export function CommandPalette({ react }: { react: boolean }) {
   async function activate(index: number) {
     const result = results[index]
     if (!result) return
-    if (result.href) {
+    if (result.chatUrl) {
+      window.open(result.chatUrl, '_blank', 'noopener,noreferrer')
+    } else if (result.href) {
       close()
       window.location.assign(result.href)
     } else if (result.key === 'theme') {
@@ -236,55 +267,82 @@ export function CommandPalette({ react }: { react: boolean }) {
                   : 'Loading documentation…'}
               </p>
             )}
-            {entries && !results.length && (
+            {entries && !docs.length && !actions.length && (
               <p className="command-empty">
                 No results for “{query}”. Try “React”, “margin”, or “HD images”.
               </p>
             )}
             {results.map((result, index) => (
               <React.Fragment key={result.key}>
-                {(index === 0 || index === docs.length) && (
+                {(index === 0 ||
+                  index === docs.length ||
+                  index === docs.length + actions.length ||
+                  (!query.trim() && index === 2 && index < docs.length)) && (
                   <div className="command-group" role="presentation">
-                    {index < docs.length
-                      ? query.trim()
-                        ? 'Documentation'
-                        : 'Get started & popular'
-                      : 'Actions'}
+                    {index >= docs.length + actions.length
+                      ? 'Open in chat'
+                      : index < docs.length
+                        ? query.trim()
+                          ? 'Documentation'
+                          : index === 0
+                            ? 'Get started'
+                            : 'Popular'
+                        : 'Actions'}
                   </div>
                 )}
                 <div
                   id={`${id}-${index}`}
                   role="option"
                   aria-selected={selected === index}
-                  className="command-result"
+                  className={`command-result${result.chatUrl ? ' command-chat' : result.href ? '' : ' command-action'}`}
                   onMouseDown={event => event.preventDefault()}
                   onPointerMove={() => setActive(index)}
                   onClick={() => void activate(index)}
                 >
-                  <Icon name={result.icon} />
-                  <div>
-                    <span className="command-title">{result.title}</span>
-                    <span className="command-detail">{result.detail}</span>
-                  </div>
-                  {selected === index && (
-                    <span className="command-enter" aria-hidden="true">
-                      ↵
+                  <span className="command-result-icon">
+                    <Icon name={result.icon} />
+                  </span>
+                  <div className="command-result-content">
+                    <span className="command-title">
+                      <Highlight text={result.title} query={query} />
                     </span>
-                  )}
+                    {result.detail && (
+                      <span className="command-detail">
+                        <Highlight text={result.detail} query={result.chatUrl ? '' : query} />
+                      </span>
+                    )}
+                    {query.trim() && result.description && (
+                      <span className="command-description">
+                        <Highlight text={result.description} query={query} />
+                      </span>
+                    )}
+                  </div>
+                  <span className="command-result-tail" aria-hidden="true">
+                    {result.chatUrl ? (
+                      <Icon name="external" className="command-external" />
+                    ) : (
+                      <span className="command-enter">↵</span>
+                    )}
+                  </span>
                 </div>
               </React.Fragment>
             ))}
           </div>
-          <div className="command-status" role="status">
-            {status || (entries ? `${results.length} results` : '')}
-          </div>
+          {status && (
+            <div className="command-feedback" role="status">
+              {status}
+            </div>
+          )}
           <footer className="command-footer">
             <span>
               <kbd>↑</kbd>
               <kbd>↓</kbd> Navigate
             </span>
             <span>
-              <kbd>↵</kbd> Open
+              <kbd>↵</kbd> {results[selected]?.chatUrl ? 'Ask' : 'Open'}
+            </span>
+            <span className="command-count" role={status ? undefined : 'status'}>
+              {entries ? `${results.length} results` : ''}
             </span>
           </footer>
         </div>

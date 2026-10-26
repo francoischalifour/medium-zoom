@@ -13,6 +13,9 @@ for (const shortcut of ['Meta+k', 'Control+k']) {
     await search.fill('margin')
     await expect(page.getByRole('option').first()).toContainText('margin')
     await expect(page.getByRole('option').first()).toContainText('Options')
+    await expect(page.getByRole('option').first().locator('.command-title mark')).toHaveText(
+      'margin'
+    )
     await page.keyboard.press('Escape')
     await expect(page.getByRole('dialog')).not.toBeVisible()
     await expect(trigger).toBeFocused()
@@ -35,7 +38,7 @@ test('aliases, keyboard selection, empty state, and modal accessibility', async 
   await expect(page.getByRole('option').first()).toContainText('HD images')
   await search.fill('nothing matches this query')
   await expect(page.getByText('No results for')).toBeVisible()
-  await page.keyboard.press('Enter')
+  await expect(page.getByRole('option', { name: /Ask ChatGPT/ })).toBeVisible()
   await expect(page.getByRole('dialog')).toBeVisible()
   await search.fill('')
   await expect(page.getByRole('option').first()).toBeVisible()
@@ -97,4 +100,98 @@ test('mobile search fits the viewport and dismisses with the close button', asyn
   await page.getByRole('button', { name: 'Close search' }).click()
   await expect(page.getByRole('dialog')).not.toBeVisible()
   await expect(trigger).toBeFocused()
+})
+
+test('query highlighting preserves API punctuation and works in dark mode', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' })
+  await page.goto('/docs/react/')
+  await page.getByRole('button', { name: /Search docs/ }).click()
+  const search = page.getByRole('combobox')
+  await search.fill('imagezoom')
+  const first = page.getByRole('option').first()
+  await expect(first.locator('.command-title')).toHaveText('<ImageZoom>')
+  await expect(first.locator('.command-title mark')).toHaveText('ImageZoom')
+  await expect(first.locator('.command-description mark')).toHaveText('ImageZoom')
+  await search.fill('open()')
+  await expect(first.locator('.command-title')).toHaveText('open()')
+  await expect(first.locator('.command-title mark')).toHaveText('open')
+  const report = await new AxeBuilder({ page }).include('.command-palette').analyze()
+  expect(report.violations).toEqual([])
+})
+
+for (const [name, hostname, pathname] of [
+  ['ChatGPT', 'chatgpt.com', '/'],
+  ['Claude', 'claude.ai', '/new'],
+]) {
+  test(`opens a contextual question in ${name}`, async ({ page, context }) => {
+    // Verify the handoff without submitting test prompts to an external assistant.
+    await context.route(`https://${hostname}/**`, route =>
+      route.fulfill({ body: '<title>Chat handoff</title>', contentType: 'text/html' })
+    )
+    await page.goto('/docs/react/')
+    await page.getByRole('button', { name: /Search docs/ }).click()
+    await expect(page.getByRole('option', { name: `Ask ${name}` })).toHaveCount(0)
+    const question = 'How do I control React zoom state? & preserve focus #1'
+    await page.getByRole('combobox').fill(question)
+    const popupPromise = page.waitForEvent('popup')
+    await page.getByRole('option', { name: new RegExp(`Ask ${name}`) }).click()
+    const popup = await popupPromise
+    await popup.waitForLoadState()
+    const url = new URL(popup.url())
+    expect(url.hostname).toBe(hostname)
+    expect(url.pathname).toBe(pathname)
+    expect(url.searchParams.get('q')).toContain(question)
+    expect(url.searchParams.get('q')).toContain('React (shadcn/ui)')
+    expect(url.searchParams.get('q')).toContain(
+      'https://medium-zoom.francoischalifour.com/docs/react/'
+    )
+    expect(url.searchParams.get('q')).not.toContain('127.0.0.1')
+    expect(url.searchParams.get('q')!.match(/https:\/\//g)).toHaveLength(1)
+    expect(await popup.evaluate(() => window.opener)).toBeNull()
+    await popup.close()
+  })
+}
+
+test('moving the selection preserves row and text geometry', async ({ page }) => {
+  await page.goto('/docs/javascript/')
+  await page.getByRole('button', { name: /Search docs/ }).click()
+  await page.getByRole('combobox').fill('hd images')
+  const rows = page.getByRole('option')
+  await expect(rows.first()).toContainText('HD images')
+  const geometry = () =>
+    rows.evaluateAll(elements =>
+      elements.map(element => {
+        const row = element.getBoundingClientRect()
+        const content = element.querySelector('.command-result-content')!.getBoundingClientRect()
+        return {
+          x: row.x,
+          y: row.y,
+          width: row.width,
+          height: row.height,
+          contentWidth: content.width,
+        }
+      })
+    )
+  const description = rows.first().locator('.command-description')
+  const fullWidth = await description.evaluate(element => {
+    const row = element.closest('.command-result')!
+    const rightPadding = parseFloat(getComputedStyle(row).paddingRight)
+    return {
+      actual: element.getBoundingClientRect().right,
+      expected: row.getBoundingClientRect().right - rightPadding,
+    }
+  })
+  expect(fullWidth.actual).toBeCloseTo(fullWidth.expected, 1)
+  const highlight = rows.first().locator('.command-title mark').first()
+  expect(await highlight.evaluate(element => getComputedStyle(element).fontWeight)).toBe(
+    await rows
+      .first()
+      .locator('.command-title')
+      .evaluate(element => getComputedStyle(element).fontWeight)
+  )
+  const before = await geometry()
+  await page.keyboard.press('ArrowDown')
+  expect(await geometry()).toEqual(before)
+  await rows.nth(2).hover()
+  expect(await geometry()).toEqual(before)
 })
