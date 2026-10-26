@@ -146,7 +146,9 @@ for (const [name, hostname, pathname] of [
     expect(url.hostname).toBe(hostname)
     expect(url.pathname).toBe(pathname)
     expect(url.searchParams.get('q')).toContain(question)
-    expect(url.searchParams.get('q')).toContain('React (shadcn/ui)')
+    expect(url.searchParams.get('q')).toBe(
+      `${question}\n\nRead https://medium-zoom.francoischalifour.com/docs/react/ and answer`
+    )
     expect(url.searchParams.get('q')).toContain(
       'https://medium-zoom.francoischalifour.com/docs/react/'
     )

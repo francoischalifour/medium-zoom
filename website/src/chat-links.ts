@@ -5,10 +5,7 @@ const docsOrigin = 'https://medium-zoom.francoischalifour.com'
 export function getChatLinks(question: string, results: SearchEntry[], react: boolean) {
   if (!question.trim()) return []
   const reference = results[0]?.path ?? (react ? '/docs/react/' : '/docs/javascript/')
-  const prompt = [
-    question.trim(),
-    `I'm using medium-zoom ${react ? 'in React (shadcn/ui)' : 'in JavaScript'}. Read ${docsOrigin + reference} and answer with a short explanation and a minimal working example.`,
-  ].join('\n\n')
+  const prompt = [question.trim(), `Read ${docsOrigin + reference} and answer`].join('\n\n')
   return [
     { key: 'chatgpt', title: 'Ask ChatGPT', base: 'https://chatgpt.com/' },
     { key: 'claude', title: 'Ask Claude', base: 'https://claude.ai/new' },
