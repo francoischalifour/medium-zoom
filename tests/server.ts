@@ -1,5 +1,5 @@
 import { createServer } from 'node:http'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { resolve, extname, sep } from 'node:path'
 import { pack } from '../scripts/pack.ts'
 import { testPort } from './server-urls.ts'
@@ -42,12 +42,12 @@ const server = createServer((request, response) => {
   let relative = roots[root] ? segments.join('/') : [root, ...segments].join('/')
   if (relative === 'website.html') relative = 'index.html'
   if (!relative || relative.endsWith('/')) relative += 'index.html'
-  else if (!extname(relative)) relative += '.html'
-  const path = resolve(directory, relative)
+  let path = resolve(directory, relative)
   if (!path.startsWith(`${directory}${sep}`)) {
     response.writeHead(403).end()
     return
   }
+  if (!extname(path) && !existsSync(path)) path += '.html'
   try {
     const contents = readFileSync(path)
     const contentType = contentTypes[extname(path)] || 'application/octet-stream'
