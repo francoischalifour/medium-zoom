@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './website-fixture'
 
 test('overview separates quickstarts, task guides, and the two API references', async ({
   page,

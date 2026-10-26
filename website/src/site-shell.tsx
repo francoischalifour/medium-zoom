@@ -7,11 +7,11 @@ import { getTheme, getServerTheme, setTheme, subscribeTheme } from './site-theme
 export function SectionLinks({ page }: { page: SitePage | 'docs' }) {
   return (
     <>
-      <a href="/" aria-current={page === 'library' ? 'page' : undefined}>
+      <a href="/" aria-current={page === 'javascript' ? 'page' : undefined}>
         <JavaScriptIcon className="documentation-mark" />
         JavaScript
       </a>
-      <a href="/examples/shadcn/" aria-current={page === 'shadcn' ? 'page' : undefined}>
+      <a href="/examples/shadcn/" aria-current={page === 'react' ? 'page' : undefined}>
         <ReactIcon className="documentation-mark" />
         React
       </a>

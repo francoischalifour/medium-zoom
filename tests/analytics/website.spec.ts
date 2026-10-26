@@ -137,7 +137,7 @@ for (const path of ['/', '/examples/shadcn/']) {
     for (const event of events) {
       expect(event.properties).toMatchObject({
         site: 'medium-zoom',
-        page: path === '/' ? 'library' : 'shadcn',
+        page: path === '/' ? 'javascript' : 'react',
         path,
       })
       expect(event.distinct_id).toBe(first.distinct_id)
@@ -217,7 +217,7 @@ test('an immediate outbound navigation delivers the click without waiting for id
   await expect.poll(() => events.filter(event => event.event === 'Outbound Click').length).toBe(1)
   expect(events.find(event => event.event === 'Outbound Click')!.properties).toMatchObject({
     site: 'medium-zoom',
-    page: 'library',
+    page: 'javascript',
     placement: 'header',
   })
 })

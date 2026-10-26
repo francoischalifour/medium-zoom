@@ -1,4 +1,5 @@
-import { test, expect, type Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
+import { test, expect } from './website-fixture'
 import { testUrl } from '../server-urls.ts'
 import { decodeImages, dismissZoom, openImage } from './helpers.ts'
 
@@ -312,14 +313,14 @@ test('mobile branding stays in the bar and product navigation is centered in the
       )
       if (width === 390)
         await page.screenshot({
-          path: `/tmp/medium-zoom-mobile-navigation-${integration ? 'shadcn' : 'library'}.png`,
+          path: `/tmp/medium-zoom-mobile-navigation-${integration ? 'React' : 'JavaScript'}.png`,
         })
     }
   }
 })
 
 for (const integration of [false, true]) {
-  test(`wide ${integration ? 'shadcn' : 'library'} rails reveal overflow on intent without moving cards`, async ({
+  test(`wide ${integration ? 'React' : 'JavaScript'} rails reveal overflow on intent without moving cards`, async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1_920, height: 1_080 })
@@ -341,7 +342,7 @@ for (const integration of [false, true]) {
     await expect.poll(outsideCard).toBe(true)
     expect((await first.boundingBox())!.x).toBe(firstBox.x)
     await page.mouse.move(100, 100)
-    await expect.poll(outsideCard).toBe(false)
+    await expect.poll(outsideCard).toBe(true)
     await section.getByRole('button', { name: 'Next example', exact: true }).focus()
     await page.keyboard.press('Tab')
     await expect(rail).toBeFocused()
@@ -350,6 +351,17 @@ for (const integration of [false, true]) {
     await expect.poll(() => rail.evaluate(element => element.scrollLeft)).toBeGreaterThan(0)
     const position = await rail.evaluate(element => element.scrollLeft)
     await page.getByRole('button', { name: /Switch to .* theme/ }).focus()
+    await expect.poll(outsideCard).toBe(true)
+    await page.locator('#usage-title').scrollIntoViewIfNeeded()
+    await expect
+      .poll(() =>
+        rail.evaluate(element => {
+          const bounds = element.getBoundingClientRect()
+          return Math.max(0, bounds.bottom - 56) / bounds.height
+        })
+      )
+      .toBeLessThan(0.15)
+    await rail.scrollIntoViewIfNeeded()
     await expect.poll(outsideCard).toBe(false)
     expect(await rail.evaluate(element => element.scrollLeft)).toBe(position)
     await section.getByRole('heading').hover()
@@ -359,14 +371,14 @@ for (const integration of [false, true]) {
     await expect.poll(() => rail.evaluate(element => element.scrollLeft)).toBeGreaterThan(position)
     const nextPosition = await rail.evaluate(element => element.scrollLeft)
     await page.mouse.move(100, 100)
-    await expect.poll(outsideCard).toBe(false)
+    await expect.poll(outsideCard).toBe(true)
     expect(await rail.evaluate(element => element.scrollLeft)).toBe(nextPosition)
   })
 }
 
 for (const integration of [false, true]) {
   for (const motion of ['no-preference', 'reduce'] as const) {
-    test(`Start building aligns the ${integration ? 'React' : 'library'} usage heading with ${motion} motion`, async ({
+    test(`Start building aligns the ${integration ? 'React' : 'JavaScript'} usage heading with ${motion} motion`, async ({
       page,
     }) => {
       await page.emulateMedia({ reducedMotion: motion })

@@ -6,15 +6,15 @@ import { registryUrl } from './install-commands'
 import type { SitePage } from './site-data'
 
 export function Hero({ page }: { page: SitePage }) {
-  const shadcn = page === 'shadcn'
+  const isReact = page === 'react'
   return (
     <section className="hero" aria-labelledby="page-title">
       <nav className="section-links mobile-section-links" aria-label="Product navigation">
         <SectionLinks page={page} />
       </nav>
       <span className="eyebrow">
-        {shadcn && <span className="shadcn-mark" aria-hidden="true" />}
-        {shadcn ? 'Image zoom for shadcn/ui' : 'Image zoom for the web. Since 2016.'}
+        {isReact && <span className="shadcn-mark" aria-hidden="true" />}
+        {isReact ? 'Image zoom for shadcn/ui' : 'Image zoom for the web. Since 2016.'}
       </span>
       <h1 id="page-title">
         Your images,
@@ -22,11 +22,11 @@ export function Hero({ page }: { page: SitePage }) {
         <span>a little closer.</span>
       </h1>
       <p>
-        {shadcn
+        {isReact
           ? 'Medium-style image zoom for React.'
           : 'Medium-style image zoom in a few lines of JavaScript.'}
         <br />
-        {shadcn
+        {isReact
           ? 'Install with shadcn/ui. Keep the source.'
           : 'No dependencies. Works with any framework.'}
       </p>
@@ -34,7 +34,7 @@ export function Hero({ page }: { page: SitePage }) {
         <a className="button button-primary" href="#usage-title">
           Start building
         </a>
-        {shadcn ? (
+        {isReact ? (
           <a className="button button-secondary" href={registryUrl}>
             <Icon name="code" /> View source
           </a>

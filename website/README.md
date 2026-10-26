@@ -28,6 +28,8 @@ bunx vite preview --config config/vite.website.config.mts --host 127.0.0.1 --por
 
 Generated documentation entries in `website/docs/` and build output in `website/dist/` are ignored. Run `bun run build:demo` to regenerate highlighted snippets after changing code samples.
 
+Run `bun run update:downloads` to refresh the verified npm snapshot. The browser adds newer reported days on page load and keeps the snapshot if npm is unavailable.
+
 The installable React component and registry source live in `examples/shadcn/` and `registry.json`.
 
 ## Verification

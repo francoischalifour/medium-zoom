@@ -1,7 +1,7 @@
+import { DownloadStats } from './download-stats'
 import { Icon } from './site-components'
 import { ExampleRail } from './example-rail'
 import { UsageExamples } from './usage-examples'
-import { repositoryUrl } from './site-data'
 
 export function ReactPage() {
   return (
@@ -25,6 +25,8 @@ export function ReactPage() {
           <p>An overlay that matches your background.</p>
         </div>
       </section>
+
+      <DownloadStats />
 
       <section className="guide-section" id="usage" aria-labelledby="usage-title">
         <div className="guide-heading">
@@ -110,9 +112,7 @@ export function ReactPage() {
         </div>
         <p className="guide-note">
           Image attributes and the forwarded ref reach the underlying <code>&lt;img&gt;</code>.{' '}
-          <a href={`${repositoryUrl}#options`}>
-            Explore all zoom options <span aria-hidden="true">↗</span>
-          </a>
+          <a href="/docs/reference/javascript/options/">Explore all zoom options</a>
         </p>
       </section>
     </>

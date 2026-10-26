@@ -34,7 +34,7 @@ export default mergeConfig(
       rolldownOptions: {
         input: {
           index: fileURLToPath(new URL('../website/index.html', import.meta.url)),
-          shadcn: fileURLToPath(new URL('../website/examples/shadcn/index.html', import.meta.url)),
+          react: fileURLToPath(new URL('../website/examples/shadcn/index.html', import.meta.url)),
         },
       },
     },

@@ -8,8 +8,8 @@ import { docsPages } from '../src/docs/pages'
 
 export function prerenderWebsite(directory: string) {
   const pages = [
-    { file: 'index.html', element: createElement(App, { page: 'library' }) },
-    { file: 'examples/shadcn/index.html', element: createElement(App, { page: 'shadcn' }) },
+    { file: 'index.html', element: createElement(App, { page: 'javascript' }) },
+    { file: 'examples/shadcn/index.html', element: createElement(App, { page: 'react' }) },
     ...docsPages.map(page => ({
       file: `${page.path.slice(1)}index.html`,
       element: createElement(DocsPage, { path: page.path }),

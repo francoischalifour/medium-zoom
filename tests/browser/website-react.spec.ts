@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './website-fixture'
 import { testUrl } from '../server-urls.ts'
 
 for (const path of ['/website.html', '/examples/shadcn/']) {

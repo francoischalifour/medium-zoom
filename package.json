@@ -1,7 +1,7 @@
 {
   "name": "medium-zoom",
   "version": "1.1.2",
-  "description": "A JavaScript library for zooming images like Medium. Works with React and any web framework.",
+  "description": "Lightweight Medium-style image zoom for the web. Zero dependencies, any framework, React component via shadcn.",
   "keywords": [
     "click-to-zoom",
     "dependency-free",
@@ -20,6 +20,7 @@
     "photo-zoom",
     "picture",
     "react",
+    "shadcn",
     "svelte",
     "typescript",
     "vanilla",
@@ -30,6 +31,7 @@
     "zoom-image",
     "zoomable"
   ],
+  "homepage": "https://medium-zoom.francoischalifour.com",
   "license": "MIT",
   "author": {
     "name": "Francois Chalifour",
@@ -85,6 +87,7 @@
     "test:examples": "bun scripts/check-examples.ts",
     "build:registry": "bun scripts/build-registry.ts",
     "test:analytics": "playwright test --config config/playwright.analytics.config.mts",
+    "update:downloads": "bun scripts/update-npm-downloads.ts",
     "test:seo": "bun run test:browser website-metadata.spec.ts --project=chromium",
     "test:a11y": "bun run test:browser accessibility.spec.ts --project=chromium",
     "test:rsc": "playwright test --config config/playwright.rsc.config.mts",

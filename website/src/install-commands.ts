@@ -1,6 +1,6 @@
 export const registryUrl = 'https://medium-zoom.francoischalifour.com/r/image-zoom.json'
 
-export const libraryCommands = {
+export const javascriptCommands = {
   npm: 'npm install medium-zoom',
   pnpm: 'pnpm add medium-zoom',
   yarn: 'yarn add medium-zoom',

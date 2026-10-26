@@ -1,11 +1,11 @@
+import { DownloadStats } from './download-stats'
 import { Icon, CopyButton, CodeTokens } from './site-components'
 import { ExampleRail } from './example-rail'
 import { javascriptUsageCode } from './gallery'
-import { repositoryUrl } from './site-data'
 import { trackSiteEvent } from './site-analytics'
-import './library.css'
+import './javascript.css'
 
-export function LibraryPage() {
+export function JavaScriptPage() {
   return (
     <>
       <ExampleRail kind="javascript" />
@@ -26,6 +26,8 @@ export function LibraryPage() {
           <p>Load high-resolution images on zoom.</p>
         </div>
       </section>
+
+      <DownloadStats />
 
       <section className="guide-section" id="usage" aria-labelledby="usage-title">
         <div className="guide-heading">
@@ -56,9 +58,7 @@ export function LibraryPage() {
         </div>
         <p className="guide-note">
           Set the spacing, match your background, or load a sharper image on zoom.{' '}
-          <a href={`${repositoryUrl}#api`}>
-            Read the API reference <span aria-hidden="true">↗</span>
-          </a>
+          <a href="/docs/reference/javascript/medium-zoom/">Read the API reference</a>
         </p>
       </section>
       <section className="integration-section" aria-labelledby="integrations-title">

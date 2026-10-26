@@ -3,7 +3,7 @@ import { codeToHtml } from '@pierre/highlights'
 import { githubLightDefault, githubDarkDefault } from '@pierre/highlights/themes'
 import type { Plugin } from 'vite'
 import { photos, usageCode, javascriptUsageCode } from '../src/gallery.ts'
-import { libraryCommands, componentCommands } from '../src/install-commands.ts'
+import { javascriptCommands, componentCommands } from '../src/install-commands.ts'
 import { usageExamples } from '../src/usage-snippets.ts'
 
 type HighlightLanguage = 'html' | 'tsx' | 'js' | 'bash' | 'css'
@@ -30,7 +30,10 @@ export function siteHighlights(): Plugin {
   for (const example of usageExamples) {
     snippets[example.code] = highlight(example.code, 'tsx')
   }
-  for (const command of [...Object.values(libraryCommands), ...Object.values(componentCommands)]) {
+  for (const command of [
+    ...Object.values(javascriptCommands),
+    ...Object.values(componentCommands),
+  ]) {
     snippets[command] = highlight(command, 'bash')
   }
   for (const image of Object.values(photos)) {
