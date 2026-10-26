@@ -229,7 +229,6 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
       <button
         ref={trigger}
         className="search-trigger"
-        aria-label={`Search docs ${mac ? '⌘' : 'Ctrl'} K`}
         aria-haspopup="dialog"
         aria-keyshortcuts={mac ? 'Meta+K' : 'Control+K'}
         title={`Search documentation (${mac ? '⌘K' : 'Ctrl+K'})`}
@@ -239,7 +238,7 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
       >
         <Icon name="search" />
         <span>Search docs</span>
-        <kbd>{mac ? '⌘' : 'Ctrl'} K</kbd>
+        <kbd aria-hidden="true">{mac ? '⌘' : 'Ctrl'} K</kbd>
       </button>
       <dialog
         ref={dialog}

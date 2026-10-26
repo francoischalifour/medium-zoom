@@ -203,3 +203,14 @@ test('documentation results support opening in another tab', async ({ page, cont
   await expect(page.getByRole('combobox')).toHaveValue('margin')
   await popup.close()
 })
+
+test('the search action keeps its accessible name at full and compact widths', async ({ page }) => {
+  await page.goto('/docs/')
+  const search = page.getByRole('button', { name: 'Search docs', exact: true })
+  for (const width of [1_280, 900, 390]) {
+    await page.setViewportSize({ width, height: 800 })
+    await expect(search).toBeVisible()
+    await expect(search).toHaveAccessibleName('Search docs')
+    await expect(search).toHaveAttribute('aria-keyshortcuts', /^(Meta|Control)\+K$/)
+  }
+})
