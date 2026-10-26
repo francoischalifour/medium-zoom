@@ -1428,9 +1428,7 @@ td code {
   text-decoration: none;
 }
 .download-digits {
-  display: flex;
-  justify-content: center;
-  overflow: clip;
+  display: block;
   font-size: clamp(36px, 5vw, 60px);
   font-weight: 600;
   letter-spacing: -0.045em;
@@ -1453,18 +1451,13 @@ td code {
   font-size: 12px;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .download-stats[data-entered='true'] .download-digits > span {
-    animation: download-digit-enter 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
-    animation-delay: calc(var(--digit-index) * 24ms);
-  }
-}
-@keyframes download-digit-enter {
-  from {
+  .download-stats[data-entered='false'] .download-digits {
     opacity: 0;
-    transform: translateY(35%);
+    transform: translateY(6px);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .download-digits {
+    transition:
+      opacity 240ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 }

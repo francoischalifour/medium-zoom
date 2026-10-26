@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import snapshot from './npm-downloads.json'
 import { fetchNpmDownloads } from './npm-downloads'
 
@@ -9,7 +9,7 @@ const date = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeZone: '
 export function DownloadStats() {
   const [downloads, setDownloads] = useState(snapshot)
   const [entered, setEntered] = useState(false)
-  const section = useRef<HTMLElement>(null)
+  const total = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
     let active = true
@@ -23,6 +23,7 @@ export function DownloadStats() {
   }, [])
 
   useEffect(() => {
+    const element = total.current!
     const observer = new IntersectionObserver(
       entries => {
         if (entries.some(entry => entry.isIntersecting)) {
@@ -30,30 +31,21 @@ export function DownloadStats() {
           observer.disconnect()
         }
       },
-      { threshold: 0.5 }
+      { threshold: 0.2 }
     )
-    if (section.current) observer.observe(section.current)
+    observer.observe(element)
     return () => observer.disconnect()
   }, [])
 
   return (
-    <section
-      className="download-stats"
-      aria-label="npm downloads"
-      ref={section}
-      data-entered={entered}
-    >
+    <section className="download-stats" aria-label="npm downloads" data-entered={entered}>
+      <noscript>
+        <style>{'.download-digits { opacity: 1 !important; transform: none !important; }'}</style>
+      </noscript>
       <a href="https://www.npmjs.com/package/medium-zoom" className="download-total">
         <span className="sr-only">{number.format(downloads.total)} total downloads on npm</span>
-        <span className="download-digits" aria-hidden="true">
-          {number
-            .format(downloads.total)
-            .split('')
-            .map((digit, index) => (
-              <span key={index} style={{ '--digit-index': index } as CSSProperties}>
-                {digit}
-              </span>
-            ))}
+        <span className="download-digits" aria-hidden="true" ref={total}>
+          {number.format(downloads.total)}
         </span>
         <span aria-hidden="true">total downloads</span>
       </a>
