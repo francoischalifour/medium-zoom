@@ -1,3 +1,4 @@
+import { ReactIcon } from './technology-icons'
 import { InstallCommand } from './install-command'
 import { SectionLinks } from './site-shell'
 import { Icon } from './site-components'
@@ -39,7 +40,7 @@ export function Hero({ page }: { page: SitePage }) {
           </a>
         ) : (
           <a className="button button-secondary" href="/examples/shadcn/">
-            <span className="shadcn-mark" aria-hidden="true" /> React component
+            <ReactIcon className="documentation-mark" /> React component
           </a>
         )}
       </div>

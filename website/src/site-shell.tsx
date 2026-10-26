@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Icon } from './site-components'
+import { JavaScriptIcon, ReactIcon } from './technology-icons'
 import { githubStars, githubStarLabel, repositoryUrl, type SitePage } from './site-data'
 import { getTheme, getServerTheme, setTheme, subscribeTheme } from './site-theme'
 
@@ -7,11 +8,11 @@ export function SectionLinks({ page }: { page: SitePage | 'docs' }) {
   return (
     <>
       <a href="/" aria-current={page === 'library' ? 'page' : undefined}>
-        <span className="library-mark" aria-hidden="true" />
+        <JavaScriptIcon className="documentation-mark" />
         JavaScript
       </a>
       <a href="/examples/shadcn/" aria-current={page === 'shadcn' ? 'page' : undefined}>
-        <span className="shadcn-mark" aria-hidden="true" />
+        <ReactIcon className="documentation-mark" />
         React
       </a>
       <a href="/docs/" aria-current={page === 'docs' ? 'page' : undefined}>

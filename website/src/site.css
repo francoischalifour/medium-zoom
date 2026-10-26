@@ -201,19 +201,7 @@ pre:focus-visible,
 .section-links a:active {
   transform: scale(0.97);
 }
-.library-mark {
-  display: inline-block;
-  flex-shrink: 0;
-  width: 14px;
-  height: 14px;
-  background: currentColor;
-  mask: url('/brand/mark-monochrome.svg') center / contain no-repeat;
-}
 .section-links .documentation-mark {
-  width: 14px;
-  height: 14px;
-}
-.section-links .shadcn-mark {
   width: 14px;
   height: 14px;
 }
@@ -948,8 +936,6 @@ td code {
     padding: 0 6px;
     gap: 5px;
   }
-  .section-links .library-mark,
-  .section-links .shadcn-mark,
   .section-links .documentation-mark {
     width: 12px;
     height: 12px;
