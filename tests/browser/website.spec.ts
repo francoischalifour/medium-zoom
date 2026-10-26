@@ -57,7 +57,10 @@ test('shared navigation preserves theme and typography across both pages and bac
   })
   expect(fonts.every(count => count > 0)).toBe(true)
   await page.getByRole('button', { name: 'Switch to dark theme' }).click()
-  await page.getByRole('navigation').getByRole('link', { name: 'React', exact: true }).click()
+  await page
+    .getByRole('navigation', { name: /^(Main navigation|Product navigation)$/ })
+    .getByRole('link', { name: 'React', exact: true })
+    .click()
   await expect(page).toHaveURL(`${testUrl}/react`)
   await expect(page.locator('html')).toHaveClass('dark')
   await expect(page.locator('.section-links:visible [aria-current="page"]')).toHaveText('React')
@@ -66,7 +69,10 @@ test('shared navigation preserves theme and typography across both pages and bac
   expect(nextHeader).toEqual(header)
   await page.screenshot({ path: testInfo.outputPath('integration-dark.png'), fullPage: true })
   await page.getByRole('button', { name: 'Switch to light theme' }).click()
-  await page.getByRole('navigation').getByRole('link', { name: 'JavaScript', exact: true }).click()
+  await page
+    .getByRole('navigation', { name: /^(Main navigation|Product navigation)$/ })
+    .getByRole('link', { name: 'JavaScript', exact: true })
+    .click()
   await expect(page.getByRole('heading', { name: /Your images,/ })).toBeVisible()
   await expect(page.locator('html')).not.toHaveClass('dark')
   await page.getByRole('button', { name: 'Switch to dark theme' }).click()
@@ -114,11 +120,16 @@ test('mobile navigation remains usable and both pages fit the viewport', async (
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
     .toBe(true)
   await expect(
-    page.getByRole('navigation').getByRole('link', { name: 'React', exact: true })
+    page
+      .getByRole('navigation', { name: /^(Main navigation|Product navigation)$/ })
+      .getByRole('link', { name: 'React', exact: true })
   ).toBeVisible()
   await expect(page.locator('.brand-name')).toBeVisible()
   await page.screenshot({ path: testInfo.outputPath('home-mobile.png'), fullPage: true })
-  await page.getByRole('navigation').getByRole('link', { name: 'React', exact: true }).click()
+  await page
+    .getByRole('navigation', { name: /^(Main navigation|Product navigation)$/ })
+    .getByRole('link', { name: 'React', exact: true })
+    .click()
   await expect(page.getByRole('heading', { name: /Your images,/ })).toBeVisible()
   await page.screenshot({ path: testInfo.outputPath('integration-mobile.png'), fullPage: true })
   await page.setViewportSize({ width: 320, height: 740 })
@@ -126,7 +137,9 @@ test('mobile navigation remains usable and both pages fit the viewport', async (
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
     .toBe(true)
   await expect(
-    page.getByRole('navigation').getByRole('link', { name: 'JavaScript', exact: true })
+    page
+      .getByRole('navigation', { name: /^(Main navigation|Product navigation)$/ })
+      .getByRole('link', { name: 'JavaScript', exact: true })
   ).toBeVisible()
 })
 
@@ -198,7 +211,10 @@ test('both pages preload the same font resources across navigation', async ({ pa
     .locator('link[rel="preload"][as="font"]')
     .evaluateAll(links => links.map(link => (link as HTMLLinkElement).href).sort())
   expect(homeFonts).toHaveLength(2)
-  await page.getByRole('navigation').getByRole('link', { name: 'React', exact: true }).click()
+  await page
+    .getByRole('navigation', { name: /^(Main navigation|Product navigation)$/ })
+    .getByRole('link', { name: 'React', exact: true })
+    .click()
   await expect(page.locator('link[rel="preload"][as="font"]')).toHaveCount(2)
   const componentFonts = await page
     .locator('link[rel="preload"][as="font"]')

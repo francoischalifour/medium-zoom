@@ -4,21 +4,39 @@ import { JavaScriptIcon, ReactIcon } from './technology-icons'
 import { githubStars, githubStarLabel, repositoryUrl, type SitePage } from './site-data'
 import { getTheme, getServerTheme, setTheme, subscribeTheme } from './site-theme'
 
+const siteSections = [
+  {
+    page: 'javascript',
+    href: '/',
+    label: 'JavaScript',
+    title: 'JavaScript',
+    mark: <JavaScriptIcon className="documentation-mark" />,
+  },
+  {
+    page: 'react',
+    href: '/react',
+    label: 'React',
+    title: 'React',
+    mark: <ReactIcon className="documentation-mark" />,
+  },
+  {
+    page: 'docs',
+    href: '/docs/',
+    label: 'Docs',
+    title: 'Documentation',
+    mark: <Icon name="book" className="documentation-mark" />,
+  },
+] as const
+
 export function SectionLinks({ page }: { page: SitePage | 'docs' }) {
   return (
     <>
-      <a href="/" aria-current={page === 'javascript' ? 'page' : undefined}>
-        <JavaScriptIcon className="documentation-mark" />
-        JavaScript
-      </a>
-      <a href="/react" aria-current={page === 'react' ? 'page' : undefined}>
-        <ReactIcon className="documentation-mark" />
-        React
-      </a>
-      <a href="/docs/" aria-current={page === 'docs' ? 'page' : undefined}>
-        <Icon name="book" className="documentation-mark" />
-        Docs
-      </a>
+      {siteSections.map(({ page: section, href, label, mark }) => (
+        <a key={href} href={href} aria-current={page === section ? 'page' : undefined}>
+          {mark}
+          {label}
+        </a>
+      ))}
     </>
   )
 }
@@ -63,22 +81,46 @@ export function SiteHeader({ page }: { page: SitePage | 'docs' }) {
   )
 }
 
-export function SiteFooter() {
+export function SiteFooter({ page }: { page: SitePage | 'docs' }) {
   return (
     <footer className="site-footer">
       <div className="footer-identity">
         <a className="brand footer-brand" href="/">
-          <img src="/brand/mark.svg" width="20" height="20" alt="" />
+          <img src="/brand/mark.svg" width="24" height="24" alt="" />
           medium-zoom
         </a>
-        <p>
+        <p className="footer-description">Image zoom for the web.</p>
+        <p className="footer-credit">
           By <a href="https://francoischalifour.com">François Chalifour</a>
         </p>
       </div>
       <nav aria-label="Footer navigation">
-        <a href="/docs/">Documentation</a>
-        <a href={`${repositoryUrl}/blob/main/LICENSE`}>MIT license</a>
-        <a href={repositoryUrl}>GitHub</a>
+        <div className="footer-nav-group">
+          <p>Explore</p>
+          <ul>
+            {siteSections.map(({ page: section, href, title }) => (
+              <li key={href}>
+                <a href={href} aria-current={page === section ? 'page' : undefined}>
+                  {title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="footer-nav-group">
+          <p>Project</p>
+          <ul>
+            <li>
+              <a href={repositoryUrl}>GitHub</a>
+            </li>
+            <li>
+              <a href={`${repositoryUrl}/blob/main/CHANGELOG.md`}>Changelog</a>
+            </li>
+            <li>
+              <a href={`${repositoryUrl}/blob/main/LICENSE`}>MIT license</a>
+            </li>
+          </ul>
+        </div>
       </nav>
     </footer>
   )

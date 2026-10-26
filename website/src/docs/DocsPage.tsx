@@ -165,7 +165,7 @@ export function DocsPage({ path }: { path: string }) {
         </main>
         {!isOverview && <ScrollArea className="docs-outline">{contents}</ScrollArea>}
       </div>
-      <SiteFooter />
+      <SiteFooter page="docs" />
     </div>
   )
 }

@@ -821,38 +821,72 @@ td code {
   white-space: nowrap;
 }
 .site-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  align-items: start;
+  gap: 48px;
   position: relative;
   max-width: var(--site-width);
   margin: auto;
-  padding: 32px var(--site-gutter) 40px;
-  font-size: 12px;
+  padding: 40px var(--site-gutter);
+  font-size: 13px;
   color: var(--muted-foreground);
 }
 .footer-brand {
   color: var(--foreground);
-  font-size: 14px;
-  font-weight: 550;
+  min-height: 28px;
+  font-size: 15px;
+  font-weight: 600;
   letter-spacing: -0.02em;
 }
 .footer-identity p {
-  display: block;
-  margin: 5px 0 0;
-  font-size: 12px;
-  font-weight: 400;
-  letter-spacing: 0;
-  color: var(--muted-foreground);
+  margin: 8px 0 0;
+  line-height: 1.6;
 }
-.site-footer a {
+.footer-identity .footer-credit {
+  margin-top: 12px;
+  font-size: 12px;
+}
+.footer-credit a {
   color: var(--foreground);
 }
 .site-footer nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+  padding-top: 4px;
+}
+.footer-nav-group > p {
+  margin: 0 0 8px;
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 550;
+}
+.footer-nav-group ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.footer-nav-group a {
   display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 32px;
+  padding: 6px 8px;
+  margin-inline: -8px;
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+.footer-nav-group a[aria-current='page'] {
+  color: var(--foreground);
+  font-weight: 500;
+}
+@media (hover: hover) and (pointer: fine) {
+  .footer-nav-group a:hover {
+    background: var(--hover);
+    text-decoration: none;
+  }
 }
 @media (hover: hover) and (pointer: fine) {
   a:hover {
@@ -1033,10 +1067,19 @@ td code {
   }
   .site-footer {
     margin: 0 auto;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    padding-bottom: 24px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    padding-block: 28px;
+  }
+  .site-footer nav {
+    gap: 24px;
+    padding-top: 0;
+  }
+  .footer-nav-group a {
+    min-height: 44px;
+  }
+  .footer-brand {
+    min-height: 44px;
   }
 }
 @media (prefers-reduced-motion: no-preference) {
