@@ -20,11 +20,64 @@ function redirectMovedDocs(server: ViteDevServer | PreviewServer) {
   })
 }
 
+function getOutline(source: string) {
+  const prose = source.replace(/^```[^\n]*\n[\s\S]*?^```/gm, '')
+  return [...prose.matchAll(/^## (.+)$/gm)].map(([, heading]) => {
+    const title = heading.replace(/`/g, '')
+    return { title, id: headingId(title) }
+  })
+}
+
+function getSearchExcerpt(source: string) {
+  const paragraph = source
+    .replace(/^```[^\n]*\n[\s\S]*?^```/gm, '')
+    .split(/\n\s*\n/)
+    .map(block => block.trim())
+    .find(block => block && !/^(?:import\b|export\b|#|<)/.test(block))
+  return paragraph
+    ?.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[`*_]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 // The authored headings own both the article anchors and its server-rendered outline.
 export function docsPlugin(): Plugin {
   return {
     name: 'medium-zoom-docs',
     enforce: 'pre',
+    resolveId(id) {
+      if (id === 'virtual:docs-search') return '\0virtual:docs-search'
+    },
+    load(id) {
+      if (id !== '\0virtual:docs-search') return
+      const entries = docsPages.flatMap(page => {
+        const file = fileURLToPath(new URL(`../src/docs/${page.source}`, import.meta.url))
+        this.addWatchFile(file)
+        const source = readFileSync(file, 'utf8')
+        return [
+          {
+            title: page.title,
+            path: page.path,
+            group: page.group,
+            description: getSearchExcerpt(source) ?? page.description,
+          },
+          ...getOutline(source).map(heading => ({
+            title: heading.title,
+            path: `${page.path}#${heading.id}`,
+            parent: page.title,
+            group: page.group,
+          })),
+        ]
+      })
+      return `export default ${JSON.stringify(entries)}`
+    },
+    handleHotUpdate({ file, server }) {
+      if (!file.endsWith('.mdx')) return
+      const search = server.moduleGraph.getModuleById('\0virtual:docs-search')
+      if (search) server.moduleGraph.invalidateModule(search)
+      server.ws.send({ type: 'full-reload' })
+    },
     config() {
       const template = readFileSync(new URL('./docs-template.html', import.meta.url), 'utf8')
       const entries: Record<string, string> = {}
@@ -70,11 +123,7 @@ export function docsPlugin(): Plugin {
     configurePreviewServer: redirectMovedDocs,
     transform(source, id) {
       if (!id.endsWith('.mdx')) return
-      const prose = source.replace(/^```[^\n]*\n[\s\S]*?^```/gm, '')
-      const outline = [...prose.matchAll(/^## (.+)$/gm)].map(([, heading]) => {
-        const title = heading.replace(/`/g, '')
-        return { title, id: headingId(title) }
-      })
+      const outline = getOutline(source)
       return `${source}\n\nexport const outline = ${JSON.stringify(outline)}\n`
     },
   }

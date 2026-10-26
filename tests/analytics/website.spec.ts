@@ -232,3 +232,86 @@ test('documentation pageviews retain the shared website context', async ({ page 
     path: '/docs/react/',
   })
 })
+
+test('settled searches record query parameters without typing or dismissal pageviews', async ({
+  page,
+}) => {
+  const events = await intercept(page)
+  await page.goto(`${origin}/docs/javascript/`)
+  await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(1)
+  await page.getByRole('button', { name: /Search docs/ }).click()
+  const search = page.getByRole('combobox')
+  await search.pressSequentially('margin', { delay: 30 })
+  await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(2)
+  await search.fill('galleries')
+  await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(3)
+  await page.keyboard.press('Escape')
+  await expect.poll(() => new URL(page.url()).searchParams.has('q')).toBe(false)
+  await page.evaluate(() => {
+    location.hash = 'install-the-package'
+  })
+  await page.getByRole('button', { name: /Search docs/ }).click()
+  await search.fill('margin')
+  await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(4)
+  const pageviews = events.filter(event => event.event === '$pageview')
+  expect(pageviews.map(event => event.properties.q)).toEqual([
+    undefined,
+    'margin',
+    'galleries',
+    'margin',
+  ])
+  for (const event of pageviews) {
+    expect(event.properties).toMatchObject({
+      site: 'medium-zoom',
+      page: 'docs',
+      path: '/docs/javascript/',
+    })
+    expect(event.distinct_id).toBe(pageviews[0].distinct_id)
+  }
+})
+
+test('chat handoffs use the same outbound tracking as other external links', async ({
+  page,
+  context,
+}) => {
+  const events = await intercept(page)
+  await context.route('https://chatgpt.com/**', route =>
+    route.fulfill({ body: '<title>Chat</title>', contentType: 'text/html' })
+  )
+  await page.goto(`${origin}/docs/?q=margin`)
+  const popupPromise = page.waitForEvent('popup')
+  await page.getByRole('option', { name: 'Ask ChatGPT', exact: true }).click()
+  const popup = await popupPromise
+  await expect.poll(() => events.filter(event => event.event === 'Outbound Click').length).toBe(1)
+  expect(events.find(event => event.event === 'Outbound Click')!.properties.destination).toBe(
+    'https://chatgpt.com/'
+  )
+  await popup.close()
+})
+
+test('palette install actions respect package selection and clipboard permission', async ({
+  page,
+  context,
+}) => {
+  const events = await intercept(page)
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin })
+  await page.goto(`${origin}/docs/react/`)
+  await page.bringToFront()
+  await page.getByRole('radio', { name: 'pnpm', exact: true }).check()
+  await page.getByRole('button', { name: /Search docs/ }).click()
+  await page.getByRole('combobox').fill('copy react')
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('dialog').getByRole('status')).toHaveText('Copied to clipboard')
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+    'pnpm dlx shadcn@latest add https://medium-zoom.francoischalifour.com/r/image-zoom.json'
+  )
+  await expect
+    .poll(() => events.filter(event => event.event === 'Install Command Copied').length)
+    .toBe(1)
+  await clipboardPermission(context, page, 'denied')
+  await page.getByRole('option', { name: /Copy React install command/ }).click()
+  await expect(page.getByRole('dialog').getByRole('status')).toContainText(
+    'Could not copy. Select and copy this command: pnpm dlx'
+  )
+  expect(events.filter(event => event.event === 'Install Command Copied')).toHaveLength(1)
+})
