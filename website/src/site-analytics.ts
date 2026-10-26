@@ -15,6 +15,7 @@ function getClient() {
   if (client !== undefined) return client
   try {
     let lastPage: string | undefined
+    let lastSearch = ''
     altertable.init(apiKey, {
       trackingConsent: 'granted',
       transformEvent(event) {
@@ -23,8 +24,11 @@ function getClient() {
         const page = getSitePage(path)
         if (!page) return null
         if (event.event === '$pageview') {
-          if (lastPage === path) return null
+          const query = typeof event.properties?.q === 'string' ? event.properties.q : ''
+          // Query changes are searches; clearing search and following anchors are not pageviews.
+          if (lastPage === path && (!query || lastSearch === query)) return null
           lastPage = path
+          lastSearch = query
         }
         return {
           ...event,

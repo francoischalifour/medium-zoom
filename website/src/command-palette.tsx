@@ -21,6 +21,14 @@ function Highlight({ text, query }: { text: string; query: string }) {
     )
 }
 
+function replaceSearchQuery(query: string) {
+  const url = new URL(window.location.href)
+  const value = query.trim()
+  if (value) url.searchParams.set('q', value)
+  else url.searchParams.delete('q')
+  if (url.href !== window.location.href) window.history.replaceState(window.history.state, '', url)
+}
+
 export function CommandPalette({ react }: { react: boolean }) {
   const trigger = React.useRef<HTMLButtonElement>(null)
   const dialog = React.useRef<HTMLDialogElement>(null)
@@ -37,16 +45,17 @@ export function CommandPalette({ react }: { react: boolean }) {
   const manager = usePackageManager()
   const id = React.useId()
 
-  function show() {
-    if (dialog.current?.open) return
-    returnFocus.current =
-      document.activeElement === document.body
-        ? trigger.current
-        : (document.activeElement as HTMLElement | null)
-    setQuery('')
+  function show(value = new URLSearchParams(window.location.search).get('q') ?? '') {
+    if (!dialog.current?.open) {
+      returnFocus.current =
+        document.activeElement === document.body
+          ? trigger.current
+          : (document.activeElement as HTMLElement | null)
+      dialog.current?.showModal()
+    }
+    setQuery(value)
     setActive(0)
     setStatus('')
-    dialog.current?.showModal()
     input.current?.focus()
     setOpen(true)
   }
@@ -77,6 +86,25 @@ export function CommandPalette({ react }: { react: boolean }) {
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
+  React.useEffect(() => {
+    function syncFromUrl() {
+      const value = new URLSearchParams(window.location.search).get('q')
+      if (value?.trim()) show(value)
+      else close()
+    }
+    syncFromUrl()
+    window.addEventListener('popstate', syncFromUrl)
+    window.addEventListener('pageshow', syncFromUrl)
+    return () => {
+      window.removeEventListener('popstate', syncFromUrl)
+      window.removeEventListener('pageshow', syncFromUrl)
+    }
+  }, [])
+  React.useEffect(() => {
+    if (!open) return
+    const timer = window.setTimeout(() => replaceSearchQuery(query), 300)
+    return () => window.clearTimeout(timer)
+  }, [open, query])
   React.useEffect(() => {
     if (!open || entries) return
     let cancelled = false
@@ -168,6 +196,15 @@ export function CommandPalette({ react }: { react: boolean }) {
   const noMatches = entries !== null && Boolean(query.trim()) && matchCount === 0
   const selected = Math.min(active, Math.max(0, results.length - 1))
 
+  const selectedResult = results[selected]
+  const actionHint = selectedResult?.chatUrl
+    ? 'Ask'
+    : selectedResult?.href
+      ? 'Open'
+      : selectedResult?.key === 'theme'
+        ? 'Switch'
+        : 'Copy'
+
   React.useEffect(() => {
     if (open) document.getElementById(`${id}-${selected}`)?.scrollIntoView({ block: 'nearest' })
   }, [open, id, selected, query, entries])
@@ -178,7 +215,8 @@ export function CommandPalette({ react }: { react: boolean }) {
     if (result.chatUrl) {
       window.open(result.chatUrl, '_blank', 'noopener,noreferrer')
     } else if (result.href) {
-      close()
+      // Keep the search on the previous history entry so Back restores the results.
+      replaceSearchQuery(query)
       window.location.assign(result.href)
     } else if (result.key === 'theme') {
       setTheme(!dark)
@@ -202,7 +240,11 @@ export function CommandPalette({ react }: { react: boolean }) {
         className="search-trigger"
         aria-label={`Search docs ${mac ? '⌘' : 'Ctrl'} K`}
         aria-haspopup="dialog"
-        onClick={show}
+        aria-keyshortcuts={mac ? 'Meta+K' : 'Control+K'}
+        title={`Search documentation (${mac ? '⌘' : 'Ctrl'} K)`}
+        aria-expanded={open}
+        aria-controls={`${id}-dialog`}
+        onClick={() => show()}
       >
         <Icon name="search" />
         <span>Search docs</span>
@@ -210,10 +252,12 @@ export function CommandPalette({ react }: { react: boolean }) {
       </button>
       <dialog
         ref={dialog}
+        id={`${id}-dialog`}
         className="command-palette"
         aria-label="Search documentation"
         onClose={() => {
           setOpen(false)
+          replaceSearchQuery('')
           returnFocus.current?.focus()
         }}
         onClick={event => {
@@ -346,7 +390,7 @@ export function CommandPalette({ react }: { react: boolean }) {
               <kbd>↓</kbd> Navigate
             </span>
             <span>
-              <kbd>↵</kbd> {results[selected]?.chatUrl ? 'Ask' : 'Open'}
+              <kbd>↵</kbd> {actionHint}
             </span>
             <span className="command-count" role={status ? undefined : 'status'}>
               {entries

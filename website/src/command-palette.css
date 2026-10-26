@@ -1,21 +1,78 @@
 .search-trigger {
   display: flex;
   align-items: center;
-  gap: 8px;
-  height: 32px;
-  min-width: 156px;
-  padding: 0 8px;
+  gap: 9px;
+  height: 36px;
+  min-width: 176px;
+  padding: 0 9px;
   border: 1px solid var(--border);
-  border-radius: 7px;
+  border-radius: 8px;
   background: var(--surface);
+  color: var(--foreground);
+  text-align: left;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.01em;
+  transition:
+    background-color 120ms ease-out,
+    border-color 120ms ease-out,
+    box-shadow 120ms ease-out;
+}
+.search-trigger > svg {
+  width: 16px;
+  height: 16px;
   color: var(--muted-foreground);
-  font-size: 12px;
 }
 .search-trigger kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  height: 22px;
   margin-left: auto;
+  padding: 0 5px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--background);
+  color: var(--muted-foreground);
+  font: 500 11px/20px var(--font-sans);
+  letter-spacing: 0;
+  white-space: nowrap;
 }
-.command-palette kbd,
-.search-trigger kbd {
+.search-trigger[aria-expanded='true'],
+.search-trigger:active {
+  border-color: var(--ring);
+  background: var(--selected);
+}
+.search-trigger[aria-expanded='true'] > svg {
+  color: var(--foreground);
+}
+.search-trigger:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+  box-shadow: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .search-trigger:hover {
+    border-color: color-mix(in srgb, var(--foreground) 25%, var(--border));
+    background: var(--background);
+    box-shadow: var(--shadow-xs);
+  }
+  .search-trigger:hover > svg {
+    color: var(--foreground);
+  }
+  .search-trigger[aria-expanded='true']:hover,
+  .search-trigger:active:hover {
+    background: var(--selected);
+    border-color: var(--ring);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .search-trigger {
+    transition: none;
+  }
+}
+.command-palette kbd {
   font-family: var(--font-sans);
   font-size: 11px;
   line-height: 18px;
@@ -293,15 +350,23 @@
   margin-left: auto;
   font-variant-numeric: tabular-nums;
 }
-@media (max-width: 1000px) {
+@media (max-width: 1100px) {
   .search-trigger {
-    min-width: 32px;
+    min-width: 0;
+  }
+  .search-trigger > kbd {
+    display: none;
+  }
+}
+@media (max-width: 900px) {
+  .search-trigger {
+    min-width: 36px;
+    padding: 0;
     justify-content: center;
     background: transparent;
     border-color: transparent;
   }
-  .search-trigger > span,
-  .search-trigger > kbd {
+  .search-trigger > span {
     display: none;
   }
 }

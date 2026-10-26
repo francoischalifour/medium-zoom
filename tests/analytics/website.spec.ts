@@ -232,3 +232,40 @@ test('documentation pageviews retain the shared website context', async ({ page 
     path: '/docs/react/',
   })
 })
+
+test('settled searches record query parameters without typing or dismissal pageviews', async ({
+  page,
+}) => {
+  const events = await intercept(page)
+  await page.goto(`${origin}/docs/javascript/`)
+  await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(1)
+  await page.getByRole('button', { name: /Search docs/ }).click()
+  const search = page.getByRole('combobox')
+  await search.pressSequentially('margin', { delay: 30 })
+  await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(2)
+  await search.fill('galleries')
+  await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(3)
+  await page.keyboard.press('Escape')
+  await expect.poll(() => new URL(page.url()).searchParams.has('q')).toBe(false)
+  await page.evaluate(() => {
+    location.hash = 'install-the-package'
+  })
+  await page.getByRole('button', { name: /Search docs/ }).click()
+  await search.fill('margin')
+  await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(4)
+  const pageviews = events.filter(event => event.event === '$pageview')
+  expect(pageviews.map(event => event.properties.q)).toEqual([
+    undefined,
+    'margin',
+    'galleries',
+    'margin',
+  ])
+  for (const event of pageviews) {
+    expect(event.properties).toMatchObject({
+      site: 'medium-zoom',
+      page: 'docs',
+      path: '/docs/javascript/',
+    })
+    expect(event.distinct_id).toBe(pageviews[0].distinct_id)
+  }
+})
