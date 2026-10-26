@@ -5,6 +5,8 @@ export async function prerenderWebsite(directory: string) {
   // Use Vite's MDX and raw-source transforms for the same tree rendered in the browser.
   const server = await createServer({
     mode: 'production',
+    // Production dependency optimization must not replace a running dev server's React runtime.
+    cacheDir: fileURLToPath(new URL('../.cache/vite-prerender/', import.meta.url)),
     configFile: fileURLToPath(new URL('../config/vite.website.config.mts', import.meta.url)),
     server: { middlewareMode: true, watch: null, hmr: false, ws: false },
     appType: 'custom',
