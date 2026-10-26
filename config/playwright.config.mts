@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import { defineConfig, devices } from '@playwright/test'
+import { testPort, testUrl, svelteDevUrl, shadcnDevUrl } from '../tests/server-urls.ts'
 
 const repositoryRoot = fileURLToPath(new URL('../', import.meta.url))
 
@@ -11,7 +12,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 2 : undefined,
   reporter: [['list'], ['html', { open: 'never', outputFolder: '../.cache/playwright/report' }]],
-  use: { baseURL: 'http://127.0.0.1:4175', trace: 'retain-on-failure' },
+  use: { baseURL: testUrl, trace: 'retain-on-failure' },
   projects: [
     { name: 'chromium', testIgnore: '**/mobile.spec.ts', use: { ...devices['Desktop Chrome'] } },
     { name: 'firefox', testIgnore: '**/mobile.spec.ts', use: { ...devices['Desktop Firefox'] } },
@@ -23,14 +24,21 @@ export default defineConfig({
     {
       cwd: repositoryRoot,
       command: 'bun tests/server.ts',
-      url: 'http://127.0.0.1:4175',
+      url: testUrl,
       reuseExistingServer: false,
       timeout: 30_000,
     },
     {
       cwd: repositoryRoot,
-      command: 'bun run dev:example svelte --port 4176',
-      url: 'http://127.0.0.1:4176/examples/svelte/',
+      command: `bun run dev:example svelte --port ${testPort + 1}`,
+      url: svelteDevUrl,
+      reuseExistingServer: false,
+      timeout: 30_000,
+    },
+    {
+      cwd: repositoryRoot,
+      command: `bun run dev:example shadcn --port ${testPort + 2}`,
+      url: shadcnDevUrl,
       reuseExistingServer: false,
       timeout: 30_000,
     },

@@ -2,6 +2,7 @@ import { createServer } from 'node:http'
 import { readFileSync } from 'node:fs'
 import { resolve, extname, sep } from 'node:path'
 import { pack } from '../scripts/pack.ts'
+import { testPort } from './server-urls.ts'
 
 const artifact = pack()
 const roots: Record<string, string> = {
@@ -9,13 +10,21 @@ const roots: Record<string, string> = {
   baseline: resolve('node_modules/medium-zoom-baseline'),
   images: resolve('stories/images'),
   site: resolve('website/dist'),
+  analytics: resolve('.cache/analytics-site'),
 }
+const docsRedirects = new Map(
+  readFileSync(resolve(roots.site, '_redirects'), 'utf8')
+    .split('\n')
+    .filter(line => line.startsWith('/docs/'))
+    .map(line => line.trim().split(/\s+/).slice(0, 2) as [string, string])
+)
 const contentTypes: Record<string, string> = {
   '.js': 'text/javascript',
   '.css': 'text/css',
   '.html': 'text/html',
   '.jpg': 'image/jpeg',
   '.png': 'image/png',
+  '.webp': 'image/webp',
   '.svg': 'image/svg+xml',
   '.mp4': 'video/mp4',
 }
@@ -25,6 +34,11 @@ const server = createServer((request, response) => {
   if (url.pathname === '/') {
     response.writeHead(200, { 'Content-Type': 'text/html' })
     response.end('<!doctype html><title>Medium Zoom package tests</title>')
+    return
+  }
+  const destination = docsRedirects.get(url.pathname.replace(/\/?$/, '/'))
+  if (destination) {
+    response.writeHead(301, { Location: destination + url.search }).end()
     return
   }
   const [, root, ...segments] = decodeURIComponent(url.pathname).split('/')
@@ -69,7 +83,7 @@ const server = createServer((request, response) => {
   }
 })
 
-server.listen(4_175, '127.0.0.1')
+server.listen(testPort, '127.0.0.1')
 for (const signal of ['SIGTERM', 'SIGINT'])
   process.on(signal, () => server.close(() => process.exit()))
 process.on('exit', artifact.cleanup)

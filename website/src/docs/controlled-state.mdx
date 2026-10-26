@@ -1,0 +1,52 @@
+import { Example } from './doc-components'
+import { ControlledPhoto } from './examples/controlled'
+import controlledCode from './examples/controlled.tsx?raw'
+
+Manage `open` in the parent to open an image from another control or coordinate the zoom with other UI.
+
+<Example code={controlledCode} title="controlled-photo.tsx">
+  <ControlledPhoto />
+</Example>
+
+## Control the zoom
+
+Pass `open` and `onOpenChange={setOpen}` to `<ImageZoom.Root>`.
+
+The parent owns the state. Clicking the external button calls `setOpen(true)`. Trigger activation and close interactions request state changes through `onOpenChange()`.
+
+Apply each request to `open` so the zoom responds to Escape, the overlay, and scrolling as well as the trigger.
+
+## Use `<ImageZoom>`
+
+The same state props work with `<ImageZoom>`:
+
+```tsx
+'use client'
+
+import { useState } from 'react'
+import { ImageZoom } from '@/components/ui/image-zoom'
+
+export function Photo() {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <ImageZoom
+      src="/photo.jpg"
+      alt="A mountain at sunrise"
+      open={open}
+      onOpenChange={setOpen}
+    />
+  )
+}
+```
+
+## Internal state
+
+Omit `open` to let the component manage its own state. You can still pass `onOpenChange` to observe state requests.
+
+Keep the component controlled or uncontrolled throughout its lifetime.
+
+## Related pages
+
+- [Custom triggers](/docs/guides/custom-react-triggers/): compose the button and image.
+- [React props](/docs/reference/react/image-zoom/): look up state and zoom options.

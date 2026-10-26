@@ -1,0 +1,162 @@
+`mediumZoom()` returns a zoom instance. Use its methods to control the zoom, attach images, and manage listeners.
+
+```js
+import mediumZoom from 'medium-zoom'
+
+const zoom = mediumZoom('[data-zoomable]')
+```
+
+## open()
+
+`zoom.open(options?)` opens the first attached image. **Returns:** `Promise<Zoom>`.
+
+```js
+await zoom.open()
+```
+
+To open a specific attached image, pass it as `target`:
+
+```js
+const images = zoom.getImages()
+
+await zoom.open({ target: images[1] })
+```
+
+`open` fires when opening starts. `opened` fires when the animation completes. Use [events](/docs/reference/javascript/events/) to observe these transitions.
+
+## close()
+
+`zoom.close()` closes the zoom. **Returns:** `Promise<Zoom>`.
+
+```js
+await zoom.close()
+```
+
+`close` fires when closing starts. `closed` fires when the animation completes. If you close an image while it is opening, the pending `open()` promise resolves and the image closes.
+
+## toggle()
+
+`zoom.toggle(options?)` opens the zoom when closed and closes it when open. **Returns:** `Promise<Zoom>`.
+
+```js
+await zoom.toggle()
+```
+
+Like `open()`, `toggle()` accepts an attached image as `target`:
+
+```js
+await zoom.toggle({ target: zoom.getImages()[1] })
+```
+
+## attach()
+
+`zoom.attach(...selectors)` attaches images to the instance. **Returns:** the zoom instance.
+
+After adding images to the page, attach them with a [selector or collection of elements](/docs/reference/javascript/medium-zoom/):
+
+```js
+zoom.attach('#new-photo', 'article img')
+```
+
+Each image is attached once, even if several selectors match it.
+
+## detach()
+
+`zoom.detach(...selectors)` detaches selected images. **Returns:** the zoom instance.
+
+```js
+zoom.detach('#cover')
+```
+
+Call `detach()` with no arguments to detach all images:
+
+```js
+zoom.detach()
+```
+
+If an image in the instance is zoomed, `detach()` starts closing it. `detach` fires on each detached image. To wait for a closing animation, listen for `closed`.
+
+## update()
+
+`zoom.update(options)` merges [options](/docs/reference/javascript/options/) into the current settings. **Returns:** the zoom instance.
+
+```js
+zoom.update({ margin: 48, background: '#111113' })
+```
+
+Coordinate objects passed as `container` are merged with the current container settings. `update` fires on each attached image.
+
+## clone()
+
+`zoom.clone(options?)` creates an instance with the current options and any overrides. **Returns:** the new zoom instance.
+
+Attach images to the new instance separately:
+
+```js
+const galleryZoom = zoom.clone({ margin: 48 })
+
+galleryZoom.attach('.gallery img')
+```
+
+Each instance manages its own options, images, and listeners.
+
+## on()
+
+`zoom.on(type, listener, options?)` registers a listener on the instance's images. **Returns:** the zoom instance.
+
+```js
+zoom.on('opened', event => {
+  console.log('Image opened:', event.target)
+})
+```
+
+The event name is unprefixed. The third argument accepts native event listener options:
+
+```js
+zoom.on('closed', () => console.log('Image closed'), { once: true })
+```
+
+See [Events](/docs/reference/javascript/events/) for names, timing, and event details.
+
+## off()
+
+`zoom.off(type, listener, options?)` removes a registered listener. **Returns:** the zoom instance.
+
+Pass the same listener reference and capture setting used with `on()`:
+
+```js
+const onOpened = () => console.log('Image opened')
+
+zoom.on('opened', onOpened)
+zoom.off('opened', onOpened)
+```
+
+## getOptions()
+
+`zoom.getOptions()` returns the current options.
+
+```js
+const options = zoom.getOptions()
+
+console.log(options.margin)
+```
+
+## getImages()
+
+`zoom.getImages()` returns an array of the attached image elements.
+
+```js
+const images = zoom.getImages()
+
+console.log(images.length)
+```
+
+## getZoomedImage()
+
+`zoom.getZoomedImage()` returns the original image currently zoomed, or `null` when closed.
+
+```js
+const image = zoom.getZoomedImage()
+
+console.log(image)
+```

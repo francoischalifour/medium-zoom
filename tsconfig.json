@@ -14,7 +14,8 @@
       "medium-zoom": ["./src/medium-zoom.d.ts"],
       "medium-zoom/dist/pure": ["./src/medium-zoom.d.ts"],
       "medium-zoom/dist/pure/index.js": ["./src/medium-zoom.d.ts"]
-    }
+    },
+    "jsx": "react-jsx"
   },
   "include": [
     "*.mts",
@@ -23,5 +24,6 @@
     "tests/**/*.ts",
     "stories/catalogue/**/*.ts",
     "examples/*/vite.config.ts"
-  ]
+  ],
+  "exclude": ["**/node_modules", "tests/fixtures/next/.next"]
 }

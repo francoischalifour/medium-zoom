@@ -1,0 +1,112 @@
+:root {
+  color-scheme: light;
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.2 0 0);
+  --muted-foreground: oklch(0.5 0 0);
+  --border: oklch(0.88 0 0);
+  --ring: oklch(0.55 0 0);
+  font-family: system-ui, sans-serif;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+:root.dark {
+  color-scheme: dark;
+  --background: oklch(0.16 0 0);
+  --foreground: oklch(0.95 0 0);
+  --muted-foreground: oklch(0.7 0 0);
+  --border: oklch(0.32 0 0);
+  --ring: oklch(0.75 0 0);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  max-width: 1060px;
+  margin: auto;
+  padding: 32px 24px 80px;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 80px;
+}
+
+a {
+  color: inherit;
+  text-underline-offset: 4px;
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-size: clamp(40px, 8vw, 72px);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 1.1;
+}
+
+p {
+  color: var(--muted-foreground);
+  line-height: 1.6;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 32px 0;
+}
+
+button:not(.image-zoom-trigger) {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--background);
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 24px;
+}
+
+[data-slot='image-zoom'] {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.caption {
+  margin-top: 24px;
+  font-size: 13px;
+}
+
+.emphasized {
+  outline: 2px solid var(--ring);
+  outline-offset: 4px;
+}
+
+@media (max-width: 640px) {
+  header {
+    margin-bottom: 48px;
+  }
+
+  .gallery {
+    grid-template-columns: 1fr;
+  }
+}

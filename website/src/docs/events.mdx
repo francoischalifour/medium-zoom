@@ -1,0 +1,99 @@
+Listen to zoom events to respond when images open, close, or change. Events are dispatched on the original image element.
+
+## Event names
+
+<table>
+  <thead>
+    <tr>
+      <th>Event</th>
+      <th>When it fires</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>open</code>
+      </td>
+      <td>Opening starts.</td>
+    </tr>
+    <tr>
+      <td>
+        <code>opened</code>
+      </td>
+      <td>The opening animation completes.</td>
+    </tr>
+    <tr>
+      <td>
+        <code>close</code>
+      </td>
+      <td>Closing starts.</td>
+    </tr>
+    <tr>
+      <td>
+        <code>closed</code>
+      </td>
+      <td>The closing animation completes.</td>
+    </tr>
+    <tr>
+      <td>
+        <code>detach</code>
+      </td>
+      <td>An image is detached.</td>
+    </tr>
+    <tr>
+      <td>
+        <code>update</code>
+      </td>
+      <td>Options are updated, on each attached image.</td>
+    </tr>
+  </tbody>
+</table>
+
+If you close an image while it is opening, the `open()` promise resolves as part of cancellation. Use `opened` to observe a completed opening.
+
+## Listen to events
+
+Pass an unprefixed event name to [`on()`](/docs/reference/javascript/methods/#on):
+
+```js
+import mediumZoom from 'medium-zoom'
+
+const zoom = mediumZoom('[data-zoomable]')
+
+zoom.on('opened', event => {
+  console.log('Image opened:', event.target)
+})
+```
+
+`event.target` is the original image. `event.detail.zoom` is the zoom instance.
+
+The optional third argument accepts the same options as `addEventListener()`. For example, run a listener once per image:
+
+```js
+zoom.on('closed', () => console.log('Image closed'), { once: true })
+```
+
+## Remove a listener
+
+Pass the same function and capture setting to [`off()`](/docs/reference/javascript/methods/#off):
+
+```js
+const onOpened = () => console.log('Image opened')
+
+zoom.on('opened', onOpened)
+zoom.off('opened', onOpened)
+```
+
+## Native event listeners
+
+To listen on an image directly, prefix the event name with `medium-zoom:`:
+
+```js
+const image = document.getElementById('cover')
+
+image?.addEventListener('medium-zoom:opened', event => {
+  console.log('Image opened:', event.target)
+})
+```
+
+Use the unprefixed names with `on()` and `off()`, and the prefixed names with native event listeners.

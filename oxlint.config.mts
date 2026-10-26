@@ -1,6 +1,7 @@
 import { defineConfig } from 'oxlint'
 
 export default defineConfig({
+  ignorePatterns: ['**/node_modules/**', 'tests/fixtures/next/.next/**'],
   categories: { correctness: 'error' },
   env: { browser: true, node: true },
   globals: { __TEST__: 'readonly' },

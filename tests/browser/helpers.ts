@@ -63,6 +63,17 @@ export async function loadZoomFixture(page: Page, options: PackageOptions & Page
 }
 
 export async function decodeImages(images: Locator) {
+  // Lazy images must finish source selection before WebKit can decode them reliably.
+  await expect
+    .poll(() =>
+      images.evaluateAll(images =>
+        images.every(image => {
+          const photo = image as HTMLImageElement
+          return photo.complete && photo.naturalWidth > 0
+        })
+      )
+    )
+    .toBe(true)
   await images.evaluateAll(images =>
     Promise.all(images.map(image => (image as HTMLImageElement).decode()))
   )
@@ -70,7 +81,12 @@ export async function decodeImages(images: Locator) {
 
 export async function finishAnimations(page: Page) {
   await page.evaluate(() =>
-    Promise.all(document.getAnimations().map(animation => animation.finished))
+    Promise.all(
+      document
+        .getAnimations()
+        .filter(animation => animation.timeline === document.timeline)
+        .map(animation => animation.finished)
+    )
   )
 }
 
@@ -96,8 +112,10 @@ export async function openImage(
   image: Locator,
   {
     via = 'click',
+    trigger = image,
   }: {
     via?: 'click' | 'tap'
+    trigger?: Locator
   } = {}
 ) {
   await image.evaluate(image => {
@@ -110,7 +128,7 @@ export async function openImage(
       { once: true }
     )
   })
-  await image[via]()
+  await trigger[via]()
   await expect(page.locator('html')).toHaveAttribute('data-opened', 'true')
   await expect(page.locator('.medium-zoom-image--opened').first()).toBeVisible()
 }

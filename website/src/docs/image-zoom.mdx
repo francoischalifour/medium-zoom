@@ -1,0 +1,121 @@
+import { Prop } from './doc-components'
+
+`<ImageZoom>` renders an image inside an accessible zoom button. Images are zoomable by default. The component manages attachment, state, and cleanup for one image.
+
+```tsx
+import { ImageZoom } from '@/components/ui/image-zoom'
+
+export function Photo() {
+  return (
+    <ImageZoom
+      src="/photo.jpg"
+      alt="A mountain at sunrise"
+      width={1_200}
+      height={800}
+    />
+  )
+}
+```
+
+The [React quickstart](/docs/react/) covers installation and a working example.
+
+## Image props
+
+These props apply to the image. The forwarded ref points to the `HTMLImageElement`.
+
+<Prop name="alt" type="string" required>
+
+Describes the image and supplies the zoom button's accessible name.
+
+</Prop>
+
+<Prop name="src" type="string">
+
+The image URL displayed in the page.
+
+</Prop>
+
+<Prop name="srcSet" type="string">
+
+Image candidates for the browser to select based on resolution or display size.
+
+</Prop>
+
+<Prop name="sizes" type="string">
+
+The image's display size at each breakpoint, used with `srcSet`.
+
+</Prop>
+
+<Prop name="width" type="number | string">
+
+The image's intrinsic width. Set it with `height` to reserve space while loading.
+
+</Prop>
+
+<Prop name="height" type="number | string">
+
+The image's intrinsic height.
+
+</Prop>
+
+<Prop name="loading" type="'eager' | 'lazy'">
+
+Controls when the browser loads the image. Use `lazy` for images below the initial viewport.
+
+</Prop>
+
+<Prop name="className" type="string">
+
+Styles the image. Use [composition](/docs/reference/react/composition/) to style the button separately.
+
+</Prop>
+
+<Prop name="style" type="CSSProperties">
+
+Inline styles for the image.
+
+</Prop>
+
+<Prop name="data-zoom-src" type="string">
+
+An [HD image URL](/docs/guides/hd-images/) loaded when the zoom opens.
+
+</Prop>
+
+## Zoom options
+
+<Prop name="options" type="ZoomOptions">
+
+Configures `margin`, `background`, `scrollOffset`, and `container`:
+
+- `margin` defaults to `24` pixels.
+- `scrollOffset` defaults to `40` pixels.
+- `background` follows the image's inherited `--background` CSS property, falling back to white.
+- `container` sets a custom viewport, using the values described in the [JavaScript option](/docs/reference/javascript/options/#container).
+
+</Prop>
+
+<Prop name="disabled" type="boolean" defaultValue="false">
+
+Set to `true` to prevent opening and disable the trigger.
+
+</Prop>
+
+## State props
+
+<Prop name="open" type="boolean">
+
+Controls the open state from the parent. When omitted, the component manages its own state.
+
+</Prop>
+
+<Prop name="onOpenChange" type="(open: boolean) => void">
+
+Receives the requested next state. With controlled state, apply each request to `open`. The [controlled state guide](/docs/guides/controlled-state/) shows `onOpenChange={setOpen}`.
+
+</Prop>
+
+## Trigger customization
+
+The [composition API](/docs/reference/react/composition/) exposes the button and image as separate components. [Custom triggers](/docs/guides/custom-react-triggers/) gives a complete example.

@@ -1,0 +1,15 @@
+.captioned-photo {
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.captioned-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.captioned-photo figcaption {
+  margin-top: 12px;
+  font-size: 0.875rem;
+}

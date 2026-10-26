@@ -1,0 +1,53 @@
+import { Example } from './doc-components'
+import { ComposedPhoto } from './examples/composed'
+import composedCode from './examples/composed.tsx?raw'
+
+Compose a zoom button with your own label, styles, and markup using `<ImageZoom.Root>`, `<ImageZoom.Trigger>`, and `<ImageZoom.Image>`.
+
+<Example code={composedCode} title="composed-photo.tsx">
+  <ComposedPhoto />
+</Example>
+
+## Compose the button
+
+Import the components as a namespace, as shown in the example’s Code view.
+
+The example adds visible “View photo” text inside the button. Its `aria-label` includes that text and identifies the image.
+
+## Style the trigger
+
+`className` on `<ImageZoom.Trigger>` styles the button. `className` on `<ImageZoom.Image>` styles the image. Position labels or badges relative to the button:
+
+```css
+.photo-trigger {
+  position: relative;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+}
+
+.photo-trigger img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: inherit;
+}
+
+.photo-trigger span {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #fff;
+  color: #18181b;
+}
+```
+
+Keep other interactive elements, such as links or buttons, outside the trigger.
+
+<div id="props" />
+
+## Related pages
+
+The [composition API reference](/docs/reference/react/composition/) lists the primitives' props, defaults, and refs. [Controlled state](/docs/guides/controlled-state/) shows how to open an image from another button.

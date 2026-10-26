@@ -1,0 +1,73 @@
+`mediumZoom(selector?, options?)` creates a zoom instance and attaches matching images. Its [options](/docs/reference/javascript/options/) apply to every attached image.
+
+```js
+import mediumZoom from 'medium-zoom'
+
+const zoom = mediumZoom('[data-zoomable]', { margin: 24 })
+```
+
+The selector accepts a CSS selector, an image element, a NodeList, or an array of image elements. The examples below show each form.
+
+## CSS selector
+
+Use a CSS selector to attach matching images from the document:
+
+```js
+import mediumZoom from 'medium-zoom'
+
+const zoom = mediumZoom('img[data-zoomable]')
+```
+
+The selector is evaluated when you call `mediumZoom()`. To attach images added later, call [`attach()`](/docs/reference/javascript/methods/#attach).
+
+## Image element
+
+Pass an image element to attach a single image:
+
+```js
+import mediumZoom from 'medium-zoom'
+
+const image = document.getElementById('cover')
+
+if (image) {
+  mediumZoom(image)
+}
+```
+
+## NodeList
+
+Pass the result of `querySelectorAll()` to attach several images:
+
+```js
+import mediumZoom from 'medium-zoom'
+
+const images = document.querySelectorAll('img[data-zoomable]')
+
+mediumZoom(images)
+```
+
+## Array
+
+Pass an array to attach a collection of image elements:
+
+```js
+import mediumZoom from 'medium-zoom'
+
+const images = [...document.querySelectorAll('img')]
+
+mediumZoom(images)
+```
+
+Only `<img>` elements are attached. Use [`getImages()`](/docs/reference/javascript/methods/#getimages) to read the attached images.
+
+## Attach images later
+
+Call `mediumZoom()` with options alone to create an empty instance, then attach images when they are available:
+
+```js
+import mediumZoom from 'medium-zoom'
+
+const zoom = mediumZoom({ margin: 24 })
+
+zoom.attach('img[data-zoomable]')
+```

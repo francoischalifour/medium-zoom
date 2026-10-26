@@ -1,0 +1,113 @@
+import { Prop } from './doc-components'
+
+The composition API exports `<ImageZoom.Root>`, `<ImageZoom.Trigger>`, and `<ImageZoom.Image>`. Each root manages one trigger and one image.
+
+```tsx
+import * as ImageZoom from '@/components/ui/image-zoom'
+
+export function Photo() {
+  return (
+    <ImageZoom.Root>
+      <ImageZoom.Trigger aria-label="View mountain photo">
+        <ImageZoom.Image src="/photo.jpg" alt="A mountain at sunrise" />
+      </ImageZoom.Trigger>
+    </ImageZoom.Root>
+  )
+}
+```
+
+[Custom triggers](/docs/guides/custom-react-triggers/) covers button styling and visible labels.
+
+## `<ImageZoom.Root>`
+
+`<ImageZoom.Root>` owns the zoom's options and state. It renders its children through context.
+
+<Prop name="children" type="ReactNode" required>
+
+The trigger, image, and surrounding layout. Use one trigger and one image for each root.
+
+</Prop>
+
+<Prop name="options" type="ZoomOptions">
+
+Configures `margin`, `background`, `scrollOffset`, and `container`. The margin defaults to `24` pixels, and the scroll offset defaults to `40` pixels. The background follows the image's inherited `--background` CSS property, falling back to white.
+
+`container` accepts the values described in the [JavaScript reference](/docs/reference/javascript/options/#container).
+
+</Prop>
+
+<Prop name="disabled" type="boolean" defaultValue="false">
+
+Disables opening and the trigger.
+
+</Prop>
+
+<Prop name="open" type="boolean">
+
+Controls the open state from the parent. When omitted, state is internal.
+
+</Prop>
+
+<Prop name="onOpenChange" type="(open: boolean) => void">
+
+Receives the requested next open state. The [controlled state guide](/docs/guides/controlled-state/) describes how the parent applies each request.
+
+</Prop>
+
+## `<ImageZoom.Trigger>`
+
+`<ImageZoom.Trigger>` renders a native button with `type="button"`. Activating it toggles the zoom. The forwarded ref points to the `HTMLButtonElement`.
+
+<Prop name="className" type="string">
+
+Styles the button, including its focus state and surrounding label.
+
+</Prop>
+
+<Prop name="style" type="CSSProperties">
+
+Inline styles for the button.
+
+</Prop>
+
+<Prop name="aria-label" type="string">
+
+Sets the button's accessible name. By default, the name is `Zoom image: ` followed by the image's `alt` text. Include any visible button label in the accessible name.
+
+</Prop>
+
+<Prop name="disabled" type="boolean">
+
+Disables this button. A disabled root also disables the trigger.
+
+</Prop>
+
+<Prop name="onClick" type="MouseEventHandler<HTMLButtonElement>">
+
+Runs before the zoom toggle. Call `event.preventDefault()` in the handler to prevent the toggle.
+
+</Prop>
+
+## `<ImageZoom.Image>`
+
+`<ImageZoom.Image>` renders the native image managed by the root. The forwarded ref points to the `HTMLImageElement`.
+
+<Prop name="alt" type="string" required>
+
+Describes the image and labels the surrounding trigger. The button provides keyboard interaction.
+
+</Prop>
+
+<Prop name="className" type="string">
+
+Styles the image separately from the trigger.
+
+</Prop>
+
+<Prop name="data-zoom-src" type="string">
+
+The [HD image URL](/docs/guides/hd-images/) loaded when the zoom opens.
+
+</Prop>
+
+It also accepts native image props, including `src`, `srcSet`, `sizes`, `width`, `height`, `loading`, and `style`. The [`<ImageZoom>` reference](/docs/reference/react/image-zoom/#image-props) describes these props.

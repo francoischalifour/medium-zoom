@@ -32,7 +32,7 @@
   <strong>
   <a href="https://codesandbox.io/s/github/francoischalifour/medium-zoom/tree/main/website">🔬 Playground</a> ・
   <a href="https://medium-zoom.francoischalifour.com">🔎 Demo</a> ・
-  <a href="https://medium-zoom.francoischalifour.com/storybook">📚 API stories</a>
+  <a href="https://medium-zoom.francoischalifour.com/docs/">📖 Documentation</a>
   </strong>
 </p>
 
@@ -53,6 +53,7 @@ npx doctoc README.md --maxlevel 3
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
+- [React](#react)
 - [API](#api)
   - [Selectors](#selectors)
   - [Options](#options)
@@ -136,6 +137,26 @@ mediumZoom('[data-zoomable]')
 > import mediumZoom from 'medium-zoom/dist/pure'
 > import 'medium-zoom/dist/style.css'
 > ```
+
+## React
+
+Install the React component into a project configured for [shadcn/ui](https://ui.shadcn.com):
+
+```sh
+npx shadcn@latest add https://medium-zoom.francoischalifour.com/r/image-zoom.json
+```
+
+```tsx
+import { ImageZoom } from '@/components/ui/image-zoom'
+
+export function Photo() {
+  return <ImageZoom src="/mountain.jpg" alt="A mountain at sunrise" />
+}
+```
+
+The CLI installs editable component source and its stylesheet. Use `ImageZoom` for a single image, or compose `Root`, `Trigger`, and `Image` for custom layouts. Supports keyboard interaction, controlled state, SSR, and React Server Components.
+
+See the [React quickstart](https://medium-zoom.francoischalifour.com/docs/react/) and [component reference](https://medium-zoom.francoischalifour.com/docs/reference/react/image-zoom/).
 
 ## API
 
@@ -397,6 +418,7 @@ The zoom object is accessible in `event.detail.zoom`.
 Medium Zoom is a JavaScript library that can be used with any framework. Here are some integrations that you can use to get started quickly:
 
 - [React](./examples/react)
+- [shadcn/ui](./examples/shadcn) — install an accessible React component with the shadcn CLI
 - [React Markdown](./examples/react-markdown)
 - [Vue](./examples/vue)
 - [Svelte](./examples/svelte)
@@ -488,7 +510,7 @@ export function ImageZoom({ options, ...props }) {
 </details>
 <br>
 
-You can see [more examples](examples/) including [React](examples/react), [Vue](examples/vue), and [video playback](examples/video) ([integration guide](docs/video.md)), or check out the [storybook](https://medium-zoom.francoischalifour.com/storybook).
+You can see [more examples](examples/) including [React](examples/react), [Vue](examples/vue), and [video playback](examples/video) ([integration guide](docs/video.md)).
 
 ## Debugging
 

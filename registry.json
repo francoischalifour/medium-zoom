@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "medium-zoom",
+  "homepage": "https://medium-zoom.francoischalifour.com",
+  "items": [
+    {
+      "name": "image-zoom",
+      "type": "registry:ui",
+      "title": "Image Zoom",
+      "description": "An accessible React image zoom powered by medium-zoom, with keyboard controls and theme-aware styling.",
+      "dependencies": ["medium-zoom"],
+      "files": [
+        {
+          "path": "examples/shadcn/src/components/ui/image-zoom.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "examples/shadcn/src/components/ui/image-zoom.css",
+          "type": "registry:ui"
+        }
+      ]
+    }
+  ]
+}

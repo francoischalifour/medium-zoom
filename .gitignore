@@ -11,3 +11,10 @@
 package-lock.json
 *.log
 .vscode
+/website/public/r
+
+.env.local
+.env.*.local
+
+# Generated Vite documentation entries.
+/website/docs/

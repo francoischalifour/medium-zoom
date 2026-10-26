@@ -1,0 +1,34 @@
+The React component renders its button and image on the server, then attaches zoom behavior after hydration.
+
+## React Server Components
+
+Render `<ImageZoom>` from a Server Component as you would render an image:
+
+```tsx
+import { ImageZoom } from '@/components/ui/image-zoom'
+
+export default function Page() {
+  return (
+    <ImageZoom
+      src="/photo.jpg"
+      alt="A mountain at sunrise"
+      width={1_200}
+      height={800}
+    />
+  )
+}
+```
+
+The installed component defines its own client boundary. You can keep the surrounding page on the server and pass image props and serializable options through that boundary.
+
+## Client state and handlers
+
+When your module uses React state or event handlers, add `'use client'` to that module. See [Controlled state](/docs/guides/controlled-state/) for a complete example with `useState()`.
+
+In a Server Component, pass serializable values such as numbers, strings, and plain option objects. Create DOM elements and event handlers on the client.
+
+## Server-side rendering
+
+With other React SSR frameworks, render the component through your normal React tree. Keep the image props consistent between the server output and the initial client render. Width and height reserve space while the image loads.
+
+The component owns zoom attachment and cleanup. Use its props to configure the image and zoom behavior.

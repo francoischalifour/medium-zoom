@@ -15,9 +15,10 @@ export async function localExampleConfig({
   const loaded = await loadConfigFromFile({ command, mode }, resolve(root, 'vite.config.ts'), root)
   if (!loaded) throw new Error(`Missing Vite config for ${name}`)
   const config = mergeConfig(loaded.config, libraryConfig)
-  return mergeConfig(config, {
+  const managed = mergeConfig(config, {
     configFile: false,
     root,
+    envDir: fileURLToPath(new URL('../', import.meta.url)),
     base: `/examples/${name}/`,
     server: { host: '127.0.0.1' },
     build: {
@@ -25,4 +26,10 @@ export async function localExampleConfig({
       emptyOutDir: true,
     },
   })
+  if (name === 'shadcn' && command === 'build') {
+    // The website owns the public React integration page. This build adds its component fixture.
+    managed.build!.emptyOutDir = false
+    managed.build!.rolldownOptions!.input = { playground: resolve(root, 'playground.html') }
+  }
+  return managed
 }

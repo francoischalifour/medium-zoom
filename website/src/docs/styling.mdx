@@ -1,0 +1,75 @@
+import { Example } from './doc-components'
+import { CaptionedPhoto } from './examples/styled'
+import styledCode from './examples/styled.tsx?raw'
+import photoStyles from './examples/styled.css?raw'
+
+Use CSS for the image layout and captions. Use zoom options for the enlarged view's margin and background.
+
+<Example
+  code={styledCode}
+  title="captioned-photo.tsx"
+  styles={{ code: photoStyles, title: 'styled.css' }}
+>
+  <CaptionedPhoto />
+</Example>
+
+## Image layout
+
+In JavaScript, apply styles to the original image:
+
+```html
+<img
+  class="article-photo"
+  src="/photo.jpg"
+  alt="A mountain at sunrise"
+  data-zoomable
+/>
+```
+
+```css
+.article-photo {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+```
+
+In React, native image props such as `className` and `style` apply to the image. Use [composition](/docs/guides/custom-react-triggers/) to style the button separately.
+
+## Captions
+
+Keep the caption outside the zoom trigger. The example uses `<figure>` and `<figcaption>`.
+
+The caption remains in the page when you open the image.
+
+## Zoom background and margin
+
+For the JavaScript library, pass `background` and `margin` as options:
+
+```js
+import mediumZoom from 'medium-zoom'
+
+mediumZoom('[data-zoomable]', {
+  background: '#111113',
+  margin: 32,
+})
+```
+
+The React component accepts the same settings through its `options` prop. Its default background follows the image's inherited `--background` CSS property, so it can match your application's theme:
+
+```css
+.article {
+  --background: #fff;
+}
+
+.dark .article {
+  --background: #111113;
+}
+```
+
+Use the surface colors from your application. See the [JavaScript options](/docs/reference/javascript/options/) and [React defaults](/docs/reference/react/image-zoom/#zoom-options) for details.
+
+## Related pages
+
+- [Custom triggers](/docs/guides/custom-react-triggers/): style the React button separately.
+- [Options](/docs/reference/javascript/options/): look up the zoom background, margin, and viewport.

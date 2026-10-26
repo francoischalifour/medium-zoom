@@ -1,0 +1,86 @@
+import { InstallCommand } from '../install-command'
+import { JavaScriptPreview } from './doc-components'
+
+Install medium-zoom, select an image, and click it to zoom.
+
+## Install the package
+
+<InstallCommand page="library" id="library-installation" />
+
+The standard import includes zoom styles and TypeScript definitions.
+
+## Add an image
+
+Add `data-zoomable` to an image. Set `alt` to describe it, and width and height to reserve space while it loads:
+
+```html
+<img
+  src="/assets/images/ocean-sunset.jpg"
+  alt="Ocean sunset"
+  width="1920"
+  height="1280"
+  style="max-width: 100%; height: auto"
+  data-zoomable
+/>
+```
+
+Replace the image URL with your own.
+
+## Initialize the zoom
+
+After the image is in the document, call `mediumZoom()`:
+
+```js
+import mediumZoom from 'medium-zoom'
+
+mediumZoom('[data-zoomable]')
+```
+
+Click the image to enlarge it:
+
+<JavaScriptPreview />
+
+Click the enlarged image or its background, press Escape, or scroll to close the zoom. The [React quickstart](/docs/react/) includes a native button for keyboard activation.
+
+## Other installation options
+
+<details className="docs-installation-option">
+<summary id="separate-stylesheet">Separate stylesheet</summary>
+
+To load the stylesheet separately, import the pure entry point and CSS:
+
+```js
+import mediumZoom from 'medium-zoom/dist/pure'
+import 'medium-zoom/dist/style.css'
+
+mediumZoom('[data-zoomable]')
+```
+
+Include the stylesheet once in your application.
+
+</details>
+
+<details className="docs-installation-option">
+<summary id="script-tag">Script tag</summary>
+
+For a page without a bundler, load the UMD script after the image markup:
+
+```html
+<img src="/photo.jpg" alt="A mountain at sunrise" data-zoomable />
+<script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.2/dist/medium-zoom.min.js"></script>
+<script>
+  mediumZoom('[data-zoomable]')
+</script>
+```
+
+You can also [download the release files](https://github.com/francoischalifour/medium-zoom/releases) and serve the script from your own site.
+
+</details>
+
+## Next steps
+
+- [HD images](/docs/guides/hd-images/): load a larger image when zooming.
+- [Galleries](/docs/guides/galleries/): attach several images.
+- [Styling](/docs/guides/styling/): change the image layout and zoom background.
+
+The [`mediumZoom()` reference](/docs/reference/javascript/medium-zoom/) describes selector types. [Methods](/docs/reference/javascript/methods/) covers instance control and cleanup.
