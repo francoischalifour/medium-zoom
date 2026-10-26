@@ -241,7 +241,7 @@ export function CommandPalette({ react }: { react: boolean }) {
         aria-label={`Search docs ${mac ? '⌘' : 'Ctrl'} K`}
         aria-haspopup="dialog"
         aria-keyshortcuts={mac ? 'Meta+K' : 'Control+K'}
-        title={`Search documentation (${mac ? '⌘' : 'Ctrl'} K)`}
+        title={`Search documentation (${mac ? '⌘K' : 'Ctrl+K'})`}
         aria-expanded={open}
         aria-controls={`${id}-dialog`}
         onClick={() => show()}
