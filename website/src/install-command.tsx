@@ -39,6 +39,20 @@ export function InstallCommand({
             </label>
           ))}
         </fieldset>
+      </div>
+      <div className="code-row">
+        <pre tabIndex={0}>
+          <code>
+            <span className="command-prompt" aria-hidden="true">
+              ${' '}
+            </span>
+            {packageManagers.map(value => (
+              <span key={value} data-package-manager-option={value}>
+                <CodeTokens code={commands[value]} />
+              </span>
+            ))}
+          </code>
+        </pre>
         <CopyButton
           key={command}
           text={command}
@@ -46,18 +60,6 @@ export function InstallCommand({
           onCopied={trackInstallCopied}
         />
       </div>
-      <pre tabIndex={0}>
-        <code>
-          <span className="command-prompt" aria-hidden="true">
-            ${' '}
-          </span>
-          {packageManagers.map(value => (
-            <span key={value} data-package-manager-option={value}>
-              <CodeTokens code={commands[value]} />
-            </span>
-          ))}
-        </code>
-      </pre>
     </div>
   )
 }

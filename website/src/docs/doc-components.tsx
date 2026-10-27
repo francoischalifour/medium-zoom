@@ -5,13 +5,22 @@ import { TabList } from '../site-tabs'
 
 export function DocCode({ code, title = 'Example' }: { code: string; title?: string }) {
   const snippet = code.trim()
+  const isSingleLine = !snippet.includes('\n')
+  const copyButton = <CopyButton text={snippet} label={`Copy ${title}`} />
   return (
     <div className="code-block docs-code">
       <div className="code-caption">
         <span>{title}</span>
-        <CopyButton text={snippet} label={`Copy ${title}`} />
+        {!isSingleLine && copyButton}
       </div>
-      <HighlightedCode code={snippet} />
+      {isSingleLine ? (
+        <div className="code-row">
+          <HighlightedCode code={snippet} />
+          {copyButton}
+        </div>
+      ) : (
+        <HighlightedCode code={snippet} />
+      )}
     </div>
   )
 }

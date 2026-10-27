@@ -576,12 +576,19 @@ test('named reference links use background hover states', async ({ page }) => {
 
 test('documentation code headers are compact with usable copy buttons', async ({ page }) => {
   await page.goto('/docs/reference/javascript/medium-zoom/')
-  for (const caption of await page.locator('.docs-code .code-caption').all()) {
+  for (const block of await page.locator('.docs-code').all()) {
+    const caption = block.locator('.code-caption')
     const bounds = await caption.boundingBox()
     expect(bounds!.height).toBeLessThanOrEqual(40)
-    const button = await caption.getByRole('button').boundingBox()
+    const button = await block.getByRole('button').boundingBox()
     expect(button!.height).toBeGreaterThanOrEqual(24)
     expect(button!.width).toBeGreaterThanOrEqual(24)
+    const code = await block.locator('pre').textContent()
+    await expect(
+      block
+        .locator(code!.trimEnd().includes('\n') ? '.code-caption' : '.code-row')
+        .getByRole('button')
+    ).toBeVisible()
   }
 })
 

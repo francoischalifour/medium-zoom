@@ -705,6 +705,20 @@ pre {
   scrollbar-width: thin;
   tab-size: 2;
 }
+.code-row {
+  display: flex;
+  align-items: center;
+  padding-right: 12px;
+}
+.code-block .code-row pre {
+  flex: 1;
+  min-width: 0;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+.code-row > .copy-control {
+  margin-block: 8px;
+}
 code {
   font-family: var(--font-mono);
 }
