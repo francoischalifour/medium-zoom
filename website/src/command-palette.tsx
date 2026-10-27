@@ -416,6 +416,13 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
               </div>
             ))}
           </div>
+          <span className="sr-only" role="status">
+            {search
+              ? query.trim()
+                ? `${matchCount} ${matchCount === 1 ? 'match' : 'matches'}`
+                : `${commands.length} shortcuts`
+              : ''}
+          </span>
           <footer className="command-footer">
             <span>
               <Kbd>↑</Kbd>
@@ -424,13 +431,6 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
             <span>
               <Kbd aria-label="Enter">⏎</Kbd>{' '}
               {selectedCommand ? commandVerbs[selectedCommand.kind] : 'Open'}
-            </span>
-            <span className="command-count" role="status">
-              {search
-                ? query.trim()
-                  ? `${matchCount} ${matchCount === 1 ? 'match' : 'matches'}`
-                  : `${commands.length} shortcuts`
-                : ''}
             </span>
           </footer>
         </div>
