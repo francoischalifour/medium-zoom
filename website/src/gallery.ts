@@ -6,6 +6,7 @@ export type ExampleImage = {
   src: string
   preview: string
   previewSmall?: string
+  previewMedium?: string
   alt: string
   width: number
   height: number
@@ -19,6 +20,7 @@ export const photos = {
     src: 'images/ocean-sunset.jpg',
     preview: 'images/ocean-sunset-preview.webp',
     previewSmall: 'images/ocean-sunset-preview-small.webp',
+    previewMedium: 'images/ocean-sunset-preview-medium.webp',
     alt: 'Ocean sunset',
     width: 1_920,
     height: 1_280,
@@ -161,7 +163,11 @@ export function getPreviewImageProps(image: ExampleImage, sizes: string) {
   return {
     src: `${galleryAssetBase}${image.preview}`,
     srcSet: image.previewSmall
-      ? `${galleryAssetBase}${image.previewSmall} 480w, ${galleryAssetBase}${image.preview} 960w`
+      ? [
+          `${galleryAssetBase}${image.previewSmall} 480w`,
+          ...(image.previewMedium ? [`${galleryAssetBase}${image.previewMedium} 720w`] : []),
+          `${galleryAssetBase}${image.preview} 960w`,
+        ].join(', ')
       : undefined,
     sizes,
     'data-zoom-src': `${galleryAssetBase}${image.src}`,
