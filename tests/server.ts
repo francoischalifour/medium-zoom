@@ -83,7 +83,8 @@ const server = createServer((request, response) => {
     })
     response.end(contents)
   } catch {
-    response.writeHead(404).end()
+    response.writeHead(404, { 'Content-Type': 'text/html' })
+    response.end(readFileSync(resolve(roots.site, '404.html')))
   }
 })
 

@@ -80,16 +80,7 @@ html:has(.docs-shell) {
   color: var(--foreground);
   text-decoration: none;
 }
-.docs-outline .docs-contents a[aria-current='location']::before {
-  content: '';
-  position: absolute;
-  left: -3px;
-  top: 8px;
-  bottom: 8px;
-  width: 2px;
-  border-radius: 2px;
-  background: var(--foreground);
-}
+
 .docs-main {
   min-width: 0;
 }
@@ -115,6 +106,11 @@ html:has(.docs-shell) {
 }
 .docs-article > p {
   margin: 18px 0;
+}
+.docs-article > .docs-updated {
+  margin-top: 40px;
+  color: var(--muted-foreground);
+  font-size: 12px;
 }
 .docs-article h2 {
   font-size: 21px;
@@ -578,23 +574,10 @@ html:has(.docs-shell) {
   margin: 0 0 8px;
 }
 .docs-reference-links a,
-.docs-api-index a,
 .docs-related a {
   padding: 6px 10px;
   border-radius: 6px;
   font-size: 13px;
-}
-.docs-api-index {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  padding-bottom: 20px;
-  margin-bottom: 24px;
-  border-bottom: 1px solid var(--border);
-}
-.docs-api-index a {
-  background: var(--surface);
-  font-family: var(--font-mono);
 }
 .docs-related {
   margin-top: 40px;
@@ -640,7 +623,6 @@ html:has(.docs-shell) {
 
 @media (hover: hover) and (pointer: fine) {
   .docs-reference-links a:hover,
-  .docs-api-index a:hover,
   .docs-related a:hover {
     background: var(--selected);
     text-decoration: none;

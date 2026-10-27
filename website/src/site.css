@@ -596,10 +596,22 @@ a.example-kind {
   align-items: center;
 }
 kbd {
-  padding: 1px 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  min-height: 20px;
+  padding: 0 5px;
   border: 1px solid var(--border);
-  border-radius: 3px;
-  font: 10px/16px var(--font-mono);
+  border-bottom-color: color-mix(in srgb, var(--foreground) 16%, var(--background));
+  border-radius: 5px;
+  background: linear-gradient(var(--background), var(--surface));
+  color: var(--foreground);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--foreground) 8%, var(--background)),
+    inset 0 1px 0 var(--background);
+  font: 500 10px/1.4 var(--font-mono);
+  white-space: nowrap;
 }
 .demo-code {
   min-height: 410px;
@@ -645,6 +657,25 @@ kbd {
   line-height: 1.7;
   color: var(--muted-foreground);
   margin: 0;
+}
+.integration-card {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 24px;
+  box-shadow: var(--shadow-xs);
+  transition:
+    background 150ms,
+    border-color 150ms;
+}
+@media (hover: hover) and (pointer: fine) {
+  .integration-card:hover {
+    background: var(--surface);
+    border-color: var(--ring);
+  }
 }
 .guide-section {
   padding-top: 64px;
@@ -722,6 +753,16 @@ pre {
 code {
   font-family: var(--font-mono);
 }
+.page-content :not(pre) > code {
+  padding: 2px 5px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--foreground);
+  font-size: 0.88em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
 pre code span {
   color: var(--hls-light, inherit);
 }
@@ -794,9 +835,6 @@ pre code span {
   color: var(--muted-foreground);
   font-size: 12px;
   line-height: 1.8;
-}
-.guide-note code {
-  font-size: 10px;
 }
 .guide-note a {
   color: var(--foreground);
@@ -891,20 +929,12 @@ td code {
   width: fit-content;
   max-width: 100%;
   min-height: 32px;
-  padding: 6px 8px;
-  margin-inline: -8px;
-  border-radius: 6px;
+  padding-block: 6px;
   overflow-wrap: anywhere;
 }
 .footer-nav-group a[aria-current='page'] {
   color: var(--foreground);
   font-weight: 500;
-}
-@media (hover: hover) and (pointer: fine) {
-  .footer-nav-group a:hover {
-    background: var(--hover);
-    text-decoration: none;
-  }
 }
 @media (hover: hover) and (pointer: fine) {
   a:hover {
@@ -1476,57 +1506,15 @@ td code {
   }
 }
 
-.download-stats {
-  padding: 56px 0;
-  text-align: center;
-  border-bottom: 1px solid var(--border);
-}
-.download-total {
-  display: inline-flex;
-  flex-direction: column;
-  gap: 8px;
-  color: var(--muted-foreground);
-  text-decoration: none;
-}
-.download-digits {
-  display: block;
-  font-size: clamp(36px, 5vw, 60px);
-  font-weight: 600;
-  letter-spacing: -0.045em;
-  line-height: 1.2;
-  font-variant-numeric: tabular-nums;
-  color: var(--foreground);
-}
-.download-weekly {
-  margin: 16px 0 0;
-  color: var(--muted-foreground);
+.hero .monthly-downloads {
+  margin: 16px auto 0;
   font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: normal;
 }
-.download-weekly strong {
+.monthly-downloads strong {
   color: var(--foreground);
-  font-weight: 500;
-}
-.download-date {
-  margin: 8px 0 0;
-  color: var(--muted-foreground);
-  font-size: 12px;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .download-stats[data-entered='false'] .download-digits {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  .download-stats[data-entered='true'] .download-digits {
-    animation: download-number-enter 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-}
-@keyframes download-number-enter {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }

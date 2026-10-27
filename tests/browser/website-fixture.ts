@@ -9,7 +9,7 @@ export const test = base.extend({
       route.fulfill({
         json: {
           package: 'medium-zoom',
-          downloads: snapshot.weekly,
+          downloads: snapshot.monthly,
           start: snapshot.start,
           end: snapshot.end,
         },

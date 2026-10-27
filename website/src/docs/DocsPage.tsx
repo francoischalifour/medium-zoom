@@ -119,16 +119,19 @@ export function DocsPage({ path }: { path: string }) {
               <p>{page.group}</p>
               <h1>{page.title}</h1>
             </header>
-            {isReference && (
-              <nav className="docs-api-index" aria-label="API index">
-                {outline.map(item => (
-                  <a key={item.id} href={`#${item.id}`}>
-                    {item.title}
-                  </a>
-                ))}
-              </nav>
-            )}
             <Content components={{ h2: ArticleHeading, pre: CodeFence }} />
+            <p className="docs-updated">
+              By <a href="https://francoischalifour.com">François Chalifour</a>
+              {' · Updated '}
+              <time dateTime={page.updatedOn}>
+                {new Intl.DateTimeFormat('en', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                  timeZone: 'UTC',
+                }).format(new Date(page.updatedOn))}
+              </time>
+            </p>
           </article>
           {isReference && (
             <nav className="docs-related" aria-label="Related reference">

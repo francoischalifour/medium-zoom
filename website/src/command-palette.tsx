@@ -166,7 +166,7 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
   React.useEffect(() => {
     function syncFromUrl() {
       const value = new URLSearchParams(window.location.search).get('q')
-      if (value?.trim()) {
+      if (value !== null) {
         show(value)
       } else {
         close()

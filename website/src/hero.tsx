@@ -1,5 +1,6 @@
 import { InstallCommand } from './install-command'
 import { registryUrl } from './install-commands'
+import { MonthlyDownloads } from './monthly-downloads'
 import { Icon } from './site-components'
 import type { SitePage } from './site-data'
 import { SectionLinks } from './site-shell'
@@ -45,6 +46,7 @@ export function Hero({ page }: { page: SitePage }) {
         )}
       </div>
       <InstallCommand page={page} id="installation" className="hero-install" />
+      <MonthlyDownloads />
     </section>
   )
 }

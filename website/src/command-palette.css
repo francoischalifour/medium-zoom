@@ -31,10 +31,6 @@
   height: 22px;
   margin-left: auto;
   padding: 0 5px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--background);
-  color: var(--muted-foreground);
   font: 500 11px/20px var(--font-sans);
   letter-spacing: 0;
   white-space: nowrap;
@@ -345,9 +341,6 @@
   min-width: 20px;
   height: 20px;
   margin-right: 0;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--surface);
   color: inherit;
 }
 .command-footer > span:not(.command-count) {

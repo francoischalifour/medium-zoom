@@ -1,0 +1,46 @@
+.not-found-hero {
+  /* The outer crop ends at 420 / 600 of the illustration height. */
+  min-height: calc(var(--hero-frame-height) * 0.7 + 12px);
+}
+.not-found-recovery {
+  max-width: 760px;
+  margin: auto;
+  padding: 32px 0 64px;
+}
+.not-found-quickstarts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.not-found-quickstarts h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.not-found-quickstarts h3 svg {
+  width: 20px;
+  height: 20px;
+}
+.not-found-quickstarts p {
+  margin: 4px 0 12px;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.not-found-quickstarts a > span {
+  margin-top: auto;
+  font-size: 13px;
+  font-weight: 500;
+}
+@media (max-width: 520px) {
+  .not-found-quickstarts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .not-found-recovery {
+    padding: 24px 0 40px;
+  }
+}

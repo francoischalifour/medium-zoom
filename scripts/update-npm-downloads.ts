@@ -1,11 +1,13 @@
 import { writeFileSync } from 'node:fs'
 
-import { fetchNpmDownloads } from '../website/src/npm-downloads.ts'
+import snapshot from '../website/src/npm-downloads.json'
+import { fetchMonthlyDownloads } from '../website/src/npm-downloads.ts'
 
-// medium-zoom was first published on 2016-07-26.
-const downloads = await fetchNpmDownloads({ total: 0, end: '2016-07-25' })
+const downloads = await fetchMonthlyDownloads(snapshot.end)
 writeFileSync(
   new URL('../website/src/npm-downloads.json', import.meta.url),
   `${JSON.stringify(downloads, null, 2)}\n`
 )
-console.log(`Verified ${downloads.total.toLocaleString('en')} downloads through ${downloads.end}.`)
+console.log(
+  `Verified ${downloads.monthly.toLocaleString('en')} monthly downloads through ${downloads.end}.`
+)

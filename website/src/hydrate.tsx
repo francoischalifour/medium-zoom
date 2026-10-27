@@ -4,6 +4,7 @@ import { createRoot, hydrateRoot } from 'react-dom/client'
 
 import { App } from './App'
 import { DocsPage } from './docs/DocsPage'
+import { NotFoundPage } from './NotFoundPage'
 import { initSiteAnalytics } from './site-analytics'
 import { getSitePage } from './site-data'
 
@@ -14,7 +15,9 @@ export function hydrateSite() {
   const page = getSitePage(location.pathname) ?? 'javascript'
   const app = (
     <StrictMode>
-      {page === 'docs' ? (
+      {document.documentElement.dataset.page === 'not-found' ? (
+        <NotFoundPage />
+      ) : page === 'docs' ? (
         <DocsPage path={location.pathname.replace(/\/?$/, '/')} />
       ) : (
         <App page={page} />

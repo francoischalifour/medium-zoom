@@ -29,10 +29,9 @@ test('React usage examples compose, zoom, and copy the selected snippet', async 
     await image.scrollIntoViewIfNeeded()
     await image.evaluate((element: HTMLImageElement) => element.decode())
     await image.locator('..').click()
-    await expect(page.locator('.medium-zoom-image--opened')).toHaveAttribute(
-      'alt',
-      (await image.getAttribute('alt'))!
-    )
+    const source = await image.getAttribute('data-zoom-src')
+    const opened = page.locator(`.medium-zoom-image--opened[src="${source}"]`)
+    await expect(opened).toHaveAttribute('alt', (await image.getAttribute('alt'))!)
     await page.keyboard.press('Escape')
     await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
   }

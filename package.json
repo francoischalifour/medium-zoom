@@ -87,6 +87,7 @@
     "test:examples": "bun scripts/check-examples.ts",
     "build:registry": "bun scripts/build-registry.ts",
     "test:analytics": "playwright test --config config/playwright.analytics.config.mts",
+    "generate:og": "bun scripts/generate-og.ts",
     "update:downloads": "bun scripts/update-npm-downloads.ts",
     "test:seo": "bun run test:browser website-metadata.spec.ts --project=chromium",
     "test:a11y": "bun run test:browser accessibility.spec.ts --project=chromium",

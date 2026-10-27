@@ -1,8 +1,8 @@
-import { DownloadStats } from './download-stats'
 import { ExampleRail } from './example-rail'
 import { javascriptUsageCode } from './gallery'
+import { ProductFeatures } from './product-features'
 import { trackSiteEvent } from './site-analytics'
-import { Icon, CopyButton, CodeTokens } from './site-components'
+import { CopyButton, CodeTokens } from './site-components'
 
 import './javascript.css'
 
@@ -10,25 +10,7 @@ export function JavaScriptPage() {
   return (
     <>
       <ExampleRail kind="javascript" />
-      <section className="details-strip" aria-label="Library features">
-        <div>
-          <Icon name="code" />
-          <h2>Zero dependencies.</h2>
-          <p>A small library. Nothing else to install.</p>
-        </div>
-        <div>
-          <Icon name="layers" />
-          <h2>Any framework.</h2>
-          <p>Use it with React, Vue, Svelte, or plain HTML.</p>
-        </div>
-        <div>
-          <Icon name="image" />
-          <h2>High-resolution ready.</h2>
-          <p>Load high-resolution images on zoom.</p>
-        </div>
-      </section>
-
-      <DownloadStats />
+      <ProductFeatures page="javascript" />
 
       <section className="guide-section" id="usage" aria-labelledby="usage-title">
         <div className="guide-heading">
@@ -59,7 +41,9 @@ export function JavaScriptPage() {
         </div>
         <p className="guide-note">
           Set the spacing, match your background, or load a sharper image on zoom.{' '}
-          <a href="/docs/reference/javascript/medium-zoom/">Read the API reference</a>
+          <a href="/docs/reference/javascript/medium-zoom/">
+            Read the API reference <span aria-hidden="true">→</span>
+          </a>
         </p>
       </section>
       <section className="integration-section" aria-labelledby="integrations-title">

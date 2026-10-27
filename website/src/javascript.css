@@ -7,19 +7,6 @@
   gap: 24px;
   align-items: center;
 }
-.integration-card {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  position: relative;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  padding: 24px;
-  box-shadow: var(--shadow-xs);
-  transition:
-    background 150ms,
-    border-color 150ms;
-}
 .featured-integration {
   flex-direction: row;
   gap: 24px;
@@ -83,12 +70,7 @@
   font-size: 14px;
   color: var(--muted-foreground);
 }
-@media (hover: hover) and (pointer: fine) {
-  .integration-card:hover {
-    background: var(--surface);
-    border-color: var(--ring);
-  }
-}
+
 @media (max-width: 760px) {
   .integration-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

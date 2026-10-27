@@ -7,9 +7,11 @@ import { renderToString } from 'react-dom/server'
 import { App } from '../src/App'
 import { DocsPage } from '../src/docs/DocsPage'
 import { docsPages } from '../src/docs/pages'
+import { NotFoundPage } from '../src/NotFoundPage'
 
 export function prerenderWebsite(directory: string) {
   const pages = [
+    { file: '404.html', element: createElement(NotFoundPage) },
     { file: 'index.html', element: createElement(App, { page: 'javascript' }) },
     { file: 'react.html', element: createElement(App, { page: 'react' }) },
     ...docsPages.map(page => ({

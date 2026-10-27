@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import * as ImageZoom from '../../examples/shadcn/src/components/ui/image-zoom'
-import { galleryAssetBase, galleryImages, type ExampleImage, usageCode } from './gallery'
+import { galleryImages, type ExampleImage, usageCode, getPreviewImageProps } from './gallery'
 import { trackSiteEvent } from './site-analytics'
 import { CopyButton, HighlightedCode, ZoomControls } from './site-components'
 import { TabList } from './site-tabs'
@@ -57,11 +57,7 @@ function ExampleCard({
                 aria-label={`Zoom image: ${image.alt}`}
               >
                 <ImageZoom.Image
-                  src={`${galleryAssetBase}${image.preview}`}
-                  data-zoom-src={`${galleryAssetBase}${image.src}`}
-                  alt={image.alt}
-                  width={image.width}
-                  height={image.height}
+                  {...getPreviewImageProps(image, '(max-width: 640px) calc(100vw - 100px), 480px')}
                   id={
                     kind === 'javascript' && image.id === 'landscape' ? 'zoom-default' : undefined
                   }

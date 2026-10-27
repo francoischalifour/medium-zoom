@@ -4,7 +4,8 @@ import { fileURLToPath } from 'node:url'
 
 import type { Plugin } from 'vite'
 
-import { docsPages, headingId } from '../src/docs/pages.ts'
+import { docsPages, docsPublishedOn, headingId } from '../src/docs/pages.ts'
+import { docsOgImagePath } from './docs-sharing.ts'
 
 function getOutline(source: string) {
   const prose = source.replace(/^```[^\n]*\n[\s\S]*?^```/gm, '')
@@ -95,6 +96,33 @@ export function docsPlugin(): Plugin {
           headline: page.title,
           description: page.description,
           url,
+          image: `https://medium-zoom.francoischalifour.com${docsOgImagePath(page.path)}`,
+          author: {
+            '@type': 'Person',
+            name: 'François Chalifour',
+            url: 'https://francoischalifour.com',
+          },
+          datePublished: docsPublishedOn,
+          dateModified: page.updatedOn,
+          mainEntityOfPage: {
+            '@type': 'WebPage',
+            '@id': url,
+            breadcrumb: {
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { name: 'Home', item: 'https://medium-zoom.francoischalifour.com/' },
+                ...(page.path === '/docs/'
+                  ? []
+                  : [
+                      {
+                        name: 'Documentation',
+                        item: 'https://medium-zoom.francoischalifour.com/docs/',
+                      },
+                    ]),
+                { name: page.path === '/docs/' ? 'Documentation' : page.title, item: url },
+              ].map((item, index) => ({ '@type': 'ListItem', position: index + 1, ...item })),
+            },
+          },
           isPartOf: {
             '@type': 'WebSite',
             name: 'medium-zoom',
@@ -102,9 +130,10 @@ export function docsPlugin(): Plugin {
           },
         }
         const html = template
-          .replaceAll('__DOC_TITLE__', escapeHtml(`${page.title} — medium-zoom documentation`))
+          .replaceAll('__DOC_TITLE__', escapeHtml(page.documentTitle))
           .replaceAll('__DOC_DESCRIPTION__', escapeHtml(page.description))
           .replaceAll('__DOC_URL__', escapeHtml(url))
+          .replaceAll('__DOC_IMAGE__', docsOgImagePath(page.path))
           .replace('"__DOC_SCHEMA__"', JSON.stringify(schema).replaceAll('<', '\\u003c'))
         const file = fileURLToPath(new URL(`..${page.path}index.html`, import.meta.url))
         mkdirSync(dirname(file), { recursive: true })
