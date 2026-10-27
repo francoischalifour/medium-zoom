@@ -1,4 +1,5 @@
 import { build } from 'vite'
+
 import { localExampleConfig } from '../config/vite.examples.config.mts'
 import { exampleNames } from './example-names.ts'
 

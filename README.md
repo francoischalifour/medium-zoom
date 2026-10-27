@@ -135,6 +135,7 @@ mediumZoom('[data-zoomable]')
 >
 > ```js
 > import mediumZoom from 'medium-zoom/dist/pure'
+>
 > import 'medium-zoom/dist/style.css'
 > ```
 
@@ -479,8 +480,8 @@ mediumZoom($('[data-zoomable]').toArray())
  <summary>Create a zoomable React component</summary>
 
 ```js
-import React, { useRef } from 'react'
 import mediumZoom from 'medium-zoom'
+import React, { useRef } from 'react'
 
 export function ImageZoom({ options, ...props }) {
   const zoomRef = useRef(null)

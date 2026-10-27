@@ -2,22 +2,26 @@ import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
 import { copyFileSync, mkdirSync, realpathSync, symlinkSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
+
 import { createServer } from 'vite'
+
 import type { pack } from './pack.ts'
 
 export async function checkConsumers(artifact: ReturnType<typeof pack>) {
   const consumer = join(artifact.directory, 'consumer')
   mkdirSync(join(consumer, 'node_modules'), { recursive: true })
   symlinkSync(artifact.root, join(consumer, 'node_modules/medium-zoom'), 'dir')
-  for (const file of ['consumer.ts', 'commonjs.cts', 'node-esm.mts', 'runtime.mjs'])
+  for (const file of ['consumer.ts', 'commonjs.cts', 'node-esm.mts', 'runtime.mjs']) {
     copyFileSync(join('tests/types', file), join(consumer, file))
+  }
 
   checkTypes(consumer)
   await checkBundlerResolution(consumer, artifact.root)
 
   // Use Node, not Bun's more permissive module loader, for real package resolution.
-  for (const file of ['output/commonjs.cjs', 'runtime.mjs'])
+  for (const file of ['output/commonjs.cjs', 'runtime.mjs']) {
     execFileSync('node', [join(consumer, file)], { cwd: consumer, stdio: 'inherit' })
+  }
 }
 
 function checkTypes(consumer: string) {

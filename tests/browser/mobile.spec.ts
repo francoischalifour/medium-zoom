@@ -1,4 +1,5 @@
 import { test, expect, type Page, type Route } from '@playwright/test'
+
 import { loadZoomFixture, openImage } from './helpers.ts'
 
 const imageButton = `<button type="button" aria-label="Zoom image" style="padding:0;border:0;background:none">

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+
 import {
   bundles,
   loadZoomFixture,
@@ -19,8 +20,9 @@ for (const bundle of bundleNames) {
     for (const distribution of distributions) {
       await loadZoomFixture(page, { distribution, bundle })
       await expect(page.locator('style')).toHaveCount(bundles[bundle].injectsStyles ? 1 : 0)
-      if (!bundles[bundle].injectsStyles)
+      if (!bundles[bundle].injectsStyles) {
         await page.addStyleTag({ url: `/${distribution}/dist/style.css` })
+      }
       await openImage(page, page.locator('#image'))
       await finishAnimations(page)
       screenshots.push(await page.screenshot())

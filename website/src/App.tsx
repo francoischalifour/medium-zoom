@@ -1,9 +1,9 @@
+import { ClosingInstall } from './closing-install'
 import { Hero } from './hero'
-import { SiteHeader, SiteFooter } from './site-shell'
 import { JavaScriptPage } from './JavaScriptPage'
 import { ReactPage } from './ReactPage'
-import { ClosingInstall } from './closing-install'
 import type { SitePage } from './site-data'
+import { SiteHeader, SiteFooter } from './site-shell'
 
 export function App({ page }: { page: SitePage }) {
   return (

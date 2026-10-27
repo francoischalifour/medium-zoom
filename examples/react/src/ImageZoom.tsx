@@ -1,5 +1,5 @@
-import { useRef, ComponentProps, RefCallback } from 'react'
 import mediumZoom, { Zoom, ZoomOptions } from 'medium-zoom'
+import { useRef, ComponentProps, RefCallback } from 'react'
 
 type ImageZoomProps = ComponentProps<'img'> & {
   options?: ZoomOptions

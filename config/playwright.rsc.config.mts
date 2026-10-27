@@ -1,5 +1,7 @@
 import { fileURLToPath } from 'node:url'
+
 import { defineConfig, devices } from '@playwright/test'
+
 import { testPort } from '../tests/server-urls.ts'
 const port = testPort + 3
 export default defineConfig({

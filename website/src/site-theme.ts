@@ -30,7 +30,9 @@ export function subscribeTheme(onChange: () => void) {
     onChange()
   }
   const onStorage = (event: StorageEvent) => {
-    if (event.key !== themeKey && event.key !== null) return
+    if (event.key !== themeKey && event.key !== null) {
+      return
+    }
     syncPreference()
   }
   window.addEventListener(themeEvent, onChange)

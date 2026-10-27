@@ -6,6 +6,7 @@ export default defineConfig({
   env: { browser: true, node: true },
   globals: { __TEST__: 'readonly' },
   rules: {
+    curly: ['error', 'all'],
     'unicorn/numeric-separators-style': ['error', { number: { minimumDigits: 4, groupLength: 3 } }],
     'no-unused-vars': ['error', { caughtErrors: 'none' }],
   },

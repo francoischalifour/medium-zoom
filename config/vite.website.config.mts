@@ -1,14 +1,16 @@
 import { fileURLToPath } from 'node:url'
-import { defineConfig, mergeConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+
 import mdx from '@mdx-js/rollup'
-import { siteRedirects } from '../website/build/site-redirects.ts'
+import react from '@vitejs/plugin-react'
+import { defineConfig, mergeConfig } from 'vite'
+
+import { galleryAssets } from '../examples/shadcn/gallery-assets.ts'
 import { docsPlugin } from '../website/build/docs-plugin.ts'
-import { libraryConfig } from './vite.shared.config.mts'
+import { siteFonts } from '../website/build/site-fonts.ts'
 import { siteHighlights } from '../website/build/site-highlights.ts'
 import { sitePreferences } from '../website/build/site-preferences.ts'
-import { siteFonts } from '../website/build/site-fonts.ts'
-import { galleryAssets } from '../examples/shadcn/gallery-assets.ts'
+import { siteRedirects } from '../website/build/site-redirects.ts'
+import { libraryConfig } from './vite.shared.config.mts'
 
 export default mergeConfig(
   libraryConfig,

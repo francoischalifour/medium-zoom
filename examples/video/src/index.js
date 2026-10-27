@@ -1,4 +1,5 @@
 import mediumZoom from 'medium-zoom'
+
 import source from './videos/flower.mp4'
 
 const trigger = document.querySelector('#play')

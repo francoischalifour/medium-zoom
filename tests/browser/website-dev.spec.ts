@@ -1,7 +1,9 @@
 import { execFile } from 'node:child_process'
 import { resolve } from 'node:path'
 import { promisify } from 'node:util'
+
 import { createServer } from 'vite'
+
 import { test, expect } from './website-fixture'
 
 test('production prerendering preserves a running development site and its number entrance', async ({

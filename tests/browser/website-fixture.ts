@@ -1,4 +1,5 @@
 import { test as base, expect } from '@playwright/test'
+
 import snapshot from '../../website/src/npm-downloads.json'
 
 // npm is an external dependency; normal website journeys use its saved report.

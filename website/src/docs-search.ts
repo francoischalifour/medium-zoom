@@ -41,7 +41,9 @@ export function searchDocs(entries: SearchEntry[], query: string, framework: Sit
       const terms = normalize(
         `${entry.title} ${entry.parent ?? ''} ${entry.group} ${entry.description ?? ''} ${aliases[entry.path] ?? ''}`
       )
-      if (!words.every(word => terms.includes(word))) return { entry, score: 0 }
+      if (!words.every(word => terms.includes(word))) {
+        return { entry, score: 0 }
+      }
       const score =
         (title === normalized
           ? 100

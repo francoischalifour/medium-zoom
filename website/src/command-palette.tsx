@@ -1,16 +1,20 @@
 import * as React from 'react'
-import { Icon } from './site-components'
-import { getSearchTerms, type SearchEntry } from './docs-search'
+
 import { getCommandGroups, commandVerbs, type CommandItem } from './command-items'
-import type { SitePage } from './site-data'
-import { getTheme, getServerTheme, setTheme, subscribeTheme } from './site-theme'
+import { getSearchTerms, type SearchEntry } from './docs-search'
 import { usePackageManager } from './package-manager'
 import { trackInstallCopied } from './site-analytics'
+import { Icon } from './site-components'
+import type { SitePage } from './site-data'
+import { getTheme, getServerTheme, setTheme, subscribeTheme } from './site-theme'
+
 import './command-palette.css'
 
 function Highlight({ text, query }: { text: string; query: string }) {
   const words = [...new Set(getSearchTerms(query))].sort((a, b) => b.length - a.length)
-  if (!words.length) return text
+  if (!words.length) {
+    return text
+  }
   // Tokens contain only letters and numbers, so the expression treats user input literally.
   return text
     .split(new RegExp(`(${words.join('|')})`, 'gi'))
@@ -48,7 +52,9 @@ function CommandOption({
       rel={command.kind === 'chat' ? 'noopener noreferrer' : undefined}
       className={`command-result${command.kind === 'chat' ? ' command-chat' : command.kind === 'navigate' ? '' : ' command-action'}`}
       onMouseDown={event => {
-        if (event.button === 0) event.preventDefault()
+        if (event.button === 0) {
+          event.preventDefault()
+        }
       }}
       onPointerMove={onSelect}
       onClick={onActivate}
@@ -85,9 +91,14 @@ function CommandOption({
 function replaceSearchQuery(query: string) {
   const url = new URL(window.location.href)
   const value = query.trim()
-  if (value) url.searchParams.set('q', value)
-  else url.searchParams.delete('q')
-  if (url.href !== window.location.href) window.history.replaceState(window.history.state, '', url)
+  if (value) {
+    url.searchParams.set('q', value)
+  } else {
+    url.searchParams.delete('q')
+  }
+  if (url.href !== window.location.href) {
+    window.history.replaceState(window.history.state, '', url)
+  }
 }
 
 export function CommandPalette({ framework }: { framework: SitePage }) {
@@ -131,18 +142,23 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
         event.altKey ||
         !(event.metaKey || event.ctrlKey) ||
         event.key.toLowerCase() !== 'k'
-      )
+      ) {
         return
+      }
       const target = event.target
       if (
         !dialog.current?.open &&
         target instanceof HTMLElement &&
         (target.closest('input, textarea, select') || target.isContentEditable)
-      )
+      ) {
         return
+      }
       event.preventDefault()
-      if (dialog.current?.open) close()
-      else show()
+      if (dialog.current?.open) {
+        close()
+      } else {
+        show()
+      }
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
@@ -150,8 +166,11 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
   React.useEffect(() => {
     function syncFromUrl() {
       const value = new URLSearchParams(window.location.search).get('q')
-      if (value?.trim()) show(value)
-      else close()
+      if (value?.trim()) {
+        show(value)
+      } else {
+        close()
+      }
     }
     syncFromUrl()
     window.addEventListener('popstate', syncFromUrl)
@@ -162,20 +181,28 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
     }
   }, [])
   React.useEffect(() => {
-    if (!open) return
+    if (!open) {
+      return
+    }
     const timer = window.setTimeout(() => replaceSearchQuery(query), 300)
     return () => window.clearTimeout(timer)
   }, [open, query])
   React.useEffect(() => {
-    if (!open || entries) return
+    if (!open || entries) {
+      return
+    }
     let cancelled = false
     setLoadError(false)
     import('virtual:docs-search').then(
       module => {
-        if (!cancelled) setEntries(module.default)
+        if (!cancelled) {
+          setEntries(module.default)
+        }
       },
       () => {
-        if (!cancelled) setLoadError(true)
+        if (!cancelled) {
+          setLoadError(true)
+        }
       }
     )
     return () => {
@@ -198,8 +225,9 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
   const selectedId = selectedCommand ? `${id}-${selectedCommand.id}` : undefined
 
   React.useEffect(() => {
-    if (open && selectedId)
+    if (open && selectedId) {
       document.getElementById(selectedId)?.scrollIntoView({ block: 'nearest' })
+    }
   }, [open, selectedId])
 
   async function activate(command: CommandItem) {
@@ -251,7 +279,9 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
           returnFocus.current?.focus()
         }}
         onClick={event => {
-          if (event.target === event.currentTarget) close()
+          if (event.target === event.currentTarget) {
+            close()
+          }
         }}
       >
         <div className="command-panel">
@@ -274,7 +304,9 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
                 setStatus('')
               }}
               onKeyDown={event => {
-                if (event.nativeEvent.isComposing) return
+                if (event.nativeEvent.isComposing) {
+                  return
+                }
                 if (
                   ['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key) &&
                   commands.length
@@ -283,8 +315,9 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
                   if (
                     (event.key === 'Home' || event.key === 'End') &&
                     !(event.ctrlKey || event.metaKey)
-                  )
+                  ) {
                     return
+                  }
                   event.preventDefault()
                   setActiveIndex(
                     event.key === 'Home'
@@ -296,7 +329,9 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
                   )
                 } else if (event.key === 'Enter') {
                   event.preventDefault()
-                  if (selectedId) document.getElementById(selectedId)?.click()
+                  if (selectedId) {
+                    document.getElementById(selectedId)?.click()
+                  }
                 }
               }}
             />

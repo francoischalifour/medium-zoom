@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import snapshot from './npm-downloads.json'
+
 import { fetchNpmDownloads } from './npm-downloads'
+import snapshot from './npm-downloads.json'
 
 let reportedDownloads: ReturnType<typeof fetchNpmDownloads> | undefined
 const number = new Intl.NumberFormat('en-US')
@@ -15,7 +16,9 @@ export function DownloadStats() {
     let active = true
     reportedDownloads ??= fetchNpmDownloads(snapshot).catch(() => snapshot)
     void reportedDownloads.then(value => {
-      if (active) setDownloads(value)
+      if (active) {
+        setDownloads(value)
+      }
     })
     return () => {
       active = false

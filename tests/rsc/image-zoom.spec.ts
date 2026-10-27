@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+
 import { decodeImages, dismissZoom } from '../browser/helpers.ts'
 
 for (const path of ['/zoom', '/composed']) {
@@ -29,7 +30,9 @@ for (const path of ['/zoom', '/composed']) {
     const errors: string[] = []
     page.on('pageerror', error => errors.push(error.message))
     page.on('console', message => {
-      if (message.type() === 'error') errors.push(message.text())
+      if (message.type() === 'error') {
+        errors.push(message.text())
+      }
     })
     await page.goto(path)
     // Hydrate the actual server response before exercising the RSC client transport.

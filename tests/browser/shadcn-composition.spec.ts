@@ -1,6 +1,8 @@
 import { execFileSync } from 'node:child_process'
-import { test, expect, type Page } from '@playwright/test'
+
 import AxeBuilder from '@axe-core/playwright'
+import { test, expect, type Page } from '@playwright/test'
+
 import { decodeImages, dismissZoom, observeErrors, openImage, finishAnimations } from './helpers.ts'
 
 const demo = '/examples/shadcn/playground.html?compound'
@@ -48,9 +50,13 @@ for (const dismissal of ['Escape', 'click', 'scroll']) {
     await ready(page)
     const trigger = page.getByRole('button', { name: boardName })
     await openImage(page, trigger.locator('img'), { trigger })
-    if (dismissal === 'Escape') await page.keyboard.press('Escape')
-    else if (dismissal === 'click') await page.locator('.medium-zoom-image--opened').click()
-    else await page.mouse.wheel(0, 200)
+    if (dismissal === 'Escape') {
+      await page.keyboard.press('Escape')
+    } else if (dismissal === 'click') {
+      await page.locator('.medium-zoom-image--opened').click()
+    } else {
+      await page.mouse.wheel(0, 200)
+    }
     await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
     await expect(page.getByRole('status', { name: 'Uncontrolled changes' })).toHaveText(
       '[true,false]'

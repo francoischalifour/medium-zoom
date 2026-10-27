@@ -1,5 +1,6 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
+
 import ts from 'typescript-legacy'
 
 // Check the exact authored fences, including short follow-on examples that use `zoom`.
@@ -39,4 +40,6 @@ if (diagnostics.length) {
     })
   )
   process.exitCode = 1
-} else console.log('Authored documentation examples compile against the public API.')
+} else {
+  console.log('Authored documentation examples compile against the public API.')
+}

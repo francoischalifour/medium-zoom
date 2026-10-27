@@ -41,8 +41,8 @@ For an existing SVG element, serialize its markup with `new XMLSerializer().seri
 In React 19 and later, use a callback ref to attach the image and return a cleanup function:
 
 ```tsx
-import type { ComponentProps, ComponentRef } from 'react'
 import mediumZoom from 'medium-zoom'
+import type { ComponentProps, ComponentRef } from 'react'
 
 type ZoomableDiagramProps = Omit<ComponentProps<'img'>, 'src'> & { svg: string }
 

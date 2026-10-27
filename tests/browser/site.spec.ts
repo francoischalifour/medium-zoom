@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+
 import { exampleNames } from '../../scripts/example-names.ts'
 import { openImage, dismissZoom, decodeImages, observeErrors } from './helpers.ts'
 

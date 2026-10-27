@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+
 import { preparePage, loadBundle } from './helpers.ts'
 
 test.beforeEach(async ({ page }) => {
@@ -187,7 +188,9 @@ test('open, close, and toggle resolve with the instance and expose the active or
     const zoom = window.mediumZoom('img')
     const target = document.querySelector<HTMLImageElement>('#second')!
     const calls: string[] = []
-    for (const type of ['open', 'opened', 'close', 'closed']) zoom.on(type, () => calls.push(type))
+    for (const type of ['open', 'opened', 'close', 'closed']) {
+      zoom.on(type, () => calls.push(type))
+    }
     const opened = await zoom.open({ target })
     const active = zoom.getZoomedImage()?.id
     const closed = await zoom.close()
@@ -309,7 +312,9 @@ test('native browser listeners are registered only while needed', async ({ page 
       listener: EventListenerOrEventListenerObject,
       options?: boolean | AddEventListenerOptions
     ) => {
-      if (relevant.has(type)) calls.push(`document+${type}`)
+      if (relevant.has(type)) {
+        calls.push(`document+${type}`)
+      }
       addDocument(type, listener, options)
     }
     document.removeEventListener = (
@@ -317,7 +322,9 @@ test('native browser listeners are registered only while needed', async ({ page 
       listener: EventListenerOrEventListenerObject,
       options?: boolean | EventListenerOptions
     ) => {
-      if (relevant.has(type)) calls.push(`document-${type}`)
+      if (relevant.has(type)) {
+        calls.push(`document-${type}`)
+      }
       removeDocument(type, listener, options)
     }
     window.addEventListener = (
@@ -325,7 +332,9 @@ test('native browser listeners are registered only while needed', async ({ page 
       listener: EventListenerOrEventListenerObject,
       options?: boolean | AddEventListenerOptions
     ) => {
-      if (relevant.has(type)) calls.push(`window+${type}`)
+      if (relevant.has(type)) {
+        calls.push(`window+${type}`)
+      }
       addWindow(type, listener, options)
     }
     window.removeEventListener = (
@@ -333,7 +342,9 @@ test('native browser listeners are registered only while needed', async ({ page 
       listener: EventListenerOrEventListenerObject,
       options?: boolean | EventListenerOptions
     ) => {
-      if (relevant.has(type)) calls.push(`window-${type}`)
+      if (relevant.has(type)) {
+        calls.push(`window-${type}`)
+      }
       removeWindow(type, listener, options)
     }
     const zoom = window.mediumZoom()

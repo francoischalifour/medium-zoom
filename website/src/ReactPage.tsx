@@ -1,6 +1,6 @@
 import { DownloadStats } from './download-stats'
-import { Icon } from './site-components'
 import { ExampleRail } from './example-rail'
+import { Icon } from './site-components'
 import { UsageExamples } from './usage-examples'
 
 export function ReactPage() {

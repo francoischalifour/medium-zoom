@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+
 import { loadZoomFixture } from './helpers.ts'
 
 for (const reducedMotion of ['reduce', 'no-preference'] as const) {
@@ -27,8 +28,9 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
       const returned: boolean[] = []
       for (let index = 0; index < 2; index++) {
         returned.push((await zoom.open()) === zoom)
-        if (!document.body.classList.contains('medium-zoom--opened'))
+        if (!document.body.classList.contains('medium-zoom--opened')) {
           throw Error('Missing open class')
+        }
         returned.push((await zoom.close()) === zoom)
       }
       await new Promise(requestAnimationFrame)
@@ -40,8 +42,11 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
     expect(result.templateDurations).toEqual(
       Array(2).fill(reducedMotion === 'reduce' ? '0s' : '0.15s')
     )
-    if (reducedMotion === 'reduce') expect(result.transitions).toEqual([])
-    else expect(result.transitions.some(name => name.includes('medium-zoom-image'))).toBe(true)
+    if (reducedMotion === 'reduce') {
+      expect(result.transitions).toEqual([])
+    } else {
+      expect(result.transitions.some(name => name.includes('medium-zoom-image'))).toBe(true)
+    }
     await expect(
       page.locator('.medium-zoom-overlay, .medium-zoom-image--opened, #dismiss')
     ).toHaveCount(0)
@@ -92,7 +97,9 @@ for (const phase of ['opening', 'closing'] as const) {
       .toBe(true)
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await expect(page.locator('body')).toHaveAttribute('data-completed', 'true')
-    if (phase === 'opening') await page.evaluate(() => window.zoom.close())
+    if (phase === 'opening') {
+      await page.evaluate(() => window.zoom.close())
+    }
     await expect(page.locator('.medium-zoom-overlay, .medium-zoom-image--opened')).toHaveCount(0)
     for (const type of ['open', 'opened', 'close', 'closed']) {
       await expect(page.locator('body')).toHaveAttribute(`data-motion${type}`, '1')

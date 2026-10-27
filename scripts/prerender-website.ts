@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url'
+
 import { createServer } from 'vite'
 
 export async function prerenderWebsite(directory: string) {

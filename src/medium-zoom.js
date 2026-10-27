@@ -55,7 +55,9 @@ const mediumZoom = (selector, options = {}) => {
       return
     }
 
-    if (isAnimating) return
+    if (isAnimating) {
+      return
+    }
 
     if (
       Math.abs(scrollTop - currentScroll) > zoomOptions.scrollOffset &&
@@ -66,11 +68,17 @@ const mediumZoom = (selector, options = {}) => {
   }
 
   const _handleTouch = event => {
-    if (event.touches.length >= 2) active.__mz_isPinching = true
-    if (active.__mz_isPinching) _handleScroll()
+    if (event.touches.length >= 2) {
+      active.__mz_isPinching = true
+    }
+    if (active.__mz_isPinching) {
+      _handleScroll()
+    }
 
     // Keep protecting the gesture when one finger lifts before the other.
-    if (event.touches.length === 0) active.__mz_isPinching = false
+    if (event.touches.length === 0) {
+      active.__mz_isPinching = false
+    }
   }
 
   const _handleKeyUp = event => {
@@ -118,7 +126,9 @@ const mediumZoom = (selector, options = {}) => {
   let clickListening = false
   const _updateClickListener = () => {
     const enabled = images.length > 0
-    if (clickListening === enabled) return
+    if (clickListening === enabled) {
+      return
+    }
 
     document[enabled ? 'addEventListener' : 'removeEventListener']('click', _handleClick)
     clickListening = enabled
@@ -208,7 +218,9 @@ const mediumZoom = (selector, options = {}) => {
 
   let globalListening = false
   const _updateGlobalEvents = enabled => {
-    if (globalListening === enabled) return
+    if (globalListening === enabled) {
+      return
+    }
 
     const method = enabled ? 'addEventListener' : 'removeEventListener'
     document[method]('keyup', _handleKeyUp)
@@ -229,12 +241,16 @@ const mediumZoom = (selector, options = {}) => {
     const query = window.matchMedia('(prefers-reduced-motion)')
     const getTime = value => Math.max(...value.split(',').map(parseFloat))
     const finish = event => {
-      if (finished || (event && event.propertyName !== 'transform')) return
+      if (finished || (event && event.propertyName !== 'transform')) {
+        return
+      }
       cleanup()
       done()
     }
     const motionChange = () => {
-      if (query.matches) finish()
+      if (query.matches) {
+        finish()
+      }
     }
     const cleanup = () => {
       finished = true
@@ -250,7 +266,9 @@ const mediumZoom = (selector, options = {}) => {
     const duration = (getTime(style.transitionDuration) + getTime(style.transitionDelay)) * 1_000
     timer = setTimeout(finish, Math.max(0, duration) + 50)
     // Let the opening body class update before completing a zero-duration zoom.
-    if (duration <= 0) frame = window.requestAnimationFrame(() => finish())
+    if (duration <= 0) {
+      frame = window.requestAnimationFrame(() => finish())
+    }
     return cleanup
   }
 
@@ -311,7 +329,9 @@ const mediumZoom = (selector, options = {}) => {
         : zoomTarget.naturalHeight || viewportHeight
       const { top, left, width, height } = zoomTarget.getBoundingClientRect()
 
-      if (!width || !height) return
+      if (!width || !height) {
+        return
+      }
 
       const scaleX = Math.min(Math.max(width, naturalWidth), viewportWidth) / width
       const scaleY = Math.min(Math.max(height, naturalHeight), viewportHeight) / height
@@ -340,7 +360,9 @@ const mediumZoom = (selector, options = {}) => {
       let cancelImage = () => {}
       let frame
       const finishOpening = opened => {
-        if (!current.__mz_cancelOpen) return
+        if (!current.__mz_cancelOpen) {
+          return
+        }
         cancelTransition()
         cancelImage()
         window.cancelAnimationFrame(frame)
@@ -362,7 +384,9 @@ const mediumZoom = (selector, options = {}) => {
       _updateGlobalEvents(true)
       isAnimating = true
       _dispatchEvent(current.__mz_original, 'open')
-      if (current.__mz_closing) return
+      if (current.__mz_closing) {
+        return
+      }
 
       scrollTop =
         window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
@@ -413,12 +437,16 @@ const mediumZoom = (selector, options = {}) => {
         // Copy its presentation first, then assign sources after installing handlers.
         const hd = document.createElement('img')
         ;[].slice.call(current.__mz_zoomed.attributes).forEach(({ name, value }) => {
-          if (!/^(src|srcset|sizes|loading)$/.test(name)) hd.setAttribute(name, value)
+          if (!/^(src|srcset|sizes|loading)$/.test(name)) {
+            hd.setAttribute(name, value)
+          }
         })
         current.__mz_zoomedHd = hd
         const finishImage = () => {
           cancelImage()
-          if (current.__mz_closing) return
+          if (current.__mz_closing) {
+            return
+          }
           if (hd.naturalWidth) {
             hd.classList.add('medium-zoom-image--opened')
             hd.addEventListener('click', close)
@@ -435,7 +463,9 @@ const mediumZoom = (selector, options = {}) => {
         }
         hd.addEventListener('load', finishImage)
         hd.addEventListener('error', finishImage)
-        if (!zoomSrc) hd.srcset = current.__mz_zoomed.srcset
+        if (!zoomSrc) {
+          hd.srcset = current.__mz_zoomed.srcset
+        }
         hd.src = zoomSrc || current.__mz_zoomed.src
       } else {
         animate()
@@ -452,16 +482,22 @@ const mediumZoom = (selector, options = {}) => {
       }
 
       current.__mz_closing = true
-      if (current.__mz_cancelOpen) current.__mz_cancelOpen()
+      if (current.__mz_cancelOpen) {
+        current.__mz_cancelOpen()
+      }
       clearTimeout(current.__mz_scrollTimer)
       isAnimating = true
       const finishClosing = () => {
         current.__mz_original.classList.remove('medium-zoom-image--hidden')
         ;[current.__mz_zoomed, current.__mz_zoomedHd, current.__mz_template, overlay].forEach(
           node => {
-            if (!node) return
+            if (!node) {
+              return
+            }
             node.removeEventListener('click', close)
-            if (node.parentNode) node.parentNode.removeChild(node)
+            if (node.parentNode) {
+              node.parentNode.removeChild(node)
+            }
           }
         )
         active = {}
@@ -472,10 +508,16 @@ const mediumZoom = (selector, options = {}) => {
       }
 
       // Install completion before dispatching events, whose listeners may interact again.
-      if (current.__mz_zoomed) _waitForTransition(current.__mz_zoomed, finishClosing)
+      if (current.__mz_zoomed) {
+        _waitForTransition(current.__mz_zoomed, finishClosing)
+      }
       document.body.classList.remove('medium-zoom--opened')
-      if (current.__mz_zoomed) current.__mz_zoomed.style.transform = ''
-      if (current.__mz_zoomedHd) current.__mz_zoomedHd.style.transform = ''
+      if (current.__mz_zoomed) {
+        current.__mz_zoomed.style.transform = ''
+      }
+      if (current.__mz_zoomedHd) {
+        current.__mz_zoomedHd.style.transform = ''
+      }
       if (current.__mz_template) {
         current.__mz_template.style.transition = parseFloat(
           window.getComputedStyle(current.__mz_zoomed).transitionDuration
@@ -485,7 +527,9 @@ const mediumZoom = (selector, options = {}) => {
         current.__mz_template.style.opacity = 0
       }
       _dispatchEvent(current.__mz_original, 'close')
-      if (!current.__mz_zoomed) finishClosing()
+      if (!current.__mz_zoomed) {
+        finishClosing()
+      }
     })
 
   const toggle = ({ target } = {}) => {

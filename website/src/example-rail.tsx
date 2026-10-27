@@ -1,10 +1,10 @@
-import { trackSiteEvent } from './site-analytics'
 import * as React from 'react'
+
 import * as ImageZoom from '../../examples/shadcn/src/components/ui/image-zoom'
+import { galleryAssetBase, galleryImages, type ExampleImage, usageCode } from './gallery'
+import { trackSiteEvent } from './site-analytics'
 import { CopyButton, HighlightedCode, ZoomControls } from './site-components'
 import { TabList } from './site-tabs'
-
-import { galleryAssetBase, galleryImages, type ExampleImage, usageCode } from './gallery'
 
 function ExampleCard({
   image,
@@ -162,14 +162,18 @@ export function ExampleRail({ kind = 'react' }: { kind?: 'react' | 'javascript' 
       data-example-rail="primary"
       aria-label="Image zoom examples"
       onPointerEnter={event => {
-        if (event.pointerType !== 'mouse') return
+        if (event.pointerType !== 'mouse') {
+          return
+        }
         window.clearTimeout(hoverTimer.current)
         hoverTimer.current = window.setTimeout(() => setExpanded(true), 160)
       }}
       onPointerLeave={() => window.clearTimeout(hoverTimer.current)}
       onPointerDown={() => setExpanded(true)}
       onFocusCapture={event => {
-        if (event.target.matches(':focus-visible')) setExpanded(true)
+        if (event.target.matches(':focus-visible')) {
+          setExpanded(true)
+        }
       }}
     >
       <div className="rail-heading">
@@ -181,7 +185,9 @@ export function ExampleRail({ kind = 'react' }: { kind?: 'react' | 'javascript' 
             aria-label="Previous example"
             aria-disabled={edges.start}
             onClick={() => {
-              if (!edges.start) navigate(-1)
+              if (!edges.start) {
+                navigate(-1)
+              }
             }}
           >
             <span aria-hidden="true">←</span>
@@ -191,7 +197,9 @@ export function ExampleRail({ kind = 'react' }: { kind?: 'react' | 'javascript' 
             aria-label="Next example"
             aria-disabled={edges.end}
             onClick={() => {
-              if (!edges.end) navigate(1)
+              if (!edges.end) {
+                navigate(1)
+              }
             }}
           >
             <span aria-hidden="true">→</span>
@@ -213,8 +221,9 @@ export function ExampleRail({ kind = 'react' }: { kind?: 'react' | 'javascript' 
             if (
               event.target !== event.currentTarget ||
               !['ArrowLeft', 'ArrowRight'].includes(event.key)
-            )
+            ) {
               return
+            }
             event.preventDefault()
             navigate(event.key === 'ArrowRight' ? 1 : -1)
           }}

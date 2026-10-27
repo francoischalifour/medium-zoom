@@ -1,7 +1,8 @@
 'use client'
 
-import * as React from 'react'
 import mediumZoom, { type Zoom, type ZoomOptions } from 'medium-zoom'
+import * as React from 'react'
+
 import './image-zoom.css'
 
 export type RootProps = {

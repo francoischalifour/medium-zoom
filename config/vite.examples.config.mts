@@ -1,6 +1,8 @@
-import { fileURLToPath } from 'node:url'
 import { resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
 import { loadConfigFromFile, mergeConfig, type ConfigEnv, type UserConfig } from 'vite'
+
 import { libraryConfig } from './vite.shared.config.mts'
 
 export async function localExampleConfig({
@@ -13,7 +15,9 @@ export async function localExampleConfig({
   const root = fileURLToPath(new URL(`../examples/${name}/`, import.meta.url))
   const mode = { build: 'production', serve: 'development' }[command]
   const loaded = await loadConfigFromFile({ command, mode }, resolve(root, 'vite.config.ts'), root)
-  if (!loaded) throw new Error(`Missing Vite config for ${name}`)
+  if (!loaded) {
+    throw new Error(`Missing Vite config for ${name}`)
+  }
   const config = mergeConfig(loaded.config, libraryConfig)
   const managed = mergeConfig(config, {
     configFile: false,

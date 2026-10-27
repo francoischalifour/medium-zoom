@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
+
 import './scroll-area.css'
 
 // Native scrolling with shared overflow feedback. Size it with --scroll-area-max-height;

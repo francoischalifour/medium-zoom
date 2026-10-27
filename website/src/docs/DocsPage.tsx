@@ -1,9 +1,11 @@
 import { Children, isValidElement, type ReactNode } from 'react'
-import { SiteHeader, SiteFooter, SectionLinks } from '../site-shell'
-import { docsPages, headingId } from './pages'
-import { CodeFence } from './doc-components'
-import { useDocsNavigation } from './use-docs-navigation'
+
 import { ScrollArea } from '../scroll-area'
+import { SiteHeader, SiteFooter, SectionLinks } from '../site-shell'
+import { CodeFence } from './doc-components'
+import { docsPages, headingId } from './pages'
+import { useDocsNavigation } from './use-docs-navigation'
+
 import './docs.css'
 
 const pageContent = import.meta.glob<typeof import('./overview.mdx')>('./*.mdx', { eager: true })
@@ -11,7 +13,9 @@ const pageContent = import.meta.glob<typeof import('./overview.mdx')>('./*.mdx',
 function getHeadingText(children: ReactNode): string {
   return Children.toArray(children)
     .map(child => {
-      if (typeof child === 'string' || typeof child === 'number') return String(child)
+      if (typeof child === 'string' || typeof child === 'number') {
+        return String(child)
+      }
       return isValidElement<{ children?: ReactNode }>(child)
         ? getHeadingText(child.props.children)
         : ''
@@ -36,7 +40,9 @@ function ArticleHeading({ children }: { children: ReactNode }) {
 export function DocsPage({ path }: { path: string }) {
   const { articleRef, activeHeadingId } = useDocsNavigation(path)
   const page = docsPages.find(page => page.path === path)
-  if (!page) throw new Error(`Unknown documentation page: ${path}`)
+  if (!page) {
+    throw new Error(`Unknown documentation page: ${path}`)
+  }
   const { default: Content, outline } = pageContent[`./${page.source}`]
   const isOverview = page.path === '/docs/'
   const isReference = page.group === 'JavaScript reference' || page.group === 'React reference'

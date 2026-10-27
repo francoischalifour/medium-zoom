@@ -1,9 +1,11 @@
 import { StrictMode } from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
+
 import { App } from './App'
 import { DocsPage } from './docs/DocsPage'
-import { getSitePage } from './site-data'
 import { initSiteAnalytics } from './site-analytics'
+import { getSitePage } from './site-data'
+
 import './site.css'
 
 initSiteAnalytics()
@@ -19,5 +21,8 @@ const app = (
     )}
   </StrictMode>
 )
-if (root.hasChildNodes()) hydrateRoot(root, app)
-else createRoot(root).render(app)
+if (root.hasChildNodes()) {
+  hydrateRoot(root, app)
+} else {
+  createRoot(root).render(app)
+}

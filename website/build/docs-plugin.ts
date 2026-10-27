@@ -1,7 +1,9 @@
 import { readFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
 import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
 import type { Plugin } from 'vite'
+
 import { docsPages, headingId } from '../src/docs/pages.ts'
 
 function getOutline(source: string) {
@@ -31,10 +33,14 @@ export function docsPlugin(): Plugin {
     name: 'medium-zoom-docs',
     enforce: 'pre',
     resolveId(id) {
-      if (id === 'virtual:docs-search') return '\0virtual:docs-search'
+      if (id === 'virtual:docs-search') {
+        return '\0virtual:docs-search'
+      }
     },
     load(id) {
-      if (id !== '\0virtual:docs-search') return
+      if (id !== '\0virtual:docs-search') {
+        return
+      }
       const entries = docsPages.flatMap(page => {
         const file = fileURLToPath(new URL(`../src/docs/${page.source}`, import.meta.url))
         this.addWatchFile(file)
@@ -57,9 +63,13 @@ export function docsPlugin(): Plugin {
       return `export default ${JSON.stringify(entries)}`
     },
     handleHotUpdate({ file, server }) {
-      if (!file.endsWith('.mdx')) return
+      if (!file.endsWith('.mdx')) {
+        return
+      }
       const search = server.moduleGraph.getModuleById('\0virtual:docs-search')
-      if (search) server.moduleGraph.invalidateModule(search)
+      if (search) {
+        server.moduleGraph.invalidateModule(search)
+      }
       server.ws.send({ type: 'full-reload' })
     },
     config() {
@@ -98,13 +108,17 @@ export function docsPlugin(): Plugin {
           .replace('"__DOC_SCHEMA__"', JSON.stringify(schema).replaceAll('<', '\\u003c'))
         const file = fileURLToPath(new URL(`..${page.path}index.html`, import.meta.url))
         mkdirSync(dirname(file), { recursive: true })
-        if (!existsSync(file) || readFileSync(file, 'utf8') !== html) writeFileSync(file, html)
+        if (!existsSync(file) || readFileSync(file, 'utf8') !== html) {
+          writeFileSync(file, html)
+        }
         entries[page.path.slice(1).replaceAll('/', '-')] = file
       }
       return { build: { rolldownOptions: { input: entries } } }
     },
     transform(source, id) {
-      if (!id.endsWith('.mdx')) return
+      if (!id.endsWith('.mdx')) {
+        return
+      }
       const outline = getOutline(source)
       return `${source}\n\nexport const outline = ${JSON.stringify(outline)}\n`
     },

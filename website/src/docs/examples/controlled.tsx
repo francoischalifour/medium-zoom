@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+
 import * as ImageZoom from '@/components/ui/image-zoom'
 
 export function ControlledPhoto() {

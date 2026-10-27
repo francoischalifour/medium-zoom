@@ -1,8 +1,9 @@
 import { useId } from 'react'
-import { usePackageManager, setPackageManager, packageManagers } from './package-manager'
+
 import { javascriptCommands, componentCommands } from './install-commands'
-import { CopyButton, CodeTokens } from './site-components'
+import { usePackageManager, setPackageManager, packageManagers } from './package-manager'
 import { trackInstallCopied } from './site-analytics'
+import { CopyButton, CodeTokens } from './site-components'
 import type { SitePage } from './site-data'
 
 export function InstallCommand({

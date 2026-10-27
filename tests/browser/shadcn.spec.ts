@@ -1,8 +1,10 @@
 import { execFileSync } from 'node:child_process'
+
 import { test, expect, type Page } from '@playwright/test'
-import { decodeImages, dismissZoom, observeErrors, openImage } from './helpers.ts'
-import { shadcnDevUrl } from '../server-urls.ts'
+
 import { version } from '../../package.json' with { type: 'json' }
+import { shadcnDevUrl } from '../server-urls.ts'
+import { decodeImages, dismissZoom, observeErrors, openImage } from './helpers.ts'
 
 const demo = '/examples/shadcn/playground.html'
 const firstName = 'Zoom image: Ocean sunset'

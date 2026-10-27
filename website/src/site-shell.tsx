@@ -1,9 +1,10 @@
 import * as React from 'react'
+
 import { CommandPalette } from './command-palette'
 import { Icon } from './site-components'
-import { JavaScriptIcon, ReactIcon } from './technology-icons'
 import { githubStars, githubStarLabel, repositoryUrl, type SitePage } from './site-data'
 import { getTheme, getServerTheme, setTheme, subscribeTheme } from './site-theme'
+import { JavaScriptIcon, ReactIcon } from './technology-icons'
 
 const siteSections = [
   {

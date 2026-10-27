@@ -41,6 +41,8 @@ export async function captureStory(
   const name = `${String(index + 1).padStart(2, '0')}-${slug}-${state}.png`
   const path = testInfo.outputPath(name)
   await page.screenshot({ path })
-  if (state === 'after') await testInfo.attach(story.id, { path, contentType: 'image/png' })
+  if (state === 'after') {
+    await testInfo.attach(story.id, { path, contentType: 'image/png' })
+  }
   return name
 }

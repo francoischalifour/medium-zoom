@@ -2,10 +2,12 @@ import assert from 'node:assert/strict'
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { runInNewContext } from 'node:vm'
+
 import { parse } from 'acorn'
-import { pack } from './pack.ts'
+
 import { checkAnalyzers } from './check-package-analyzers.ts'
 import { checkConsumers } from './check-package-consumers.ts'
+import { pack } from './pack.ts'
 
 const artifact = pack()
 try {
@@ -40,7 +42,9 @@ try {
     const esm = path.endsWith('.esm.js') || path === 'pure/index.js'
     parse(code, { ecmaVersion: esm ? 2_015 : 5, sourceType: esm ? 'module' : 'script' })
     // ESM syntax is intentionally retained; its implementation must still be ES5.
-    if (esm) parse(code.replace(/export\s*\{[^}]+\};?\s*$/, ''), { ecmaVersion: 5 })
+    if (esm) {
+      parse(code.replace(/export\s*\{[^}]+\};?\s*$/, ''), { ecmaVersion: 5 })
+    }
     const banner = `/*! medium-zoom ${metadata.version} | MIT License | https://github.com/francoischalifour/medium-zoom */`
     assert(code.startsWith(banner + '\n'), `${path} must start with the release banner`)
     assert.equal(code.split(banner).length - 1, 1, `${path} must contain exactly one banner`)
@@ -74,8 +78,9 @@ try {
   }
 
   const declarations = readFileSync('src/medium-zoom.d.ts', 'utf8')
-  for (const path of ['dist/medium-zoom.d.ts', 'dist/pure/index.d.ts'])
+  for (const path of ['dist/medium-zoom.d.ts', 'dist/pure/index.d.ts']) {
     assert.equal(readFileSync(join(artifact.root, path), 'utf8'), declarations)
+  }
   const css = readFileSync(join(artifact.root, 'dist/style.css'), 'utf8')
   assert(css.includes('cursor:pointer') && css.includes('cursor:zoom-in'))
   assert(css.includes('cursor:zoom-out'))

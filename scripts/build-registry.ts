@@ -1,7 +1,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import registryDefinition from '../registry.json' with { type: 'json' }
+
 import { version } from '../package.json' with { type: 'json' }
+import registryDefinition from '../registry.json' with { type: 'json' }
 
 const registry = {
   ...registryDefinition,

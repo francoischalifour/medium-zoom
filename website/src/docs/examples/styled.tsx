@@ -1,4 +1,5 @@
 import { ImageZoom } from '@/components/ui/image-zoom'
+
 import './styled.css'
 
 export function CaptionedPhoto() {
