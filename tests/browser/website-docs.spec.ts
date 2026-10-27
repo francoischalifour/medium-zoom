@@ -162,6 +162,7 @@ for (const [path, title] of pages) {
       const response = await page.goto(path)
       expect(response?.status()).toBe(200)
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(title)
+      await expect(page.getByRole('heading', { level: 1 })).toHaveCSS('font-weight', '550')
       await expect(page).toHaveTitle(`${title} — medium-zoom documentation`)
       await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', origin + path)
       await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
@@ -263,6 +264,53 @@ test('documentation navigation preserves package manager and theme preferences',
     page.locator('#javascript-installation').getByRole('radio', { name: 'bun', exact: true })
   ).toBeChecked()
   expect(errors).toEqual([])
+})
+
+test('the React quickstart loads the preview before requesting the full-size zoom image', async ({
+  page,
+}) => {
+  const images: string[] = []
+  page.on('request', request => {
+    if (request.resourceType() === 'image') images.push(new URL(request.url()).pathname)
+  })
+  await page.goto('/docs/react/')
+  const trigger = page.locator('.docs-preview [data-slot="image-zoom-trigger"]')
+  await trigger.locator('img').evaluate(image => (image as HTMLImageElement).decode())
+  expect(images).toContain('/assets/images/ocean-sunset-preview.webp')
+  expect(images).not.toContain('/assets/images/ocean-sunset.jpg')
+  await trigger.click()
+  await expect(
+    page.locator('.medium-zoom-image--opened[src="/assets/images/ocean-sunset.jpg"]')
+  ).toBeVisible()
+  expect(images).toContain('/assets/images/ocean-sunset.jpg')
+  await page.keyboard.press('Escape')
+  await expect(page.locator('body')).not.toHaveClass(/medium-zoom--opened/)
+})
+
+test('keyboard zoom survives interaction before hydration finishes loading', async ({ page }) => {
+  let resume!: () => void
+  const hydration = new Promise<void>(resolve => {
+    resume = resolve
+  })
+  await page.route(/\/assets\/hydrate-.*\.js$/, async route => {
+    await hydration
+    await route.continue()
+  })
+  await page.goto('/docs/react/', { waitUntil: 'commit' })
+  const trigger = page.locator('.docs-preview [data-slot="image-zoom-trigger"]')
+  try {
+    await trigger.focus()
+    await page.keyboard.press('Tab')
+    await expect(trigger).not.toBeFocused()
+    await trigger.focus()
+    await page.keyboard.press('Enter')
+  } finally {
+    resume()
+  }
+  await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
+  await page.keyboard.press('Escape')
+  await expect(page.locator('body')).not.toHaveClass(/medium-zoom--opened/)
+  await expect(trigger).toBeFocused()
 })
 
 test('live examples support keyboard zoom and controlled close requests', async ({ page }) => {
