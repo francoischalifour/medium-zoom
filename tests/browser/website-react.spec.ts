@@ -57,7 +57,7 @@ for (const path of ['/website.html', '/react']) {
     const hydration = new Promise<void>(resolve => {
       resume = resolve
     })
-    await page.route(/\/assets\/main-.*\.js$/, async route => {
+    await page.route(/\/assets\/hydrate-.*\.js$/, async route => {
       await hydration
       await route.continue()
     })
@@ -84,6 +84,38 @@ for (const path of ['/website.html', '/react']) {
       page.locator('.hero-install').getByRole('radio', { name: 'pnpm', exact: true })
     ).toBeChecked()
     expect(errors).toEqual([])
+  })
+}
+
+for (const interaction of ['pointer', 'keyboard'] as const) {
+  test(`package manager ${interaction} changes survive before hydration`, async ({ page }) => {
+    let resume!: () => void
+    const hydration = new Promise<void>(resolve => {
+      resume = resolve
+    })
+    await page.route(/\/assets\/hydrate-.*\.js$/, async route => {
+      await hydration
+      await route.continue()
+    })
+    await page.goto('/react', { waitUntil: 'commit' })
+    const installation = page.locator('.hero-install')
+    try {
+      if (interaction === 'pointer')
+        await installation.locator('label[data-package-manager-option="pnpm"]').click()
+      else {
+        await installation.getByRole('radio', { name: 'npm', exact: true }).focus()
+        await page.keyboard.press('ArrowRight')
+      }
+    } finally {
+      resume()
+    }
+    for (const panel of [installation, page.locator('.closing-install')]) {
+      await expect(panel.getByRole('radio', { name: 'pnpm', exact: true })).toBeChecked()
+      await expect(panel.locator('pre [data-package-manager-option="pnpm"]')).toBeVisible()
+    }
+    await expect
+      .poll(() => page.evaluate(() => localStorage.getItem('medium-zoom-package-manager')))
+      .toBe('pnpm')
   })
 }
 
