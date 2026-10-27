@@ -2,6 +2,7 @@ import { readFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { parseExpressionAt } from 'acorn'
 import type { Plugin } from 'vite'
 
 import type { SearchEntry } from '../src/docs-search.ts'
@@ -17,17 +18,31 @@ function getOutline(source: string) {
 }
 
 function getSearchText(source: string) {
-  return source
-    .replace(/^```[^\n]*\n[\s\S]*?^```/gm, '')
-    .replace(/^import .+$/gm, '')
-    .replace(/`([^`\n]+)`/g, (_, code: string) => code.replace(/[<>]/g, ''))
-    .replace(/<Prop\s+name="([^"]+)"/g, '$1 <Prop')
-    .replace(/<\/?[A-Za-z](?:[^<>"']|"[^"]*"|'[^']*')*>/g, ' ')
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-    .replace(/^\s*[-*+]\s+/gm, '')
-    .replace(/[`*_]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
+  return (
+    source
+      .replace(/^```[^\n]*\n[\s\S]*?^```/gm, '')
+      .replace(/^import .+$/gm, '')
+      .replace(/`([^`\n]+)`/g, (_, code: string) => code.replace(/[<>]/g, ''))
+      .replace(/<Prop\s+name="([^"]+)"/g, '$1 <Prop')
+      // Decode literal MDX text in the same pass as tags so '<ImageZoom>' stays text.
+      .replace(
+        /\{\s*("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')\s*\}|<\/?[A-Za-z](?:[^<>"']|"[^"]*"|'[^']*')*>/g,
+        (_, literal: string | undefined) => {
+          if (!literal) {
+            return ' '
+          }
+          const expression = parseExpressionAt(literal, 0, { ecmaVersion: 'latest' })
+          return expression.type === 'Literal' && typeof expression.value === 'string'
+            ? expression.value
+            : ''
+        }
+      )
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .replace(/^\s*[-*+]\s+/gm, '')
+      .replace(/[`*_]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+  )
 }
 
 function getSearchEntries(source: string, page: (typeof docsPages)[number]): SearchEntry[] {

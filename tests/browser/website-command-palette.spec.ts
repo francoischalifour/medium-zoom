@@ -144,6 +144,21 @@ for (const [query, path, highlight] of [
   })
 }
 
+test('search excerpts display MDX string expressions as text', async ({ page }) => {
+  await page.goto('/docs/react/')
+  await page.getByRole('button', { name: /Search docs/ }).click()
+  for (const [query, path, text] of [
+    ['plain html', '/docs/', 'Use the library with plain HTML or any framework.'],
+    ['keyboard support', '/docs/', 'Add an image component with a button and keyboard support.'],
+    ['reference', '/docs/#reference', '<ImageZoom>'],
+  ]) {
+    await page.getByRole('combobox').fill(query)
+    const description = page.locator(`a[role="option"][href="${path}"] .command-description`)
+    await expect(description).toContainText(text)
+    await expect(description).not.toContainText("{'")
+  }
+})
+
 test('API query casing preserves the same results and ranking', async ({ page }) => {
   await page.goto('/docs/react/')
   await page.getByRole('button', { name: /Search docs/ }).click()
