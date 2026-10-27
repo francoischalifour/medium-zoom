@@ -1,0 +1,12 @@
+{
+  "name": "medium-zoom-release-automation",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "release": "node run.mjs"
+  },
+  "dependencies": {
+    "release-please": "17.6.0"
+  }
+}
