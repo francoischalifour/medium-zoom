@@ -1,4 +1,4 @@
-export type ZoomSelector = string | HTMLElement | HTMLElement[] | NodeList
+export type ZoomSelector = string | HTMLElement | HTMLElement[] | NodeList | null
 
 export interface ZoomOptions {
   /**

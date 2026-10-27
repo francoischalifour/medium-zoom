@@ -1,14 +1,14 @@
-import { Example } from './doc-components'
-import { CaptionedPhoto } from './examples/styled'
-import styledCode from './examples/styled.tsx?raw'
-import photoStyles from './examples/styled.css?raw'
+import { Example, RelatedPages } from './doc-components'
+import { CaptionedPhoto } from './examples/captioned-photo'
+import exampleCode from './examples/captioned-photo.tsx?raw'
+import exampleStyles from './examples/captioned-photo.css?raw'
 
-Use CSS for the image layout and captions. Use zoom options for the enlarged view's margin and background.
+Use CSS for the image layout and captions. Open the example to see a gradient zoom background supplied through a CSS variable.
 
 <Example
-  code={styledCode}
+  code={exampleCode}
   title="captioned-photo.tsx"
-  styles={{ code: photoStyles, title: 'styled.css' }}
+  styles={{ code: exampleStyles, title: 'captioned-photo.css' }}
 >
   <CaptionedPhoto />
 </Example>
@@ -44,32 +44,70 @@ The caption remains in the page when you open the image.
 
 ## Zoom background and margin
 
-For the JavaScript library, pass `background` and `margin` as options:
+The `background` option accepts CSS backgrounds, including gradients and variables. Define the variable on `:root` so the overlay can use it:
+
+```css
+:root {
+  --photo-zoom-background: radial-gradient(
+    ellipse at 50% 0%,
+    #363044,
+    #16171c 70%
+  );
+}
+```
+
+The overlay is appended to `body`. A variable defined only on the image or its wrapper is outside the overlay's scope.
+
+In JavaScript, pass the variable as the `background` option:
 
 ```js
 import mediumZoom from 'medium-zoom'
 
 mediumZoom('[data-zoomable]', {
-  background: '#111113',
+  background: 'var(--photo-zoom-background)',
   margin: 32,
 })
 ```
 
-The React component accepts the same settings through its `options` prop. Its default background follows the image's inherited `--background` CSS property, so it can match your application's theme:
+In React, pass the same options to `<ImageZoom>`:
 
-```css
-.article {
-  --background: #fff;
-}
+```tsx
+import { ImageZoom } from '@/components/ui/image-zoom'
 
-.dark .article {
-  --background: #111113;
+export function Photo() {
+  return (
+    <ImageZoom
+      src="/photo.jpg"
+      alt="Ocean sunset"
+      options={{
+        background: 'var(--photo-zoom-background)',
+        margin: 32,
+      }}
+    />
+  )
 }
 ```
 
-Use the surface colors from your application. See the [JavaScript options](/docs/reference/javascript/options/) and [React defaults](/docs/reference/react/image-zoom/#zoom-options) for details.
+Change the CSS variable to match your application's theme. Without an explicit `background` option, the React component reads the image's inherited `--background` color. See [React defaults](/docs/reference/react/image-zoom/#zoom-options) for details.
+
+## Layering
+
+The JavaScript library leaves `z-index` unset. If another element covers the enlarged image or overlay, set their stacking order in your application:
+
+```css
+.medium-zoom-overlay,
+.medium-zoom-image--opened {
+  z-index: 999;
+}
+```
+
+Choose a value that fits your application's layers. The React component's stylesheet sets the overlay to `50` and the enlarged image to `51`.
 
 ## Related pages
 
-- [Custom triggers](/docs/guides/custom-react-triggers/): style the React button separately.
-- [Options](/docs/reference/javascript/options/): look up the zoom background, margin, and viewport.
+<RelatedPages
+  pages={[
+    '/docs/guides/custom-react-triggers/',
+    '/docs/reference/javascript/options/',
+  ]}
+/>

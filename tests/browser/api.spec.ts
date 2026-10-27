@@ -15,6 +15,7 @@ test.beforeEach(async ({ page }) => {
 
 for (const [selector, expected] of [
   ['omitted', []],
+  ['null', []],
   ['number', []],
   ['options', []],
   ['non-image', []],
@@ -32,6 +33,7 @@ for (const [selector, expected] of [
       const other = document.querySelector<HTMLDivElement>('#other')!
       const selectors = {
         omitted: undefined,
+        null: null,
         number: 42,
         options: { margin: 24 },
         'non-image': other,

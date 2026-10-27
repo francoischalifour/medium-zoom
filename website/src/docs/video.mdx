@@ -1,0 +1,95 @@
+import { Kbd } from '../site-components'
+import { Example } from './doc-components'
+import { ZoomableVideo } from './examples/video'
+import videoCode from './examples/video.tsx?raw'
+import videoStyles from './examples/video.css?raw'
+import poster from '../../../examples/video/src/images/flower.jpg'
+import video from '../../../examples/video/src/videos/flower.mp4'
+
+Use zoom events to play a video over an enlarged poster. Medium Zoom handles the image animation; your code positions and cleans up the video player.
+
+<Example
+  code={videoCode}
+  title="zoomable-video.tsx"
+  styles={{ code: videoStyles, title: 'video.css' }}
+>
+  <ZoomableVideo
+    src={poster}
+    videoSrc={video}
+    alt="A pink flower opening"
+    width={960}
+    height={540}
+  />
+</Example>
+
+Activate the poster to zoom and play. The Code view contains the React component and its styles. Pass your poster and video URLs as props:
+
+```tsx
+import { ZoomableVideo } from './examples/video'
+
+export function FlowerVideo() {
+  return (
+    <ZoomableVideo
+      src="/flower-poster.jpg"
+      videoSrc="/flower.mp4"
+      alt="A pink flower opening"
+      width={960}
+      height={540}
+    />
+  )
+}
+```
+
+The [standalone JavaScript example](/examples/video/) shows the same lifecycle without React. Its [source](https://github.com/francoischalifour/medium-zoom/tree/main/examples/video) includes the event handlers and styles.
+
+## Prepare the poster
+
+Use an uncropped poster with the same aspect ratio as the video. Wrap it in a button so users can open it with <Kbd>Enter</Kbd> or <Kbd>Space</Kbd>:
+
+```html
+<button id="play" type="button" aria-label="Play flower video">
+  <img
+    id="poster"
+    src="/flower-poster.jpg"
+    alt="A pink flower opening"
+  />
+</button>
+```
+
+Let the button open the zoom and stop its click from also reaching the library's document listener:
+
+```js
+import mediumZoom from 'medium-zoom'
+
+const trigger = document.getElementById('play')
+const poster = document.getElementById('poster')
+
+if (trigger && poster) {
+  const zoom = mediumZoom(poster, { margin: 24 })
+
+  trigger.addEventListener('click', event => {
+    event.stopPropagation()
+    zoom.open()
+  })
+}
+```
+
+## Start playback
+
+Register handlers on the zoom instance for these [events](/docs/reference/javascript/events/):
+
+1. On `open`, create a video with `muted`, `controls`, and `playsInline`. Set its source and call `play()` during the user gesture. Keep the player detached while the poster animates.
+2. On `opened`, measure `.medium-zoom-image--opened` with `getBoundingClientRect()`. Add `window.scrollX` and `window.scrollY` to those coordinates and use `position: absolute` with a higher `z-index`. The player then moves with the poster during scrolling. Append it to the page.
+3. Reveal the player when `loadeddata` supplies a frame. If `play()` rejects, show its poster and native controls so the user can start playback manually.
+
+Both `event.target` and `zoom.getZoomedImage()` refer to the original image. The single-image example queries the animated clone after opening; events do not expose a clone reference.
+
+Muted playback and `playsInline` do not guarantee autoplay. Browser policies and codec support still apply. If loading fails, leave the zoomed poster visible.
+
+## Close and clean up
+
+Click outside the video or press <Kbd aria-label="Escape">Esc</Kbd> to close it. Native controls handle clicks on the player. Resizing the window or scrolling beyond `scrollOffset` also closes the zoom.
+
+On `close`, pause and remove the player, clear its source, and call `load()` to stop loading it. This handler also runs when the user closes the zoom during the opening animation.
+
+On `closed`, restore focus to the poster button. Create a new player on each opening to start playback from the beginning.

@@ -1,5 +1,10 @@
 import { InstallCommand } from '../install-command'
-import { JavaScriptPreview } from './doc-components'
+import { Kbd } from '../site-components'
+import {
+  BrowserSupport,
+  JavaScriptPreview,
+  RelatedPages,
+} from './doc-components'
 
 Install medium-zoom, select an image, and click it to zoom.
 
@@ -11,20 +16,17 @@ The standard import includes zoom styles and TypeScript definitions.
 
 ## Add an image
 
-Add `data-zoomable` to an image. Set `alt` to describe it, and width and height to reserve space while it loads:
+Add `data-zoomable` to an image and describe it with `alt`:
 
 ```html
 <img
   src="/assets/images/ocean-sunset.jpg"
   alt="Ocean sunset"
-  width="1920"
-  height="1280"
-  style="max-width: 100%; height: auto"
   data-zoomable
 />
 ```
 
-Replace the image URL with your own.
+Replace the image URL and description with your own.
 
 ## Initialize the zoom
 
@@ -40,7 +42,34 @@ Click the image to enlarge it:
 
 <JavaScriptPreview />
 
-Click the enlarged image or its background, press Escape, or scroll to close the zoom. The [React quickstart](/docs/react/) includes a native button for keyboard activation.
+Click the enlarged image or its background, press <Kbd aria-label="Escape">Esc</Kbd>, or scroll to close the zoom.
+
+The JavaScript library attaches click behavior to the image. For keyboard activation, provide a button that calls [`open()`](/docs/reference/javascript/methods/#open), as in the [video guide](/docs/guides/video/#prepare-the-poster). The [React component](/docs/react/) includes a button.
+
+## Set the image size
+
+Once the zoom works, add `width` and `height` using the image file’s pixel dimensions. Find them in the file’s properties, or let your framework or CMS supply them. These attributes let the browser reserve space before the image loads:
+
+```html
+<img
+  src="/assets/images/ocean-sunset.jpg"
+  alt="Ocean sunset"
+  width="1920"
+  height="1280"
+  data-zoomable
+/>
+```
+
+If your site doesn’t already make images responsive, add this CSS:
+
+```css
+img[data-zoomable] {
+  max-width: 100%;
+  height: auto;
+}
+```
+
+`max-width` keeps the image within its container. `height: auto` preserves its proportions when it shrinks.
 
 ## Other installation options
 
@@ -77,10 +106,23 @@ You can also [download the release files](https://github.com/francoischalifour/m
 
 </details>
 
+## Browser support
+
+The JavaScript library retains compatibility with these browser versions:
+
+<BrowserSupport />
+
+Use the [script-tag build](#script-tag) for browsers without module support.
+
+Custom templates are an advanced option for building your own zoom layout. If you use them in Internet Explorer or older Edge versions, add a [`<template>` polyfill](https://github.com/webcomponents/template). The default zoom needs no template or polyfill.
+
 ## Next steps
 
-- [HD images](/docs/guides/hd-images/): load a larger image when zooming.
-- [Galleries](/docs/guides/galleries/): attach several images.
-- [Styling](/docs/guides/styling/): change the image layout and zoom background.
-
-The [`mediumZoom()` reference](/docs/reference/javascript/medium-zoom/) describes selector types. [Methods](/docs/reference/javascript/methods/) covers instance control and cleanup.
+<RelatedPages
+  pages={[
+    '/docs/guides/hd-images/',
+    '/docs/guides/multiple-images/',
+    '/docs/guides/styling/',
+    '/docs/reference/javascript/medium-zoom/',
+  ]}
+/>

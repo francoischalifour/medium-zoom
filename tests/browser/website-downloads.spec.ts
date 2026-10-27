@@ -18,7 +18,7 @@ for (const path of ['/website.html', '/react']) {
       await page.goto(path)
       const stats = page.locator('.monthly-downloads')
       await expect(stats.getByRole('link')).toHaveAccessibleName(
-        `${compact(snapshot.monthly)} monthly downloads on npm`
+        `${compact(snapshot.monthly)} monthly downloads on npm (opens in a new tab)`
       )
       await expect(stats.getByRole('link')).toHaveAttribute(
         'title',
@@ -49,7 +49,7 @@ test('new npm reports refresh the monthly count', async ({ page }) => {
   await page.goto('/website.html')
   const stats = page.locator('.monthly-downloads')
   await expect(stats.getByRole('link')).toHaveAccessibleName(
-    `${compact(420_000)} monthly downloads on npm`
+    `${compact(420_000)} monthly downloads on npm (opens in a new tab)`
   )
   await expect(stats).toContainText('420K monthly downloads on npm')
 })
@@ -76,7 +76,7 @@ for (const failure of ['unavailable', 'incomplete', 'older'] as const) {
     await page.goto('/website.html')
     const stats = page.locator('.monthly-downloads')
     await expect(stats.getByRole('link')).toHaveAccessibleName(
-      `${compact(snapshot.monthly)} monthly downloads on npm`
+      `${compact(snapshot.monthly)} monthly downloads on npm (opens in a new tab)`
     )
     await expect(stats).toContainText(`${compact(snapshot.monthly)} monthly downloads on npm`)
     await page.getByRole('link', { name: 'Start building', exact: true }).click()

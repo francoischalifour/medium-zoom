@@ -1,6 +1,6 @@
 # Medium Zoom React Example
 
-This example creates an `<ImageZoom>` component that attaches the zoom to the image.
+A minimal React wrapper that attaches medium-zoom to an image with a callback ref. For the component with a keyboard-accessible button and controlled state, see the [React quickstart](https://medium-zoom.francoischalifour.com/docs/react/).
 
 [![Edit React Example](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/github/francoischalifour/medium-zoom/tree/main/examples/react?file=/src/App.tsx)
 

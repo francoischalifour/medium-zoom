@@ -1,53 +1,50 @@
-import { Example } from './doc-components'
-import { ComposedPhoto } from './examples/composed'
-import composedCode from './examples/composed.tsx?raw'
+import { Example, RelatedPages } from './doc-components'
+import { CustomTriggerPhoto } from './examples/custom-trigger-photo'
+import exampleCode from './examples/custom-trigger-photo.tsx?raw'
+import exampleStyles from './examples/custom-trigger-photo.css?raw'
 
 Compose a zoom button with your own label, styles, and markup using `<ImageZoom.Root>`, `<ImageZoom.Trigger>`, and `<ImageZoom.Image>`.
 
-<Example code={composedCode} title="composed-photo.tsx">
-  <ComposedPhoto />
+<Example
+  code={exampleCode}
+  title="custom-trigger-photo.tsx"
+  styles={{ code: exampleStyles, title: 'custom-trigger-photo.css' }}
+>
+  <CustomTriggerPhoto />
 </Example>
 
 ## Compose the button
 
-Import the components as a namespace, as shown in the example’s Code view.
+Put the image and button inside the same `<ImageZoom.Root>`. They can be siblings, so the button can sit beside or below the image:
 
-The example adds visible “View photo” text inside the button. Its `aria-label` includes that text and identifies the image.
+```tsx
+import * as ImageZoom from '@/components/ui/image-zoom'
 
-## Style the trigger
-
-`className` on `<ImageZoom.Trigger>` styles the button. `className` on `<ImageZoom.Image>` styles the image. Position labels or badges relative to the button:
-
-```css
-.photo-trigger {
-  position: relative;
-  padding: 0;
-  border: 0;
-  border-radius: 6px;
-}
-
-.photo-trigger img {
-  display: block;
-  max-width: 100%;
-  height: auto;
-  border-radius: inherit;
-}
-
-.photo-trigger span {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  background: #fff;
-  color: #18181b;
+export function Photo() {
+  return (
+    <ImageZoom.Root>
+      <ImageZoom.Image src="/photo.jpg" alt="Ocean sunset" />
+      <ImageZoom.Trigger aria-label="View photo: ocean sunset">
+        View photo
+      </ImageZoom.Trigger>
+    </ImageZoom.Root>
+  )
 }
 ```
 
-Keep other interactive elements, such as links or buttons, outside the trigger.
+The button's accessible name includes its visible “View photo” label and identifies the image. Keep other buttons and links outside the trigger.
+
+## Style the trigger
+
+The example places the button in a caption row below the image. Use `className` on `<ImageZoom.Trigger>` to style the button independently. The Code view includes the complete stylesheet.
 
 <div id="props" />
 
 ## Related pages
 
-The [composition API reference](/docs/reference/react/composition/) lists the primitives' props, defaults, and refs. [Controlled state](/docs/guides/controlled-state/) shows how to open an image from another button.
+<RelatedPages
+  pages={[
+    '/docs/reference/react/composition/',
+    '/docs/guides/controlled-state/',
+  ]}
+/>

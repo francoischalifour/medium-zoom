@@ -34,6 +34,9 @@ test('aliases, keyboard selection, empty state, and modal accessibility', async 
   await page.goto('/docs/react/')
   await page.getByRole('button', { name: /Search docs/ }).click()
   const search = page.getByRole('combobox')
+  await search.fill('toggle')
+  await expect(page.getByRole('option').first()).toContainText('toggle()')
+  await expect(page.getByRole('option', { name: /Switch to .* theme/ })).toHaveCount(0)
   await search.fill('nextjs')
   await expect(page.getByRole('option').first()).toContainText('Server rendering')
   await search.fill('high resolution')
@@ -43,7 +46,7 @@ test('aliases, keyboard selection, empty state, and modal accessibility', async 
   await expect(page.getByRole('option', { name: /Ask ChatGPT/ })).toBeVisible()
   await expect(page.getByRole('dialog').getByRole('status')).toHaveText('0 matches')
   await expect(page.getByRole('option')).toHaveCount(2)
-  await expect(page.getByRole('option', { name: 'Ask ChatGPT', exact: true })).toBeVisible()
+  await expect(page.getByRole('option', { name: /^Ask ChatGPT/ })).toBeVisible()
   await expect(page.getByRole('dialog')).toBeVisible()
   const emptyReport = await new AxeBuilder({ page }).include('dialog').analyze()
   expect(emptyReport.violations).toEqual([])
@@ -63,9 +66,8 @@ test('the theme action updates the control and persists across reloads', async (
   await page.getByRole('button', { name: /Search docs/ }).click()
   await page.getByRole('combobox').fill('theme')
   await page.getByRole('option', { name: 'Switch to dark theme' }).click()
-  await expect(page.getByRole('dialog').getByRole('status')).toHaveText('Switched to dark theme')
-  await expect(page.getByRole('option', { name: 'Switch to light theme' })).toBeVisible()
-  await page.getByRole('button', { name: 'Close search' }).click()
+  await expect(page.getByRole('dialog')).not.toBeVisible()
+  await expect(page.getByRole('button', { name: /Search docs/ })).toBeFocused()
   await expect(page.getByRole('button', { name: 'Switch to light theme' })).toBeVisible()
   await page.reload()
   await expect(page.getByRole('button', { name: 'Switch to light theme' })).toBeVisible()
@@ -117,6 +119,9 @@ for (const [name, hostname, pathname] of [
     await expect(page.getByRole('option', { name: `Ask ${name}` })).toHaveCount(0)
     const question = 'How do I control React zoom state? & preserve focus #1'
     await page.getByRole('combobox').fill(question)
+    await expect(
+      page.getByRole('option', { name: `Ask ${name}` }).locator('.command-detail')
+    ).toHaveText(question)
     const popupPromise = page.waitForEvent('popup')
     if (name === 'ChatGPT') {
       await page.keyboard.press('Enter')
@@ -200,14 +205,14 @@ test('search URLs preserve page context and reopen the same query', async ({ pag
 
 test('browser Back and Forward restore search and its destination', async ({ page }) => {
   await page.goto('/docs/?q=galleries')
-  await expect(page.getByRole('option').first()).toHaveAccessibleName(/^Galleries/)
+  await expect(page.getByRole('option').first()).toHaveAccessibleName(/^Multiple images/)
   await page.getByRole('combobox').press('Enter')
-  await expect(page).toHaveURL(/\/docs\/guides\/galleries\/$/)
+  await expect(page).toHaveURL(/\/docs\/guides\/multiple-images\/$/)
   await page.goBack()
   await expect(page.getByRole('combobox')).toHaveValue('galleries')
   await page.goForward()
-  await expect(page).toHaveURL(/\/docs\/guides\/galleries\/$/)
-  await expect(page.getByRole('heading', { level: 1, name: 'Galleries' })).toBeVisible()
+  await expect(page).toHaveURL(/\/docs\/guides\/multiple-images\/$/)
+  await expect(page.getByRole('heading', { level: 1, name: 'Multiple images' })).toBeVisible()
 })
 
 test('documentation results support opening in another tab', async ({ page, context }) => {
@@ -233,4 +238,105 @@ test('the search action keeps its accessible name at full and compact widths', a
     await expect(search).toHaveAccessibleName('Search docs')
     await expect(search).toHaveAttribute('aria-keyshortcuts', /^(Meta|Control)\+K$/)
   }
+})
+
+test('the palette stays near the top as results change and fits short viewports', async ({
+  page,
+}) => {
+  for (const viewport of [
+    { width: 1_280, height: 900 },
+    { width: 982, height: 776 },
+    { width: 740, height: 320 },
+    { width: 390, height: 700 },
+  ]) {
+    await page.setViewportSize(viewport)
+    await page.goto('/docs/')
+    await page.getByRole('button', { name: /Search docs/ }).click()
+    const dialog = page.getByRole('dialog')
+    const initial = (await dialog.boundingBox())!
+    const inset = viewport.width <= 680 ? 16 : Math.min(viewport.height * 0.08, 64)
+    expect(Math.abs(initial.y - inset)).toBeLessThan(2)
+    expect(initial.y + initial.height).toBeLessThanOrEqual(viewport.height - 15)
+    await page.getByRole('combobox').fill('no matching documentation page')
+    await expect(page.getByText('No matches found', { exact: true })).toBeVisible()
+    expect((await dialog.boundingBox())!.y).toBe(initial.y)
+    await expect(page.getByRole('combobox')).toBeFocused()
+  }
+})
+
+test('search header focuses the input and install actions explain their purpose without metadata', async ({
+  page,
+}) => {
+  await page.goto('/docs/')
+  await page.getByRole('button', { name: /Search docs/ }).click()
+  const input = page.getByRole('combobox')
+  const close = page.getByRole('button', { name: 'Close search' })
+  await close.focus()
+  await page.locator('.command-search > svg').click()
+  await expect(input).toBeFocused()
+  await close.focus()
+  await page.locator('.command-search').click({ position: { x: 8, y: 28 } })
+  await expect(input).toBeFocused()
+  await expect(
+    page.getByRole('option', { name: 'Copy React install command with shadcn/ui', exact: true })
+  ).toBeVisible()
+  await expect(page.locator('.command-action .command-detail')).toHaveCount(0)
+  await input.fill('Copy React install command with shadcn/ui')
+  await expect(page.getByRole('option').first()).toHaveAccessibleName(
+    'Copy React install command with shadcn/ui'
+  )
+  await close.click()
+  await expect(page.getByRole('dialog')).not.toBeVisible()
+})
+
+for (const dark of [false, true]) {
+  test(`result and footer shortcuts share keycap styling in ${dark ? 'dark' : 'light'} mode`, async ({
+    page,
+  }) => {
+    await page.goto('/docs/')
+    await page.evaluate(dark => document.documentElement.classList.toggle('dark', dark), dark)
+    await page.getByRole('button', { name: /Search docs/ }).click()
+    await expect(page.getByRole('option', { name: /JavaScript quickstart/ })).toBeVisible()
+    const keycaps = page.locator('.command-enter, .command-footer kbd')
+    const styles = await keycaps.evaluateAll(keys =>
+      keys.map(key => {
+        const style = getComputedStyle(key)
+        return [
+          key.tagName,
+          style.backgroundImage,
+          style.borderColor,
+          style.boxShadow,
+          style.borderRadius,
+        ]
+      })
+    )
+    expect(styles.length).toBeGreaterThan(1)
+    for (const style of styles) {
+      expect(style).toEqual(styles[0])
+    }
+  })
+}
+
+test('the command menu locks page scrolling while its results remain scrollable', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 740, height: 320 })
+  await page.goto('/docs/')
+  await page.evaluate(() => window.scrollTo(0, 300))
+  await page.getByRole('button', { name: /Search docs/ }).click()
+  await expect(page.getByRole('option', { name: /JavaScript quickstart/ })).toBeVisible()
+  const scrollBefore = await page.evaluate(() => window.scrollY)
+  await page.mouse.move(5, 315)
+  await page.mouse.wheel(0, 200)
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(scrollBefore)
+  const results = page.locator('.command-results')
+  await results.hover()
+  await page.mouse.wheel(0, 200)
+  await expect.poll(() => results.evaluate(element => element.scrollTop)).toBeGreaterThan(0)
+  expect(await page.evaluate(() => window.scrollY)).toBe(scrollBefore)
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog')).not.toBeVisible()
+  await page.mouse.move(5, 315)
+  await page.mouse.wheel(0, 200)
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(scrollBefore)
 })

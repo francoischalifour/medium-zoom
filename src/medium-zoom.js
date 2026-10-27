@@ -553,6 +553,21 @@ const mediumZoom = (selector, options = {}) => {
   let zoomOptions = options
   let active = {}
 
+  const zoom = {
+    open,
+    close,
+    toggle,
+    update,
+    clone,
+    attach,
+    detach,
+    on,
+    off,
+    getOptions,
+    getImages,
+    getZoomedImage,
+  }
+
   // If the selector is omitted, it's replaced by the options
   if (Object.prototype.toString.call(selector) === '[object Object]') {
     zoomOptions = selector
@@ -574,21 +589,6 @@ const mediumZoom = (selector, options = {}) => {
   }
 
   const overlay = createOverlay(zoomOptions.background)
-
-  const zoom = {
-    open,
-    close,
-    toggle,
-    update,
-    clone,
-    attach,
-    detach,
-    on,
-    off,
-    getOptions,
-    getImages,
-    getZoomedImage,
-  }
 
   return zoom
 }

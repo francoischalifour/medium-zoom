@@ -1,8 +1,9 @@
 import { Children, isValidElement, type ReactNode } from 'react'
 
 import { ScrollArea } from '../scroll-area'
+import { SiteLink } from '../site-components'
 import { SiteHeader, SiteFooter, SectionLinks } from '../site-shell'
-import { CodeFence } from './doc-components'
+import { CodeFence, PageNavigationCards } from './doc-components'
 import { docsPages, headingId } from './pages'
 import { useDocsNavigation } from './use-docs-navigation'
 
@@ -45,8 +46,9 @@ export function DocsPage({ path }: { path: string }) {
   }
   const { default: Content, outline } = pageContent[`./${page.source}`]
   const isOverview = page.path === '/docs/'
-  const isReference = page.group === 'JavaScript reference' || page.group === 'React reference'
-  const related = docsPages.filter(item => item.group === page.group && item.path !== path)
+  const index = docsPages.findIndex(item => item.path === path)
+  const previous = docsPages[index - 1]
+  const next = docsPages[index + 1]
   const navigation = (
     <nav aria-label="Documentation">
       {[...new Set(docsPages.map(item => item.group))].map(group => (
@@ -119,30 +121,16 @@ export function DocsPage({ path }: { path: string }) {
               <p>{page.group}</p>
               <h1>{page.title}</h1>
             </header>
-            <Content components={{ h2: ArticleHeading, pre: CodeFence }} />
-            <p className="docs-updated">
-              By <a href="https://francoischalifour.com">François Chalifour</a>
-              {' · Updated '}
-              <time dateTime={page.updatedOn}>
-                {new Intl.DateTimeFormat('en', {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric',
-                  timeZone: 'UTC',
-                }).format(new Date(page.updatedOn))}
-              </time>
-            </p>
+            <Content components={{ h2: ArticleHeading, pre: CodeFence, a: SiteLink }} />
           </article>
-          {isReference && (
-            <nav className="docs-related" aria-label="Related reference">
-              <p>Related reference</p>
-              <div>
-                {related.map(item => (
-                  <a key={item.path} href={item.path}>
-                    {item.title}
-                  </a>
-                ))}
-              </div>
+          {(previous || next) && (
+            <nav className="docs-pagination" aria-label="Documentation pages">
+              <PageNavigationCards
+                pages={[
+                  ...(previous ? [{ path: previous.path, direction: 'prev' as const }] : []),
+                  ...(next ? [{ path: next.path, direction: 'next' as const }] : []),
+                ]}
+              />
             </nav>
           )}
         </main>

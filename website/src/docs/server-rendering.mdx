@@ -14,18 +14,46 @@ export default function Page() {
       alt="A mountain at sunrise"
       width={1_200}
       height={800}
+      options={{ margin: 32, background: '#15171c' }}
     />
   )
 }
 ```
 
-The installed component defines its own client boundary. You can keep the surrounding page on the server and pass image props and serializable options through that boundary.
+The installed component defines its own client boundary. The surrounding page can stay on the server: its props are data that React can send to the browser. Here, `src` and `alt` are strings, the dimensions are numbers, and `options` is a plain object containing numbers and strings.
 
 ## Client state and handlers
 
-When your module uses React state or event handlers, add `'use client'` to that module. See [Controlled state](/docs/guides/controlled-state/) for a complete example with `useState()`.
+An ordinary event-handler function cannot be passed from a Server Component to a client component. To open the image from a button, define the state and its callback in a client component:
 
-In a Server Component, pass serializable values such as numbers, strings, and plain option objects. Create DOM elements and event handlers on the client.
+```tsx
+'use client'
+
+import { useState } from 'react'
+import {
+  ImageZoom,
+  type ImageZoomProps,
+} from '@/components/ui/image-zoom'
+
+type PhotoPreviewProps = Omit<ImageZoomProps, 'open' | 'onOpenChange'>
+
+export function PhotoPreview(props: PhotoPreviewProps) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div>
+      <button type="button" onClick={() => setOpen(true)}>
+        Preview photo
+      </button>
+      <ImageZoom {...props} open={open} onOpenChange={setOpen} />
+    </div>
+  )
+}
+```
+
+Render `PhotoPreview` from your Server Component with the same image props as the first example. `setOpen` and the click handler are created in the browser instead of being passed from the server.
+
+A DOM element also belongs to the browser. If you use the `container` option from a Server Component, pass a selector such as `'#viewer'`; create an element reference in client code. The [controlled state guide](/docs/guides/controlled-state/) shows a complete interactive inspector.
 
 ## Server-side rendering
 

@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as ImageZoom from '../../examples/shadcn/src/components/ui/image-zoom'
 import { galleryImages, type ExampleImage, usageCode, getPreviewImageProps } from './gallery'
 import { trackSiteEvent } from './site-analytics'
-import { CopyButton, HighlightedCode, ZoomControls } from './site-components'
+import { CopyButton, HighlightedCode, SiteLink, ZoomControls } from './site-components'
 import { TabList } from './site-tabs'
 
 function ExampleCard({
@@ -35,14 +35,14 @@ function ExampleCard({
           ]}
         />
         {image.credit ? (
-          <a
+          <SiteLink
             className="example-kind"
             href={image.credit.url}
             aria-label={`Source: ${image.credit.name}, ${image.credit.author}`}
             title={image.credit.author}
           >
-            Source: {image.credit.name} <span aria-hidden="true">↗</span>
-          </a>
+            Source: {image.credit.name}
+          </SiteLink>
         ) : (
           <span className="example-kind">{image.label}</span>
         )}

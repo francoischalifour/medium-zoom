@@ -4,7 +4,7 @@ import { getCommandGroups, commandVerbs, type CommandItem } from './command-item
 import { getSearchTerms, type SearchEntry } from './docs-search'
 import { usePackageManager } from './package-manager'
 import { trackInstallCopied } from './site-analytics'
-import { Icon } from './site-components'
+import { Icon, Kbd } from './site-components'
 import type { SitePage } from './site-data'
 import { getTheme, getServerTheme, setTheme, subscribeTheme } from './site-theme'
 
@@ -38,7 +38,9 @@ function CommandOption({
   onSelect: () => void
   onActivate: () => void
 }) {
-  const isLink = command.kind === 'navigate' || command.kind === 'chat'
+  const isChat = command.kind === 'chat'
+  const isLink = command.kind === 'navigate' || isChat
+  const resultClass = isChat ? 'command-chat' : isLink ? '' : 'command-action'
   const OptionElement = isLink ? 'a' : 'button'
   return (
     <OptionElement
@@ -48,9 +50,9 @@ function CommandOption({
       tabIndex={-1}
       type={isLink ? undefined : 'button'}
       href={isLink ? command.url : undefined}
-      target={command.kind === 'chat' ? '_blank' : undefined}
-      rel={command.kind === 'chat' ? 'noopener noreferrer' : undefined}
-      className={`command-result${command.kind === 'chat' ? ' command-chat' : command.kind === 'navigate' ? '' : ' command-action'}`}
+      target={isChat ? '_blank' : undefined}
+      rel={isChat ? 'noopener noreferrer' : undefined}
+      className={`command-result ${resultClass}`}
       onMouseDown={event => {
         if (event.button === 0) {
           event.preventDefault()
@@ -68,20 +70,20 @@ function CommandOption({
         </span>
         {command.detail && (
           <span className="command-detail">
-            <Highlight text={command.detail} query={query} />
+            {isChat ? command.detail : <Highlight text={command.detail} query={query} />}
           </span>
         )}
-        {query.trim() && command.description && (
+        {command.description && (
           <span className="command-description">
             <Highlight text={command.description} query={query} />
           </span>
         )}
       </span>
       <span className="command-result-tail" aria-hidden="true">
-        {command.kind === 'chat' ? (
+        {isChat ? (
           <Icon name="external" className="command-external" />
         ) : (
-          <span className="command-enter">↵</span>
+          <Kbd className="command-enter">⏎</Kbd>
         )}
       </span>
     </OptionElement>
@@ -111,10 +113,9 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
   const [activeIndex, setActiveIndex] = React.useState(0)
   const [entries, setEntries] = React.useState<SearchEntry[] | null>(null)
   const [loadError, setLoadError] = React.useState(false)
-  const [status, setStatus] = React.useState('')
   const [mac, setMac] = React.useState(false)
   const dark = React.useSyncExternalStore(subscribeTheme, getTheme, getServerTheme)
-  const manager = usePackageManager()
+  const packageManager = usePackageManager()
   const id = React.useId()
 
   function show(value = new URLSearchParams(window.location.search).get('q') ?? '') {
@@ -127,7 +128,6 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
     }
     setQuery(value)
     setActiveIndex(0)
-    setStatus('')
     input.current?.focus()
     setOpen(true)
   }
@@ -214,14 +214,14 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
     entries: entries ?? [],
     query,
     framework,
-    packageManager: manager,
+    packageManager,
     dark,
   })
   const commands = groups.flatMap(group => group.items)
   const matchCount = commands.filter(command => command.kind !== 'chat').length
   const noMatches = entries !== null && Boolean(query.trim()) && matchCount === 0
-  const selected = Math.min(activeIndex, Math.max(0, commands.length - 1))
-  const selectedCommand = commands[selected]
+  const selectedIndex = Math.min(activeIndex, Math.max(0, commands.length - 1))
+  const selectedCommand = commands[selectedIndex]
   const selectedId = selectedCommand ? `${id}-${selectedCommand.id}` : undefined
 
   React.useEffect(() => {
@@ -238,18 +238,57 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
         break
       case 'theme':
         setTheme(command.dark)
-        setStatus(`Switched to ${command.dark ? 'dark' : 'light'} theme`)
+        close()
         break
       case 'copy':
         try {
-          await navigator.clipboard.writeText(command.text)
+          const copied = navigator.clipboard.writeText(command.text)
+          close()
+          await copied
           trackInstallCopied()
-          setStatus('Copied to clipboard')
         } catch {
-          setStatus(`Could not copy. Select and copy this command: ${command.text}`)
+          close()
         }
         break
     }
+  }
+
+  function handleSearchKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.nativeEvent.isComposing) {
+      return
+    }
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      if (selectedId) {
+        document.getElementById(selectedId)?.click()
+      }
+      return
+    }
+    if (!commands.length) {
+      return
+    }
+
+    let nextIndex: number
+    switch (event.key) {
+      case 'ArrowDown':
+        nextIndex = (selectedIndex + 1) % commands.length
+        break
+      case 'ArrowUp':
+        nextIndex = (selectedIndex + commands.length - 1) % commands.length
+        break
+      case 'Home':
+      case 'End':
+        // Unmodified Home and End retain their normal text-editing behavior.
+        if (!(event.ctrlKey || event.metaKey)) {
+          return
+        }
+        nextIndex = event.key === 'Home' ? 0 : commands.length - 1
+        break
+      default:
+        return
+    }
+    event.preventDefault()
+    setActiveIndex(nextIndex)
   }
 
   return (
@@ -266,7 +305,7 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
       >
         <Icon name="search" />
         <span>Search docs</span>
-        <kbd aria-hidden="true">{mac ? '⌘' : 'Ctrl'} K</kbd>
+        <Kbd aria-hidden="true">{mac ? '⌘' : 'Ctrl'} K</Kbd>
       </button>
       <dialog
         ref={dialog}
@@ -285,7 +324,18 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
         }}
       >
         <div className="command-panel">
-          <div className="command-search">
+          <div
+            className="command-search"
+            onClick={event => {
+              if (
+                !(event.target as Element).closest(
+                  'input, button, a, select, textarea, [contenteditable="true"]'
+                )
+              ) {
+                input.current?.focus()
+              }
+            }}
+          >
             <Icon name="search" />
             <input
               ref={input}
@@ -301,39 +351,8 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
               onChange={event => {
                 setQuery(event.target.value)
                 setActiveIndex(0)
-                setStatus('')
               }}
-              onKeyDown={event => {
-                if (event.nativeEvent.isComposing) {
-                  return
-                }
-                if (
-                  ['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key) &&
-                  commands.length
-                ) {
-                  // Home/End retain normal text editing unless combined with Control/Command.
-                  if (
-                    (event.key === 'Home' || event.key === 'End') &&
-                    !(event.ctrlKey || event.metaKey)
-                  ) {
-                    return
-                  }
-                  event.preventDefault()
-                  setActiveIndex(
-                    event.key === 'Home'
-                      ? 0
-                      : event.key === 'End'
-                        ? commands.length - 1
-                        : (selected + (event.key === 'ArrowDown' ? 1 : -1) + commands.length) %
-                          commands.length
-                  )
-                } else if (event.key === 'Enter') {
-                  event.preventDefault()
-                  if (selectedId) {
-                    document.getElementById(selectedId)?.click()
-                  }
-                }
-              }}
+              onKeyDown={handleSearchKeyDown}
             />
             <button
               className="command-dismiss"
@@ -382,20 +401,16 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
               </div>
             ))}
           </div>
-          {status && (
-            <div className="command-feedback" role="status">
-              {status}
-            </div>
-          )}
           <footer className="command-footer">
             <span>
-              <kbd>↑</kbd>
-              <kbd>↓</kbd> Navigate
+              <Kbd>↑</Kbd>
+              <Kbd>↓</Kbd> Navigate
             </span>
             <span>
-              <kbd>↵</kbd> {selectedCommand ? commandVerbs[selectedCommand.kind] : 'Open'}
+              <Kbd aria-label="Enter">⏎</Kbd>{' '}
+              {selectedCommand ? commandVerbs[selectedCommand.kind] : 'Open'}
             </span>
-            <span className="command-count" role={status ? undefined : 'status'}>
+            <span className="command-count" role="status">
               {entries
                 ? query.trim()
                   ? `${matchCount} ${matchCount === 1 ? 'match' : 'matches'}`

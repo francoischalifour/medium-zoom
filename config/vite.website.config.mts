@@ -17,9 +17,8 @@ import { siteRedirects } from '../website/build/site-redirects.ts'
 import { siteStyles } from '../website/build/site-styles.ts'
 import { libraryConfig } from './vite.shared.config.mts'
 
-export default mergeConfig(
-  libraryConfig,
-  defineConfig({
+export default defineConfig(({ command }) =>
+  mergeConfig(libraryConfig, {
     define: {
       __MEDIUM_ZOOM_VERSION__: JSON.stringify(packageJson.version),
       __MEDIUM_ZOOM_GZIP_BYTES__: gzipSync(
@@ -47,6 +46,10 @@ export default mergeConfig(
     ],
     resolve: {
       alias: {
+        // Package rebuilds temporarily remove dist/; development follows source.
+        ...(command === 'serve'
+          ? { 'medium-zoom': fileURLToPath(new URL('../src/index.js', import.meta.url)) }
+          : {}),
         '@/components/ui/image-zoom': fileURLToPath(
           new URL('../examples/shadcn/src/components/ui/image-zoom.tsx', import.meta.url)
         ),

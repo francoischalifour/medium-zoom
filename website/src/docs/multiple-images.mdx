@@ -1,0 +1,86 @@
+import { Example, RelatedPages } from './doc-components'
+import { MultipleImages } from './examples/multiple-images'
+import exampleCode from './examples/multiple-images.tsx?raw'
+import exampleStyles from './examples/multiple-images.css?raw'
+
+Make several images zoomable without changing the page’s layout. Each image opens independently.
+
+<Example
+  code={exampleCode}
+  title="multiple-images.tsx"
+  styles={{ code: exampleStyles, title: 'multiple-images.css' }}
+>
+  <MultipleImages />
+</Example>
+
+## JavaScript
+
+Attach several images with one instance:
+
+```html
+<div class="photo-gallery">
+  <img src="/ocean.jpg" alt="Ocean sunset" data-zoomable />
+  <img src="/mountain.jpg" alt="Denali at sunrise" data-zoomable />
+  <img
+    src="/yellowstone.jpg"
+    alt="Yellowstone at sunrise"
+    data-zoomable
+  />
+  <img src="/aurora.jpg" alt="Aurora over Yellowstone" data-zoomable />
+</div>
+```
+
+```js
+import mediumZoom from 'medium-zoom'
+
+const zoom = mediumZoom('.photo-gallery [data-zoomable]')
+```
+
+After adding images to the page, attach them to the instance:
+
+```js
+zoom.attach('.photo-gallery [data-zoomable]')
+```
+
+An image is attached once, even when it matches the selector again. See [`attach()`](/docs/reference/javascript/methods/#attach) and [`detach()`](/docs/reference/javascript/methods/#detach) for image lifecycle handling.
+
+## React
+
+Render one `<ImageZoom>` per image. With composition, use a separate `<ImageZoom.Root>` for each image.
+
+```tsx
+import { ImageZoom } from '@/components/ui/image-zoom'
+
+const photos = [
+  {
+    src: '/ocean.jpg',
+    alt: 'Ocean sunset',
+    width: 1_920,
+    height: 1_280,
+  },
+  {
+    src: '/mountain.jpg',
+    alt: 'Denali at sunrise',
+    width: 2_400,
+    height: 1_594,
+  },
+]
+
+export function MultipleImages() {
+  return (
+    <div className="photo-gallery">
+      {photos.map(photo => (
+        <ImageZoom key={photo.src} {...photo} />
+      ))}
+    </div>
+  )
+}
+```
+
+Set the grid layout in CSS. Close the current zoom before opening another image.
+
+## Related pages
+
+<RelatedPages
+  pages={['/docs/guides/hd-images/', '/docs/guides/styling/']}
+/>

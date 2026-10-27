@@ -1,0 +1,35 @@
+.custom-trigger-example {
+  max-width: 320px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.custom-trigger-example img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+
+.custom-trigger-example figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+  font-size: 13px;
+}
+
+.custom-trigger-example figcaption .photo-action {
+  display: inline-flex;
+  max-width: none;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--border, #e4e4e7);
+  border-radius: 6px;
+  background: var(--background, #fff);
+  color: var(--foreground, #18181b);
+  font: inherit;
+  white-space: nowrap;
+}

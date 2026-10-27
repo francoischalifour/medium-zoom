@@ -1,8 +1,9 @@
 import mediumZoom, { type Zoom } from 'medium-zoom'
 import * as React from 'react'
 
-import { CopyButton, HighlightedCode, ZoomControls } from '../site-components'
+import { CopyButton, HighlightedCode, Icon, ZoomControls } from '../site-components'
 import { TabList } from '../site-tabs'
+import { docsPages } from './pages'
 
 export function DocCode({ code, title = 'Example' }: { code: string; title?: string }) {
   const snippet = code.trim()
@@ -176,5 +177,72 @@ export function JavaScriptPreview() {
         />
       </button>
     </Preview>
+  )
+}
+
+type DocsPath = (typeof docsPages)[number]['path']
+
+export function PageNavigationCards({
+  pages,
+}: {
+  pages: readonly { path: DocsPath; direction: 'prev' | 'next' }[]
+}) {
+  return (
+    <ul className="docs-page-cards">
+      {pages.map(({ path, direction }) => {
+        const page = docsPages.find(page => page.path === path)!
+        return (
+          <li key={path} className={`docs-page-card--${direction}`}>
+            <a href={path} rel={direction} data-direction={direction}>
+              <span className="docs-page-direction">
+                {direction === 'prev' ? 'Previous' : 'Next'}
+              </span>
+              <strong>{page.title}</strong>
+              <span>{page.summary}</span>
+              <Icon name="arrow" />
+            </a>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+export function RelatedPages({ pages }: { pages: readonly DocsPath[] }) {
+  return (
+    <nav aria-label="Related pages">
+      <ul className="docs-related-pages">
+        {pages.map(path => {
+          const page = docsPages.find(page => page.path === path)!
+          return (
+            <li key={path}>
+              <a href={path}>{page.title}</a>
+              <span>{page.summary}</span>
+            </li>
+          )
+        })}
+      </ul>
+    </nav>
+  )
+}
+
+const supportedBrowsers = [
+  { name: 'Chrome', version: 36 },
+  { name: 'Firefox', version: 34 },
+  { name: 'Safari', version: 9 },
+  { name: 'Edge', version: 12 },
+  { name: 'Internet Explorer', version: 10 },
+]
+
+export function BrowserSupport() {
+  return (
+    <dl className="docs-browser-support" aria-label="Minimum browser versions">
+      {supportedBrowsers.map(browser => (
+        <div key={browser.name}>
+          <dt>{browser.name}</dt>
+          <dd>{browser.version}+</dd>
+        </div>
+      ))}
+    </dl>
   )
 }

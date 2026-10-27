@@ -613,6 +613,15 @@ kbd {
   font: 500 10px/1.4 var(--font-mono);
   white-space: nowrap;
 }
+:root.dark kbd {
+  border-color: #3c3c43;
+  border-bottom-color: #222226;
+  background: #29292f;
+  color: var(--foreground);
+  box-shadow:
+    0 1px 1px rgb(0 0 0 / 30%),
+    inset 0 1px 0 rgb(255 255 255 / 5%);
+}
 .demo-code {
   min-height: 410px;
   background: var(--surface);
@@ -1517,4 +1526,21 @@ td code {
   font-size: 15px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+}
+
+.external-link-icon {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-inline-start: 0.3em;
+  vertical-align: -0.1em;
+  flex-shrink: 0;
+}
+.button .external-link-icon {
+  margin-inline-start: 0;
+}
+
+.github-link .external-link-icon {
+  width: 12px;
+  height: 12px;
 }

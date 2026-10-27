@@ -28,27 +28,20 @@ test('overview separates quickstarts, task guides, and the two API references', 
   )
 })
 
-test('reference navigation links to named pages in the same API', async ({ page }) => {
-  await page.setViewportSize({ width: 1_440, height: 900 })
-  for (const [path, prefix] of [
-    ['/docs/reference/javascript/options/', '/docs/reference/javascript/'],
-    ['/docs/reference/react/image-zoom/', '/docs/reference/react/'],
-  ]) {
-    await page.goto(path)
-    const links = page.getByRole('navigation', { name: 'Related reference' }).getByRole('link')
-    for (const link of await links.all()) {
-      const href = await link.getAttribute('href')
-      expect(href).toMatch(new RegExp(`^${prefix}`))
-      expect(href).not.toBe(path)
-    }
-    await page
-      .locator('.docs-outline')
-      .getByRole('navigation', { name: 'On this page' })
-      .getByRole('link')
-      .first()
-      .click()
-    await expect(page).toHaveURL(/#.+$/)
-  }
+test('page navigation follows the sidebar across section boundaries', async ({ page }) => {
+  await page.goto('/docs/guides/video/')
+  const navigation = page.getByRole('navigation', { name: 'Documentation pages', exact: true })
+  await expect(navigation.locator('a[rel="prev"]')).toHaveAttribute(
+    'href',
+    '/docs/guides/generated-svg/'
+  )
+  await expect(navigation.locator('a[rel="next"]')).toHaveAttribute(
+    'href',
+    '/docs/guides/custom-react-triggers/'
+  )
+  await navigation.locator('a[rel="next"]').click()
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Custom triggers')
+  await expect(navigation.locator('a[rel="prev"]')).toHaveAttribute('href', '/docs/guides/video/')
 })
 
 test('earlier documentation URLs redirect to their new content owners', async ({
@@ -57,6 +50,7 @@ test('earlier documentation URLs redirect to their new content owners', async ({
 }) => {
   const aliases = [
     ['/docs/basic-usage/', '/docs/javascript/'],
+    ['/docs/guides/galleries/', '/docs/guides/multiple-images/'],
     ['/docs/api/selectors/', '/docs/reference/javascript/medium-zoom/'],
     ['/docs/api/options/', '/docs/reference/javascript/options/'],
     ['/docs/api/methods/', '/docs/reference/javascript/methods/'],
@@ -87,7 +81,7 @@ test('earlier documentation URLs redirect to their new content owners', async ({
 })
 
 test('gallery and HD examples use the documented public components', async ({ page }) => {
-  await page.goto('/docs/guides/galleries/')
+  await page.goto('/docs/guides/multiple-images/')
   const triggers = page.locator('.docs-preview [data-slot="image-zoom-trigger"]')
   await expect(triggers).toHaveCount(4)
   for (const trigger of await triggers.all()) {
@@ -105,4 +99,33 @@ test('gallery and HD examples use the documented public components', async ({ pa
   await hd.evaluate(element => (element as HTMLImageElement).decode())
   await page.keyboard.press('Escape')
   await expect(page.locator('body')).not.toHaveClass(/medium-zoom--opened/)
+})
+
+test('previous and next cards preserve direction and stop only at the sidebar ends', async ({
+  page,
+}) => {
+  await page.goto('/docs/guides/styling/')
+  const navigation = page.getByRole('navigation', { name: 'Documentation pages', exact: true })
+  const previous = navigation.locator('a[rel="prev"]')
+  const next = navigation.locator('a[rel="next"]')
+  await expect(previous).toContainText('Previous')
+  await expect(previous).toContainText('Multiple images')
+  await expect(previous).toHaveAttribute('href', '/docs/guides/multiple-images/')
+  await expect(next).toContainText('Next')
+  await expect(next).toHaveAttribute('href', '/docs/guides/generated-svg/')
+  await expect(previous.locator('svg')).toHaveAttribute('aria-hidden', 'true')
+  await expect(next.locator('svg')).toHaveAttribute('aria-hidden', 'true')
+  await expect(previous.locator('svg')).toHaveCSS('transform', 'matrix(-1, 0, 0, -1, 0, 0)')
+  await previous.click()
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Multiple images')
+  await page.goto('/docs/')
+  const reference = page.getByRole('navigation', { name: 'Documentation pages', exact: true })
+  await expect(reference.locator('a[rel="prev"]')).toHaveCount(0)
+  await expect(reference.locator('a[rel="next"]')).toHaveAttribute('href', '/docs/javascript/')
+  await page.goto('/docs/reference/react/composition/')
+  await expect(reference.locator('a[rel="next"]')).toHaveCount(0)
+  await expect(reference.locator('a[rel="prev"]')).toHaveAttribute(
+    'href',
+    '/docs/reference/react/image-zoom/'
+  )
 })

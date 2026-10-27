@@ -74,7 +74,7 @@ Call `detach()` with no arguments to detach all images:
 zoom.detach()
 ```
 
-If an image in the instance is zoomed, `detach()` starts closing it. `detach` fires on each detached image. To wait for a closing animation, listen for `closed`.
+If the instance has an open image, `detach()` starts closing it. `detach` fires on each detached image. To wait for a closing animation, listen for `closed`.
 
 ## update()
 

@@ -11,7 +11,7 @@ export type SearchEntry = {
 const aliases: Record<string, string> = {
   '/docs/guides/server-rendering/': 'nextjs next.js ssr server components rsc',
   '/docs/guides/hd-images/': 'high resolution high-resolution retina srcset',
-  '/docs/guides/galleries/': 'gallery multiple photos pictures',
+  '/docs/guides/multiple-images/': 'gallery galleries multiple photos pictures',
   '/docs/guides/styling/': 'css styles caption overlay',
   '/docs/javascript/': 'install installation setup vanilla npm',
   '/docs/react/': 'install installation setup shadcn npm',
@@ -28,7 +28,7 @@ export function searchDocs(entries: SearchEntry[], query: string, framework: Sit
       '/docs/javascript/',
       '/docs/react/',
       '/docs/guides/hd-images/',
-      '/docs/guides/galleries/',
+      '/docs/guides/multiple-images/',
       '/docs/reference/react/image-zoom/',
     ]
     return popular.flatMap(path => entries.filter(entry => entry.path === path))

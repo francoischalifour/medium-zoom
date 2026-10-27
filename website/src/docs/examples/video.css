@@ -1,0 +1,14 @@
+.video-poster-trigger {
+  cursor: zoom-in;
+}
+
+.video-poster-trigger:focus-visible {
+  outline: 2px solid var(--ring, currentColor);
+  outline-offset: 4px;
+}
+
+.zoom-video-player {
+  position: absolute;
+  z-index: 52;
+  border-radius: 6px;
+}

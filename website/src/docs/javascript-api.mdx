@@ -29,10 +29,10 @@ import mediumZoom from 'medium-zoom'
 
 const image = document.getElementById('cover')
 
-if (image) {
-  mediumZoom(image)
-}
+mediumZoom(image)
 ```
+
+If the element is missing, `getElementById()` returns `null` and the zoom starts with no attached images.
 
 ## NodeList
 

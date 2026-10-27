@@ -1,3 +1,8 @@
+html:has(.command-palette[open]),
+body:has(.command-palette[open]) {
+  overflow: hidden;
+}
+
 .search-trigger {
   display: flex;
   align-items: center;
@@ -76,14 +81,15 @@
 }
 .command-palette {
   --command-gutter: 20px;
+  --command-top: min(8dvh, 64px);
   --command-muted: #686870;
   --command-match: #086646;
   position: fixed;
   inset: 0;
-  margin: min(16vh, 128px) auto auto;
+  margin: var(--command-top) auto auto;
   width: min(600px, calc(100% - 32px));
   max-width: none;
-  max-height: calc(100dvh - min(16vh, 128px) - 24px);
+  max-height: calc(100dvh - var(--command-top) - 24px);
   padding: 0;
   overflow: hidden;
   border: 1px solid var(--border);
@@ -101,7 +107,7 @@
 .command-palette::backdrop {
   background:
     radial-gradient(
-      ellipse at 50% 16%,
+      ellipse at 50% 8%,
       color-mix(in srgb, var(--foreground) 4%, transparent),
       transparent 70%
     ),
@@ -119,10 +125,11 @@
   align-items: center;
   gap: 12px;
   padding: 0 var(--command-gutter);
-  min-height: 64px;
+  height: 56px;
+  cursor: text;
   border-bottom: 1px solid var(--border);
   color: var(--command-muted);
-  background: linear-gradient(var(--surface), var(--background));
+  background: var(--background);
 }
 .command-search > svg {
   width: 20px;
@@ -131,10 +138,13 @@
 .command-search input {
   width: 100%;
   min-width: 0;
-  height: 62px;
+  align-self: stretch;
+  height: auto;
   padding: 0;
   border: 0;
   outline: none;
+  appearance: none;
+  box-shadow: none;
   font: inherit;
   font-size: 16px;
   letter-spacing: -0.02em;
@@ -164,12 +174,12 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  padding: 6px 8px 8px;
+  padding: 4px 8px 6px;
   min-height: 0;
   max-height: 480px;
 }
 .command-group {
-  padding: 12px calc(var(--command-gutter) - 8px) 6px;
+  padding: 8px calc(var(--command-gutter) - 8px) 4px;
   color: var(--command-muted);
   font-size: 11px;
   font-weight: 500;
@@ -181,8 +191,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 52px;
-  padding: 8px calc(var(--command-gutter) - 8px);
+  min-height: 44px;
+  padding: 6px calc(var(--command-gutter) - 8px);
   border-radius: 7px;
   cursor: pointer;
 }
@@ -247,26 +257,9 @@
   text-decoration-thickness: 1.5px;
   text-underline-offset: 3px;
 }
-.command-action {
-  min-height: 42px;
-  padding-top: 6px;
-  padding-bottom: 6px;
-}
-.command-action .command-result-content {
-  padding-right: 34px;
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-}
 .command-action .command-title {
-  padding-right: 0;
   font-size: 13px;
   font-weight: 400;
-}
-.command-action .command-detail {
-  margin-left: auto;
-  white-space: nowrap;
-  font-size: 10px;
 }
 .command-result-tail {
   position: absolute;
@@ -282,17 +275,8 @@
   visibility: hidden;
 }
 .command-enter {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 22px;
-  height: 22px;
-  margin-left: auto;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--background);
-  color: var(--command-muted);
-  font-size: 12px;
+  width: 20px;
+  height: 20px;
 }
 .command-empty {
   margin: 0;
@@ -314,14 +298,11 @@
 .command-results.is-empty .command-group {
   padding-top: 4px;
 }
-.command-chat {
-  min-height: 44px;
-}
-.command-feedback {
-  padding: 10px var(--command-gutter);
-  border-top: 1px solid var(--border);
-  font-size: 12px;
-  color: var(--foreground);
+.command-chat .command-detail {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
   overflow-wrap: anywhere;
 }
 .command-footer {
@@ -330,7 +311,7 @@
   align-items: center;
   gap: 18px;
   border-top: 1px solid var(--border);
-  padding: 10px var(--command-gutter);
+  padding: 8px var(--command-gutter);
   font-size: 11px;
   line-height: 20px;
   color: var(--command-muted);
@@ -403,14 +384,8 @@
 @media (max-width: 680px) {
   .command-palette {
     --command-gutter: 16px;
-    margin-top: 16px;
+    --command-top: 16px;
     max-height: calc(100dvh - 32px);
-  }
-  .command-action .command-result-content {
-    display: block;
-  }
-  .command-action .command-detail {
-    font-size: 11px;
   }
   .command-footer {
     gap: 12px;
