@@ -514,17 +514,19 @@ test('each quickstart includes installation and a working image', async ({ page 
   }
 })
 
-test('documentation navigation uses background hover states', async ({ page }) => {
+test('sidebar and reference links use distinct hover treatments', async ({ page }) => {
   await page.setViewportSize({ width: 1_440, height: 900 })
   await page.goto('/docs/')
-  for (const link of [
-    page.locator('.docs-sidebar a[href="/docs/javascript/"]'),
-    page.locator('.docs-reference-links a').first(),
-  ]) {
-    await link.hover()
-    await expect(link).toHaveCSS('text-decoration-line', 'none')
-    await expect(link).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
-  }
+  const sidebarLink = page.locator('.docs-sidebar a[href="/docs/javascript/"]')
+  await sidebarLink.hover()
+  await expect(sidebarLink).toHaveCSS('text-decoration-line', 'none')
+  await expect(sidebarLink).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+
+  const referenceLink = page.locator('.docs-reference-links a').first()
+  await expect(referenceLink).toHaveCSS('text-decoration-line', 'none')
+  await referenceLink.hover()
+  await expect(referenceLink).toHaveCSS('text-decoration-line', 'underline')
+  await expect(referenceLink).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
   const articleLink = page.locator('article').getByRole('link', {
     name: 'HD images',
     exact: true,
