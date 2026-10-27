@@ -33,7 +33,7 @@ export async function preparePage(
     bodyStyle = 'margin:32px;min-height:200vh',
   }: PageOptions = {}
 ) {
-  await page.goto('/')
+  await page.goto('/fixture.html')
   await page.setContent(`<!doctype html><html><head>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     </head><body style="${bodyStyle}">${body}</body></html>`)
@@ -48,7 +48,7 @@ export async function loadBundle(
   const url = `/${distribution}/dist/${file}`
   if (format === 'esm') {
     await page.evaluate(async url => {
-      const { default: mediumZoom } = (await import(url)) as typeof import('../../src/medium-zoom')
+      const { default: mediumZoom } = (await import(url)) as typeof import('medium-zoom')
       window.mediumZoom = mediumZoom
     }, url)
   } else {
@@ -82,8 +82,9 @@ export async function decodeImages(images: Locator) {
 }
 
 export async function finishAnimations(page: Page) {
+  // Theme and layout changes can cancel transitions; both outcomes finish the wait.
   await page.evaluate(() =>
-    Promise.all(
+    Promise.allSettled(
       document
         .getAnimations()
         .filter(animation => animation.timeline === document.timeline)
@@ -116,7 +117,7 @@ export async function openImage(
     via = 'click',
     trigger = image,
   }: {
-    via?: 'click' | 'tap'
+    via?: 'click' | 'tap' | 'keyboard'
     trigger?: Locator
   } = {}
 ) {
@@ -130,14 +131,26 @@ export async function openImage(
       { once: true }
     )
   })
-  await trigger[via]()
+  if (via === 'keyboard') {
+    await trigger.focus()
+    await page.keyboard.press('Enter')
+  } else {
+    await trigger[via]()
+  }
   await expect(page.locator('html')).toHaveAttribute('data-opened', 'true')
   await expect(page.locator('.medium-zoom-image--opened').first()).toBeVisible()
 }
 
-export function observeErrors(page: Page) {
+export function observeErrors(page: Page, { includeConsole = false } = {}) {
   const errors: string[] = []
   page.on('pageerror', error => errors.push(error.message))
+  if (includeConsole) {
+    page.on('console', message => {
+      if (message.type() === 'error') {
+        errors.push(message.text())
+      }
+    })
+  }
   return errors
 }
 

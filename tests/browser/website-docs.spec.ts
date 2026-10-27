@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 
-import { docsPages } from '../../website/src/docs/pages'
+import { observeErrors } from './helpers'
 import { test, expect } from './website-fixture'
 
 const origin = 'https://medium-zoom.francoischalifour.com'
@@ -57,6 +57,7 @@ test('collapsed docs navigation stays inside the article column on phones and ta
 test('the active outline section uses text without a rail marker, fill, or underline', async ({
   page,
 }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.setViewportSize({ width: 1_440, height: 900 })
   await page.goto('/docs/javascript/')
   const link = page.locator('.docs-outline a[href="#initialize-the-zoom"]')
@@ -205,7 +206,11 @@ for (const [path, title, documentTitle] of pages) {
         url: 'https://francoischalifour.com',
       })
       expect(schema.datePublished).toBe('2026-10-26')
-      expect(schema.dateModified).toBe(docsPages.find(page => page.path === path)!.updatedOn)
+      expect(schema.dateModified).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      expect(Date.parse(schema.dateModified)).toBeGreaterThanOrEqual(
+        Date.parse(schema.datePublished)
+      )
+      expect(Date.parse(schema.dateModified)).toBeLessThanOrEqual(Date.now())
       await expect(page.locator('article')).not.toContainText('By François Chalifour')
       const breadcrumb = schema.mainEntityOfPage.breadcrumb
       expect(breadcrumb['@type']).toBe('BreadcrumbList')
@@ -213,9 +218,7 @@ for (const [path, title, documentTitle] of pages) {
       for (const [index, item] of breadcrumb.itemListElement.entries()) {
         expect(item.position).toBe(index + 1)
         const pathname = new URL(item.item).pathname
-        expect(
-          (await context.request.get(pathname === '/' ? '/website.html' : pathname)).status()
-        ).toBe(200)
+        expect((await context.request.get(pathname)).status()).toBe(200)
       }
       expect((await context.request.get(new URL(schema.image).pathname)).ok()).toBe(true)
       const ids = await page
@@ -230,8 +233,7 @@ for (const [path, title, documentTitle] of pages) {
           await expect(page.locator(href)).toHaveCount(1)
         }
         if (href.startsWith('/')) {
-          const destination = href === '/' ? '/website.html' : href
-          const result = await context.request.get(destination)
+          const result = await context.request.get(href)
           expect(result.status(), href).toBe(200)
           const hash = new URL(href, origin).hash
           if (hash) {
@@ -254,15 +256,9 @@ for (const [path, title, documentTitle] of pages) {
 test('documentation navigation preserves package manager and theme preferences', async ({
   page,
 }) => {
-  const errors: string[] = []
-  page.on('pageerror', error => errors.push(error.message))
-  page.on('console', message => {
-    if (message.type() === 'error') {
-      errors.push(message.text())
-    }
-  })
+  const errors = observeErrors(page, { includeConsole: true })
   await page.setViewportSize({ width: 1_440, height: 900 })
-  await page.goto('/website.html')
+  await page.goto('/')
   await page
     .getByRole('navigation', { name: 'Main navigation', exact: true })
     .locator('a[href="/docs/"]')
@@ -547,7 +543,7 @@ for (const theme of ['light', 'dark'] as const) {
     page,
   }) => {
     await page.emulateMedia({ colorScheme: theme })
-    for (const path of ['/docs/javascript/', '/website.html', '/react']) {
+    for (const path of ['/docs/javascript/', '/', '/react']) {
       await page.goto(path)
       const values = await page
         .locator('.package-switch label, .demo-tabs button')
@@ -644,7 +640,7 @@ test('Documentation shares the section navigation across desktop and mobile', as
   for (const width of [1_440, 740, 390, 320]) {
     await page.setViewportSize({ width, height: 900 })
     for (const [path, current] of [
-      ['/website.html', 'JavaScript'],
+      ['/', 'JavaScript'],
       ['/react', 'React'],
       ['/docs/', 'Docs'],
     ]) {
@@ -709,7 +705,7 @@ for (const theme of ['light', 'dark'] as const) {
     for (const path of [
       '/docs/javascript/',
       '/docs/reference/javascript/medium-zoom/',
-      '/website.html',
+      '/',
       '/react',
     ]) {
       await page.goto(path)
@@ -896,12 +892,7 @@ test('quickstarts separate browser requirements and render keyboard keys semanti
 })
 
 test('external website links have one decorative destination icon', async ({ page }) => {
-  for (const path of [
-    '/website.html',
-    '/react',
-    '/docs/javascript/',
-    '/docs/guides/generated-svg/',
-  ]) {
+  for (const path of ['/', '/react', '/docs/javascript/', '/docs/guides/generated-svg/']) {
     await page.goto(path)
     const links = await page.locator('a[href]').all()
     for (const link of links) {

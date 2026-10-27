@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
 
-import { decodeImages, dismissZoom, openImage } from './helpers.ts'
+import { decodeImages, dismissZoom, openImage, observeErrors } from './helpers.ts'
 
 const demo = '/react'
 const registry = 'https://medium-zoom.francoischalifour.com/r/image-zoom.json'
@@ -16,13 +16,7 @@ async function ready(page: Page) {
 test('built page hydrates and presents the component without test controls', async ({
   page,
 }, testInfo) => {
-  const errors: string[] = []
-  page.on('pageerror', error => errors.push(error.message))
-  page.on('console', message => {
-    if (message.type() === 'error') {
-      errors.push(message.text())
-    }
-  })
+  const errors = observeErrors(page, { includeConsole: true })
   await ready(page)
   await expect(page.getByRole('button', { name: 'Inspect ref', exact: true })).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Hide with Activity', exact: true })).toHaveCount(0)
@@ -156,47 +150,26 @@ test('keyboard navigation keeps focus at both rail boundaries', async ({ page })
   await expect(previous).toBeFocused()
 })
 
-test('keyboard tabs and package manager selection copy the correct command', async ({ page }) => {
+test('keyboard tabs show code and package managers select the install command', async ({
+  page,
+}) => {
   await ready(page)
-  await page.evaluate(() => {
-    Object.defineProperty(navigator, 'clipboard', {
-      configurable: true,
-      value: {
-        writeText: async (text: string) => {
-          document.documentElement.dataset.copied = text
-        },
-      },
-    })
-  })
   const landscape = page.getByRole('article', { name: 'Landscape example', exact: true })
   await landscape.getByRole('tab', { name: 'Preview', exact: true }).focus()
   await page.keyboard.press('ArrowRight')
   await expect(landscape.getByRole('tab', { name: 'Code', exact: true })).toBeFocused()
-  await expect(landscape.getByRole('tab', { name: 'Code', exact: true })).toHaveAttribute(
-    'aria-selected',
-    'true'
-  )
-  await page.getByRole('button', { name: 'Copy landscape code', exact: true }).click()
-  await expect(page.locator('html')).toHaveAttribute('data-copied', /import \{ ImageZoom \}/)
-  expect(await page.locator('html').getAttribute('data-copied')).toContain(
+  await expect(landscape.getByRole('tabpanel')).toContainText('import { ImageZoom }')
+  await expect(landscape.getByRole('tabpanel')).toContainText(
     'src="https://medium-zoom.francoischalifour.com/assets/images/ocean-sunset.jpg"'
   )
-  await expect(page.getByRole('status').filter({ hasText: 'Copied to clipboard' })).toBeVisible()
-  await page.locator('.hero-install').getByRole('radio', { name: 'npm', exact: true }).focus()
+  const installation = page.locator('.hero-install')
+  await installation.getByRole('radio', { name: 'npm', exact: true }).focus()
   await page.keyboard.press('ArrowRight')
-  await expect(
-    page.locator('.hero-install').getByRole('radio', { name: 'pnpm', exact: true })
-  ).toBeChecked()
-  await page
-    .locator('.hero-install')
-    .getByRole('button', { name: 'Copy install command', exact: true })
-    .click()
-  await expect(page.locator('html')).toHaveAttribute(
-    'data-copied',
-    `pnpm dlx shadcn@latest add ${registry}`
+  await expect(installation.getByRole('radio', { name: 'pnpm', exact: true })).toBeChecked()
+  await expect(installation.locator('pre')).toHaveJSProperty(
+    'innerText',
+    `$ pnpm dlx shadcn@latest add ${registry}`
   )
-  await page.getByRole('button', { name: 'Copy usage code', exact: true }).click()
-  await expect(page.locator('html')).toHaveAttribute('data-copied', /className="rounded-lg"/)
 })
 
 test('clipboard denial produces an actionable message', async ({ page }) => {

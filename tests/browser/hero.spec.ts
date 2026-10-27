@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-for (const path of ['/website.html', '/react']) {
+for (const path of ['/', '/react']) {
   test(`${path} expands the decorative zoom frames independently of its content`, async ({
     page,
   }) => {
@@ -64,7 +64,7 @@ for (const path of ['/website.html', '/react']) {
   })
 }
 
-for (const path of ['/website.html', '/react']) {
+for (const path of ['/', '/react']) {
   test(`${path} keeps the mobile hero within the viewport`, async ({ page }) => {
     for (const width of [375, 430]) {
       await page.setViewportSize({ width, height: 844 })
@@ -78,7 +78,7 @@ for (const path of ['/website.html', '/react']) {
         const install = await page.locator('#installation').boundingBox()
         expect(install!.y + install!.height).toBeLessThanOrEqual(844)
         await page.screenshot({
-          path: `/tmp/medium-zoom-mobile-${path === '/website.html' ? 'library' : 'shadcn'}-${width}-${theme}.png`,
+          path: `/tmp/medium-zoom-mobile-${path === '/' ? 'library' : 'shadcn'}-${width}-${theme}.png`,
         })
       }
     }

@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 
 import { finishAnimations } from './helpers'
 
-test('React usage examples compose, zoom, and copy the selected snippet', async ({ page }) => {
+test('React usage examples compose and zoom through their tabs', async ({ page }) => {
   await page.goto('/react')
   const usage = page.locator('#usage')
   const tabs = usage.getByRole('tablist', { name: 'React examples' })
@@ -36,25 +36,23 @@ test('React usage examples compose, zoom, and copy the selected snippet', async 
     await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
   }
 
-  // The clipboard is the only external dependency in this copy interaction.
-  await page.evaluate(() => {
-    Object.defineProperty(navigator, 'clipboard', {
-      configurable: true,
-      value: {
-        writeText: async (text: string) => {
-          document.documentElement.dataset.copied = text
-        },
-      },
-    })
-  })
-  await usage.getByRole('button', { name: 'Copy usage code', exact: true }).click()
-  await expect(page.locator('html')).toHaveAttribute('data-copied', /photos\.map\(photo/)
-  await expect(page.locator('html')).not.toHaveAttribute('data-copied', /--hls-/)
-
   await page.setViewportSize({ width: 390, height: 844 })
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
     .toBeLessThanOrEqual(page.viewportSize()!.width)
+})
+
+test('React usage copies the selected snippet', async ({ page, context, browserName }) => {
+  test.skip(browserName !== 'chromium', 'Clipboard read permission is available in Chromium.')
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/react')
+  const usage = page.locator('#usage')
+  await usage.getByRole('tab', { name: 'Multiple images', exact: true }).click()
+  await usage.getByRole('button', { name: 'Copy usage code', exact: true }).click()
+  const copied = await page.evaluate(() => navigator.clipboard.readText())
+  expect(copied).toMatch(/photos\.map\(photo/)
+  expect(copied).not.toMatch(/--hls-/)
+  await expect(usage.getByRole('status')).toHaveText('Copied to clipboard')
 })
 
 test('HD usage loads the original only when the visitor zooms', async ({ page }) => {

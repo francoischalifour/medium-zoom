@@ -1,15 +1,10 @@
 import type { Page } from '@playwright/test'
 
 import { testUrl } from '../server-urls.ts'
-import { decodeImages, dismissZoom, openImage } from './helpers.ts'
+import { decodeImages, dismissZoom, openImage, observeErrors } from './helpers.ts'
 import { test, expect } from './website-fixture'
 
 async function openHome(page: Page) {
-  // Core-package tests intentionally use a blank /. Map it to the built home page only here.
-  await page.route(`${testUrl}/`, async route => {
-    const response = await route.fetch({ url: `${testUrl}/website.html` })
-    await route.fulfill({ response })
-  })
   await page.goto('/')
   await expect(page.getByRole('heading', { name: /Your images,/ })).toBeVisible()
   await decodeImages(page.locator('#zoom-default'))
@@ -21,13 +16,7 @@ async function openHome(page: Page) {
 test('home page presents the library with the shared preview and code rail', async ({
   page,
 }, testInfo) => {
-  const errors: string[] = []
-  page.on('pageerror', error => errors.push(error.message))
-  page.on('console', message => {
-    if (message.type() === 'error') {
-      errors.push(message.text())
-    }
-  })
+  const errors = observeErrors(page, { includeConsole: true })
   await openHome(page)
   await expect(page.getByText('No dependencies. Works with any framework.')).toBeVisible()
   await expect(page.locator('.section-links:visible [aria-current="page"]')).toHaveText(
@@ -85,33 +74,30 @@ test('shared navigation preserves theme and typography across both pages and bac
   await expect(page.getByRole('button', { name: 'Switch to light theme' })).toBeVisible()
 })
 
-test('home page commands copy the selected package manager and usage', async ({ page }) => {
+test('home page commands copy the selected package manager and usage', async ({
+  page,
+  context,
+  browserName,
+}) => {
+  test.skip(browserName !== 'chromium', 'Clipboard read permission is available in Chromium.')
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await openHome(page)
-  await page.evaluate(() => {
-    Object.defineProperty(navigator, 'clipboard', {
-      configurable: true,
-      value: {
-        writeText: async (text: string) => {
-          document.documentElement.dataset.copied = text
-        },
-      },
-    })
-  })
   await page.locator('.hero-install').getByRole('radio', { name: 'npm', exact: true }).focus()
   await page.keyboard.press('ArrowRight')
   await page.locator('.hero-install').getByRole('button', { name: 'Copy install command' }).click()
-  await expect(page.locator('html')).toHaveAttribute('data-copied', 'pnpm add medium-zoom')
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('pnpm add medium-zoom')
   await page.getByRole('button', { name: 'Copy usage code' }).click()
-  await expect(page.locator('html')).toHaveAttribute('data-copied', /margin: 24/)
-  await expect(page.locator('html')).toHaveAttribute(
-    'data-copied',
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(/margin: 24/)
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(
     /import mediumZoom from 'medium-zoom'/
   )
   const card = page.getByRole('article', { name: 'Landscape example', exact: true })
   await card.getByRole('tab', { name: 'Code', exact: true }).click()
   await card.getByRole('button', { name: 'Copy landscape code', exact: true }).click()
-  await expect(page.locator('html')).toHaveAttribute('data-copied', /<img[\s\S]*data-zoomable\n>/)
-  await expect(page.locator('html')).not.toHaveAttribute('data-copied', /<span|--hls-/)
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(
+    /<img[\s\S]*data-zoomable\n>/
+  )
+  expect(await page.evaluate(() => navigator.clipboard.readText())).not.toMatch(/<span|--hls-/)
 })
 
 test('mobile navigation remains usable and both pages fit the viewport', async ({
@@ -291,7 +277,7 @@ test('package manager preference follows navigation, reloads, and other tabs', a
 
 test('guide links underline only on hover', async ({ page }) => {
   await openHome(page)
-  for (const path of ['/website.html', '/react']) {
+  for (const path of ['/', '/react']) {
     await page.goto(path)
     const link = page.locator('.guide-note a').first()
     await link.scrollIntoViewIfNeeded()
@@ -440,28 +426,23 @@ for (const integration of [false, true]) {
   }
 }
 
-test('the closing action copies the selected installation command', async ({ page }) => {
+test('the closing action copies the selected installation command', async ({
+  page,
+  context,
+  browserName,
+}) => {
+  test.skip(browserName !== 'chromium', 'Clipboard read permission is available in Chromium.')
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await openHome(page)
   for (const integration of [false, true]) {
     if (integration) {
       await page.goto('/react')
     }
     await page.locator('.hero-install').getByRole('radio', { name: 'pnpm', exact: true }).check()
-    await page.evaluate(() => {
-      Object.defineProperty(navigator, 'clipboard', {
-        configurable: true,
-        value: {
-          writeText: async (text: string) => {
-            document.documentElement.dataset.copied = text
-          },
-        },
-      })
-    })
     const closing = page.getByRole('region', { name: 'Add zoom to your project.', exact: true })
     await closing.getByRole('button', { name: 'Copy install command', exact: true }).click()
-    await expect(page.locator('html')).toHaveAttribute(
-      'data-copied',
-      integration ? /pnpm dlx shadcn@latest add/ : 'pnpm add medium-zoom'
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(
+      integration ? /pnpm dlx shadcn@latest add/ : /pnpm add medium-zoom/
     )
     await expect(closing.getByRole('status')).toHaveText('Copied to clipboard')
     await closing.getByRole('radio', { name: 'yarn', exact: true }).check()

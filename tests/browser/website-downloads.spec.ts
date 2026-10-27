@@ -10,7 +10,7 @@ const nextDate = new Date(`${snapshot.end}T00:00:00Z`)
 nextDate.setUTCDate(nextDate.getUTCDate() + 1)
 const nextDay = nextDate.toISOString().slice(0, 10)
 
-for (const path of ['/website.html', '/react']) {
+for (const path of ['/', '/react']) {
   test(`${path} serves the reported downloads without JavaScript`, async ({ browser }) => {
     const context = await browser.newContext({ javaScriptEnabled: false })
     try {
@@ -46,7 +46,7 @@ test('new npm reports refresh the monthly count', async ({ page }) => {
       headers: { 'Access-Control-Allow-Origin': '*' },
     })
   )
-  await page.goto('/website.html')
+  await page.goto('/')
   const stats = page.locator('.monthly-downloads')
   await expect(stats.getByRole('link')).toHaveAccessibleName(
     `${compact(420_000)} monthly downloads on npm (opens in a new tab)`
@@ -73,7 +73,7 @@ for (const failure of ['unavailable', 'incomplete', 'older'] as const) {
         headers: { 'Access-Control-Allow-Origin': '*' },
       })
     })
-    await page.goto('/website.html')
+    await page.goto('/')
     const stats = page.locator('.monthly-downloads')
     await expect(stats.getByRole('link')).toHaveAccessibleName(
       `${compact(snapshot.monthly)} monthly downloads on npm (opens in a new tab)`
@@ -88,7 +88,7 @@ for (const theme of ['light', 'dark'] as const) {
   test(`download statistics remain accessible on mobile in ${theme} mode`, async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' })
-    await page.goto('/website.html')
+    await page.goto('/')
     await page.locator('.monthly-downloads').scrollIntoViewIfNeeded()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     const result = await new AxeBuilder({ page }).include('.monthly-downloads').analyze()

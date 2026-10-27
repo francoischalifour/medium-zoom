@@ -1,4 +1,4 @@
-import type mediumZoom from '../src/medium-zoom'
+import type mediumZoom from 'medium-zoom'
 
 declare global {
   interface Window {

@@ -28,7 +28,7 @@ const contentTypes: Record<string, string> = {
 
 const server = createServer((request, response) => {
   const url = new URL(request.url || '/', 'http://127.0.0.1')
-  if (url.pathname === '/') {
+  if (url.pathname === '/fixture.html') {
     response.writeHead(200, { 'Content-Type': 'text/html' })
     response.end('<!doctype html><title>Medium Zoom package tests</title>')
     return
@@ -41,9 +41,6 @@ const server = createServer((request, response) => {
   const [, root, ...segments] = decodeURIComponent(url.pathname).split('/')
   const directory = roots[root] || roots.site
   let relative = roots[root] ? segments.join('/') : [root, ...segments].join('/')
-  if (relative === 'website.html') {
-    relative = 'index.html'
-  }
   if (!relative || relative.endsWith('/')) {
     relative += 'index.html'
   }

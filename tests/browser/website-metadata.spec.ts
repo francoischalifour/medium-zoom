@@ -58,7 +58,7 @@ test('both pages ship readable HTML and complete sharing metadata without JavaSc
   const page = await context.newPage()
   try {
     for (const [path, canonical, heading, image, documentTitle] of [
-      ['/website.html', '/', 'Your images,', 'og-home.jpg', 'JavaScript image zoom • medium-zoom'],
+      ['/', '/', 'Your images,', 'og-home.jpg', 'JavaScript image zoom • medium-zoom'],
       [
         '/react',
         '/react',
@@ -151,7 +151,7 @@ test('search pages have distinct metadata and crawlable internal destinations', 
   const titles = new Set<string>()
   const descriptions = new Set<string>()
   try {
-    for (const path of ['/website.html', '/react']) {
+    for (const path of ['/', '/react']) {
       const response = await page.goto(path)
       expect(response!.status()).toBe(200)
       expect(response!.headers()['x-robots-tag'] || '').not.toMatch(/noindex|nofollow/)
@@ -173,8 +173,7 @@ test('search pages have distinct metadata and crawlable internal destinations', 
         if (href.startsWith('#')) {
           await expect(page.locator(href)).toHaveCount(1)
         } else {
-          const destination = href === '/' ? '/website.html' : href
-          expect((await context.request.get(destination)).status(), href).toBe(200)
+          expect((await context.request.get(href)).status(), href).toBe(200)
         }
       }
     }
