@@ -94,7 +94,7 @@ test('404 search opens the existing documentation search with an empty query', a
   await expect(page.getByRole('combobox')).toBeFocused()
   await expect(page.getByRole('combobox')).toHaveValue('')
   await page.getByRole('combobox').fill('galleries')
-  await expect(page.getByRole('option').first()).toContainText('Galleries')
+  await expect(page.getByRole('option').first()).toContainText('Multiple images')
 })
 
 test('immutable caching applies only to fingerprinted build output', () => {

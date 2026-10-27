@@ -1,0 +1,10 @@
+.generated-diagram {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.generated-diagram button[data-slot='image-zoom-trigger'] {
+  width: 100%;
+  max-width: 100%;
+}

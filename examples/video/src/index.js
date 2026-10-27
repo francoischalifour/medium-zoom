@@ -37,8 +37,8 @@ zoom.on('opened', () => {
   const image = document.querySelector('.medium-zoom-image--opened')
   const { left, top, width, height } = image.getBoundingClientRect()
   Object.assign(player.style, {
-    left: `${left}px`,
-    top: `${top}px`,
+    left: `${left + window.scrollX}px`,
+    top: `${top + window.scrollY}px`,
     width: `${width}px`,
     height: `${height}px`,
   })

@@ -18,7 +18,9 @@ for (const path of ['/website.html', '/react']) {
         name: path === '/react' ? 'Component features' : 'Library features',
       })
       await expect(
-        page.getByRole('contentinfo').getByRole('link', { name: `v${version}`, exact: true })
+        page
+          .getByRole('contentinfo')
+          .getByRole('link', { name: `v${version} (opens in a new tab)`, exact: true })
       ).toHaveAttribute('href', `https://www.npmjs.com/package/medium-zoom/v/${version}`)
       const gzipBytes = gzipSync(readFileSync('dist/medium-zoom.min.js'), { level: 9 }).length
       if (path === '/website.html') {
@@ -28,7 +30,9 @@ for (const path of ['/website.html', '/react']) {
         await expect(features).toContainText('TypeScript ready.')
       }
       await expect(
-        page.getByRole('contentinfo').getByRole('link', { name: 'MIT license', exact: true })
+        page
+          .getByRole('contentinfo')
+          .getByRole('link', { name: 'MIT license (opens in a new tab)', exact: true })
       ).toBeVisible()
       await expect(features.getByRole('heading', { level: 2 })).toHaveCount(3)
     } finally {

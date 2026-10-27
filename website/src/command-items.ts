@@ -35,8 +35,9 @@ export function getCommandGroups({
   packageManager: PackageManager
   dark: boolean
 }): { title: string; items: CommandItem[] }[] {
-  const searching = Boolean(query.trim())
-  const matchingDocs = searchDocs(entries, query, framework)
+  const searchQuery = query.trim()
+  const searching = searchQuery.length > 0
+  const matchingDocs = searchDocs(entries, searchQuery, framework)
   const documentation: CommandItem[] = matchingDocs.map(entry => ({
     id: entry.path,
     kind: 'navigate',
@@ -48,20 +49,30 @@ export function getCommandGroups({
       : !searching && entry.group === 'Get started'
         ? undefined
         : entry.group,
-    description: entry.description,
+    description: searching ? entry.description : undefined,
   }))
-  const frameworks: SitePage[] =
-    framework === 'react' ? ['react', 'javascript'] : ['javascript', 'react']
-  const installActions = frameworks.map(value => ({
-    id: `install-${value}`,
-    kind: 'copy' as const,
-    title: `Copy ${value === 'react' ? 'React' : 'JavaScript'} install command`,
-    detail: value === 'react' ? `shadcn · ${packageManager}` : packageManager,
-    icon: 'copy' as const,
-    text: (value === 'react' ? componentCommands : javascriptCommands)[packageManager],
-    keywords: `copy ${value} ${value === 'react' ? 'shadcn' : ''} install installation npm pnpm yarn bun`,
-  }))
-  const queryTerms = getSearchTerms(query)
+  const installActions = [
+    {
+      id: 'install-javascript',
+      kind: 'copy' as const,
+      title: 'Copy JavaScript install command',
+      icon: 'copy' as const,
+      text: javascriptCommands[packageManager],
+      keywords: 'installation npm pnpm yarn bun',
+    },
+    {
+      id: 'install-react',
+      kind: 'copy' as const,
+      title: 'Copy React install command with shadcn/ui',
+      icon: 'copy' as const,
+      text: componentCommands[packageManager],
+      keywords: 'installation npm pnpm yarn bun',
+    },
+  ]
+  if (framework === 'react') {
+    installActions.reverse()
+  }
+  const queryTerms = getSearchTerms(searchQuery)
   const actions: CommandItem[] = [
     ...installActions,
     {
@@ -72,13 +83,17 @@ export function getCommandGroups({
       dark: !dark,
       keywords: 'switch theme appearance light dark mode',
     },
-  ].filter(action => queryTerms.every(term => action.keywords.includes(term)))
+  ].filter(action => {
+    const text = `${action.title} ${action.keywords}`.toLowerCase()
+    return queryTerms.every(term => text.includes(term))
+  })
   const referencePath =
     matchingDocs[0]?.path ?? (framework === 'react' ? '/docs/react/' : '/docs/javascript/')
-  const chat: CommandItem[] = getChatLinks(query, referencePath).map(provider => ({
+  const chat: CommandItem[] = getChatLinks(searchQuery, referencePath).map(provider => ({
     id: provider.key,
     kind: 'chat',
     title: provider.title,
+    detail: searchQuery,
     url: provider.url,
     icon: 'chat',
   }))

@@ -1,7 +1,7 @@
 # Medium Zoom Video Example
 
 Zoom a poster image, then play a video in the same bounds using Medium Zoom events.
-See [the integration guide](../../docs/video.md) for the lifecycle and limitations.
+See [the integration guide](https://medium-zoom.francoischalifour.com/docs/guides/video/) for the lifecycle and limitations.
 
 ## Local package development
 

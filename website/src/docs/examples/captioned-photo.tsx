@@ -1,6 +1,6 @@
 import { ImageZoom } from '@/components/ui/image-zoom'
 
-import './styled.css'
+import './captioned-photo.css'
 
 export function CaptionedPhoto() {
   return (
@@ -10,7 +10,10 @@ export function CaptionedPhoto() {
         alt="Ocean sunset"
         width={1_920}
         height={1_280}
-        options={{ margin: 32 }}
+        options={{
+          margin: 32,
+          background: 'var(--photo-zoom-background)',
+        }}
       />
       <figcaption>Last light over the ocean.</figcaption>
     </figure>

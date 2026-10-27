@@ -21,7 +21,7 @@ test('React usage examples compose, zoom, and copy the selected snippet', async 
   await expect(panel.locator('pre')).toContainText('<figcaption')
 
   await page.keyboard.press('ArrowRight')
-  await expect(tabs.getByRole('tab', { name: 'Gallery', exact: true })).toBeFocused()
+  await expect(tabs.getByRole('tab', { name: 'Multiple images', exact: true })).toBeFocused()
   const images = panel.locator('.usage-preview img')
   await expect(images).toHaveCount(3)
   for (let index = 0; index < 3; index++) {
@@ -89,7 +89,7 @@ test('React compositions remain accessible in light and dark themes', async ({ p
     } else {
       await expect(page.locator('html')).not.toHaveClass(/dark/)
     }
-    for (const name of ['Basic', 'With caption', 'Gallery', 'High resolution']) {
+    for (const name of ['Basic', 'With caption', 'Multiple images', 'High resolution']) {
       await page.locator('#usage').getByRole('tab', { name, exact: true }).click()
       await finishAnimations(page)
       const results = await new AxeBuilder({ page })

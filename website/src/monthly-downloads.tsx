@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { fetchMonthlyDownloads } from './npm-downloads'
 import snapshot from './npm-downloads.json'
+import { SiteLink } from './site-components'
 
 let reportPromise: ReturnType<typeof fetchMonthlyDownloads> | undefined
 const fullCountFormat = new Intl.NumberFormat('en-US')
@@ -28,12 +29,13 @@ export function MonthlyDownloads() {
 
   return (
     <p className="monthly-downloads">
-      <a
+      <SiteLink
+        externalIcon={false}
         href="https://www.npmjs.com/package/medium-zoom"
         title={`${fullCountFormat.format(report.monthly)} downloads over the last 30 completed days`}
       >
         <strong>{compactCountFormat.format(report.monthly)}</strong> monthly downloads on npm
-      </a>
+      </SiteLink>
     </p>
   )
 }

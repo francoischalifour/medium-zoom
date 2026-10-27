@@ -32,7 +32,7 @@ export function UsageExamples() {
           <div className="usage-code">
             <div className="code-block">
               <div className="code-caption">
-                <span>components/{example.id === 'gallery' ? 'gallery' : 'photo'}.tsx</span>
+                <span>components/{example.id === 'gallery' ? 'multiple-images' : 'photo'}.tsx</span>
                 <CopyButton
                   text={example.code}
                   label="Copy usage code"

@@ -13,6 +13,10 @@ zoom
   .on('opened', () => {})
   .detach(image)
 mediumZoom(options)
+mediumZoom(document.getElementById('cover'))
+mediumZoom(null)
+zoom.attach(null).detach(null)
+pureZoom(document.getElementById('cover'))
 pureFileZoom(options).clone().update(options)
 
 // @ts-expect-error selectors do not accept numbers

@@ -1,0 +1,27 @@
+:root {
+  --photo-zoom-background: radial-gradient(ellipse at 50% 0%, #363044, #16171c 70%);
+}
+
+.captioned-photo {
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.captioned-photo button {
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+.captioned-photo img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.captioned-photo figcaption {
+  margin-top: 16px;
+  color: var(--muted-foreground, #737373);
+  font-size: 0.875rem;
+}

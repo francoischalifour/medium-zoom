@@ -4,7 +4,7 @@
 
 A checkout flow rendered from SVG markup as an image data URL. Click to zoom; click again or press Escape to close.
 
-See [the SVG guide](../../docs/inline-svg.md) for sizing, image constraints, and React integration.
+See [the SVG guide](https://medium-zoom.francoischalifour.com/docs/guides/generated-svg/) for sizing, image constraints, and React integration.
 
 ## Local package development
 

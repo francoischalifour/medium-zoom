@@ -20,7 +20,7 @@ for (const width of [1_280, 390]) {
       .toBeGreaterThan(0.1)
     const bounds = await page.locator('.medium-zoom-image--opened').boundingBox()
     const playerBounds = await video.boundingBox()
-    // Transforms and fixed positioning can round to different subpixel coordinates.
+    // Transforms and document positioning can round to different subpixel coordinates.
     for (const key of ['x', 'y', 'width', 'height'] as const) {
       expect(Math.abs(playerBounds![key] - bounds![key])).toBeLessThan(0.05)
     }
@@ -29,6 +29,11 @@ for (const width of [1_280, 390]) {
         (video: HTMLVideoElement) => video.controls && video.muted && video.playsInline
       )
     ).toBe(true)
+
+    await page.evaluate(() => window.scrollBy(0, 20))
+    const scrolledPoster = (await page.locator('.medium-zoom-image--opened').boundingBox())!
+    const scrolledPlayer = (await video.boundingBox())!
+    expect(Math.abs(scrolledPlayer.y - scrolledPoster.y)).toBeLessThan(0.05)
 
     const player = await video.elementHandle()
     await page.keyboard.press('Escape')

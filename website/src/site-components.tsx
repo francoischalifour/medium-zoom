@@ -26,9 +26,8 @@ const iconPaths = {
   ),
   book: (
     <>
-      <path d="M12 7v14" />
-      <path d="M3 3h4a5 5 0 0 1 5 5v13a4 4 0 0 0-4-4H3z" />
-      <path d="M21 3h-4a5 5 0 0 0-5 5v13a4 4 0 0 1 4-4h5z" />
+      <path d="M6.5 3H20v18H6.5a2.5 2.5 0 0 1 0-5H20M4 18.5v-13A2.5 2.5 0 0 1 6.5 3" />
+      <path d="M8 7h8m-8 4h6" />
     </>
   ),
   contrast: (
@@ -108,6 +107,49 @@ export function Icon({
   )
 }
 
+export function SiteLink({
+  href,
+  children,
+  className,
+  target,
+  rel,
+  externalIcon = true,
+  'aria-label': ariaLabel,
+  ...props
+}: React.ComponentProps<'a'> & { externalIcon?: boolean }) {
+  const url = new URL(href || '', 'https://medium-zoom.francoischalifour.com')
+  const external =
+    (url.protocol === 'https:' || url.protocol === 'http:') &&
+    url.origin !== 'https://medium-zoom.francoischalifour.com'
+  const linkTarget = target ?? (external ? '_blank' : undefined)
+  const safeRel =
+    linkTarget === '_blank'
+      ? [...new Set(`${rel || ''} noopener noreferrer`.split(/\s+/).filter(Boolean))].join(' ')
+      : rel
+  return (
+    <a
+      {...props}
+      href={href}
+      className={[className, external && 'external-link'].filter(Boolean).join(' ') || undefined}
+      target={linkTarget}
+      rel={safeRel}
+      aria-label={
+        ariaLabel && linkTarget === '_blank' ? `${ariaLabel} (opens in a new tab)` : ariaLabel
+      }
+    >
+      {children}
+      {external && externalIcon && <Icon name="external" className="external-link-icon" />}
+      {linkTarget === '_blank' && !ariaLabel && (
+        <span className="sr-only"> (opens in a new tab)</span>
+      )}
+    </a>
+  )
+}
+
+export function Kbd({ children, ...props }: React.ComponentProps<'kbd'>) {
+  return <kbd {...props}>{children}</kbd>
+}
+
 export function CopyButton({
   text,
   label,
@@ -175,7 +217,7 @@ export function ZoomControls({ descriptionId }: { descriptionId?: string }) {
       <span aria-hidden="true">Click to zoom</span>
       <span aria-hidden="true">/</span>
       <span aria-hidden="true">
-        Click, <kbd>esc</kbd> or scroll to close
+        Click, <Kbd>Esc</Kbd> or scroll to close
       </span>
       <span id={descriptionId} className="sr-only">
         Press Enter or Space to zoom. Click, press Escape, or scroll to close.

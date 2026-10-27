@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { CommandPalette } from './command-palette'
-import { Icon } from './site-components'
+import { Icon, SiteLink } from './site-components'
 import { githubStars, githubStarLabel, repositoryUrl, type SitePage } from './site-data'
 import { getTheme, getServerTheme, setTheme, subscribeTheme } from './site-theme'
 import { JavaScriptIcon, ReactIcon } from './technology-icons'
@@ -34,10 +34,10 @@ export function SectionLinks({ page }: { page?: SitePage | 'docs' }) {
   return (
     <>
       {siteSections.map(({ id, href, label, icon }) => (
-        <a key={href} href={href} aria-current={page === id ? 'page' : undefined}>
+        <SiteLink key={href} href={href} aria-current={page === id ? 'page' : undefined}>
           {icon}
           {label}
-        </a>
+        </SiteLink>
       ))}
     </>
   )
@@ -53,29 +53,30 @@ export function SiteHeader({
   const dark = React.useSyncExternalStore(subscribeTheme, getTheme, getServerTheme)
   return (
     <>
-      <a className="skip-link" href="#main">
+      <SiteLink className="skip-link" href="#main">
         Skip to content
-      </a>
+      </SiteLink>
       <header className="site-header">
         <nav className="navigation" aria-label="Main navigation">
-          <a className="brand" href="/" aria-label="medium-zoom home">
+          <SiteLink className="brand" href="/" aria-label="medium-zoom home">
             <img className="brand-mark" src="/brand/mark.svg" alt="" width="24" height="24" />
             <span className="brand-name">medium-zoom</span>
-          </a>
+          </SiteLink>
           <div className="section-links">
             <SectionLinks page={page} />
           </div>
           <div className="nav-links">
             <CommandPalette framework={searchFramework} />
-            <a
+            <SiteLink
               className="button button-ghost github-link"
               href={repositoryUrl}
+              externalIcon={false}
               aria-label={`GitHub repository, ${githubStarLabel} stars`}
               title={`${githubStars.toLocaleString('en')} stars on GitHub`}
             >
               <Icon name="github" />
               <span>{githubStarLabel}</span>
-            </a>
+            </SiteLink>
             <button
               className="icon-button"
               aria-label={dark ? 'Switch to light theme' : 'Switch to dark theme'}
@@ -94,17 +95,20 @@ export function SiteFooter({ page }: { page?: SitePage | 'docs' }) {
   return (
     <footer className="site-footer">
       <div className="footer-identity">
-        <a className="brand footer-brand" href="/">
+        <SiteLink className="brand footer-brand" href="/">
           <img src="/brand/mark.svg" width="24" height="24" alt="" />
           medium-zoom
-        </a>
+        </SiteLink>
         <p>Image zoom inspired by Medium. Since 2016.</p>
         <p className="footer-credit">
-          By <a href="https://francoischalifour.com">François Chalifour</a>
+          By{' '}
+          <SiteLink href="https://francoischalifour.com" externalIcon={false}>
+            François Chalifour
+          </SiteLink>
           {' · '}
-          <a href={`https://www.npmjs.com/package/medium-zoom/v/${__MEDIUM_ZOOM_VERSION__}`}>
+          <SiteLink href={`https://www.npmjs.com/package/medium-zoom/v/${__MEDIUM_ZOOM_VERSION__}`}>
             v{__MEDIUM_ZOOM_VERSION__}
-          </a>
+          </SiteLink>
         </p>
       </div>
       <nav aria-label="Footer navigation">
@@ -113,9 +117,9 @@ export function SiteFooter({ page }: { page?: SitePage | 'docs' }) {
           <ul>
             {siteSections.map(({ id, href, footerLabel }) => (
               <li key={href}>
-                <a href={href} aria-current={page === id ? 'page' : undefined}>
+                <SiteLink href={href} aria-current={page === id ? 'page' : undefined}>
                   {footerLabel}
-                </a>
+                </SiteLink>
               </li>
             ))}
           </ul>
@@ -124,13 +128,13 @@ export function SiteFooter({ page }: { page?: SitePage | 'docs' }) {
           <p>Project</p>
           <ul>
             <li>
-              <a href={repositoryUrl}>GitHub</a>
+              <SiteLink href={repositoryUrl}>GitHub</SiteLink>
             </li>
             <li>
-              <a href={`${repositoryUrl}/blob/main/CHANGELOG.md`}>Changelog</a>
+              <SiteLink href={`${repositoryUrl}/blob/main/CHANGELOG.md`}>Changelog</SiteLink>
             </li>
             <li>
-              <a href={`${repositoryUrl}/blob/main/LICENSE`}>MIT license</a>
+              <SiteLink href={`${repositoryUrl}/blob/main/LICENSE`}>MIT license</SiteLink>
             </li>
           </ul>
         </div>

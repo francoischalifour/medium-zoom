@@ -1,7 +1,8 @@
 import { InstallCommand } from '../install-command'
-import { Example } from './doc-components'
-import { Photo } from './examples/simple'
-import simpleCode from './examples/simple.tsx?raw'
+import { Kbd } from '../site-components'
+import { Example, RelatedPages } from './doc-components'
+import { Photo } from './examples/photo'
+import photoCode from './examples/photo.tsx?raw'
 
 Add the React component and render a zoomable image with `<ImageZoom>`.
 
@@ -17,7 +18,7 @@ The registry copies the component and stylesheet into your project and installs 
 
 Import `<ImageZoom>` from your configured components directory. With the usual shadcn/ui alias:
 
-<Example code={simpleCode} title="photo.tsx">
+<Example code={photoCode} title="photo.tsx">
   <Photo />
 </Example>
 
@@ -26,14 +27,23 @@ Import `<ImageZoom>` from your configured components directory. With the usual s
 
 Replace the image URL with your own. `alt` describes the image and labels the button. Width and height reserve space while the image loads.
 
-Enter or Space on the button opens the image. Press Escape, click the enlarged image or its background, or scroll to close the zoom.
+<Kbd>Enter</Kbd> or <Kbd>Space</Kbd> on the button opens the image.
+Press <Kbd aria-label="Escape">Esc</Kbd>, click the enlarged image or
+its background, or scroll to close the zoom.
 
 <div id="zoom-options" />
 
+## Browser support
+
+The React component follows the browser requirements of your React application and its build tooling.
+
 ## Next steps
 
-- [Custom triggers](/docs/guides/custom-react-triggers/): customize the button and surrounding markup.
-- [HD images](/docs/guides/hd-images/): load a larger image when zooming.
-- [Controlled state](/docs/guides/controlled-state/): open the image from another control.
-
-The [`<ImageZoom>` reference](/docs/reference/react/image-zoom/) lists the image, options, and state props.
+<RelatedPages
+  pages={[
+    '/docs/guides/custom-react-triggers/',
+    '/docs/guides/hd-images/',
+    '/docs/guides/controlled-state/',
+    '/docs/reference/react/image-zoom/',
+  ]}
+/>

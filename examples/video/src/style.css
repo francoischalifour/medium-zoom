@@ -48,6 +48,6 @@ img {
 }
 
 .zoom-video {
-  position: fixed;
+  position: absolute;
   z-index: 1;
 }

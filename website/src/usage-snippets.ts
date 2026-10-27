@@ -88,7 +88,7 @@ export function Photo() {
   },
   {
     id: 'gallery',
-    label: 'Gallery',
+    label: 'Multiple images',
     description: 'Map your photos into a grid. Each image opens independently.',
     code: `${imageImport}
 
@@ -98,7 +98,7 @@ const photos = [
   { src: "${assets}yellowstone.jpg", alt: "Yellowstone at sunrise", width: 2400, height: 1600 },
 ]
 
-export function Gallery() {
+export function MultipleImages() {
   return (
     <div className="grid grid-cols-3 items-start gap-3">
       {photos.map(photo => (

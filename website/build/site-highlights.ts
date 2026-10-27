@@ -47,13 +47,15 @@ export function siteHighlights(): Plugin {
     }
   }
   const docs = new URL('../src/docs/', import.meta.url)
-  for (const file of readdirSync(docs).filter(file => file.endsWith('.mdx'))) {
+  for (const file of readdirSync(docs)
+    .filter(file => file.endsWith('.mdx'))
+    .sort()) {
     const source = readFileSync(new URL(file, docs), 'utf8')
     for (const [, lang, code] of source.matchAll(/^```(js|tsx|html|bash|css)\n([\s\S]*?)^```/gm)) {
       snippets[code.trim()] = highlight(code.trim(), lang as HighlightLanguage)
     }
   }
-  for (const file of readdirSync(new URL('examples/', docs))) {
+  for (const file of readdirSync(new URL('examples/', docs)).sort()) {
     const code = readFileSync(new URL(`examples/${file}`, docs), 'utf8').trim()
     snippets[code] = highlight(
       code,

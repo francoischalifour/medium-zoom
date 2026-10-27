@@ -1,7 +1,7 @@
 import { InstallCommand } from './install-command'
 import { registryUrl } from './install-commands'
 import { MonthlyDownloads } from './monthly-downloads'
-import { Icon } from './site-components'
+import { Icon, SiteLink } from './site-components'
 import type { SitePage } from './site-data'
 import { SectionLinks } from './site-shell'
 import { ReactIcon } from './technology-icons'
@@ -32,17 +32,17 @@ export function Hero({ page }: { page: SitePage }) {
           : 'No dependencies. Works with any framework.'}
       </p>
       <div className="hero-actions">
-        <a className="button button-primary" href="#usage-title">
+        <SiteLink className="button button-primary" href="#usage-title">
           Start building
-        </a>
+        </SiteLink>
         {isReact ? (
-          <a className="button button-secondary" href={registryUrl}>
+          <SiteLink className="button button-secondary" href={registryUrl}>
             <Icon name="code" /> View source
-          </a>
+          </SiteLink>
         ) : (
-          <a className="button button-secondary" href="/react">
+          <SiteLink className="button button-secondary" href="/react">
             <ReactIcon className="documentation-mark" /> React component
-          </a>
+          </SiteLink>
         )}
       </div>
       <InstallCommand page={page} id="installation" className="hero-install" />
