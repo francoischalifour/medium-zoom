@@ -85,4 +85,14 @@ else if (PerformanceObserver.supportedEntryTypes.includes('paint')) {
     startHydration()
   })
   observer.observe({ type: 'paint', buffered: true })
+
+  // Bound the wait for browsers that omit paint timing on some navigations.
+  const startAfterLoad = () => {
+    window.setTimeout(() => {
+      observer.disconnect()
+      startHydration()
+    }, 1_000)
+  }
+  if (document.readyState === 'complete') startAfterLoad()
+  else window.addEventListener('load', startAfterLoad, { once: true })
 } else requestAnimationFrame(() => requestAnimationFrame(startHydration))
