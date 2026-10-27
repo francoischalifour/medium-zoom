@@ -99,7 +99,7 @@ ${sharedStyles}
     await Promise.all([...document.images].map(image => image.decode()))
   })
   await page.screenshot({
-    path: fileURLToPath(new URL('og-home.jpg', publicDirectoryUrl)),
+    path: fileURLToPath(new URL('og-javascript.jpg', publicDirectoryUrl)),
     type: 'jpeg',
     quality: 90,
   })

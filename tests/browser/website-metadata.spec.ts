@@ -10,6 +10,8 @@ test('page aliases redirect permanently to their canonical URLs', async ({ reque
     .filter(path => path.startsWith('/docs/'))
   const aliases = [
     ['/index.html', '/'],
+    ['/og-home.jpg', '/og-javascript.jpg'],
+    ['/og-shadcn.jpg', '/og-react.jpg'],
     ['/react/index.html', '/react'],
     ...docsPaths.flatMap(path => [
       [path.slice(0, -1), path],
@@ -58,12 +60,12 @@ test('both pages ship readable HTML and complete sharing metadata without JavaSc
   const page = await context.newPage()
   try {
     for (const [path, canonical, heading, image, documentTitle] of [
-      ['/', '/', 'Your images,', 'og-home.jpg', 'JavaScript image zoom • medium-zoom'],
+      ['/', '/', 'Your images,', 'og-javascript.jpg', 'JavaScript image zoom • medium-zoom'],
       [
         '/react',
         '/react',
         'Your images,',
-        'og-shadcn.jpg',
+        'og-react.jpg',
         'React image zoom for shadcn/ui • medium-zoom',
       ],
     ]) {
