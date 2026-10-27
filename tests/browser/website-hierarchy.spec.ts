@@ -29,6 +29,7 @@ test('overview separates quickstarts, task guides, and the two API references', 
 })
 
 test('reference navigation links to named pages in the same API', async ({ page }) => {
+  await page.setViewportSize({ width: 1_440, height: 900 })
   for (const [path, prefix] of [
     ['/docs/reference/javascript/options/', '/docs/reference/javascript/'],
     ['/docs/reference/react/image-zoom/', '/docs/reference/react/'],
@@ -40,7 +41,12 @@ test('reference navigation links to named pages in the same API', async ({ page 
       expect(href).toMatch(new RegExp(`^${prefix}`))
       expect(href).not.toBe(path)
     }
-    await page.getByRole('navigation', { name: 'API index' }).getByRole('link').first().click()
+    await page
+      .locator('.docs-outline')
+      .getByRole('navigation', { name: 'On this page' })
+      .getByRole('link')
+      .first()
+      .click()
     await expect(page).toHaveURL(/#.+$/)
   }
 })
