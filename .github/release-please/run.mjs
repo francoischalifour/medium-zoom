@@ -1,5 +1,7 @@
 import { appendFileSync } from 'node:fs'
+
 import { GitHub } from 'release-please'
+
 import { loadManifest } from './manifest.mjs'
 
 const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/')

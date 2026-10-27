@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { test } from 'node:test'
+
 import { setLogger } from 'release-please'
+
 import { loadManifest } from './manifest.mjs'
 
 setLogger({ debug() {}, info() {}, warn() {}, error() {} })
