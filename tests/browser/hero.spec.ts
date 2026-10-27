@@ -11,7 +11,7 @@ for (const path of ['/website.html', '/react']) {
     const supported = await page.evaluate(
       () =>
         CSS.supports('animation-timeline', 'scroll(root block)') &&
-        CSS.supports('animation-range', '0px 600px')
+        CSS.supports('animation-range', '0px 300px')
     )
     await page.mouse.move(600, 300)
     await page.mouse.wheel(0, 200)
@@ -24,20 +24,24 @@ for (const path of ['/website.html', '/react']) {
             return matrix === 'none' ? 1 : new DOMMatrixReadOnly(matrix).m11
           })
         )
-        .toBeGreaterThan(1.005)
+        .toBeGreaterThan(1.035)
       const scale = await hero.evaluate(
         element => new DOMMatrixReadOnly(getComputedStyle(element, '::before').transform).m11
       )
-      expect(scale).toBeLessThan(1.025)
-      const surfaceScale = await hero.evaluate(
-        element => new DOMMatrixReadOnly(getComputedStyle(element, '::after').transform).m11
+      expect(scale).toBeLessThan(1.065)
+      const surfaceOpacity = await hero.evaluate(element =>
+        Number(getComputedStyle(element, '::after').opacity)
       )
-      expect(surfaceScale).toBeCloseTo(scale, 2)
+      expect(surfaceOpacity).toBeGreaterThan(0.55)
+      expect(surfaceOpacity).toBeLessThan(0.75)
     } else {
       await expect
         .poll(() => hero.evaluate(element => getComputedStyle(element, '::before').transform))
         .toBe('none')
     }
+    expect(await hero.evaluate(element => getComputedStyle(element, '::after').transform)).toBe(
+      'none'
+    )
     expect((await hero.boundingBox())!.height).toBe(initialHeight)
   })
 
