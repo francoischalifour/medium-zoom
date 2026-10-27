@@ -98,7 +98,7 @@ export function SiteFooter({ page }: { page?: SitePage | 'docs' }) {
           <img src="/brand/mark.svg" width="24" height="24" alt="" />
           medium-zoom
         </a>
-        <p>Image zoom for the web. Since 2016.</p>
+        <p>Image zoom inspired by Medium. Since 2016.</p>
         <p className="footer-credit">
           By <a href="https://francoischalifour.com">François Chalifour</a>
           {' · '}
