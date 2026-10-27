@@ -1,6 +1,29 @@
+import packageJson from '../../package.json'
 import { test, expect } from './website-fixture'
 
 const origin = 'https://medium-zoom.francoischalifour.com'
+
+test('page aliases redirect permanently to their canonical URLs', async ({ request }) => {
+  const sitemap = await (await request.get('/sitemap.xml')).text()
+  const docsPaths = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)]
+    .map(([, url]) => new URL(url!).pathname)
+    .filter(path => path.startsWith('/docs/'))
+  const aliases = [
+    ['/index.html', '/'],
+    ['/react/index.html', '/react'],
+    ...docsPaths.flatMap(path => [
+      [path.slice(0, -1), path],
+      [`${path}index.html`, path],
+    ]),
+  ]
+
+  for (const [alias, canonical] of aliases) {
+    const response = await request.get(`${alias}?source=old-link`, { maxRedirects: 0 })
+    expect(response.status(), alias).toBe(301)
+    expect(response.headers().location, alias).toBe(`${canonical}?source=old-link`)
+    expect((await request.get(canonical!)).status(), canonical).toBe(200)
+  }
+})
 
 test('the React showcase owns /react and redirects its previous URLs', async ({
   page,
@@ -34,12 +57,26 @@ test('both pages ship readable HTML and complete sharing metadata without JavaSc
   const context = await browser.newContext({ javaScriptEnabled: false })
   const page = await context.newPage()
   try {
-    for (const [path, canonical, heading, image] of [
-      ['/website.html', '/', 'Your images,', 'og-home.jpg'],
-      ['/react', '/react', 'Your images,', 'og-shadcn.jpg'],
+    for (const [path, canonical, heading, image, documentTitle] of [
+      ['/website.html', '/', 'Your images,', 'og-home.jpg', 'JavaScript image zoom • medium-zoom'],
+      [
+        '/react',
+        '/react',
+        'Your images,',
+        'og-shadcn.jpg',
+        'React image zoom for shadcn/ui • medium-zoom',
+      ],
     ]) {
       await page.goto(path)
-      await expect(page).toHaveTitle(/Lightweight/i)
+      await expect(page).toHaveTitle(documentTitle)
+      await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
+        'content',
+        documentTitle
+      )
+      await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute(
+        'content',
+        documentTitle
+      )
       await expect(page.locator('meta[name="description"]')).toHaveAttribute(
         'content',
         /lightweight.*lightbox alternative/i
@@ -68,6 +105,20 @@ test('both pages ship readable HTML and complete sharing metadata without JavaSc
         (await page.locator('script[type="application/ld+json"]').textContent()) || '{}'
       )
       expect(schema['@context']).toBe('https://schema.org')
+      if (canonical === '/') {
+        const software = schema['@graph'].find(
+          (entity: { '@type': string }) => entity['@type'] === 'SoftwareSourceCode'
+        )
+        expect(software.version).toBe(packageJson.version)
+        expect(software.url).toBe(`${origin}/`)
+        expect(software.sameAs).toEqual([
+          'https://www.npmjs.com/package/medium-zoom',
+          'https://github.com/francoischalifour/medium-zoom',
+        ])
+      }
+      for (const favicon of ['/favicon.ico', '/favicon-96.png']) {
+        expect((await context.request.get(favicon)).ok()).toBe(true)
+      }
       const icon = await page
         .locator('head link[rel="icon"][type="image/svg+xml"]')
         .getAttribute('href')
@@ -131,7 +182,7 @@ test('search pages have distinct metadata and crawlable internal destinations', 
     expect(descriptions.size).toBe(2)
     await expect(page).toHaveTitle(/React.*shadcn/)
     await page.goto('/examples/shadcn/playground.html')
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex')
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex,follow')
   } finally {
     await context.close()
   }

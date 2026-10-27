@@ -30,7 +30,7 @@ const siteSections = [
   },
 ] as const
 
-export function SectionLinks({ page }: { page: SitePage | 'docs' }) {
+export function SectionLinks({ page }: { page?: SitePage | 'docs' }) {
   return (
     <>
       {siteSections.map(({ id, href, label, icon }) => (
@@ -47,7 +47,7 @@ export function SiteHeader({
   page,
   searchFramework = page === 'react' ? 'react' : 'javascript',
 }: {
-  page: SitePage | 'docs'
+  page?: SitePage | 'docs'
   searchFramework?: SitePage
 }) {
   const dark = React.useSyncExternalStore(subscribeTheme, getTheme, getServerTheme)
@@ -90,7 +90,7 @@ export function SiteHeader({
   )
 }
 
-export function SiteFooter({ page }: { page: SitePage | 'docs' }) {
+export function SiteFooter({ page }: { page?: SitePage | 'docs' }) {
   return (
     <footer className="site-footer">
       <div className="footer-identity">
@@ -98,9 +98,13 @@ export function SiteFooter({ page }: { page: SitePage | 'docs' }) {
           <img src="/brand/mark.svg" width="24" height="24" alt="" />
           medium-zoom
         </a>
-        <p>Image zoom for the web.</p>
+        <p>Image zoom for the web. Since 2016.</p>
         <p className="footer-credit">
           By <a href="https://francoischalifour.com">François Chalifour</a>
+          {' · '}
+          <a href={`https://www.npmjs.com/package/medium-zoom/v/${__MEDIUM_ZOOM_VERSION__}`}>
+            v{__MEDIUM_ZOOM_VERSION__}
+          </a>
         </p>
       </div>
       <nav aria-label="Footer navigation">

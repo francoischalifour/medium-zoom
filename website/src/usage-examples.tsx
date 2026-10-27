@@ -1,8 +1,8 @@
 import * as React from 'react'
 
 import { ImageZoom } from '../../examples/shadcn/src/components/ui/image-zoom'
-import * as ZoomParts from '../../examples/shadcn/src/components/ui/image-zoom'
-import { photos, galleryAssetBase } from './gallery'
+import * as ImageZoomParts from '../../examples/shadcn/src/components/ui/image-zoom'
+import { photos, getPreviewImageProps } from './gallery'
 import { trackSiteEvent } from './site-analytics'
 import { CopyButton, HighlightedCode } from './site-components'
 import { TabList } from './site-tabs'
@@ -61,42 +61,26 @@ function UsagePreview({ exampleId }: { exampleId: UsageExample['id'] }) {
   const ocean = photos.ocean
   const denali = photos.denali
   const image = exampleId === 'basic' ? ocean : denali
-  const photo = (
-    <ImageZoom
-      src={`${galleryAssetBase}${exampleId === 'hd' ? image.preview : image.src}`}
-      data-zoom-src={exampleId === 'hd' ? `${galleryAssetBase}${image.src}` : undefined}
-      alt={image.alt}
-      width={image.width}
-      height={image.height}
-      className="usage-photo"
-      loading="lazy"
-    />
-  )
+  const imageProps = getPreviewImageProps(image, '(max-width: 440px) calc(100vw - 90px), 360px')
+  const photo = <ImageZoom {...imageProps} className="usage-photo" loading="lazy" />
 
   let content = photo
   if (exampleId === 'composed' || exampleId === 'controlled') {
     content = (
       <div className="usage-controlled">
-        <ZoomParts.Root
+        <ImageZoomParts.Root
           options={exampleId === 'composed' ? { margin: 32 } : undefined}
           open={exampleId === 'controlled' ? open : undefined}
           onOpenChange={exampleId === 'controlled' ? setOpen : undefined}
         >
-          <ZoomParts.Trigger
+          <ImageZoomParts.Trigger
             className="usage-trigger"
             aria-label={`${exampleId === 'composed' ? 'View photo:' : 'Enlarge'} ${image.alt}`}
           >
-            <ZoomParts.Image
-              src={`${galleryAssetBase}${image.src}`}
-              alt={image.alt}
-              width={image.width}
-              height={image.height}
-              className="usage-photo"
-              loading="lazy"
-            />
+            <ImageZoomParts.Image {...imageProps} className="usage-photo" loading="lazy" />
             {exampleId === 'composed' && <span className="usage-badge">View photo</span>}
-          </ZoomParts.Trigger>
-        </ZoomParts.Root>
+          </ImageZoomParts.Trigger>
+        </ImageZoomParts.Root>
         {exampleId === 'controlled' && (
           <button className="button button-secondary" onClick={() => setOpen(true)}>
             Open image
@@ -110,10 +94,7 @@ function UsagePreview({ exampleId }: { exampleId: UsageExample['id'] }) {
         {[ocean, denali, photos.yellowstone].map(item => (
           <ImageZoom
             key={item.src}
-            src={`${galleryAssetBase}${item.src}`}
-            alt={item.alt}
-            width={item.width}
-            height={item.height}
+            {...getPreviewImageProps(item, '120px')}
             className="usage-photo"
             loading="lazy"
           />

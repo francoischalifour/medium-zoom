@@ -1,5 +1,17 @@
 import type * as React from 'react'
 
+export function TypeScriptIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...props} viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" d="M0 0h24v24H0z" />
+      <path
+        fill="var(--background)"
+        d="M4 10h9v2H9.7v9H7.3v-9H4zm10.2 8c.6 1 1.3 1.5 2.4 1.5 1 0 1.6-.5 1.6-1.2 0-.8-.6-1.1-1.8-1.6l-.6-.3c-1.8-.8-3-1.7-3-3.6 0-1.8 1.4-3.1 3.5-3.1 1.5 0 2.6.5 3.4 1.9l-1.9 1.2c-.4-.7-.9-1-1.5-1-.7 0-1.2.4-1.2 1 0 .7.4 1 1.5 1.5l.6.3c2.1.9 3.3 1.8 3.3 3.8 0 2.1-1.6 3.3-3.9 3.3-2.2 0-3.6-1-4.3-2.4z"
+      />
+    </svg>
+  )
+}
+
 export function JavaScriptIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg {...props} viewBox="0 0 24 24" aria-hidden="true">

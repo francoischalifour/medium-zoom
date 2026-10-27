@@ -6,7 +6,7 @@ import { createServer } from 'vite'
 
 import { test, expect } from './website-fixture'
 
-test('production prerendering preserves a running development site and its number entrance', async ({
+test('production prerendering preserves a running development site and its hydration', async ({
   page,
   browserName,
 }) => {
@@ -24,7 +24,7 @@ test('production prerendering preserves a running development site and its numbe
   page.on('pageerror', error => errors.push(error.message))
   try {
     await server.listen()
-    await page.emulateMedia({ reducedMotion: 'no-preference' })
+    await page.emulateMedia({ colorScheme: 'light' })
     await page.goto(server.resolvedUrls!.local[0])
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
 
@@ -32,19 +32,9 @@ test('production prerendering preserves a running development site and its numbe
     await promisify(execFile)('bun', ['scripts/build-analytics-fixture.ts'])
     await page.reload()
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-    const number = page.locator('.download-digits')
-    await expect(number).toHaveCSS('opacity', '0')
-    const frames = await number.evaluate(async element => {
-      element.scrollIntoView({ block: 'center', behavior: 'instant' })
-      const frames: number[] = []
-      for (let index = 0; index < 40; index++) {
-        await new Promise(requestAnimationFrame)
-        frames.push(Number(getComputedStyle(element).opacity))
-      }
-      return frames
-    })
-    expect(frames.filter(opacity => opacity > 0 && opacity < 1).length).toBeGreaterThan(2)
-    expect(frames.at(-1)).toBe(1)
+    await expect(page.locator('.monthly-downloads a')).toContainText('monthly downloads on npm')
+    await page.getByRole('button', { name: 'Switch to dark theme' }).click()
+    await expect(page.locator('html')).toHaveClass(/dark/)
     expect(errors).toEqual([])
   } finally {
     await server.close()

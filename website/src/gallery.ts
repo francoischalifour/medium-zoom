@@ -5,6 +5,7 @@ export type ExampleImage = {
   label: string
   src: string
   preview: string
+  previewSmall?: string
   alt: string
   width: number
   height: number
@@ -17,6 +18,7 @@ export const photos = {
     label: 'Landscape',
     src: 'images/ocean-sunset.jpg',
     preview: 'images/ocean-sunset-preview.webp',
+    previewSmall: 'images/ocean-sunset-preview-small.webp',
     alt: 'Ocean sunset',
     width: 1_920,
     height: 1_280,
@@ -27,6 +29,7 @@ export const photos = {
     label: 'Mountains',
     src: 'images/denali.jpg',
     preview: 'images/denali-preview.webp',
+    previewSmall: 'images/denali-preview-small.webp',
     alt: 'Denali at sunrise',
     width: 2_400,
     height: 1_594,
@@ -42,7 +45,7 @@ export const photos = {
     label: 'Portrait',
     src: 'images/portrait.jpg',
     preview: 'images/portrait-preview.webp',
-    alt: 'Cat in the garden',
+    alt: 'Garden cat',
     width: 1_280,
     height: 1_920,
     format: 'portrait',
@@ -51,7 +54,8 @@ export const photos = {
     id: 'earth',
     label: 'Earth',
     src: 'images/earth.webp',
-    preview: 'images/earth.webp',
+    preview: 'images/earth-preview.webp',
+    previewSmall: 'images/earth-preview-small.webp',
     alt: 'Earth from space',
     width: 1_041,
     height: 1_041,
@@ -82,6 +86,7 @@ export const photos = {
     label: 'Aurora',
     src: 'images/aurora.jpg',
     preview: 'images/aurora-preview.webp',
+    previewSmall: 'images/aurora-preview-small.webp',
     alt: 'Aurora over Yellowstone',
     width: 2_400,
     height: 1_600,
@@ -97,6 +102,7 @@ export const photos = {
     label: 'Sunrise',
     src: 'images/yellowstone.jpg',
     preview: 'images/yellowstone-preview.webp',
+    previewSmall: 'images/yellowstone-preview-small.webp',
     alt: 'Yellowstone at sunrise',
     width: 2_400,
     height: 1_600,
@@ -149,3 +155,18 @@ mediumZoom('[data-zoomable]', {
   margin: 24,
   background: 'var(--background, #fff)',
 })`
+
+// Keep preview selection and full-resolution zoom sources together.
+export function getPreviewImageProps(image: ExampleImage, sizes: string) {
+  return {
+    src: `${galleryAssetBase}${image.preview}`,
+    srcSet: image.previewSmall
+      ? `${galleryAssetBase}${image.previewSmall} 480w, ${galleryAssetBase}${image.preview} 960w`
+      : undefined,
+    sizes,
+    'data-zoom-src': `${galleryAssetBase}${image.src}`,
+    alt: image.alt,
+    width: image.width,
+    height: image.height,
+  }
+}

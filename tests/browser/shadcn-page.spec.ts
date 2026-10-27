@@ -56,7 +56,7 @@ test('all six cards open and contain their own matching code', async ({ page }) 
   await ready(page)
   for (const [label, alt] of [
     ['Landscape', 'Ocean sunset'],
-    ['Portrait', 'Cat in the garden'],
+    ['Portrait', 'Garden cat'],
     ['Mountains', 'Denali at sunrise'],
     ['Earth', 'Earth from space'],
     ['Architecture', 'Roosevelt Arch'],

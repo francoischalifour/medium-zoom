@@ -1,6 +1,5 @@
-import { DownloadStats } from './download-stats'
 import { ExampleRail } from './example-rail'
-import { Icon } from './site-components'
+import { ProductFeatures } from './product-features'
 import { UsageExamples } from './usage-examples'
 
 export function ReactPage() {
@@ -8,25 +7,7 @@ export function ReactPage() {
     <>
       <ExampleRail />
 
-      <section className="details-strip" aria-label="Component features">
-        <div>
-          <Icon name="code" />
-          <h2>Yours to change.</h2>
-          <p>The source lives in your project.</p>
-        </div>
-        <div>
-          <Icon name="keyboard" />
-          <h2>Keyboard included.</h2>
-          <p>Enter or Space to open. Escape to close.</p>
-        </div>
-        <div>
-          <Icon name="sun" />
-          <h2>Follows your theme.</h2>
-          <p>An overlay that matches your background.</p>
-        </div>
-      </section>
-
-      <DownloadStats />
+      <ProductFeatures page="react" />
 
       <section className="guide-section" id="usage" aria-labelledby="usage-title">
         <div className="guide-heading">
@@ -112,7 +93,9 @@ export function ReactPage() {
         </div>
         <p className="guide-note">
           Image attributes and the forwarded ref reach the underlying <code>&lt;img&gt;</code>.{' '}
-          <a href="/docs/reference/javascript/options/">Explore all zoom options</a>
+          <a href="/docs/reference/javascript/options/">
+            Explore all zoom options <span aria-hidden="true">→</span>
+          </a>
         </p>
       </section>
     </>

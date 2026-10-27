@@ -382,7 +382,9 @@ for (const integration of [false, true]) {
     const position = await rail.evaluate(element => element.scrollLeft)
     await page.getByRole('button', { name: /Switch to .* theme/ }).focus()
     await expect.poll(outsideCard).toBe(true)
-    await page.locator('#usage-title').scrollIntoViewIfNeeded()
+    await page
+      .locator('#usage-title')
+      .evaluate(element => element.scrollIntoView({ block: 'start', behavior: 'instant' }))
     await expect
       .poll(() =>
         rail.evaluate(element => {
@@ -423,11 +425,14 @@ for (const integration of [false, true]) {
       await page.getByRole('link', { name: 'Start building', exact: true }).click()
       await expect(page).toHaveURL(/#usage-title$/)
       await expect(page.locator('#usage-title')).toBeFocused()
+      // Native scrolling rounds fractional positions to device pixels.
       await expect
         .poll(() =>
-          page.locator('#usage-title').evaluate(element => element.getBoundingClientRect().top)
+          page
+            .locator('#usage-title')
+            .evaluate(element => Math.abs(element.getBoundingClientRect().top - 88))
         )
-        .toBeCloseTo(88, 0)
+        .toBeLessThanOrEqual(1)
       const heading = (await page.locator('#usage-title').boundingBox())!
       const header = (await page.locator('.site-header').boundingBox())!
       expect(heading.y).toBeGreaterThan(header.y + header.height)

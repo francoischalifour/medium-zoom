@@ -4,21 +4,25 @@ import { test, expect } from './website-fixture'
 
 const origin = 'https://medium-zoom.francoischalifour.com'
 const pages = [
-  ['/docs/', 'Overview'],
-  ['/docs/javascript/', 'JavaScript quickstart'],
-  ['/docs/react/', 'React quickstart'],
-  ['/docs/guides/hd-images/', 'HD images'],
-  ['/docs/guides/galleries/', 'Galleries'],
-  ['/docs/guides/styling/', 'Styling'],
-  ['/docs/guides/custom-react-triggers/', 'Custom triggers'],
-  ['/docs/guides/controlled-state/', 'Controlled state'],
-  ['/docs/guides/server-rendering/', 'Server rendering'],
-  ['/docs/reference/javascript/medium-zoom/', 'mediumZoom()'],
-  ['/docs/reference/javascript/options/', 'Options'],
-  ['/docs/reference/javascript/methods/', 'Methods'],
-  ['/docs/reference/javascript/events/', 'Events'],
-  ['/docs/reference/react/image-zoom/', '<ImageZoom>'],
-  ['/docs/reference/react/composition/', 'Composition'],
+  ['/docs/', 'Overview', 'Documentation • medium-zoom'],
+  ['/docs/javascript/', 'JavaScript quickstart', 'JavaScript quickstart • medium-zoom'],
+  ['/docs/react/', 'React quickstart', 'React quickstart • medium-zoom'],
+  ['/docs/guides/hd-images/', 'HD images', 'High-resolution images • medium-zoom'],
+  ['/docs/guides/galleries/', 'Galleries', 'Image galleries • medium-zoom'],
+  ['/docs/guides/styling/', 'Styling', 'Image zoom styling • medium-zoom'],
+  ['/docs/guides/custom-react-triggers/', 'Custom triggers', 'Custom React triggers • medium-zoom'],
+  ['/docs/guides/controlled-state/', 'Controlled state', 'Controlled React zoom • medium-zoom'],
+  [
+    '/docs/guides/server-rendering/',
+    'Server rendering',
+    'React SSR and Server Components • medium-zoom',
+  ],
+  ['/docs/reference/javascript/medium-zoom/', 'mediumZoom()', 'mediumZoom() API • medium-zoom'],
+  ['/docs/reference/javascript/options/', 'Options', 'JavaScript options • medium-zoom'],
+  ['/docs/reference/javascript/methods/', 'Methods', 'JavaScript methods • medium-zoom'],
+  ['/docs/reference/javascript/events/', 'Events', 'JavaScript events • medium-zoom'],
+  ['/docs/reference/react/image-zoom/', '<ImageZoom>', 'React ImageZoom API • medium-zoom'],
+  ['/docs/reference/react/composition/', 'Composition', 'React composition API • medium-zoom'],
 ] as const
 
 test('collapsed docs navigation stays inside the article column on phones and tablets', async ({
@@ -47,7 +51,7 @@ test('collapsed docs navigation stays inside the article column on phones and ta
   await expect(page.locator('.docs-mobile-navigation')).toBeHidden()
 })
 
-test('the active outline section keeps its rail marker without a fill or underline', async ({
+test('the active outline section uses text without a rail marker, fill, or underline', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1_440, height: 900 })
@@ -58,7 +62,7 @@ test('the active outline section keeps its rail marker without a fill or underli
   await link.hover()
   await expect(link).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
   await expect(link).toHaveCSS('text-decoration-line', 'none')
-  expect(await link.evaluate(element => getComputedStyle(element, '::before').width)).toBe('2px')
+  expect(await link.evaluate(element => getComputedStyle(element, '::before').content)).toBe('none')
 })
 
 for (const theme of ['light', 'dark'] as const) {
@@ -158,7 +162,7 @@ test('deep links and compatibility markers show static arrival feedback with red
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
 })
 
-for (const [path, title] of pages) {
+for (const [path, title, documentTitle] of pages) {
   test(`${title} ships complete HTML, anchors and metadata`, async ({ browser }) => {
     const context = await browser.newContext({ javaScriptEnabled: false })
     const page = await context.newPage()
@@ -167,7 +171,11 @@ for (const [path, title] of pages) {
       expect(response?.status()).toBe(200)
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(title)
       await expect(page.getByRole('heading', { level: 1 })).toHaveCSS('font-weight', '550')
-      await expect(page).toHaveTitle(`${title} — medium-zoom documentation`)
+      await expect(page).toHaveTitle(documentTitle)
+      await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
+        'content',
+        documentTitle
+      )
       await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', origin + path)
       await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
         'content',
@@ -180,13 +188,33 @@ for (const [path, title] of pages) {
       )
       await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute(
         'content',
-        `${title} — medium-zoom documentation`
+        documentTitle
       )
       const schema = JSON.parse(
         (await page.locator('script[type="application/ld+json"]').textContent()) || '{}'
       )
       expect(schema['@type']).toBe('TechArticle')
       expect(schema.url).toBe(origin + path)
+      expect(schema.author).toMatchObject({
+        '@type': 'Person',
+        name: 'François Chalifour',
+        url: 'https://francoischalifour.com',
+      })
+      expect(schema.datePublished).toBe('2026-10-26')
+      expect(schema.dateModified).toBe(
+        await page.locator('.docs-updated time').getAttribute('datetime')
+      )
+      const breadcrumb = schema.mainEntityOfPage.breadcrumb
+      expect(breadcrumb['@type']).toBe('BreadcrumbList')
+      expect(breadcrumb.itemListElement.at(-1).item).toBe(origin + path)
+      for (const [index, item] of breadcrumb.itemListElement.entries()) {
+        expect(item.position).toBe(index + 1)
+        const pathname = new URL(item.item).pathname
+        expect(
+          (await context.request.get(pathname === '/' ? '/website.html' : pathname)).status()
+        ).toBe(200)
+      }
+      expect((await context.request.get(new URL(schema.image).pathname)).ok()).toBe(true)
       const ids = await page
         .locator('[id]')
         .evaluateAll(elements => elements.map(element => element.id))

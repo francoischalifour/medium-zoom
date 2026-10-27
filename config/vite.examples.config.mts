@@ -21,6 +21,23 @@ export async function localExampleConfig({
   const config = mergeConfig(loaded.config, libraryConfig)
   const managed = mergeConfig(config, {
     configFile: false,
+    plugins: [
+      {
+        name: 'medium-zoom-demo-noindex',
+        transformIndexHtml(html: string) {
+          return {
+            html: html.replace(/<meta\s+name=["']robots["'][^>]*>/gi, ''),
+            tags: [
+              {
+                tag: 'meta',
+                attrs: { name: 'robots', content: 'noindex,follow' },
+                injectTo: 'head',
+              },
+            ],
+          }
+        },
+      },
+    ],
     root,
     envDir: fileURLToPath(new URL('../', import.meta.url)),
     base: `/examples/${name}/`,
