@@ -78,7 +78,7 @@ for (const path of ['/', '/react']) {
         const install = await page.locator('#installation').boundingBox()
         expect(install!.y + install!.height).toBeLessThanOrEqual(844)
         await page.screenshot({
-          path: `/tmp/medium-zoom-mobile-${path === '/' ? 'library' : 'shadcn'}-${width}-${theme}.png`,
+          path: `/tmp/medium-zoom-mobile-${path === '/' ? 'javascript' : 'react'}-${width}-${theme}.png`,
         })
       }
     }
