@@ -29,7 +29,7 @@ for (const [mode, path] of Object.entries({
 }
 
 test('website uses the local package', async ({ page }) => {
-  await page.goto('/website.html')
+  await page.goto('/')
   const image = page.locator('#zoom-default')
   await openImage(page, image, { trigger: image.locator('..') })
   await dismissZoom(page)

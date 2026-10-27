@@ -1,9 +1,8 @@
-import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
-import { copyFileSync, mkdirSync, realpathSync, symlinkSync, writeFileSync } from 'node:fs'
+import { copyFileSync, mkdirSync, symlinkSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
-import { createServer } from 'vite'
+import { build } from 'vite'
 
 import type { pack } from './pack.ts'
 
@@ -11,12 +10,18 @@ export async function checkConsumers(artifact: ReturnType<typeof pack>) {
   const consumer = join(artifact.directory, 'consumer')
   mkdirSync(join(consumer, 'node_modules'), { recursive: true })
   symlinkSync(artifact.root, join(consumer, 'node_modules/medium-zoom'), 'dir')
-  for (const file of ['consumer.ts', 'commonjs.cts', 'node-esm.mts', 'runtime.mjs']) {
+  for (const file of [
+    'consumer.ts',
+    'commonjs.cts',
+    'node-esm.mts',
+    'runtime.mjs',
+    'bundler.mjs',
+  ]) {
     copyFileSync(join('tests/types', file), join(consumer, file))
   }
 
   checkTypes(consumer)
-  await checkBundlerResolution(consumer, artifact.root)
+  await checkBundlerConsumer(consumer)
 
   // Use Node, not Bun's more permissive module loader, for real package resolution.
   for (const file of ['output/commonjs.cjs', 'runtime.mjs']) {
@@ -83,26 +88,22 @@ function checkTypes(consumer: string) {
   }
 }
 
-async function checkBundlerResolution(consumer: string, packageRoot: string) {
-  const server = await createServer({
+async function checkBundlerConsumer(consumer: string) {
+  await build({
     configFile: false,
     root: consumer,
-    server: { middlewareMode: true },
-    optimizeDeps: { noDiscovery: true, include: [] },
+    logLevel: 'warn',
+    build: {
+      outDir: 'bundled',
+      lib: {
+        entry: join(consumer, 'bundler.mjs'),
+        formats: ['es'],
+        fileName: () => 'consumer.mjs',
+      },
+    },
   })
-  try {
-    for (const [specifier, path] of [
-      ['medium-zoom', 'dist/medium-zoom.esm.js'],
-      ['medium-zoom/dist/pure', 'dist/pure/index.js'],
-      ['medium-zoom/dist/pure/index.js', 'dist/pure/index.js'],
-    ]) {
-      const resolved = await server.environments.client.pluginContainer.resolveId(
-        specifier,
-        join(consumer, 'consumer.ts')
-      )
-      assert.equal(resolved?.id, realpathSync(join(packageRoot, path)), specifier)
-    }
-  } finally {
-    await server.close()
-  }
+  execFileSync('node', [join(consumer, 'bundled/consumer.mjs')], {
+    cwd: consumer,
+    stdio: 'inherit',
+  })
 }

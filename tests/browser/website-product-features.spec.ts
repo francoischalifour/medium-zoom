@@ -6,7 +6,7 @@ import { test, expect } from './website-fixture'
 
 test.use({ deviceScaleFactor: 1 })
 
-for (const path of ['/website.html', '/react']) {
+for (const path of ['/', '/react']) {
   test(`${path} serves product features and footer metadata without JavaScript`, async ({
     browser,
   }) => {
@@ -23,7 +23,7 @@ for (const path of ['/website.html', '/react']) {
           .getByRole('link', { name: `v${version} (opens in a new tab)`, exact: true })
       ).toHaveAttribute('href', `https://www.npmjs.com/package/medium-zoom/v/${version}`)
       const gzipBytes = gzipSync(readFileSync('dist/medium-zoom.min.js'), { level: 9 }).length
-      if (path === '/website.html') {
+      if (path === '/') {
         await expect(features).toContainText(
           `${(gzipBytes / 1_000).toFixed(0)} kB. Zero dependencies.`
         )
@@ -66,7 +66,7 @@ test('mobile previews stay small and load the full-resolution image only on zoom
 
 test('features remain readable at phone width in both themes', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 320, height: 900 })
-  await page.goto('/website.html')
+  await page.goto('/')
   for (const theme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: theme })
     const features = page.getByRole('region', { name: 'Library features' })

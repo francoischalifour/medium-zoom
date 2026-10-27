@@ -37,7 +37,7 @@ for (const bundle of bundleNames) {
 }
 
 test('default injects styles once; pure has no stylesheet side effect', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/fixture.html')
   await loadBundle(page, { bundle: 'pureUmd' })
   await expect(page.locator('style')).toHaveCount(0)
   await loadBundle(page)

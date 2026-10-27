@@ -1,15 +1,10 @@
 import type { Page } from '@playwright/test'
 
 import { testUrl } from '../server-urls.ts'
-import { decodeImages, dismissZoom, openImage } from './helpers.ts'
+import { decodeImages, dismissZoom, openImage, observeErrors } from './helpers.ts'
 import { test, expect } from './website-fixture'
 
-async function openHome(page: Page) {
-  // Core-package tests intentionally use a blank /. Map it to the built home page only here.
-  await page.route(`${testUrl}/`, async route => {
-    const response = await route.fetch({ url: `${testUrl}/website.html` })
-    await route.fulfill({ response })
-  })
+async function openJavaScriptPage(page: Page) {
   await page.goto('/')
   await expect(page.getByRole('heading', { name: /Your images,/ })).toBeVisible()
   await decodeImages(page.locator('#zoom-default'))
@@ -18,22 +13,16 @@ async function openHome(page: Page) {
   expect(install!.y + install!.height).toBeLessThanOrEqual(page.viewportSize()!.height)
 }
 
-test('home page presents the library with the shared preview and code rail', async ({
+test('JavaScript page presents the library with the shared preview and code rail', async ({
   page,
 }, testInfo) => {
-  const errors: string[] = []
-  page.on('pageerror', error => errors.push(error.message))
-  page.on('console', message => {
-    if (message.type() === 'error') {
-      errors.push(message.text())
-    }
-  })
-  await openHome(page)
+  const errors = observeErrors(page, { includeConsole: true })
+  await openJavaScriptPage(page)
   await expect(page.getByText('No dependencies. Works with any framework.')).toBeVisible()
   await expect(page.locator('.section-links:visible [aria-current="page"]')).toHaveText(
     'JavaScript'
   )
-  await page.screenshot({ path: testInfo.outputPath('home-desktop.png'), fullPage: true })
+  await page.screenshot({ path: testInfo.outputPath('javascript-desktop.png'), fullPage: true })
   const image = page.locator('#zoom-default')
   await openImage(page, image, { trigger: image.locator('..') })
   await dismissZoom(page)
@@ -51,7 +40,7 @@ test('home page presents the library with the shared preview and code rail', asy
 test('shared navigation preserves theme and typography across both pages and back navigation', async ({
   page,
 }, testInfo) => {
-  await openHome(page)
+  await openJavaScriptPage(page)
   const header = await page.locator('.navigation').boundingBox()
   const fonts = await page.evaluate(async () => {
     const sans = await document.fonts.load('500 14px "Geist Variable"')
@@ -70,7 +59,7 @@ test('shared navigation preserves theme and typography across both pages and bac
   await expect(page.getByRole('heading', { name: /Your images,/ })).toBeVisible()
   const nextHeader = await page.locator('.navigation').boundingBox()
   expect(nextHeader).toEqual(header)
-  await page.screenshot({ path: testInfo.outputPath('integration-dark.png'), fullPage: true })
+  await page.screenshot({ path: testInfo.outputPath('react-dark.png'), fullPage: true })
   await page.getByRole('button', { name: 'Switch to light theme' }).click()
   await page
     .getByRole('navigation', { name: /^(Main navigation|Product navigation)$/ })
@@ -85,40 +74,37 @@ test('shared navigation preserves theme and typography across both pages and bac
   await expect(page.getByRole('button', { name: 'Switch to light theme' })).toBeVisible()
 })
 
-test('home page commands copy the selected package manager and usage', async ({ page }) => {
-  await openHome(page)
-  await page.evaluate(() => {
-    Object.defineProperty(navigator, 'clipboard', {
-      configurable: true,
-      value: {
-        writeText: async (text: string) => {
-          document.documentElement.dataset.copied = text
-        },
-      },
-    })
-  })
+test('JavaScript page commands copy the selected package manager and usage', async ({
+  page,
+  context,
+  browserName,
+}) => {
+  test.skip(browserName !== 'chromium', 'Clipboard read permission is available in Chromium.')
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await openJavaScriptPage(page)
   await page.locator('.hero-install').getByRole('radio', { name: 'npm', exact: true }).focus()
   await page.keyboard.press('ArrowRight')
   await page.locator('.hero-install').getByRole('button', { name: 'Copy install command' }).click()
-  await expect(page.locator('html')).toHaveAttribute('data-copied', 'pnpm add medium-zoom')
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('pnpm add medium-zoom')
   await page.getByRole('button', { name: 'Copy usage code' }).click()
-  await expect(page.locator('html')).toHaveAttribute('data-copied', /margin: 24/)
-  await expect(page.locator('html')).toHaveAttribute(
-    'data-copied',
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(/margin: 24/)
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(
     /import mediumZoom from 'medium-zoom'/
   )
   const card = page.getByRole('article', { name: 'Landscape example', exact: true })
   await card.getByRole('tab', { name: 'Code', exact: true }).click()
   await card.getByRole('button', { name: 'Copy landscape code', exact: true }).click()
-  await expect(page.locator('html')).toHaveAttribute('data-copied', /<img[\s\S]*data-zoomable\n>/)
-  await expect(page.locator('html')).not.toHaveAttribute('data-copied', /<span|--hls-/)
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(
+    /<img[\s\S]*data-zoomable\n>/
+  )
+  expect(await page.evaluate(() => navigator.clipboard.readText())).not.toMatch(/<span|--hls-/)
 })
 
 test('mobile navigation remains usable and both pages fit the viewport', async ({
   page,
 }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 })
-  await openHome(page)
+  await openJavaScriptPage(page)
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
     .toBe(true)
@@ -128,13 +114,13 @@ test('mobile navigation remains usable and both pages fit the viewport', async (
       .getByRole('link', { name: 'React', exact: true })
   ).toBeVisible()
   await expect(page.locator('.brand-name')).toBeVisible()
-  await page.screenshot({ path: testInfo.outputPath('home-mobile.png'), fullPage: true })
+  await page.screenshot({ path: testInfo.outputPath('javascript-mobile.png'), fullPage: true })
   await page
     .getByRole('navigation', { name: /^(Main navigation|Product navigation)$/ })
     .getByRole('link', { name: 'React', exact: true })
     .click()
   await expect(page.getByRole('heading', { name: /Your images,/ })).toBeVisible()
-  await page.screenshot({ path: testInfo.outputPath('integration-mobile.png'), fullPage: true })
+  await page.screenshot({ path: testInfo.outputPath('react-mobile.png'), fullPage: true })
   await page.setViewportSize({ width: 320, height: 740 })
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
@@ -150,7 +136,7 @@ test('system theme is respected before interaction and explicit preference survi
   page,
 }) => {
   await page.emulateMedia({ colorScheme: 'dark' })
-  await openHome(page)
+  await openJavaScriptPage(page)
   await expect(page.locator('html')).toHaveClass('dark')
   await page.getByRole('button', { name: 'Switch to light theme' }).click()
   await page.reload()
@@ -159,9 +145,9 @@ test('system theme is respected before interaction and explicit preference survi
 })
 
 test('both pages end with an install action and one curated gallery', async ({ page }) => {
-  await openHome(page)
-  for (const integration of [false, true]) {
-    if (integration) {
+  await openJavaScriptPage(page)
+  for (const framework of ['javascript', 'react'] as const) {
+    if (framework === 'react') {
       await page.goto('/react')
     }
     const main = page.getByRole('region', { name: 'Image zoom examples', exact: true })
@@ -190,9 +176,9 @@ test('both pages end with an install action and one curated gallery', async ({ p
 })
 
 test('rails start on the content grid and scroll across the viewport', async ({ page }) => {
-  await openHome(page)
-  for (const integration of [false, true]) {
-    if (integration) {
+  await openJavaScriptPage(page)
+  for (const framework of ['javascript', 'react'] as const) {
+    if (framework === 'react') {
       await page.goto('/react')
     }
     const section = page.getByRole('region', { name: 'Image zoom examples', exact: true })
@@ -213,7 +199,7 @@ test('rails start on the content grid and scroll across the viewport', async ({ 
 })
 
 test('both pages preload the same font resources across navigation', async ({ page }) => {
-  await openHome(page)
+  await openJavaScriptPage(page)
   const homeFonts = await page
     .locator('link[rel="preload"][as="font"]')
     .evaluateAll(links => links.map(link => (link as HTMLLinkElement).href).sort())
@@ -242,7 +228,7 @@ test('package manager preference follows navigation, reloads, and other tabs', a
   page,
   context,
 }) => {
-  await openHome(page)
+  await openJavaScriptPage(page)
   await page
     .locator('.hero-install')
     .getByRole('radio', { name: 'pnpm', exact: true })
@@ -290,8 +276,8 @@ test('package manager preference follows navigation, reloads, and other tabs', a
 })
 
 test('guide links underline only on hover', async ({ page }) => {
-  await openHome(page)
-  for (const path of ['/website.html', '/react']) {
+  await openJavaScriptPage(page)
+  for (const path of ['/', '/react']) {
     await page.goto(path)
     const link = page.locator('.guide-note a').first()
     await link.scrollIntoViewIfNeeded()
@@ -306,9 +292,9 @@ test('mobile branding stays in the bar and product navigation is centered in the
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 })
-  await openHome(page)
-  for (const integration of [false, true]) {
-    if (integration) {
+  await openJavaScriptPage(page)
+  for (const framework of ['javascript', 'react'] as const) {
+    if (framework === 'react') {
       await page.goto('/react')
     }
     for (const width of [320, 390, 680]) {
@@ -318,7 +304,10 @@ test('mobile branding stays in the bar and product navigation is centered in the
       await expect(page.locator('.brand-name')).toBeVisible()
       await expect(bar.getByRole('link', { name: 'React', exact: true })).toHaveCount(0)
       await expect(
-        product.getByRole('link', { name: integration ? 'React' : 'JavaScript', exact: true })
+        product.getByRole('link', {
+          name: framework === 'react' ? 'React' : 'JavaScript',
+          exact: true,
+        })
       ).toHaveAttribute('aria-current', 'page')
       const barBox = (await bar.boundingBox())!
       const brandBox = (await bar.getByRole('link', { name: 'medium-zoom home' }).boundingBox())!
@@ -338,20 +327,20 @@ test('mobile branding stays in the bar and product navigation is centered in the
       )
       if (width === 390) {
         await page.screenshot({
-          path: `/tmp/medium-zoom-mobile-navigation-${integration ? 'React' : 'JavaScript'}.png`,
+          path: `/tmp/medium-zoom-mobile-navigation-${framework}.png`,
         })
       }
     }
   }
 })
 
-for (const integration of [false, true]) {
-  test(`wide ${integration ? 'React' : 'JavaScript'} rails reveal overflow on intent without moving cards`, async ({
+for (const framework of ['javascript', 'react'] as const) {
+  test(`wide ${framework === 'react' ? 'React' : 'JavaScript'} rails reveal overflow on intent without moving cards`, async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1_920, height: 1_080 })
-    await openHome(page)
-    if (integration) {
+    await openJavaScriptPage(page)
+    if (framework === 'react') {
       await page.goto('/react')
     }
     const section = page.getByRole('region', { name: 'Image zoom examples', exact: true })
@@ -365,7 +354,7 @@ for (const integration of [false, true]) {
         y: (await first.boundingBox())!.y + 160,
       })
     await expect.poll(outsideCard).toBe(false)
-    if (!integration) {
+    if (framework === 'javascript') {
       await page.screenshot({ path: '/tmp/medium-zoom-wide-rail-resting.png' })
     }
     await first.hover()
@@ -408,14 +397,14 @@ for (const integration of [false, true]) {
   })
 }
 
-for (const integration of [false, true]) {
+for (const framework of ['javascript', 'react'] as const) {
   for (const motion of ['no-preference', 'reduce'] as const) {
-    test(`Start building aligns the ${integration ? 'React' : 'JavaScript'} usage heading with ${motion} motion`, async ({
+    test(`Start building aligns the ${framework === 'react' ? 'React' : 'JavaScript'} usage heading with ${motion} motion`, async ({
       page,
     }) => {
       await page.emulateMedia({ reducedMotion: motion })
-      await openHome(page)
-      if (integration) {
+      await openJavaScriptPage(page)
+      if (framework === 'react') {
         await page.goto('/react')
       }
       await expect(page.locator('html')).toHaveCSS(
@@ -440,28 +429,23 @@ for (const integration of [false, true]) {
   }
 }
 
-test('the closing action copies the selected installation command', async ({ page }) => {
-  await openHome(page)
-  for (const integration of [false, true]) {
-    if (integration) {
+test('the closing action copies the selected installation command', async ({
+  page,
+  context,
+  browserName,
+}) => {
+  test.skip(browserName !== 'chromium', 'Clipboard read permission is available in Chromium.')
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await openJavaScriptPage(page)
+  for (const framework of ['javascript', 'react'] as const) {
+    if (framework === 'react') {
       await page.goto('/react')
     }
     await page.locator('.hero-install').getByRole('radio', { name: 'pnpm', exact: true }).check()
-    await page.evaluate(() => {
-      Object.defineProperty(navigator, 'clipboard', {
-        configurable: true,
-        value: {
-          writeText: async (text: string) => {
-            document.documentElement.dataset.copied = text
-          },
-        },
-      })
-    })
     const closing = page.getByRole('region', { name: 'Add zoom to your project.', exact: true })
     await closing.getByRole('button', { name: 'Copy install command', exact: true }).click()
-    await expect(page.locator('html')).toHaveAttribute(
-      'data-copied',
-      integration ? /pnpm dlx shadcn@latest add/ : 'pnpm add medium-zoom'
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(
+      framework === 'react' ? /pnpm dlx shadcn@latest add/ : /pnpm add medium-zoom/
     )
     await expect(closing.getByRole('status')).toHaveText('Copied to clipboard')
     await closing.getByRole('radio', { name: 'yarn', exact: true }).check()
@@ -469,14 +453,14 @@ test('the closing action copies the selected installation command', async ({ pag
       page.locator('.hero-install').getByRole('radio', { name: 'yarn', exact: true })
     ).toBeChecked()
     await expect(closing.locator('pre')).toContainText(
-      integration ? 'yarn dlx shadcn@latest add' : 'yarn add medium-zoom'
+      framework === 'react' ? 'yarn dlx shadcn@latest add' : 'yarn add medium-zoom'
     )
   }
 })
 
 test('wide rail gradient edges follow resizing immediately', async ({ page }) => {
   await page.setViewportSize({ width: 1_920, height: 1_080 })
-  await openHome(page)
+  await openJavaScriptPage(page)
   await page.mouse.move(100, 100)
   const section = page.getByRole('region', { name: 'Image zoom examples', exact: true })
   for (const width of [1_600, 2_560, 1_440]) {

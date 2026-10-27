@@ -9,7 +9,7 @@ for (const theme of ['light', 'dark'] as const) {
   }, testInfo) => {
     await page.emulateMedia({ colorScheme: theme })
     for (const [path, current] of [
-      ['/website.html', 'JavaScript'],
+      ['/', 'JavaScript'],
       ['/react', 'React'],
       ['/docs/javascript/', 'Documentation'],
     ]) {
@@ -41,10 +41,6 @@ test('footer links navigate between the docs, React, and JavaScript on a phone',
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.route(`${testUrl}/`, async route => {
-    const response = await route.fetch({ url: `${testUrl}/website.html` })
-    await route.fulfill({ response })
-  })
   await page.goto('/docs/javascript/')
   const navigation = page.getByRole('navigation', { name: 'Footer navigation' })
   await navigation.getByRole('link', { name: 'React', exact: true }).click()

@@ -4,7 +4,7 @@ import { getCommandGroups, commandVerbs, type CommandItem } from './command-item
 import { getSearchTerms, type DocsSearch } from './docs-search'
 import { usePackageManager } from './package-manager'
 import { trackInstallCopied } from './site-analytics'
-import { Icon, Kbd } from './site-components'
+import { Icon } from './site-components'
 import type { SitePage } from './site-data'
 import { getTheme, getServerTheme, setTheme, subscribeTheme } from './site-theme'
 
@@ -101,7 +101,7 @@ function CommandOption({
         {isChat ? (
           <Icon name="external" className="command-external" />
         ) : (
-          <Kbd className="command-enter">⏎</Kbd>
+          <kbd className="command-enter">⏎</kbd>
         )}
       </span>
     </OptionElement>
@@ -320,7 +320,7 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
       >
         <Icon name="search" />
         <span>Search docs</span>
-        <Kbd aria-hidden="true">{mac ? '⌘' : 'Ctrl'} K</Kbd>
+        <kbd aria-hidden="true">{mac ? '⌘' : 'Ctrl'} K</kbd>
       </button>
       <dialog
         ref={dialog}
@@ -425,11 +425,11 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
           </span>
           <footer className="command-footer">
             <span>
-              <Kbd>↑</Kbd>
-              <Kbd>↓</Kbd> Navigate
+              <kbd>↑</kbd>
+              <kbd>↓</kbd> Navigate
             </span>
             <span>
-              <Kbd aria-label="Enter">⏎</Kbd>{' '}
+              <kbd aria-label="Enter">⏎</kbd>{' '}
               {selectedCommand ? commandVerbs[selectedCommand.kind] : 'Open'}
             </span>
           </footer>

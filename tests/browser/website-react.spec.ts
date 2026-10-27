@@ -1,26 +1,16 @@
-import { testUrl } from '../server-urls.ts'
+import { observeErrors } from './helpers'
 import { test, expect } from './website-fixture'
 
-for (const path of ['/website.html', '/react']) {
+for (const path of ['/', '/react']) {
   test(`${path} hydrates saved preferences without losing server-rendered content`, async ({
     page,
   }) => {
-    const errors: string[] = []
-    page.on('pageerror', error => errors.push(error.message))
-    page.on('console', message => {
-      if (message.type() === 'error') {
-        errors.push(message.text())
-      }
-    })
+    const errors = observeErrors(page, { includeConsole: true })
     await page.addInitScript(() => {
       if (!localStorage.getItem('medium-zoom-theme')) {
         localStorage.setItem('medium-zoom-theme', 'dark')
       }
       localStorage.setItem('medium-zoom-package-manager', 'bun')
-    })
-    await page.route(`${testUrl}/`, async route => {
-      const response = await route.fetch({ url: `${testUrl}/website.html` })
-      await route.fulfill({ response })
     })
     const response = await page.goto(path)
     const html = await response!.text()
@@ -37,7 +27,7 @@ for (const path of ['/website.html', '/react']) {
     await page
       .getByRole('navigation', { name: 'Main navigation', exact: true })
       .locator('.section-links')
-      .locator(`a[href="${path === '/website.html' ? '/react' : '/'}"]`)
+      .locator(`a[href="${path === '/' ? '/react' : '/'}"]`)
       .click()
     await expect(
       page.locator('.hero-install').getByRole('radio', { name: 'bun', exact: true })
@@ -47,7 +37,7 @@ for (const path of ['/website.html', '/react']) {
   })
 }
 
-for (const path of ['/website.html', '/react']) {
+for (const path of ['/', '/react']) {
   test(`${path} shows the saved install command before React loads`, async ({ page }) => {
     const errors: string[] = []
     page.on('console', message => {
@@ -73,7 +63,7 @@ for (const path of ['/website.html', '/react']) {
         await expect(panel.locator('pre [data-package-manager-option="npm"]')).toBeHidden()
         await expect(panel.locator('pre')).toHaveJSProperty(
           'innerText',
-          path === '/website.html'
+          path === '/'
             ? '$ bun add medium-zoom'
             : '$ bunx shadcn@latest add https://medium-zoom.francoischalifour.com/r/image-zoom.json'
         )
@@ -128,7 +118,7 @@ test('installation snippets default to npm when JavaScript is disabled', async (
   const context = await browser.newContext({ javaScriptEnabled: false })
   try {
     const page = await context.newPage()
-    await page.goto('/website.html')
+    await page.goto('/')
     for (const panel of [page.locator('.hero-install'), page.locator('.closing-install')]) {
       await expect(panel.locator('pre [data-package-manager-option="npm"]')).toBeVisible()
       await expect(panel.locator('pre [data-package-manager-option="bun"]')).toBeHidden()
@@ -151,7 +141,7 @@ for (const storage of ['invalid', 'unavailable'] as const) {
         })
       }
     }, storage)
-    await page.goto('/website.html')
+    await page.goto('/')
     const top = page.locator('.hero-install')
     const bottom = page.locator('.closing-install')
     await expect(top.getByRole('radio', { name: 'npm', exact: true })).toBeChecked()

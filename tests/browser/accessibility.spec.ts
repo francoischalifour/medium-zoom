@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright'
 import { test, expect } from '@playwright/test'
 
-for (const path of ['/website.html', '/react']) {
+for (const path of ['/', '/react']) {
   for (const theme of ['light', 'dark'] as const) {
     test(`${path} is accessible in ${theme} mode`, async ({ page }, testInfo) => {
       await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' })

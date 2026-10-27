@@ -1,6 +1,10 @@
 import type { Plugin } from 'vite'
 
-import { packageManagerPreference, restorePackageManager } from '../src/package-manager-preference'
+import {
+  packageManagerPreference,
+  restorePackageManager,
+} from '../src/package-manager-preference.ts'
+import { restoreTheme, themeKey } from '../src/site-theme.ts'
 
 export function sitePreferences(): Plugin {
   return {
@@ -9,7 +13,7 @@ export function sitePreferences(): Plugin {
       return [
         {
           tag: 'script',
-          children: `(${restorePackageManager.toString()})(${JSON.stringify(packageManagerPreference)})`,
+          children: `(${restoreTheme.toString()})(${JSON.stringify(themeKey)});(${restorePackageManager.toString()})(${JSON.stringify(packageManagerPreference)})`,
           injectTo: 'head',
         },
       ]

@@ -1,5 +1,19 @@
-const themeKey = 'medium-zoom-theme'
+export const themeKey = 'medium-zoom-theme'
 const themeEvent = 'medium-zoom:theme'
+
+// Also runs inline in the document head. Keep this function self-contained.
+export function restoreTheme(key: string) {
+  let theme: string | null = null
+  try {
+    theme = localStorage.getItem(key)
+  } catch {
+    // System appearance still applies when storage is unavailable.
+  }
+  document.documentElement.classList.toggle(
+    'dark',
+    theme === 'dark' || (!theme && matchMedia('(prefers-color-scheme: dark)').matches)
+  )
+}
 
 export function getTheme() {
   return typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
@@ -20,13 +34,11 @@ export function setTheme(dark: boolean) {
 }
 
 export function subscribeTheme(onChange: () => void) {
+  const listeners = new AbortController()
+  const options = { signal: listeners.signal }
   const media = window.matchMedia('(prefers-color-scheme: dark)')
   const syncPreference = () => {
-    let theme: string | null = null
-    try {
-      theme = localStorage.getItem(themeKey)
-    } catch {}
-    document.documentElement.classList.toggle('dark', theme === 'dark' || (!theme && media.matches))
+    restoreTheme(themeKey)
     onChange()
   }
   const onStorage = (event: StorageEvent) => {
@@ -35,14 +47,9 @@ export function subscribeTheme(onChange: () => void) {
     }
     syncPreference()
   }
-  window.addEventListener(themeEvent, onChange)
-  window.addEventListener('storage', onStorage)
-  window.addEventListener('pageshow', syncPreference)
-  media.addEventListener('change', syncPreference)
-  return () => {
-    window.removeEventListener(themeEvent, onChange)
-    window.removeEventListener('storage', onStorage)
-    window.removeEventListener('pageshow', syncPreference)
-    media.removeEventListener('change', syncPreference)
-  }
+  window.addEventListener(themeEvent, onChange, options)
+  window.addEventListener('storage', onStorage, options)
+  window.addEventListener('pageshow', syncPreference, options)
+  media.addEventListener('change', syncPreference, options)
+  return () => listeners.abort()
 }

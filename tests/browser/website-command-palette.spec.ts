@@ -4,7 +4,7 @@ import { test, expect } from './website-fixture'
 
 for (const shortcut of ['Meta+k', 'Control+k']) {
   test(`${shortcut} searches section anchors and restores focus`, async ({ page }) => {
-    await page.goto('/website.html')
+    await page.goto('/')
     const trigger = page.getByRole('button', { name: /Search docs/ })
     await trigger.focus()
     await page.keyboard.press(shortcut)

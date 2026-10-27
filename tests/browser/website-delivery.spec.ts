@@ -2,11 +2,9 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 
 import { exampleNames } from '../../scripts/example-names'
-import { docsOgImagePath } from '../../website/build/docs-sharing'
-import { docsPages } from '../../website/src/docs/pages'
 import { test, expect } from './website-fixture'
 
-for (const path of ['/website.html', '/react']) {
+for (const path of ['/', '/react']) {
   test(`${path} hydrates without downloading documentation articles`, async ({ page }) => {
     const scripts: string[] = []
     page.on('request', request => {
@@ -30,7 +28,7 @@ test('mobile previews use the intermediate image while retaining the full-size z
   })
   try {
     const page = await context.newPage()
-    for (const path of ['/website.html', '/react']) {
+    for (const path of ['/', '/react']) {
       await page.goto(path)
       const image = page.locator('.preview-photo[data-zoomable="landscape"]')
       await expect
@@ -43,48 +41,50 @@ test('mobile previews use the intermediate image while retaining the full-size z
   }
 })
 
-for (const doc of docsPages) {
-  test(`${doc.path} shares a readable social card without JavaScript`, async ({ browser }) => {
-    const context = await browser.newContext({ javaScriptEnabled: false })
-    try {
-      const page = await context.newPage()
-      await page.goto(doc.path)
-      const image = `https://medium-zoom.francoischalifour.com${docsOgImagePath(doc.path)}`
-      await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', image)
+test('published documentation shares distinct, readable social cards without JavaScript', async ({
+  browser,
+  request,
+}) => {
+  const sitemap = await (await request.get('/sitemap.xml')).text()
+  const paths = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)]
+    .map(([, url]) => new URL(url).pathname)
+    .filter(path => path.startsWith('/docs/'))
+  expect(paths.length).toBeGreaterThan(0)
+  const images = new Set<string>()
+  const context = await browser.newContext({ javaScriptEnabled: false })
+  try {
+    const page = await context.newPage()
+    for (const path of paths) {
+      await page.goto(path)
+      const image = (await page.locator('meta[property="og:image"]').getAttribute('content'))!
+      expect(new URL(image).origin).toBe('https://medium-zoom.francoischalifour.com')
       await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute('content', image)
       await expect(page.locator('meta[property="og:image:alt"]')).toHaveAttribute(
         'content',
-        doc.documentTitle
+        await page.title()
       )
-      const url = new URL(docsOgImagePath(doc.path), page.url()).href
+      const url = new URL(new URL(image).pathname, page.url()).href
       const response = await context.request.get(url)
       expect(response.ok()).toBe(true)
       expect(response.headers()['content-type']).toBe('image/jpeg')
+      images.add(
+        createHash('sha256')
+          .update(await response.body())
+          .digest('hex')
+      )
       await page.setContent(`<img src="${url}" alt="Social card">`)
-      const card = page.getByRole('img', { name: 'Social card' })
       await expect
         .poll(() =>
-          card.evaluate((image: HTMLImageElement) => [image.naturalWidth, image.naturalHeight])
+          page
+            .getByRole('img', { name: 'Social card' })
+            .evaluate((image: HTMLImageElement) => [image.naturalWidth, image.naturalHeight])
         )
         .toEqual([1_200, 630])
-    } finally {
-      await context.close()
     }
-  })
-}
-
-test('documentation social cards have distinct contents', async ({ request }) => {
-  const images = new Set<string>()
-  for (const doc of docsPages) {
-    const response = await request.get(docsOgImagePath(doc.path))
-    expect(response.ok()).toBe(true)
-    images.add(
-      createHash('sha256')
-        .update(await response.body())
-        .digest('hex')
-    )
+    expect(images.size).toBe(paths.length)
+  } finally {
+    await context.close()
   }
-  expect(images.size).toBe(docsPages.length)
 })
 
 test('demos remain usable but excluded from indexing', async ({ page, request }) => {

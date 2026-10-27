@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-import { decodeImages, dismissZoom } from '../browser/helpers.ts'
+import { decodeImages, dismissZoom, openImage, observeErrors } from '../browser/helpers.ts'
 
 for (const path of ['/zoom', '/composed']) {
   test(`${path}: a Server Component renders the image in the initial HTML without JavaScript`, async ({
@@ -27,13 +27,7 @@ for (const path of ['/zoom', '/composed']) {
   test(`${path}: hydrates server HTML and carries server props across client navigation`, async ({
     page,
   }) => {
-    const errors: string[] = []
-    page.on('pageerror', error => errors.push(error.message))
-    page.on('console', message => {
-      if (message.type() === 'error') {
-        errors.push(message.text())
-      }
-    })
+    const errors = observeErrors(page, { includeConsole: true })
     await page.goto(path)
     // Hydrate the actual server response before exercising the RSC client transport.
     await expect(
@@ -45,20 +39,7 @@ for (const path of ['/zoom', '/composed']) {
     const image = trigger.locator('img')
     await decodeImages(image)
     await expect(path === '/zoom' ? image : trigger).toHaveClass(/server-image/)
-    await image.evaluate(node => {
-      delete (node as HTMLImageElement).dataset.opened
-      node.addEventListener(
-        'medium-zoom:opened',
-        () => {
-          ;(node as HTMLImageElement).dataset.opened = 'true'
-        },
-        { once: true }
-      )
-    })
-    await trigger.focus()
-    await page.keyboard.press('Enter')
-    await expect(image).toHaveAttribute('data-opened', 'true')
-    await expect(page.locator('.medium-zoom-image--opened')).toBeVisible()
+    await openImage(page, image, { trigger, via: 'keyboard' })
     await expect(page.locator('.medium-zoom-overlay')).toHaveCSS(
       'background-color',
       'rgb(255, 255, 255)'
@@ -79,20 +60,7 @@ for (const path of ['/zoom', '/composed']) {
       page.getByRole('heading', { name: 'Rendered by a Server Component' })
     ).toBeVisible()
     await decodeImages(image)
-    await image.evaluate(node => {
-      delete (node as HTMLImageElement).dataset.opened
-      node.addEventListener(
-        'medium-zoom:opened',
-        () => {
-          ;(node as HTMLImageElement).dataset.opened = 'true'
-        },
-        { once: true }
-      )
-    })
-    await trigger.focus()
-    await page.keyboard.press('Enter')
-    await expect(image).toHaveAttribute('data-opened', 'true')
-    await expect(page.locator('.medium-zoom-image--opened')).toBeVisible()
+    await openImage(page, image, { trigger, via: 'keyboard' })
     await dismissZoom(page)
     await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
     expect(errors).toEqual([])
