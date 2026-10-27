@@ -6,6 +6,43 @@ import { docsOgImagePath } from '../../website/build/docs-sharing'
 import { docsPages } from '../../website/src/docs/pages'
 import { test, expect } from './website-fixture'
 
+for (const path of ['/website.html', '/react']) {
+  test(`${path} hydrates without downloading documentation articles`, async ({ page }) => {
+    const scripts: string[] = []
+    page.on('request', request => {
+      if (request.resourceType() === 'script') {
+        scripts.push(request.url())
+      }
+    })
+    await page.goto(path)
+    await page.getByRole('button', { name: 'Switch to dark theme' }).click()
+    await expect(page.locator('html')).toHaveClass('dark')
+    expect(scripts.some(url => /\/DocsPage-[^/]+\.js$/.test(url))).toBe(false)
+  })
+}
+
+test('mobile previews use the intermediate image while retaining the full-size zoom', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    viewport: { width: 412, height: 823 },
+    deviceScaleFactor: 2,
+  })
+  try {
+    const page = await context.newPage()
+    for (const path of ['/website.html', '/react']) {
+      await page.goto(path)
+      const image = page.locator('.preview-photo[data-zoomable="landscape"]')
+      await expect
+        .poll(() => image.evaluate((image: HTMLImageElement) => image.currentSrc))
+        .toContain('/ocean-sunset-preview-medium.webp')
+      await expect(image).toHaveAttribute('data-zoom-src', '/assets/images/ocean-sunset.jpg')
+    }
+  } finally {
+    await context.close()
+  }
+})
+
 for (const doc of docsPages) {
   test(`${doc.path} shares a readable social card without JavaScript`, async ({ browser }) => {
     const context = await browser.newContext({ javaScriptEnabled: false })
