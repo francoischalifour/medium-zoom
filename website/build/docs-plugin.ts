@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 
 import type { Plugin } from 'vite'
 
+import type { SearchEntry } from '../src/docs-search.ts'
 import { docsPages, docsPublishedOn, headingId } from '../src/docs/pages.ts'
 import { docsOgImagePath } from './docs-sharing.ts'
 
@@ -15,17 +16,42 @@ function getOutline(source: string) {
   })
 }
 
-function getSearchExcerpt(source: string) {
-  const paragraph = source
+function getSearchText(source: string) {
+  return source
     .replace(/^```[^\n]*\n[\s\S]*?^```/gm, '')
-    .split(/\n\s*\n/)
-    .map(block => block.trim())
-    .find(block => block && !/^(?:import\b|export\b|#|<)/.test(block))
-  return paragraph
-    ?.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/^import .+$/gm, '')
+    .replace(/`([^`\n]+)`/g, (_, code: string) => code.replace(/[<>]/g, ''))
+    .replace(/<Prop\s+name="([^"]+)"/g, '$1 <Prop')
+    .replace(/<\/?[A-Za-z](?:[^<>"']|"[^"]*"|'[^']*')*>/g, ' ')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/^\s*[-*+]\s+/gm, '')
     .replace(/[`*_]/g, '')
     .replace(/\s+/g, ' ')
     .trim()
+}
+
+function getSearchEntries(source: string, page: (typeof docsPages)[number]): SearchEntry[] {
+  const prose = source.replace(/^```[^\n]*\n[\s\S]*?^```/gm, '')
+  const [introduction, ...sections] = prose.split(/^## (.+)$/gm)
+  return [
+    {
+      title: page.title,
+      path: page.path,
+      group: page.group,
+      description: page.description,
+      content: getSearchText(introduction),
+    },
+    ...getOutline(source).map((heading, index) => ({
+      title: heading.title,
+      path: `${page.path}#${heading.id}`,
+      parent: page.title,
+      group: page.group,
+      content: getSearchText(sections[index * 2 + 1]),
+      keywords: [...sections[index * 2 + 1].matchAll(/<Prop\s+name="([^"]+)"/g)]
+        .map(([, name]) => name)
+        .join(' '),
+    })),
+  ]
 }
 
 // The authored headings own both the article anchors and its server-rendered outline.
@@ -46,22 +72,10 @@ export function docsPlugin(): Plugin {
         const file = fileURLToPath(new URL(`../src/docs/${page.source}`, import.meta.url))
         this.addWatchFile(file)
         const source = readFileSync(file, 'utf8')
-        return [
-          {
-            title: page.title,
-            path: page.path,
-            group: page.group,
-            description: getSearchExcerpt(source) ?? page.description,
-          },
-          ...getOutline(source).map(heading => ({
-            title: heading.title,
-            path: `${page.path}#${heading.id}`,
-            parent: page.title,
-            group: page.group,
-          })),
-        ]
+        return getSearchEntries(source, page)
       })
-      return `export default ${JSON.stringify(entries)}`
+      const searchModule = fileURLToPath(new URL('../src/docs-search-index.ts', import.meta.url))
+      return `import { createDocsSearch } from ${JSON.stringify(searchModule)};\nexport default createDocsSearch(${JSON.stringify(entries)})`
     },
     handleHotUpdate({ file, server }) {
       if (!file.endsWith('.mdx')) {

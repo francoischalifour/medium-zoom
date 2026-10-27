@@ -6,6 +6,6 @@ declare module '*.mdx' {
 }
 
 declare module 'virtual:docs-search' {
-  const entries: import('../docs-search').SearchEntry[]
-  export default entries
+  const search: import('../docs-search').DocsSearch
+  export default search
 }
