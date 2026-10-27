@@ -100,9 +100,122 @@ test('query highlighting preserves API punctuation and works in dark mode', asyn
   await expect(first.locator('mark')).toHaveText(['ImageZoom', 'ImageZoom'])
   await search.fill('open()')
   await expect(first).toHaveAccessibleName(/^open\(\)/)
-  await expect(first.locator('mark')).toHaveText('open')
+  await expect(first.locator('.command-title mark')).toHaveText('open')
   const report = await new AxeBuilder({ page }).include('dialog').analyze()
   expect(report.violations).toEqual([])
+})
+
+for (const [query, path, highlight] of [
+  ['javscript', '/docs/javascript/', 'JavaScript'],
+  ['galery', '/docs/guides/multiple-images/'],
+  ['gall', '/docs/guides/multiple-images/'],
+  ['react controled', '/docs/guides/controlled-state/', 'Controlled'],
+  ['magrin', '/docs/reference/javascript/options/#margin', 'margin'],
+  ['opne', '/docs/reference/javascript/methods/#open', 'open'],
+  ['scroll distance', '/docs/reference/javascript/options/#scrolloffset', 'scroll'],
+  ['scroll offset', '/docs/reference/javascript/options/#scrolloffset', 'scroll'],
+  ['image zoom', '/docs/reference/react/image-zoom/', 'Image'],
+  ['onopenchange', '/docs/reference/react/image-zoom/#state-props', 'onOpenChange'],
+  ['on', '/docs/reference/javascript/methods/#on', 'on'],
+  ['off', '/docs/reference/javascript/methods/#off', 'off'],
+]) {
+  test(`local search ranks and highlights ${query}`, async ({ page }) => {
+    await page.goto('/docs/react/')
+    await page.getByRole('button', { name: /Search docs/ }).click()
+    await page.getByRole('combobox').fill(query)
+    const results = page
+      .getByRole('group', { name: 'Documentation', exact: true })
+      .getByRole('option')
+    await expect(results.first()).toHaveAttribute('href', path)
+    if (highlight) {
+      await expect(
+        results.first().locator('mark').filter({ hasText: highlight }).first()
+      ).toBeVisible()
+    }
+    if (query === 'scroll distance') {
+      await expect(results.first().locator('.command-description')).toContainText(
+        'scroll distance in pixels'
+      )
+      await page.keyboard.press('Enter')
+      await expect(page).toHaveURL(/\/docs\/reference\/javascript\/options\/#scrolloffset$/)
+      await expect(page.locator('#scrolloffset')).toBeInViewport()
+    }
+    if (query === 'off') {
+      await expect(results.filter({ hasText: 'scrollOffset' })).toHaveCount(0)
+    }
+  })
+}
+
+test('search excerpts display MDX string expressions as text', async ({ page }) => {
+  await page.goto('/docs/react/')
+  await page.getByRole('button', { name: /Search docs/ }).click()
+  for (const [query, path, text] of [
+    ['plain html', '/docs/', 'Use the library with plain HTML or any framework.'],
+    ['keyboard support', '/docs/', 'Add an image component with a button and keyboard support.'],
+    ['reference', '/docs/#reference', '<ImageZoom>'],
+  ]) {
+    await page.getByRole('combobox').fill(query)
+    const description = page.locator(`a[role="option"][href="${path}"] .command-description`)
+    await expect(description).toContainText(text)
+    await expect(description).not.toContainText("{'")
+  }
+})
+
+test('API query casing preserves the same results and ranking', async ({ page }) => {
+  await page.goto('/docs/react/')
+  await page.getByRole('button', { name: /Search docs/ }).click()
+  const search = page.getByRole('combobox')
+  const results = page
+    .getByRole('group', { name: 'Documentation', exact: true })
+    .getByRole('option')
+  for (const [lowercase, variants, firstPath] of [
+    ['srcset', ['srcSet', 'SRCSET'], '/docs/guides/hd-images/'],
+    [
+      'onopenchange',
+      ['onOpenChange', 'ONOPENCHANGE'],
+      '/docs/reference/react/image-zoom/#state-props',
+    ],
+    ['imagezoom', ['ImageZoom', 'IMAGEZOOM'], '/docs/reference/react/image-zoom/'],
+  ] as const) {
+    await search.fill(lowercase)
+    await expect(results.first()).toHaveAttribute('href', firstPath)
+    const paths = await results.evaluateAll(elements =>
+      elements.map(element => element.getAttribute('href'))
+    )
+    for (const variant of variants) {
+      await search.fill(variant)
+      await expect
+        .poll(() =>
+          results.evaluateAll(elements => elements.map(element => element.getAttribute('href')))
+        )
+        .toEqual(paths)
+    }
+  }
+})
+
+test('the search engine loads on demand and is reused after closing the palette', async ({
+  page,
+}) => {
+  const requests: string[] = []
+  page.on('request', request => {
+    if (request.url().includes('_virtual_docs-search-')) {
+      requests.push(request.url())
+    }
+  })
+  await page.goto('/docs/react/')
+  await expect(page.getByRole('button', { name: /Search docs/ })).toBeVisible()
+  expect(requests).toHaveLength(0)
+  await page.getByRole('button', { name: /Search docs/ }).click()
+  await expect(page.getByRole('option').first()).toBeVisible()
+  expect(requests).toHaveLength(1)
+  await page.keyboard.press('Escape')
+  await page.getByRole('button', { name: /Search docs/ }).click()
+  await page.getByRole('combobox').fill('scroll distance')
+  await expect(page.getByRole('option').first()).toHaveAttribute(
+    'href',
+    '/docs/reference/javascript/options/#scrolloffset'
+  )
+  expect(requests).toHaveLength(1)
 })
 
 for (const [name, hostname, pathname] of [

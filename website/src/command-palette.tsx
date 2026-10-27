@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { getCommandGroups, commandVerbs, type CommandItem } from './command-items'
-import { getSearchTerms, type SearchEntry } from './docs-search'
+import { getSearchTerms, type DocsSearch } from './docs-search'
 import { usePackageManager } from './package-manager'
 import { trackInstallCopied } from './site-analytics'
 import { Icon, Kbd } from './site-components'
@@ -10,8 +10,18 @@ import { getTheme, getServerTheme, setTheme, subscribeTheme } from './site-theme
 
 import './command-palette.css'
 
-function Highlight({ text, query }: { text: string; query: string }) {
-  const words = [...new Set(getSearchTerms(query))].sort((a, b) => b.length - a.length)
+function Highlight({
+  text,
+  query,
+  matchedTerms,
+}: {
+  text: string
+  query: string
+  matchedTerms?: string[]
+}) {
+  const words = [...new Set(matchedTerms ?? getSearchTerms(query))].sort(
+    (a, b) => b.length - a.length
+  )
   if (!words.length) {
     return text
   }
@@ -66,16 +76,24 @@ function CommandOption({
       </span>
       <span className="command-result-content">
         <span className="command-title">
-          <Highlight text={command.title} query={query} />
+          <Highlight text={command.title} query={query} matchedTerms={command.matchedTerms} />
         </span>
         {command.detail && (
           <span className="command-detail">
-            {isChat ? command.detail : <Highlight text={command.detail} query={query} />}
+            {isChat ? (
+              command.detail
+            ) : (
+              <Highlight text={command.detail} query={query} matchedTerms={command.matchedTerms} />
+            )}
           </span>
         )}
         {command.description && (
           <span className="command-description">
-            <Highlight text={command.description} query={query} />
+            <Highlight
+              text={command.description}
+              query={query}
+              matchedTerms={command.matchedTerms}
+            />
           </span>
         )}
       </span>
@@ -111,7 +129,7 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
   const [open, setOpen] = React.useState(false)
   const [query, setQuery] = React.useState('')
   const [activeIndex, setActiveIndex] = React.useState(0)
-  const [entries, setEntries] = React.useState<SearchEntry[] | null>(null)
+  const [search, setSearch] = React.useState<DocsSearch | null>(null)
   const [loadError, setLoadError] = React.useState(false)
   const [mac, setMac] = React.useState(false)
   const dark = React.useSyncExternalStore(subscribeTheme, getTheme, getServerTheme)
@@ -188,7 +206,7 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
     return () => window.clearTimeout(timer)
   }, [open, query])
   React.useEffect(() => {
-    if (!open || entries) {
+    if (!open || search) {
       return
     }
     let cancelled = false
@@ -196,7 +214,7 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
     import('virtual:docs-search').then(
       module => {
         if (!cancelled) {
-          setEntries(module.default)
+          setSearch(() => module.default)
         }
       },
       () => {
@@ -208,18 +226,15 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
     return () => {
       cancelled = true
     }
-  }, [open, entries])
+  }, [open, search])
 
-  const groups = getCommandGroups({
-    entries: entries ?? [],
-    query,
-    framework,
-    packageManager,
-    dark,
-  })
+  const groups = React.useMemo(
+    () => getCommandGroups({ search, query, framework, packageManager, dark }),
+    [search, query, framework, packageManager, dark]
+  )
   const commands = groups.flatMap(group => group.items)
   const matchCount = commands.filter(command => command.kind !== 'chat').length
-  const noMatches = entries !== null && Boolean(query.trim()) && matchCount === 0
+  const noMatches = search !== null && Boolean(query.trim()) && matchCount === 0
   const selectedIndex = Math.min(activeIndex, Math.max(0, commands.length - 1))
   const selectedCommand = commands[selectedIndex]
   const selectedId = selectedCommand ? `${id}-${selectedCommand.id}` : undefined
@@ -369,7 +384,7 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
             id={`${id}-results`}
             aria-label="Search results"
           >
-            {!entries && (
+            {!search && (
               <p className="command-empty">
                 {loadError
                   ? 'Documentation search could not load. Close and reopen to retry.'
@@ -401,6 +416,13 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
               </div>
             ))}
           </div>
+          <span className="sr-only" role="status">
+            {search
+              ? query.trim()
+                ? `${matchCount} ${matchCount === 1 ? 'match' : 'matches'}`
+                : `${commands.length} shortcuts`
+              : ''}
+          </span>
           <footer className="command-footer">
             <span>
               <Kbd>↑</Kbd>
@@ -409,13 +431,6 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
             <span>
               <Kbd aria-label="Enter">⏎</Kbd>{' '}
               {selectedCommand ? commandVerbs[selectedCommand.kind] : 'Open'}
-            </span>
-            <span className="command-count" role="status">
-              {entries
-                ? query.trim()
-                  ? `${matchCount} ${matchCount === 1 ? 'match' : 'matches'}`
-                  : `${commands.length} shortcuts`
-                : ''}
             </span>
           </footer>
         </div>

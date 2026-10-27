@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react'
 
 import { getChatLinks } from './chat-links'
-import { getSearchTerms, searchDocs, type SearchEntry } from './docs-search'
+import { getSearchTerms, type DocsSearch } from './docs-search'
 import { componentCommands, javascriptCommands } from './install-commands'
 import type { PackageManager } from './package-manager'
 import type { Icon } from './site-components'
@@ -13,6 +13,7 @@ export type CommandItem = {
   icon: ComponentProps<typeof Icon>['name']
   detail?: string
   description?: string
+  matchedTerms?: string[]
 } & (
   | { kind: 'navigate'; url: string }
   | { kind: 'chat'; url: string }
@@ -23,13 +24,13 @@ export type CommandItem = {
 export const commandVerbs = { navigate: 'Open', chat: 'Ask', copy: 'Copy', theme: 'Switch' }
 
 export function getCommandGroups({
-  entries,
+  search,
   query,
   framework,
   packageManager,
   dark,
 }: {
-  entries: SearchEntry[]
+  search: DocsSearch | null
   query: string
   framework: SitePage
   packageManager: PackageManager
@@ -37,7 +38,7 @@ export function getCommandGroups({
 }): { title: string; items: CommandItem[] }[] {
   const searchQuery = query.trim()
   const searching = searchQuery.length > 0
-  const matchingDocs = searchDocs(entries, searchQuery, framework)
+  const matchingDocs = search?.(searchQuery, framework) ?? []
   const documentation: CommandItem[] = matchingDocs.map(entry => ({
     id: entry.path,
     kind: 'navigate',
@@ -50,6 +51,7 @@ export function getCommandGroups({
         ? undefined
         : entry.group,
     description: searching ? entry.description : undefined,
+    matchedTerms: entry.matchedTerms,
   }))
   const installActions = [
     {

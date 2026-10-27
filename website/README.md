@@ -30,6 +30,8 @@ bunx vite preview --config config/vite.website.config.mts --host 127.0.0.1 --por
 
 The installable React component lives in `examples/shadcn/`. The root `registry.json` defines its registry entry. See the [component development guide](../examples/shadcn/README.md) for its build and verification commands.
 
+Documentation search uses MiniSearch, loaded when the command palette opens. The docs plugin indexes each page introduction and section’s prose, headings, and prop names. Tune aliases, field weights, and typo tolerance in `src/docs-search-index.ts`.
+
 ## Generated files
 
 `bun run build:website` builds the library and regenerates documentation entries, highlighted snippets, the React registry, and the complete site. Edit the source rather than generated output:
