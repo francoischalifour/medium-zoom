@@ -10,6 +10,7 @@ import { siteFonts } from '../website/build/site-fonts.ts'
 import { siteHighlights } from '../website/build/site-highlights.ts'
 import { sitePreferences } from '../website/build/site-preferences.ts'
 import { siteRedirects } from '../website/build/site-redirects.ts'
+import { siteStyles } from '../website/build/site-styles.ts'
 import { libraryConfig } from './vite.shared.config.mts'
 
 export default mergeConfig(
@@ -22,6 +23,7 @@ export default mergeConfig(
       react({ include: /\.(jsx|tsx|mdx)$/ }),
       galleryAssets(),
       siteFonts(),
+      siteStyles(),
       sitePreferences(),
       siteHighlights(),
     ],
@@ -35,6 +37,8 @@ export default mergeConfig(
     envDir: fileURLToPath(new URL('../', import.meta.url)),
     root: fileURLToPath(new URL('../website/', import.meta.url)),
     build: {
+      // Prerendered content must be styled before its hydration chunk loads.
+      cssCodeSplit: false,
       rolldownOptions: {
         input: {
           index: fileURLToPath(new URL('../website/index.html', import.meta.url)),

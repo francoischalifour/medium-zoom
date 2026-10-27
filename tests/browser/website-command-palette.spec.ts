@@ -159,6 +159,22 @@ test('balances actions, matching documentation, and chat handoffs', async ({ pag
   await expect(page.getByRole('option').first()).toContainText('margin')
 })
 
+test('search URLs hydrate when the browser does not report paint timing', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.PerformanceObserver = class extends PerformanceObserver {
+      observe(options?: PerformanceObserverInit) {
+        if (options?.type !== 'paint') {
+          super.observe(options)
+        }
+      }
+    }
+  })
+  await page.goto('/docs/javascript/?q=margin#install-the-package')
+  await expect(page.getByRole('combobox')).toBeFocused()
+  await expect(page.getByRole('combobox')).toHaveValue('margin')
+  await expect(page.getByRole('option').first()).toContainText('margin')
+})
+
 test('search URLs preserve page context and reopen the same query', async ({ page }) => {
   await page.goto('/docs/javascript/?utm_source=search-test#install-the-package')
   await page.getByRole('button', { name: /Search docs/ }).click()

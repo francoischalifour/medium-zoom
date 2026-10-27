@@ -166,6 +166,7 @@ for (const [path, title] of pages) {
       const response = await page.goto(path)
       expect(response?.status()).toBe(200)
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(title)
+      await expect(page.getByRole('heading', { level: 1 })).toHaveCSS('font-weight', '550')
       await expect(page).toHaveTitle(`${title} — medium-zoom documentation`)
       await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', origin + path)
       await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
@@ -273,6 +274,55 @@ test('documentation navigation preserves package manager and theme preferences',
     page.locator('#javascript-installation').getByRole('radio', { name: 'bun', exact: true })
   ).toBeChecked()
   expect(errors).toEqual([])
+})
+
+test('the React quickstart loads the preview before requesting the full-size zoom image', async ({
+  page,
+}) => {
+  const images: string[] = []
+  page.on('request', request => {
+    if (request.resourceType() === 'image') {
+      images.push(new URL(request.url()).pathname)
+    }
+  })
+  await page.goto('/docs/react/')
+  const trigger = page.locator('.docs-preview [data-slot="image-zoom-trigger"]')
+  await trigger.locator('img').evaluate(image => (image as HTMLImageElement).decode())
+  expect(images).toContain('/assets/images/ocean-sunset-preview.webp')
+  expect(images).not.toContain('/assets/images/ocean-sunset.jpg')
+  await trigger.click()
+  await expect(
+    page.locator('.medium-zoom-image--opened[src="/assets/images/ocean-sunset.jpg"]')
+  ).toBeVisible()
+  expect(images).toContain('/assets/images/ocean-sunset.jpg')
+  await page.keyboard.press('Escape')
+  await expect(page.locator('body')).not.toHaveClass(/medium-zoom--opened/)
+})
+
+test('keyboard zoom survives interaction before hydration finishes loading', async ({ page }) => {
+  let resume!: () => void
+  const hydration = new Promise<void>(resolve => {
+    resume = resolve
+  })
+  await page.route(/\/assets\/hydrate-.*\.js$/, async route => {
+    await hydration
+    await route.continue()
+  })
+  await page.goto('/docs/react/', { waitUntil: 'commit' })
+  const trigger = page.locator('.docs-preview [data-slot="image-zoom-trigger"]')
+  try {
+    await trigger.focus()
+    await page.keyboard.press('Tab')
+    await expect(trigger).not.toBeFocused()
+    await trigger.focus()
+    await page.keyboard.press('Enter')
+  } finally {
+    resume()
+  }
+  await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
+  await page.keyboard.press('Escape')
+  await expect(page.locator('body')).not.toHaveClass(/medium-zoom--opened/)
+  await expect(trigger).toBeFocused()
 })
 
 test('live examples support keyboard zoom and controlled close requests', async ({ page }) => {
@@ -384,7 +434,9 @@ test('section links and sticky navigation clear the header', async ({ page }) =>
   }
 })
 
-test('formatted code fits the article at desktop and mobile widths', async ({ page }) => {
+test('code fits the article and single-line copy controls stay beside scrolling code', async ({
+  page,
+}) => {
   for (const width of [1_440, 1_024, 390]) {
     await page.setViewportSize({ width, height: 900 })
     for (const [path] of pages) {
@@ -392,9 +444,25 @@ test('formatted code fits the article at desktop and mobile widths', async ({ pa
       const overflowing = await page
         .locator('.docs-article pre')
         .evaluateAll(
-          blocks => blocks.filter(block => block.scrollWidth > block.clientWidth + 1).length
+          blocks =>
+            blocks.filter(
+              block => !block.closest('.code-row') && block.scrollWidth > block.clientWidth + 1
+            ).length
         )
       expect(overflowing).toBe(0)
+      const overlappingRows = await page.locator('.docs-article .code-row').evaluateAll(
+        rows =>
+          rows.filter(row => {
+            const code = row.querySelector('pre')!.getBoundingClientRect()
+            const button = row.querySelector('button')!.getBoundingClientRect()
+            const article = row.closest('.docs-article')!.getBoundingClientRect()
+            return code.right > button.left + 1 || button.right > article.right + 1
+          }).length
+      )
+      expect(overlappingRows).toBe(0)
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+        width
+      )
     }
   }
 })
@@ -588,12 +656,19 @@ test('named reference links use background hover states', async ({ page }) => {
 
 test('documentation code headers are compact with usable copy buttons', async ({ page }) => {
   await page.goto('/docs/reference/javascript/medium-zoom/')
-  for (const caption of await page.locator('.docs-code .code-caption').all()) {
+  for (const block of await page.locator('.docs-code').all()) {
+    const caption = block.locator('.code-caption')
     const bounds = await caption.boundingBox()
     expect(bounds!.height).toBeLessThanOrEqual(40)
-    const button = await caption.getByRole('button').boundingBox()
+    const button = await block.getByRole('button').boundingBox()
     expect(button!.height).toBeGreaterThanOrEqual(24)
     expect(button!.width).toBeGreaterThanOrEqual(24)
+    const code = await block.locator('pre').textContent()
+    await expect(
+      block
+        .locator(code!.trimEnd().includes('\n') ? '.code-caption' : '.code-row')
+        .getByRole('button')
+    ).toBeVisible()
   }
 })
 
