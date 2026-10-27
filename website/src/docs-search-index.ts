@@ -5,7 +5,7 @@ import { getSearchTerms, type DocsSearch, type SearchEntry } from './docs-search
 const aliases: Record<string, string> = {
   '/docs/guides/server-rendering/': 'nextjs next.js ssr server components rsc',
   '/docs/guides/hd-images/': 'high resolution high-resolution retina srcset',
-  '/docs/guides/galleries/': 'gallery multiple photos pictures',
+  '/docs/guides/multiple-images/': 'gallery galleries multiple photos pictures',
   '/docs/guides/styling/': 'css styles caption overlay',
   '/docs/javascript/': 'install installation setup vanilla npm',
   '/docs/react/': 'install installation setup shadcn npm',
@@ -66,7 +66,7 @@ export function createDocsSearch(entries: SearchEntry[]): DocsSearch {
         '/docs/javascript/',
         '/docs/react/',
         '/docs/guides/hd-images/',
-        '/docs/guides/galleries/',
+        '/docs/guides/multiple-images/',
         '/docs/reference/react/image-zoom/',
       ].flatMap(path => (byPath.has(path) ? [byPath.get(path)!] : []))
     }

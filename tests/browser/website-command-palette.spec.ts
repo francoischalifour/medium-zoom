@@ -107,8 +107,8 @@ test('query highlighting preserves API punctuation and works in dark mode', asyn
 
 for (const [query, path, highlight] of [
   ['javscript', '/docs/javascript/', 'JavaScript'],
-  ['galery', '/docs/guides/galleries/', 'gallery'],
-  ['gall', '/docs/guides/galleries/', 'Galleries'],
+  ['galery', '/docs/guides/multiple-images/'],
+  ['gall', '/docs/guides/multiple-images/'],
   ['react controled', '/docs/guides/controlled-state/', 'Controlled'],
   ['magrin', '/docs/reference/javascript/options/#margin', 'margin'],
   ['opne', '/docs/reference/javascript/methods/#open', 'open'],
@@ -127,9 +127,11 @@ for (const [query, path, highlight] of [
       .getByRole('group', { name: 'Documentation', exact: true })
       .getByRole('option')
     await expect(results.first()).toHaveAttribute('href', path)
-    await expect(
-      results.first().locator('mark').filter({ hasText: highlight }).first()
-    ).toBeVisible()
+    if (highlight) {
+      await expect(
+        results.first().locator('mark').filter({ hasText: highlight }).first()
+      ).toBeVisible()
+    }
     if (query === 'scroll distance') {
       await expect(results.first().locator('.command-description')).toContainText(
         'scroll distance in pixels'
