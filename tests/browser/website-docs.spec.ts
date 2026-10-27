@@ -372,7 +372,9 @@ test('section links and sticky navigation clear the header', async ({ page }) =>
   }
 })
 
-test('formatted code fits the article at desktop and mobile widths', async ({ page }) => {
+test('code fits the article and single-line copy controls stay beside scrolling code', async ({
+  page,
+}) => {
   for (const width of [1_440, 1_024, 390]) {
     await page.setViewportSize({ width, height: 900 })
     for (const [path] of pages) {
@@ -380,9 +382,25 @@ test('formatted code fits the article at desktop and mobile widths', async ({ pa
       const overflowing = await page
         .locator('.docs-article pre')
         .evaluateAll(
-          blocks => blocks.filter(block => block.scrollWidth > block.clientWidth + 1).length
+          blocks =>
+            blocks.filter(
+              block => !block.closest('.code-row') && block.scrollWidth > block.clientWidth + 1
+            ).length
         )
       expect(overflowing).toBe(0)
+      const overlappingRows = await page.locator('.docs-article .code-row').evaluateAll(
+        rows =>
+          rows.filter(row => {
+            const code = row.querySelector('pre')!.getBoundingClientRect()
+            const button = row.querySelector('button')!.getBoundingClientRect()
+            const article = row.closest('.docs-article')!.getBoundingClientRect()
+            return code.right > button.left + 1 || button.right > article.right + 1
+          }).length
+      )
+      expect(overlappingRows).toBe(0)
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+        width
+      )
     }
   }
 })
@@ -576,12 +594,19 @@ test('named reference links use background hover states', async ({ page }) => {
 
 test('documentation code headers are compact with usable copy buttons', async ({ page }) => {
   await page.goto('/docs/reference/javascript/medium-zoom/')
-  for (const caption of await page.locator('.docs-code .code-caption').all()) {
+  for (const block of await page.locator('.docs-code').all()) {
+    const caption = block.locator('.code-caption')
     const bounds = await caption.boundingBox()
     expect(bounds!.height).toBeLessThanOrEqual(40)
-    const button = await caption.getByRole('button').boundingBox()
+    const button = await block.getByRole('button').boundingBox()
     expect(button!.height).toBeGreaterThanOrEqual(24)
     expect(button!.width).toBeGreaterThanOrEqual(24)
+    const code = await block.locator('pre').textContent()
+    await expect(
+      block
+        .locator(code!.trimEnd().includes('\n') ? '.code-caption' : '.code-row')
+        .getByRole('button')
+    ).toBeVisible()
   }
 })
 
