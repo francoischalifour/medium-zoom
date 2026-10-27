@@ -1,10 +1,11 @@
 import type { ComponentProps } from 'react'
-import type { Icon } from './site-components'
-import type { SitePage } from './site-data'
-import type { PackageManager } from './package-manager'
-import { componentCommands, javascriptCommands } from './install-commands'
+
 import { getChatLinks } from './chat-links'
 import { getSearchTerms, searchDocs, type SearchEntry } from './docs-search'
+import { componentCommands, javascriptCommands } from './install-commands'
+import type { PackageManager } from './package-manager'
+import type { Icon } from './site-components'
+import type { SitePage } from './site-data'
 
 export type CommandItem = {
   id: string

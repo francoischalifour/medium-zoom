@@ -1,5 +1,7 @@
-import { test, expect, type Page } from '@playwright/test'
 import { writeFile } from 'node:fs/promises'
+
+import { test, expect, type Page } from '@playwright/test'
+
 import {
   openImage,
   dismissZoom,
@@ -33,7 +35,9 @@ for (let group = 0; group < storyGroups; group++) {
     expect(new Set(stories.map(story => story.id)).size).toBe(43)
 
     for (const [index, story] of stories.entries()) {
-      if (index % storyGroups !== group) continue
+      if (index % storyGroups !== group) {
+        continue
+      }
       await test.step(story.id, async () => {
         alerts.length = 0
         await page.goto(story.url)
@@ -68,7 +72,9 @@ async function assertInitialState(page: Page, id: string) {
     )
     expect(events[0].target).toBe(id.endsWith('/with target') ? 'image-2' : 'image-1')
   }
-  if (automaticOpen) await page.evaluate(() => window.zoom.close())
+  if (automaticOpen) {
+    await page.evaluate(() => window.zoom.close())
+  }
   if (id === 'getOptions()/default') {
     expect(await page.evaluate(() => window.zoom.getOptions())).toMatchObject({
       margin: 48,
@@ -84,7 +90,9 @@ async function assertInitialState(page: Page, id: string) {
 }
 
 async function demonstrateStory(page: Page, id: string) {
-  if (id === 'on()/detach') await page.locator('#detach').click()
+  if (id === 'on()/detach') {
+    await page.locator('#detach').click()
+  }
   if (id === 'update()/multiple options') {
     await page.locator('#update').click()
     expect(await page.evaluate(() => window.zoom.getOptions())).toMatchObject({
@@ -121,7 +129,9 @@ async function demonstrateStory(page: Page, id: string) {
 }
 
 async function dismissStory(page: Page, id: string) {
-  if (unattachedStories.has(id)) return
+  if (unattachedStories.has(id)) {
+    return
+  }
   const template = await page.locator('svg[data-zoom-close]').count()
   const via = template ? 'template' : id === 'options/scrollOffset' ? 'scroll' : 'keyboard'
   await dismissZoom(page, { via })
@@ -132,7 +142,9 @@ async function dismissStory(page: Page, id: string) {
 }
 
 function expectedAlerts(id: string) {
-  if (!id.startsWith('on()/')) return []
+  if (!id.startsWith('on()/')) {
+    return []
+  }
   const event = id.split('/')[1]
   return [event === 'open only once' ? 'open' : event]
 }

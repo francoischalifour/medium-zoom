@@ -1,4 +1,5 @@
 import AxeBuilder from '@axe-core/playwright'
+
 import { test, expect } from './website-fixture'
 
 const origin = 'https://medium-zoom.francoischalifour.com'
@@ -34,8 +35,11 @@ test('collapsed docs navigation stays inside the article column on phones and ta
     expect(menuBounds.x).toBe(mainBounds.x)
     expect(menuBounds.width).toBe(mainBounds.width)
     const documentation = menus.getByText('Documentation', { exact: true }).first()
-    if (width === 390) await expect(documentation).toBeVisible()
-    else await expect(documentation).toBeHidden()
+    if (width === 390) {
+      await expect(documentation).toBeVisible()
+    } else {
+      await expect(documentation).toBeHidden()
+    }
     await expect(menus.locator('summary').last()).toHaveText('On this page')
   }
   await page.setViewportSize({ width: 1_024, height: 900 })
@@ -191,13 +195,17 @@ for (const [path, title] of pages) {
         .locator('a[href]')
         .evaluateAll(elements => elements.map(element => element.getAttribute('href')!))
       for (const href of new Set(links)) {
-        if (href.startsWith('#')) await expect(page.locator(href)).toHaveCount(1)
+        if (href.startsWith('#')) {
+          await expect(page.locator(href)).toHaveCount(1)
+        }
         if (href.startsWith('/')) {
           const destination = href === '/' ? '/website.html' : href
           const result = await context.request.get(destination)
           expect(result.status(), href).toBe(200)
           const hash = new URL(href, origin).hash
-          if (hash) expect(await result.text(), href).toContain(`id="${hash.slice(1)}"`)
+          if (hash) {
+            expect(await result.text(), href).toContain(`id="${hash.slice(1)}"`)
+          }
         }
       }
       if (path !== '/docs/') {
@@ -218,7 +226,9 @@ test('documentation navigation preserves package manager and theme preferences',
   const errors: string[] = []
   page.on('pageerror', error => errors.push(error.message))
   page.on('console', message => {
-    if (message.type() === 'error') errors.push(message.text())
+    if (message.type() === 'error') {
+      errors.push(message.text())
+    }
   })
   await page.setViewportSize({ width: 1_440, height: 900 })
   await page.goto('/website.html')
@@ -271,7 +281,9 @@ test('the React quickstart loads the preview before requesting the full-size zoo
 }) => {
   const images: string[] = []
   page.on('request', request => {
-    if (request.resourceType() === 'image') images.push(new URL(request.url()).pathname)
+    if (request.resourceType() === 'image') {
+      images.push(new URL(request.url()).pathname)
+    }
   })
   await page.goto('/docs/react/')
   const trigger = page.locator('.docs-preview [data-slot="image-zoom-trigger"]')
@@ -326,8 +338,9 @@ test('live examples support keyboard zoom and controlled close requests', async 
     await trigger.focus()
     await page.keyboard.press(index === 1 ? 'Space' : 'Enter')
     await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
-    if (index === 2)
+    if (index === 2) {
       await expect(page.locator('.docs-preview').getByRole('status')).toHaveText('Image is open')
+    }
     await page.keyboard.press('Escape')
     await expect(page.locator('body')).not.toHaveClass(/medium-zoom--opened/)
     await expect(trigger).toBeFocused()
@@ -387,8 +400,9 @@ for (const theme of ['light', 'dark'] as const) {
       await page.goto(path)
       for (const width of [1_440, 390]) {
         await page.setViewportSize({ width, height: 900 })
-        if (width === 390)
+        if (width === 390) {
           await page.locator('.docs-mobile-navigation details').first().locator('summary').click()
+        }
         const result = await new AxeBuilder({ page })
           .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
           .analyze()

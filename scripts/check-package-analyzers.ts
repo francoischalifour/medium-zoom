@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+
 import { publint } from 'publint'
 import { formatMessage } from 'publint/utils'
 
@@ -25,7 +26,9 @@ async function checkPublint(archive: string) {
     pack: { tarball: new Uint8Array(readFileSync(archive)).buffer },
     level: 'warning',
   })
-  for (const message of result.messages) console.log(formatMessage(message, result.pkg))
+  for (const message of result.messages) {
+    console.log(formatMessage(message, result.pkg))
+  }
   // These established ESM .js paths cannot be renamed or put in a type:module
   // package without breaking v1's dist imports or callable UMD main.
   assert.deepEqual(
@@ -89,8 +92,11 @@ function checkAttw(archive: string) {
     for (const mode of modes) {
       const actual = resolutions[mode].visibleProblems.map(index => analysis.problems[index].kind)
       let expected: string[] = []
-      if (entry === '.') expected = ['FalseExportDefault']
-      else if (mode.startsWith('node16-')) expected = ['UnexpectedModuleSyntax']
+      if (entry === '.') {
+        expected = ['FalseExportDefault']
+      } else if (mode.startsWith('node16-')) {
+        expected = ['UnexpectedModuleSyntax']
+      }
       assert.deepEqual(actual, expected, `${entry}: ${mode}`)
     }
   }

@@ -1,6 +1,6 @@
+import mediumZoom from 'medium-zoom'
 import React, { useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
-import mediumZoom from 'medium-zoom'
 
 const markdown = `
 ![Zoom 1](images/image-1.jpg)

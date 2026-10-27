@@ -5,6 +5,7 @@ export default defineConfig({
   semi: false,
   trailingComma: 'es5',
   arrowParens: 'avoid',
+  sortImports: true,
   overrides: [
     {
       files: ['website/src/docs/examples/*.tsx', 'website/src/docs/*.mdx'],

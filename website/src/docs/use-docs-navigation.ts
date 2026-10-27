@@ -4,8 +4,11 @@ function focusAnchorTarget(target: HTMLElement) {
   const previousTabIndex = target.getAttribute('tabindex')
   const restoreTabIndex = () => {
     target.removeEventListener('blur', restoreTabIndex)
-    if (previousTabIndex === null) target.removeAttribute('tabindex')
-    else target.setAttribute('tabindex', previousTabIndex)
+    if (previousTabIndex === null) {
+      target.removeAttribute('tabindex')
+    } else {
+      target.setAttribute('tabindex', previousTabIndex)
+    }
   }
   target.setAttribute('tabindex', '-1')
   target.addEventListener('blur', restoreTabIndex, { once: true })
@@ -25,7 +28,9 @@ export function useDocsNavigation(path: string) {
       const offset = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)
       let currentId = ''
       for (const heading of headings) {
-        if (heading.getBoundingClientRect().top > offset + 8) break
+        if (heading.getBoundingClientRect().top > offset + 8) {
+          break
+        }
         currentId = heading.id
       }
       // The last section may be too short to reach the top of the viewport.
@@ -38,7 +43,9 @@ export function useDocsNavigation(path: string) {
       setActiveHeadingId(currentId)
     }
     const onScroll = () => {
-      if (!frame) frame = window.requestAnimationFrame(updateActiveHeading)
+      if (!frame) {
+        frame = window.requestAnimationFrame(updateActiveHeading)
+      }
     }
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onScroll)
@@ -67,10 +74,14 @@ export function useDocsNavigation(path: string) {
       window.clearTimeout(scrollIdleTimer)
       const destination = pendingDestination
       pendingDestination = null
-      if (!destination) return
+      if (!destination) {
+        return
+      }
       const { element: target, focusAfterScroll } = destination
       const bounds = target.getBoundingClientRect()
-      if (bounds.bottom < 0 || bounds.top >= window.innerHeight) return
+      if (bounds.bottom < 0 || bounds.top >= window.innerHeight) {
+        return
+      }
       // Older deep links can point at empty compatibility markers.
       let highlightTarget = target
       while (
@@ -88,7 +99,9 @@ export function useDocsNavigation(path: string) {
       highlightTimer = window.setTimeout(clearHighlight, 1_800)
     }
     const waitForScroll = () => {
-      if (!pendingDestination) return
+      if (!pendingDestination) {
+        return
+      }
       window.clearTimeout(scrollIdleTimer)
       scrollIdleTimer = window.setTimeout(showDestination, 160)
     }
@@ -104,7 +117,9 @@ export function useDocsNavigation(path: string) {
         return
       }
       const target = document.getElementById(id)
-      if (!(target instanceof HTMLElement) || !article.contains(target)) return
+      if (!(target instanceof HTMLElement) || !article.contains(target)) {
+        return
+      }
       pendingDestination = {
         element: target,
         focusAfterScroll:
@@ -122,20 +137,26 @@ export function useDocsNavigation(path: string) {
         event.ctrlKey ||
         event.shiftKey ||
         event.altKey
-      )
+      ) {
         return
+      }
       const link = event.target instanceof Element ? event.target.closest('a') : null
-      if (!link || link.hasAttribute('download') || (link.target && link.target !== '_self')) return
+      if (!link || link.hasAttribute('download') || (link.target && link.target !== '_self')) {
+        return
+      }
       const url = new URL(link.href)
       if (
         url.origin !== window.location.origin ||
         url.pathname !== window.location.pathname ||
         url.search !== window.location.search ||
         !url.hash
-      )
+      ) {
         return
+      }
       const menu = link.closest<HTMLDetailsElement>('.docs-mobile-navigation details')
-      if (menu) menu.open = false
+      if (menu) {
+        menu.open = false
+      }
       scheduleArrival(url.hash, true)
     }
     const onLoad = () => scheduleArrival(window.location.hash)
@@ -146,7 +167,9 @@ export function useDocsNavigation(path: string) {
     window.addEventListener('scrollend', showDestination)
     window.addEventListener('resize', waitForScroll)
     window.addEventListener('load', onLoad)
-    if (document.readyState === 'complete') onLoad()
+    if (document.readyState === 'complete') {
+      onLoad()
+    }
 
     return () => {
       document.removeEventListener('click', onLinkClick)

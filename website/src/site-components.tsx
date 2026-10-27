@@ -1,5 +1,6 @@
-import snippets from './highlighted-snippets.json'
 import * as React from 'react'
+
+import snippets from './highlighted-snippets.json'
 
 const iconPaths = {
   chat: (
@@ -112,7 +113,9 @@ export function CopyButton({
 }) {
   const [status, setStatus] = React.useState<'idle' | 'copied' | 'failed'>('idle')
   React.useEffect(() => {
-    if (status === 'idle') return
+    if (status === 'idle') {
+      return
+    }
     const timer = window.setTimeout(() => setStatus('idle'), 2_500)
     return () => window.clearTimeout(timer)
   }, [status])

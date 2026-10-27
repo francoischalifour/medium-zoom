@@ -119,7 +119,7 @@ export const galleryImages: ExampleImage[] = [
 ]
 
 export function usageCode(image: ExampleImage, kind: 'react' | 'javascript' = 'react') {
-  if (kind === 'javascript')
+  if (kind === 'javascript') {
     return `<img
   src="https://medium-zoom.francoischalifour.com/assets/${image.src}"
   alt="${image.alt}"
@@ -127,6 +127,7 @@ export function usageCode(image: ExampleImage, kind: 'react' | 'javascript' = 'r
   height="${image.height}"
   data-zoomable
 >`
+  }
   return `import { ImageZoom } from "@/components/ui/image-zoom"
 
 export function Photo() {

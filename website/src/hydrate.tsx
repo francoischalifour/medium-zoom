@@ -1,10 +1,11 @@
 import { StrictMode } from 'react'
 import { flushSync } from 'react-dom'
 import { createRoot, hydrateRoot } from 'react-dom/client'
+
 import { App } from './App'
 import { DocsPage } from './docs/DocsPage'
-import { getSitePage } from './site-data'
 import { initSiteAnalytics } from './site-analytics'
+import { getSitePage } from './site-data'
 
 export function hydrateSite() {
   initSiteAnalytics()
@@ -22,7 +23,10 @@ export function hydrateSite() {
   )
   // Attach handlers before the bootstrap replays queued interactions.
   flushSync(() => {
-    if (root.hasChildNodes()) hydrateRoot(root, app)
-    else createRoot(root).render(app)
+    if (root.hasChildNodes()) {
+      hydrateRoot(root, app)
+    } else {
+      createRoot(root).render(app)
+    }
   })
 }

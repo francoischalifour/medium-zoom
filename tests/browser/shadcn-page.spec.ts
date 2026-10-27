@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
+
 import { decodeImages, dismissZoom, openImage } from './helpers.ts'
 
 const demo = '/react'
@@ -18,7 +19,9 @@ test('built page hydrates and presents the component without test controls', asy
   const errors: string[] = []
   page.on('pageerror', error => errors.push(error.message))
   page.on('console', message => {
-    if (message.type() === 'error') errors.push(message.text())
+    if (message.type() === 'error') {
+      errors.push(message.text())
+    }
   })
   await ready(page)
   await expect(page.getByRole('button', { name: 'Inspect ref', exact: true })).toHaveCount(0)
@@ -91,10 +94,13 @@ test('horizontal examples stop at both ends and retain independent card state', 
   await presented(page, 'Portrait')
   await next.click()
   await presented(page, 'Mountains')
-  for (let step = 0; step < 6 && !(await next.isDisabled()); step++) await next.press('Enter')
+  for (let step = 0; step < 6 && !(await next.isDisabled()); step++) {
+    await next.press('Enter')
+  }
   await expect(next).toBeDisabled()
-  for (let step = 0; step < 6 && !(await previous.isDisabled()); step++)
+  for (let step = 0; step < 6 && !(await previous.isDisabled()); step++) {
     await previous.press('Enter')
+  }
   await presented(page, 'Landscape')
   await expect(previous).toBeDisabled()
   await expect(landscape.getByRole('tab', { name: 'Code', exact: true })).toHaveAttribute(
@@ -115,8 +121,9 @@ test('horizontal examples stop at both ends and retain independent card state', 
       !(await page
         .getByRole('region', { name: 'Image zoom examples', exact: true })
         .evaluate(element => element.contains(document.activeElement)))
-    )
+    ) {
       break
+    }
   }
   expect(
     await page
@@ -134,15 +141,17 @@ test('keyboard navigation keeps focus at both rail boundaries', async ({ page })
     .getByRole('region', { name: 'Image zoom examples', exact: true })
     .getByRole('button', { name: 'Previous example', exact: true })
   await next.focus()
-  for (let step = 0; step < 6 && !(await next.isDisabled()); step++)
+  for (let step = 0; step < 6 && !(await next.isDisabled()); step++) {
     await page.keyboard.press('Enter')
+  }
   await expect(next).toBeDisabled()
   await expect(next).toBeFocused()
   await page.keyboard.press('Enter')
   await expect(next).toBeFocused()
   await previous.focus()
-  for (let step = 0; step < 6 && !(await previous.isDisabled()); step++)
+  for (let step = 0; step < 6 && !(await previous.isDisabled()); step++) {
     await page.keyboard.press('Enter')
+  }
   await expect(previous).toBeDisabled()
   await expect(previous).toBeFocused()
 })

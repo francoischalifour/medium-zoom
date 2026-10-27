@@ -1,7 +1,8 @@
 import type { Page } from '@playwright/test'
-import { test, expect } from './website-fixture'
+
 import { testUrl } from '../server-urls.ts'
 import { decodeImages, dismissZoom, openImage } from './helpers.ts'
+import { test, expect } from './website-fixture'
 
 async function openHome(page: Page) {
   // Core-package tests intentionally use a blank /. Map it to the built home page only here.
@@ -23,7 +24,9 @@ test('home page presents the library with the shared preview and code rail', asy
   const errors: string[] = []
   page.on('pageerror', error => errors.push(error.message))
   page.on('console', message => {
-    if (message.type() === 'error') errors.push(message.text())
+    if (message.type() === 'error') {
+      errors.push(message.text())
+    }
   })
   await openHome(page)
   await expect(page.getByText('No dependencies. Works with any framework.')).toBeVisible()
@@ -158,7 +161,9 @@ test('system theme is respected before interaction and explicit preference survi
 test('both pages end with an install action and one curated gallery', async ({ page }) => {
   await openHome(page)
   for (const integration of [false, true]) {
-    if (integration) await page.goto('/react')
+    if (integration) {
+      await page.goto('/react')
+    }
     const main = page.getByRole('region', { name: 'Image zoom examples', exact: true })
     await expect(page.getByLabel('Scrollable examples', { exact: true })).toHaveCount(1)
     await expect(main.getByRole('article')).toHaveCount(6)
@@ -187,7 +192,9 @@ test('both pages end with an install action and one curated gallery', async ({ p
 test('rails start on the content grid and scroll across the viewport', async ({ page }) => {
   await openHome(page)
   for (const integration of [false, true]) {
-    if (integration) await page.goto('/react')
+    if (integration) {
+      await page.goto('/react')
+    }
     const section = page.getByRole('region', { name: 'Image zoom examples', exact: true })
     const rail = section.locator('.example-rail')
     const first = section.getByRole('article').first()
@@ -301,7 +308,9 @@ test('mobile branding stays in the bar and product navigation is centered in the
   await page.setViewportSize({ width: 390, height: 844 })
   await openHome(page)
   for (const integration of [false, true]) {
-    if (integration) await page.goto('/react')
+    if (integration) {
+      await page.goto('/react')
+    }
     for (const width of [320, 390, 680]) {
       await page.setViewportSize({ width, height: 844 })
       const bar = page.getByRole('navigation', { name: 'Main navigation', exact: true })
@@ -327,10 +336,11 @@ test('mobile branding stays in the bar and product navigation is centered in the
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true
       )
-      if (width === 390)
+      if (width === 390) {
         await page.screenshot({
           path: `/tmp/medium-zoom-mobile-navigation-${integration ? 'React' : 'JavaScript'}.png`,
         })
+      }
     }
   }
 })
@@ -341,7 +351,9 @@ for (const integration of [false, true]) {
   }) => {
     await page.setViewportSize({ width: 1_920, height: 1_080 })
     await openHome(page)
-    if (integration) await page.goto('/react')
+    if (integration) {
+      await page.goto('/react')
+    }
     const section = page.getByRole('region', { name: 'Image zoom examples', exact: true })
     const rail = section.getByLabel('Scrollable examples', { exact: true })
     const first = section.getByRole('article').first()
@@ -353,7 +365,9 @@ for (const integration of [false, true]) {
         y: (await first.boundingBox())!.y + 160,
       })
     await expect.poll(outsideCard).toBe(false)
-    if (!integration) await page.screenshot({ path: '/tmp/medium-zoom-wide-rail-resting.png' })
+    if (!integration) {
+      await page.screenshot({ path: '/tmp/medium-zoom-wide-rail-resting.png' })
+    }
     await first.hover()
     await expect.poll(outsideCard).toBe(true)
     expect((await first.boundingBox())!.x).toBe(firstBox.x)
@@ -399,7 +413,9 @@ for (const integration of [false, true]) {
     }) => {
       await page.emulateMedia({ reducedMotion: motion })
       await openHome(page)
-      if (integration) await page.goto('/react')
+      if (integration) {
+        await page.goto('/react')
+      }
       await expect(page.locator('html')).toHaveCSS(
         'scroll-behavior',
         motion === 'no-preference' ? 'smooth' : 'auto'
@@ -422,7 +438,9 @@ for (const integration of [false, true]) {
 test('the closing action copies the selected installation command', async ({ page }) => {
   await openHome(page)
   for (const integration of [false, true]) {
-    if (integration) await page.goto('/react')
+    if (integration) {
+      await page.goto('/react')
+    }
     await page.locator('.hero-install').getByRole('radio', { name: 'pnpm', exact: true }).check()
     await page.evaluate(() => {
       Object.defineProperty(navigator, 'clipboard', {

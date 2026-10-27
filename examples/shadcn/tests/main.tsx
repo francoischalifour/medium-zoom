@@ -1,7 +1,9 @@
 import { StrictMode } from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
-import { Fixture } from './Fixture'
+
 import { CompoundFixture } from './CompoundFixture'
+import { Fixture } from './Fixture'
+
 import './style.css'
 
 const Page = new URLSearchParams(location.search).has('compound')

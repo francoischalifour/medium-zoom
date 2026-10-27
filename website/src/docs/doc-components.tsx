@@ -1,6 +1,7 @@
-import * as React from 'react'
-import { CopyButton, HighlightedCode, ZoomControls } from '../site-components'
 import mediumZoom, { type Zoom } from 'medium-zoom'
+import * as React from 'react'
+
+import { CopyButton, HighlightedCode, ZoomControls } from '../site-components'
 import { TabList } from '../site-tabs'
 
 export function DocCode({ code, title = 'Example' }: { code: string; title?: string }) {
@@ -149,7 +150,9 @@ export function JavaScriptPreview() {
       if (zoom.getZoomedImage()) {
         zoom.on('closed', () => zoom.detach(), { once: true })
         void zoom.close()
-      } else zoom.detach()
+      } else {
+        zoom.detach()
+      }
     }
   }, [])
   return (
@@ -159,7 +162,9 @@ export function JavaScriptPreview() {
         aria-label="Enlarge ocean sunset"
         onClick={event => {
           // Image clicks already reach medium-zoom's delegated listener.
-          if (event.target === event.currentTarget) void zoomRef.current?.open()
+          if (event.target === event.currentTarget) {
+            void zoomRef.current?.open()
+          }
         }}
       >
         <img

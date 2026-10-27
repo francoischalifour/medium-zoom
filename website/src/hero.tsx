@@ -1,9 +1,9 @@
-import { ReactIcon } from './technology-icons'
 import { InstallCommand } from './install-command'
-import { SectionLinks } from './site-shell'
-import { Icon } from './site-components'
 import { registryUrl } from './install-commands'
+import { Icon } from './site-components'
 import type { SitePage } from './site-data'
+import { SectionLinks } from './site-shell'
+import { ReactIcon } from './technology-icons'
 
 export function Hero({ page }: { page: SitePage }) {
   const isReact = page === 'react'

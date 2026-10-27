@@ -1,11 +1,13 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
+
 import { transformSync } from '@babel/core'
 import { parse } from 'acorn'
 import { transform as transformCss } from 'lightningcss'
 import { minify as minifyEs5 } from 'terser'
 import { defineConfig } from 'tsdown'
 import type { TsdownPlugin, UserConfig } from 'tsdown'
+
 import pkg from '../package.json' with { type: 'json' }
 
 const banner = `/*! ${pkg.name} ${pkg.version} | ${pkg.license} License | https://github.com/${pkg.repository} */`
@@ -18,10 +20,14 @@ function stylesheet(): TsdownPlugin {
   return {
     name: 'medium-zoom-stylesheet',
     resolveId(source) {
-      if (source === './medium-zoom.css') return '\0medium-zoom-stylesheet'
+      if (source === './medium-zoom.css') {
+        return '\0medium-zoom-stylesheet'
+      }
     },
     load(id) {
-      if (id !== '\0medium-zoom-stylesheet') return
+      if (id !== '\0medium-zoom-stylesheet') {
+        return
+      }
       this.addWatchFile(stylesheetPath.pathname)
       const css = transformCss({
         filename: stylesheetPath.pathname,
@@ -59,7 +65,9 @@ function legacySyntax(minify: boolean): TsdownPlugin {
         minified: minify,
         comments: true,
       })
-      if (!result?.code) throw new Error('Babel did not emit the browser bundle')
+      if (!result?.code) {
+        throw new Error('Babel did not emit the browser bundle')
+      }
       const code = minify
         ? (
             await minifyEs5(result.code, {
@@ -70,7 +78,9 @@ function legacySyntax(minify: boolean): TsdownPlugin {
             })
           ).code
         : result.code
-      if (!code) throw new Error('The ES5 minifier did not emit a browser bundle')
+      if (!code) {
+        throw new Error('The ES5 minifier did not emit a browser bundle')
+      }
       // Line-based package analyzers can mistake URL strings for comments.
       // Keep ESM exports visible on their own lines regardless of minifier formatting.
       let output = code

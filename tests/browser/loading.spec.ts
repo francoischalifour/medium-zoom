@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+
 import { loadZoomFixture, observeErrors } from './helpers.ts'
 
 for (const source of ['srcset', 'data-zoom-src'] as const) {
@@ -57,8 +58,11 @@ for (const source of ['srcset', 'data-zoom-src'] as const) {
       await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
       if (dismiss === 'overlay') {
         await page.locator('.medium-zoom-overlay').click({ position: { x: 4, y: 4 }, force: true })
-      } else if (dismiss === 'Escape') await page.keyboard.press('Escape')
-      else await page.evaluate(() => window.zoom.close())
+      } else if (dismiss === 'Escape') {
+        await page.keyboard.press('Escape')
+      } else {
+        await page.evaluate(() => window.zoom.close())
+      }
       await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
       await expect(page.locator('html')).toHaveAttribute('data-settled', 'true')
       await expect(page.locator('html')).toHaveAttribute('data-events', 'open,close,closed,')
@@ -91,8 +95,9 @@ for (const source of ['srcset', 'data-zoom-src'] as const) {
       window.zoom.on('opened', () => events.push('opened'))
       for (let i = 0; i < 3; i++) {
         await window.zoom.open()
-        if (document.querySelectorAll('.medium-zoom-image--opened').length !== 2)
+        if (document.querySelectorAll('.medium-zoom-image--opened').length !== 2) {
           throw new Error('Missing HD clone')
+        }
         await window.zoom.close()
       }
       return events
@@ -118,8 +123,11 @@ for (const dismiss of ['overlay', 'Escape', 'API'] as const) {
     })
     if (dismiss === 'overlay') {
       await page.locator('.medium-zoom-overlay').click({ position: { x: 4, y: 4 }, force: true })
-    } else if (dismiss === 'Escape') await page.keyboard.press('Escape')
-    else await page.evaluate(() => window.zoom.close())
+    } else if (dismiss === 'Escape') {
+      await page.keyboard.press('Escape')
+    } else {
+      await page.evaluate(() => window.zoom.close())
+    }
     await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
     await expect(page.locator('html')).toHaveAttribute('data-settled', 'true')
     await expect(page.locator('html')).toHaveAttribute('data-events', 'open,close,closed,')
@@ -133,8 +141,9 @@ test('open listeners can cancel synchronously and closed listeners can reopen', 
   await loadZoomFixture(page)
   const events = await page.evaluate(async () => {
     const events: string[] = []
-    for (const type of ['open', 'opened', 'close', 'closed'])
+    for (const type of ['open', 'opened', 'close', 'closed']) {
       window.zoom.on(type, () => events.push(type))
+    }
     window.zoom.on(
       'open',
       () => {

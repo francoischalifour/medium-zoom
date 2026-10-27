@@ -1,5 +1,5 @@
-import { test, expect } from './website-fixture'
 import { testUrl } from '../server-urls.ts'
+import { test, expect } from './website-fixture'
 
 for (const path of ['/website.html', '/react']) {
   test(`${path} hydrates saved preferences without losing server-rendered content`, async ({
@@ -8,11 +8,14 @@ for (const path of ['/website.html', '/react']) {
     const errors: string[] = []
     page.on('pageerror', error => errors.push(error.message))
     page.on('console', message => {
-      if (message.type() === 'error') errors.push(message.text())
+      if (message.type() === 'error') {
+        errors.push(message.text())
+      }
     })
     await page.addInitScript(() => {
-      if (!localStorage.getItem('medium-zoom-theme'))
+      if (!localStorage.getItem('medium-zoom-theme')) {
         localStorage.setItem('medium-zoom-theme', 'dark')
+      }
       localStorage.setItem('medium-zoom-package-manager', 'bun')
     })
     await page.route(`${testUrl}/`, async route => {
@@ -48,7 +51,9 @@ for (const path of ['/website.html', '/react']) {
   test(`${path} shows the saved install command before React loads`, async ({ page }) => {
     const errors: string[] = []
     page.on('console', message => {
-      if (message.type() === 'error') errors.push(message.text())
+      if (message.type() === 'error') {
+        errors.push(message.text())
+      }
     })
     await page.addInitScript(() => {
       localStorage.setItem('medium-zoom-package-manager', 'bun')
@@ -100,9 +105,9 @@ for (const interaction of ['pointer', 'keyboard'] as const) {
     await page.goto('/react', { waitUntil: 'commit' })
     const installation = page.locator('.hero-install')
     try {
-      if (interaction === 'pointer')
+      if (interaction === 'pointer') {
         await installation.locator('label[data-package-manager-option="pnpm"]').click()
-      else {
+      } else {
         await installation.getByRole('radio', { name: 'npm', exact: true }).focus()
         await page.keyboard.press('ArrowRight')
       }
@@ -136,13 +141,15 @@ test('installation snippets default to npm when JavaScript is disabled', async (
 for (const storage of ['invalid', 'unavailable'] as const) {
   test(`installation remains usable with ${storage} storage`, async ({ page }) => {
     await page.addInitScript(mode => {
-      if (mode === 'invalid') localStorage.setItem('medium-zoom-package-manager', 'unknown')
-      else
+      if (mode === 'invalid') {
+        localStorage.setItem('medium-zoom-package-manager', 'unknown')
+      } else {
         Object.defineProperty(window, 'localStorage', {
           get() {
             throw new DOMException('Storage is unavailable', 'SecurityError')
           },
         })
+      }
     }, storage)
     await page.goto('/website.html')
     const top = page.locator('.hero-install')

@@ -1,8 +1,9 @@
 import { DownloadStats } from './download-stats'
-import { Icon, CopyButton, CodeTokens } from './site-components'
 import { ExampleRail } from './example-rail'
 import { javascriptUsageCode } from './gallery'
 import { trackSiteEvent } from './site-analytics'
+import { Icon, CopyButton, CodeTokens } from './site-components'
+
 import './javascript.css'
 
 export function JavaScriptPage() {

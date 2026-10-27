@@ -1,11 +1,12 @@
 import * as React from 'react'
+
 import { ImageZoom } from '../../examples/shadcn/src/components/ui/image-zoom'
 import * as ZoomParts from '../../examples/shadcn/src/components/ui/image-zoom'
 import { photos, galleryAssetBase } from './gallery'
-import { CopyButton, HighlightedCode } from './site-components'
 import { trackSiteEvent } from './site-analytics'
-import { usageExamples } from './usage-snippets'
+import { CopyButton, HighlightedCode } from './site-components'
 import { TabList } from './site-tabs'
+import { usageExamples } from './usage-snippets'
 
 type UsageExample = (typeof usageExamples)[number]
 

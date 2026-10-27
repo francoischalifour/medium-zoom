@@ -32,7 +32,9 @@ export function TabList<Value extends string>({
           tabIndex={value === item.value ? 0 : -1}
           onClick={() => onValueChange(item.value)}
           onKeyDown={event => {
-            if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
+            if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
+              return
+            }
             event.preventDefault()
             const next =
               event.key === 'Home'

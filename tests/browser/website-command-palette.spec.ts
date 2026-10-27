@@ -1,4 +1,5 @@
 import AxeBuilder from '@axe-core/playwright'
+
 import { test, expect } from './website-fixture'
 
 for (const shortcut of ['Meta+k', 'Control+k']) {
@@ -117,8 +118,11 @@ for (const [name, hostname, pathname] of [
     const question = 'How do I control React zoom state? & preserve focus #1'
     await page.getByRole('combobox').fill(question)
     const popupPromise = page.waitForEvent('popup')
-    if (name === 'ChatGPT') await page.keyboard.press('Enter')
-    else await page.getByRole('option', { name: new RegExp(`Ask ${name}`) }).click()
+    if (name === 'ChatGPT') {
+      await page.keyboard.press('Enter')
+    } else {
+      await page.getByRole('option', { name: new RegExp(`Ask ${name}`) }).click()
+    }
     const popup = await popupPromise
     await popup.waitForLoadState()
     const url = new URL(popup.url())
@@ -159,7 +163,9 @@ test('search URLs hydrate when the browser does not report paint timing', async 
   await page.addInitScript(() => {
     window.PerformanceObserver = class extends PerformanceObserver {
       observe(options?: PerformanceObserverInit) {
-        if (options?.type !== 'paint') super.observe(options)
+        if (options?.type !== 'paint') {
+          super.observe(options)
+        }
       }
     }
   })

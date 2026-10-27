@@ -1,4 +1,5 @@
 import type { Plugin } from 'vite'
+
 import { packageManagerPreference, restorePackageManager } from '../src/package-manager-preference'
 
 export function sitePreferences(): Plugin {

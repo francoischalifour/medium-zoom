@@ -1,5 +1,7 @@
 import { resolve } from 'node:path'
+
 import { build } from 'vite'
+
 import { prerenderWebsite } from './prerender-website'
 
 // A public test key, with all delivery intercepted by the browser tests.

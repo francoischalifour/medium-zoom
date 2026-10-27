@@ -1,9 +1,10 @@
-import { createServer } from 'node:http'
 import { existsSync, readFileSync } from 'node:fs'
+import { createServer } from 'node:http'
 import { resolve, extname, sep } from 'node:path'
+
 import { pack } from '../scripts/pack.ts'
-import { testPort } from './server-urls.ts'
 import { readExactRedirects } from '../website/build/site-redirects.ts'
+import { testPort } from './server-urls.ts'
 
 const artifact = pack()
 const roots: Record<string, string> = {
@@ -40,14 +41,20 @@ const server = createServer((request, response) => {
   const [, root, ...segments] = decodeURIComponent(url.pathname).split('/')
   const directory = roots[root] || roots.site
   let relative = roots[root] ? segments.join('/') : [root, ...segments].join('/')
-  if (relative === 'website.html') relative = 'index.html'
-  if (!relative || relative.endsWith('/')) relative += 'index.html'
+  if (relative === 'website.html') {
+    relative = 'index.html'
+  }
+  if (!relative || relative.endsWith('/')) {
+    relative += 'index.html'
+  }
   let path = resolve(directory, relative)
   if (!path.startsWith(`${directory}${sep}`)) {
     response.writeHead(403).end()
     return
   }
-  if (!extname(path) && !existsSync(path)) path += '.html'
+  if (!extname(path) && !existsSync(path)) {
+    path += '.html'
+  }
   try {
     const contents = readFileSync(path)
     const contentType = contentTypes[extname(path)] || 'application/octet-stream'
@@ -81,6 +88,7 @@ const server = createServer((request, response) => {
 })
 
 server.listen(testPort, '127.0.0.1')
-for (const signal of ['SIGTERM', 'SIGINT'])
+for (const signal of ['SIGTERM', 'SIGINT']) {
   process.on(signal, () => server.close(() => process.exit()))
+}
 process.on('exit', artifact.cleanup)

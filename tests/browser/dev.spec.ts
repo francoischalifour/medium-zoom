@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
-import { openImage, dismissZoom } from './helpers.ts'
+
 import { svelteDevUrl } from '../server-urls.ts'
+import { openImage, dismissZoom } from './helpers.ts'
 
 test('Svelte development server attaches and dismisses zooms', async ({ page }) => {
   await page.goto(svelteDevUrl)

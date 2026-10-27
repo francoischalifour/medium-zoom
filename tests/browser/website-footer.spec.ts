@@ -1,6 +1,7 @@
 import AxeBuilder from '@axe-core/playwright'
-import { test, expect } from './website-fixture'
+
 import { testUrl } from '../server-urls'
+import { test, expect } from './website-fixture'
 
 for (const theme of ['light', 'dark'] as const) {
   test(`the shared footer stays usable from phone to desktop in ${theme} mode`, async ({

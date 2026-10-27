@@ -1,7 +1,9 @@
 const docsOrigin = 'https://medium-zoom.francoischalifour.com'
 
 export function getChatLinks(query: string, referencePath: string) {
-  if (!query.trim()) return []
+  if (!query.trim()) {
+    return []
+  }
   const prompt = [query.trim(), `Read ${docsOrigin + referencePath} and answer`].join('\n\n')
   return [
     { key: 'chatgpt', title: 'Ask ChatGPT', base: 'https://chatgpt.com/' },

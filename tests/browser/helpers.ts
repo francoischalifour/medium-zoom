@@ -51,7 +51,9 @@ export async function loadBundle(
       const { default: mediumZoom } = (await import(url)) as typeof import('../../src/medium-zoom')
       window.mediumZoom = mediumZoom
     }, url)
-  } else await page.addScriptTag({ url })
+  } else {
+    await page.addScriptTag({ url })
+  }
 }
 
 export async function loadZoomFixture(page: Page, options: PackageOptions & PageOptions = {}) {

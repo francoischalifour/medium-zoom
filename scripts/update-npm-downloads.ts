@@ -1,4 +1,5 @@
 import { writeFileSync } from 'node:fs'
+
 import { fetchNpmDownloads } from '../website/src/npm-downloads.ts'
 
 // medium-zoom was first published on 2016-07-26.

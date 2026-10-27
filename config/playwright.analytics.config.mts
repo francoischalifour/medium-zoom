@@ -1,5 +1,7 @@
 import { fileURLToPath } from 'node:url'
+
 import { defineConfig, devices } from '@playwright/test'
+
 import { testUrl } from '../tests/server-urls.ts'
 
 export default defineConfig({

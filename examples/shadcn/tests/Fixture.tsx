@@ -1,8 +1,9 @@
-import { galleryAssetBase } from '../src/gallery-paths'
 import * as React from 'react'
 import { createPortal } from 'react-dom'
+
 import { ImageZoom } from '../src/components/ui/image-zoom'
 import * as ZoomParts from '../src/components/ui/image-zoom'
+import { galleryAssetBase } from '../src/gallery-paths'
 
 const ocean = `${galleryAssetBase}images/ocean-sunset.jpg`
 const skateboard = `${galleryAssetBase}images/skateboard.jpg`

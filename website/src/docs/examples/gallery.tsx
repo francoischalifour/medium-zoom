@@ -1,4 +1,5 @@
 import { ImageZoom } from '@/components/ui/image-zoom'
+
 import './gallery.css'
 
 export function Gallery() {

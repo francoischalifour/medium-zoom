@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react'
+
 import {
   packageManagerPreference,
   restorePackageManager,
@@ -33,7 +34,9 @@ export function subscribePackageManager(onChange: () => void) {
     onChange()
   }
   const onStorage = (event: StorageEvent) => {
-    if (event.key === packageManagerPreference.storageKey || event.key === null) restore()
+    if (event.key === packageManagerPreference.storageKey || event.key === null) {
+      restore()
+    }
   }
   window.addEventListener(changeEvent, onChange)
   window.addEventListener('storage', onStorage)

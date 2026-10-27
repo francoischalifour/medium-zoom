@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+
 import { decodeImages, finishAnimations, observeErrors } from './helpers.ts'
 
 for (const width of [1_280, 390]) {

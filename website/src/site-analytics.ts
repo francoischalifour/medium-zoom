@@ -1,4 +1,5 @@
 import { altertable, type Altertable, type EventProperties } from '@altertable/altertable-js'
+
 import { getPackageManager } from './package-manager'
 import { getSitePage } from './site-data'
 
@@ -12,7 +13,9 @@ let initialized = false
 let client: Altertable | null | undefined
 
 function getClient() {
-  if (client !== undefined) return client
+  if (client !== undefined) {
+    return client
+  }
   try {
     let lastPage: string | undefined
     let lastSearch = ''
@@ -22,11 +25,15 @@ function getClient() {
         const url = event.properties?.$url
         const path = new URL(typeof url === 'string' ? url : location.href).pathname
         const page = getSitePage(path)
-        if (!page) return null
+        if (!page) {
+          return null
+        }
         if (event.event === '$pageview') {
           const query = typeof event.properties?.q === 'string' ? event.properties.q : ''
           // Query changes are searches; clearing search and following anchors are not pageviews.
-          if (lastPage === path && (!query || lastSearch === query)) return null
+          if (lastPage === path && (!query || lastSearch === query)) {
+            return null
+          }
           lastPage = path
           lastSearch = query
         }
@@ -51,7 +58,9 @@ function getClient() {
 
 type SiteEvent = 'Install Command Copied' | 'Code Copied' | 'Image Zoomed' | 'Outbound Click'
 export function trackSiteEvent(event: SiteEvent, properties: EventProperties = {}) {
-  if (!enabled) return
+  if (!enabled) {
+    return
+  }
   try {
     getClient()?.track(event, properties)
   } catch {
@@ -64,21 +73,28 @@ export function trackInstallCopied() {
 }
 
 export function initSiteAnalytics() {
-  if (!enabled || initialized) return
+  if (!enabled || initialized) {
+    return
+  }
   initialized = true
   const start = () => {
     getClient()
   }
-  if (typeof window.requestIdleCallback === 'function')
+  if (typeof window.requestIdleCallback === 'function') {
     window.requestIdleCallback(start, { timeout: 3_000 })
-  else if (document.readyState === 'complete') start()
-  else window.addEventListener('load', start, { once: true })
+  } else if (document.readyState === 'complete') {
+    start()
+  } else {
+    window.addEventListener('load', start, { once: true })
+  }
 
   document.addEventListener(
     'medium-zoom:opened',
     event => {
       const image = event.target
-      if (!(image instanceof HTMLImageElement) || !image.dataset.zoomable) return
+      if (!(image instanceof HTMLImageElement) || !image.dataset.zoomable) {
+        return
+      }
       trackSiteEvent('Image Zoomed', {
         image: image.dataset.zoomable,
         rail: image.closest<HTMLElement>('[data-example-rail]')?.dataset.exampleRail,
@@ -87,11 +103,17 @@ export function initSiteAnalytics() {
     true
   )
   document.addEventListener('click', event => {
-    if (event.defaultPrevented || !(event.target instanceof Element)) return
+    if (event.defaultPrevented || !(event.target instanceof Element)) {
+      return
+    }
     const link = event.target.closest('a[href]')
-    if (!(link instanceof HTMLAnchorElement)) return
+    if (!(link instanceof HTMLAnchorElement)) {
+      return
+    }
     const url = new URL(link.href)
-    if (!['https:', 'http:'].includes(url.protocol) || url.origin === location.origin) return
+    if (!['https:', 'http:'].includes(url.protocol) || url.origin === location.origin) {
+      return
+    }
     trackSiteEvent('Outbound Click', {
       destination: `${url.origin}${url.pathname}`,
       placement: link.closest('header') ? 'header' : link.closest('footer') ? 'footer' : 'content',

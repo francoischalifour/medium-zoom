@@ -7,11 +7,15 @@ export function siteStyles(): Plugin {
     transformIndexHtml: {
       order: 'post',
       handler(html, { bundle }) {
-        if (!bundle) return html
+        if (!bundle) {
+          return html
+        }
         return html.replace(/<link\b[^>]*rel="stylesheet"[^>]*>/g, tag => {
           const href = tag.match(/href="([^"]+)"/)?.[1]
           const asset = href && bundle[href.replace(/^\//, '')]
-          if (!asset || asset.type !== 'asset' || typeof asset.source !== 'string') return tag
+          if (!asset || asset.type !== 'asset' || typeof asset.source !== 'string') {
+            return tag
+          }
           return `<style>${asset.source.replace(/<\/style/gi, '<\\/style')}</style>`
         })
       },

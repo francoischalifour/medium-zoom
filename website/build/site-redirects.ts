@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+
 import type { Plugin, PreviewServer, ViteDevServer } from 'vite'
 
 export function readExactRedirects(file: string | URL) {
@@ -19,7 +20,9 @@ export function siteRedirects(): Plugin {
     server.middlewares.use((request, response, next) => {
       const url = new URL(request.url || '/', 'http://localhost')
       const destination = redirects.get(url.pathname)
-      if (!destination) return next()
+      if (!destination) {
+        return next()
+      }
       response.writeHead(301, { Location: destination + url.search }).end()
     })
   }

@@ -1,6 +1,7 @@
 import { cpSync, existsSync, readFile } from 'node:fs'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+
 import type { Plugin, ResolvedConfig } from 'vite'
 
 // The complete site owns the photos. Standalone exports include a local copy.

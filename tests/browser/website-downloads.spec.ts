@@ -1,6 +1,7 @@
 import AxeBuilder from '@axe-core/playwright'
-import { test, expect } from './website-fixture'
+
 import snapshot from '../../website/src/npm-downloads.json'
+import { test, expect } from './website-fixture'
 
 const format = (value: number) => new Intl.NumberFormat('en-US').format(value)
 const nextDate = new Date(`${snapshot.end}T00:00:00Z`)
@@ -68,7 +69,9 @@ for (const failure of ['unavailable', 'incomplete', 'older'] as const) {
     clock.setUTCDate(clock.getUTCDate() + 1)
     await page.clock.setFixedTime(clock)
     await page.route('https://api.npmjs.org/downloads/**', route => {
-      if (failure === 'unavailable') return route.fulfill({ status: 503, body: 'Unavailable' })
+      if (failure === 'unavailable') {
+        return route.fulfill({ status: 503, body: 'Unavailable' })
+      }
       const point = route.request().url().includes('/point/')
       return route.fulfill({
         json: point

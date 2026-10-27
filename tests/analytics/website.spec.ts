@@ -1,4 +1,5 @@
 import { test, expect, type Page, type BrowserContext } from '@playwright/test'
+
 import { testUrl } from '../server-urls.ts'
 
 const origin = 'https://medium-zoom.francoischalifour.com'
@@ -149,7 +150,9 @@ for (const path of ['/', '/react']) {
 test('local and preview hosts never send events even with a configured key', async ({ page }) => {
   const requests: string[] = []
   page.on('request', request => {
-    if (request.url().includes('api.altertable.ai')) requests.push(request.url())
+    if (request.url().includes('api.altertable.ai')) {
+      requests.push(request.url())
+    }
   })
   await page.context().route('https://api.altertable.ai/**', route => route.abort())
   await page.route(`${testUrl}/**`, async route => {

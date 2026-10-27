@@ -1,7 +1,9 @@
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs'
+
 import { codeToHtml } from '@pierre/highlights'
 import { githubLightDefault, githubDarkDefault } from '@pierre/highlights/themes'
 import type { Plugin } from 'vite'
+
 import { photos, usageCode, javascriptUsageCode } from '../src/gallery.ts'
 import { javascriptCommands, componentCommands } from '../src/install-commands.ts'
 import { usageExamples } from '../src/usage-snippets.ts'
@@ -17,7 +19,9 @@ function highlight(code: string, lang: HighlightLanguage) {
     })
   )
   const match = html.match(/^<pre\b[^>]*><code>([\s\S]*)<\/code><\/pre>$/)
-  if (!match) throw new Error('Unexpected Highlights HTML wrapper')
+  if (!match) {
+    throw new Error('Unexpected Highlights HTML wrapper')
+  }
   return match[1]
 }
 
@@ -65,7 +69,9 @@ export function siteHighlights(): Plugin {
       try {
         previous = readFileSync(path, 'utf8')
       } catch {}
-      if (previous !== output) writeFileSync(path, output)
+      if (previous !== output) {
+        writeFileSync(path, output)
+      }
     },
   }
 }

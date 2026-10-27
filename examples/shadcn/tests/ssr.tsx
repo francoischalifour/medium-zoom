@@ -1,7 +1,8 @@
 import { StrictMode } from 'react'
 import { renderToString } from 'react-dom/server'
-import { Fixture } from './Fixture'
+
 import { CompoundFixture } from './CompoundFixture'
+import { Fixture } from './Fixture'
 
 const Page = process.argv.includes('--compound') ? CompoundFixture : Fixture
 

@@ -1,6 +1,7 @@
 import Link from 'next/link'
-import { ImageZoom } from '../../../../../examples/shadcn/src/components/ui/image-zoom'
+
 import photo from '../../../../../assets/images/ocean-sunset.jpg'
+import { ImageZoom } from '../../../../../examples/shadcn/src/components/ui/image-zoom'
 
 export const dynamic = 'force-dynamic'
 

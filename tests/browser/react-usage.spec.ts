@@ -1,5 +1,6 @@
-import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
+import { test, expect } from '@playwright/test'
+
 import { finishAnimations } from './helpers'
 
 test('React usage examples compose, zoom, and copy the selected snippet', async ({ page }) => {
@@ -60,8 +61,9 @@ test('React usage examples compose, zoom, and copy the selected snippet', async 
 test('HD usage loads the original only when the visitor zooms', async ({ page }) => {
   const originals: string[] = []
   page.on('request', request => {
-    if (new URL(request.url()).pathname.endsWith('/images/denali.jpg'))
+    if (new URL(request.url()).pathname.endsWith('/images/denali.jpg')) {
       originals.push(request.url())
+    }
   })
   await page.goto('/react')
   const usage = page.locator('#usage')
@@ -83,8 +85,11 @@ test('React compositions remain accessible in light and dark themes', async ({ p
   await page.goto('/react')
   for (const theme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: theme })
-    if (theme === 'dark') await expect(page.locator('html')).toHaveClass(/dark/)
-    else await expect(page.locator('html')).not.toHaveClass(/dark/)
+    if (theme === 'dark') {
+      await expect(page.locator('html')).toHaveClass(/dark/)
+    } else {
+      await expect(page.locator('html')).not.toHaveClass(/dark/)
+    }
     for (const name of ['Basic', 'With caption', 'Gallery', 'High resolution']) {
       await page.locator('#usage').getByRole('tab', { name, exact: true }).click()
       await finishAnimations(page)
