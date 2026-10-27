@@ -7,15 +7,6 @@
     <title>Page not found • medium-zoom</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png" />
-    <script>
-      try {
-        const theme = localStorage.getItem('medium-zoom-theme')
-        document.documentElement.classList.toggle(
-          'dark',
-          theme === 'dark' || (!theme && matchMedia('(prefers-color-scheme: dark)').matches)
-        )
-      } catch {}
-    </script>
   </head>
   <body>
     <div id="root"></div>

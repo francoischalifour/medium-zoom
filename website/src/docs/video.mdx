@@ -1,4 +1,3 @@
-import { Kbd } from '../site-components'
 import { Example } from './doc-components'
 import { ZoomableVideo } from './examples/video'
 import videoCode from './examples/video.tsx?raw'
@@ -44,7 +43,7 @@ The [standalone JavaScript example](/examples/video/) shows the same lifecycle w
 
 ## Prepare the poster
 
-Use an uncropped poster with the same aspect ratio as the video. Wrap it in a button so users can open it with <Kbd>Enter</Kbd> or <Kbd>Space</Kbd>:
+Use an uncropped poster with the same aspect ratio as the video. Wrap it in a button so users can open it with <kbd>Enter</kbd> or <kbd>Space</kbd>:
 
 ```html
 <button id="play" type="button" aria-label="Play flower video">
@@ -88,7 +87,7 @@ Muted playback and `playsInline` do not guarantee autoplay. Browser policies and
 
 ## Close and clean up
 
-Click outside the video or press <Kbd aria-label="Escape">Esc</Kbd> to close it. Native controls handle clicks on the player. Resizing the window or scrolling beyond `scrollOffset` also closes the zoom.
+Click outside the video or press <kbd aria-label="Escape">Esc</kbd> to close it. Native controls handle clicks on the player. Resizing the window or scrolling beyond `scrollOffset` also closes the zoom.
 
 On `close`, pause and remove the player, clear its source, and call `load()` to stop loading it. This handler also runs when the user closes the zoom during the opening animation.
 

@@ -59,6 +59,8 @@ export function useDocsNavigation(path: string) {
 
   useEffect(() => {
     const article = articleRef.current!
+    const listeners = new AbortController()
+    const options = { signal: listeners.signal }
     let pendingDestination: { element: HTMLElement; focusAfterScroll: boolean } | null = null
     let highlightedElement: HTMLElement | null = null
     let scrollIdleTimer = 0
@@ -161,23 +163,18 @@ export function useDocsNavigation(path: string) {
     }
     const onLoad = () => scheduleArrival(window.location.hash)
 
-    document.addEventListener('click', onLinkClick)
-    window.addEventListener('hashchange', onHashChange)
-    window.addEventListener('scroll', waitForScroll, { passive: true })
-    window.addEventListener('scrollend', showDestination)
-    window.addEventListener('resize', waitForScroll)
-    window.addEventListener('load', onLoad)
+    document.addEventListener('click', onLinkClick, options)
+    window.addEventListener('hashchange', onHashChange, options)
+    window.addEventListener('scroll', waitForScroll, { ...options, passive: true })
+    window.addEventListener('scrollend', showDestination, options)
+    window.addEventListener('resize', waitForScroll, options)
+    window.addEventListener('load', onLoad, options)
     if (document.readyState === 'complete') {
       onLoad()
     }
 
     return () => {
-      document.removeEventListener('click', onLinkClick)
-      window.removeEventListener('hashchange', onHashChange)
-      window.removeEventListener('scroll', waitForScroll)
-      window.removeEventListener('scrollend', showDestination)
-      window.removeEventListener('resize', waitForScroll)
-      window.removeEventListener('load', onLoad)
+      listeners.abort()
       window.clearTimeout(scrollIdleTimer)
       clearHighlight()
       restoreTargetFocus?.()

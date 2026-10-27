@@ -57,15 +57,6 @@
         "description": "A lightweight React image zoom component and lightbox alternative for shadcn/ui. Keyboard support, theme-aware overlays, and TypeScript. Install the component and own the source."
       }
     </script>
-    <script>
-      try {
-        const theme = localStorage.getItem('medium-zoom-theme')
-        document.documentElement.classList.toggle(
-          'dark',
-          theme === 'dark' || (!theme && matchMedia('(prefers-color-scheme: dark)').matches)
-        )
-      } catch {}
-    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -29,6 +29,8 @@ export function setPackageManager(manager: PackageManager) {
 }
 
 export function subscribePackageManager(onChange: () => void) {
+  const listeners = new AbortController()
+  const options = { signal: listeners.signal }
   const restore = () => {
     restorePackageManager(packageManagerPreference)
     onChange()
@@ -38,14 +40,10 @@ export function subscribePackageManager(onChange: () => void) {
       restore()
     }
   }
-  window.addEventListener(changeEvent, onChange)
-  window.addEventListener('storage', onStorage)
-  window.addEventListener('pageshow', restore)
-  return () => {
-    window.removeEventListener(changeEvent, onChange)
-    window.removeEventListener('storage', onStorage)
-    window.removeEventListener('pageshow', restore)
-  }
+  window.addEventListener(changeEvent, onChange, options)
+  window.addEventListener('storage', onStorage, options)
+  window.addEventListener('pageshow', restore, options)
+  return () => listeners.abort()
 }
 
 export function usePackageManager() {

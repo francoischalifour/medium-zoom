@@ -146,10 +146,6 @@ export function SiteLink({
   )
 }
 
-export function Kbd({ children, ...props }: React.ComponentProps<'kbd'>) {
-  return <kbd {...props}>{children}</kbd>
-}
-
 export function CopyButton({
   text,
   label,
@@ -217,7 +213,7 @@ export function ZoomControls({ descriptionId }: { descriptionId?: string }) {
       <span aria-hidden="true">Click to zoom</span>
       <span aria-hidden="true">/</span>
       <span aria-hidden="true">
-        Click, <Kbd>Esc</Kbd> or scroll to close
+        Click, <kbd>Esc</kbd> or scroll to close
       </span>
       <span id={descriptionId} className="sr-only">
         Press Enter or Space to zoom. Click, press Escape, or scroll to close.

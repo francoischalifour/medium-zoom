@@ -31,15 +31,6 @@
     <script type="application/ld+json">
       "__DOC_SCHEMA__"
     </script>
-    <script>
-      try {
-        const theme = localStorage.getItem('medium-zoom-theme')
-        document.documentElement.classList.toggle(
-          'dark',
-          theme === 'dark' || (!theme && matchMedia('(prefers-color-scheme: dark)').matches)
-        )
-      } catch {}
-    </script>
   </head>
   <body>
     <div id="root"></div>
