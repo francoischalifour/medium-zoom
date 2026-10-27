@@ -1,4 +1,4 @@
-import MiniSearch from 'minisearch'
+import MiniSearch, { type Query } from 'minisearch'
 
 import { getSearchTerms, type DocsSearch, type SearchEntry } from './docs-search'
 
@@ -47,9 +47,8 @@ export function createDocsSearch(entries: SearchEntry[]): DocsSearch {
     tokenize,
     searchOptions: {
       combineWith: 'AND',
+      tokenize: getSearchTerms,
       boost: { title: 8, keywords: 8, parent: 3, aliases: 6, description: 2, group: 1, content: 1 },
-      prefix: (term, position, terms) =>
-        term.length >= 2 && !['on', 'off'].includes(term) && position === terms.length - 1,
       fuzzy: term => (term.length < 4 ? false : term.length < 8 ? 1 : 2),
     },
   })
@@ -96,10 +95,35 @@ export function createDocsSearch(entries: SearchEntry[]): DocsSearch {
         navigationBoost
       )
     }
-    let results = index.search(query, { boostDocument })
+    const queries: Query[] = terms.map((term, position) => {
+      const prefix =
+        term.length >= 2 && !['on', 'off'].includes(term) && position === terms.length - 1
+      // Accept adjacent letter swaps without broadening every short word to two edits.
+      const swaps =
+        term.length < 4
+          ? []
+          : Array.from(
+              { length: term.length - 1 },
+              (_, index) =>
+                term.slice(0, index) + term[index + 1] + term[index] + term.slice(index + 2)
+            ).filter(swapped => swapped !== term)
+      return {
+        combineWith: 'OR',
+        queries: [
+          { queries: [term], prefix },
+          ...[...new Set(swaps)].map(swapped => ({
+            queries: [swapped],
+            fuzzy: false,
+            prefix: false,
+            boostTerm: () => 0.75,
+          })),
+        ],
+      }
+    })
+    const searchQuery: Query = { combineWith: 'AND', queries }
+    let results = index.search(searchQuery, { boostDocument })
     if (!results.length) {
-      // A swapped pair of letters costs two edits in MiniSearch's Levenshtein matching.
-      results = index.search(query, {
+      results = index.search(searchQuery, {
         boostDocument,
         fuzzy: term => (term.length >= 5 ? 2 : term.length >= 4 ? 1 : false),
       })

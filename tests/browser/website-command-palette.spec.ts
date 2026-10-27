@@ -111,6 +111,7 @@ for (const [query, path, highlight] of [
   ['gall', '/docs/guides/galleries/', 'Galleries'],
   ['react controled', '/docs/guides/controlled-state/', 'Controlled'],
   ['magrin', '/docs/reference/javascript/options/#margin', 'margin'],
+  ['opne', '/docs/reference/javascript/methods/#open', 'open'],
   ['scroll distance', '/docs/reference/javascript/options/#scrolloffset', 'scroll'],
   ['scroll offset', '/docs/reference/javascript/options/#scrolloffset', 'scroll'],
   ['image zoom', '/docs/reference/react/image-zoom/', 'Image'],
@@ -142,6 +143,38 @@ for (const [query, path, highlight] of [
     }
   })
 }
+
+test('API query casing preserves the same results and ranking', async ({ page }) => {
+  await page.goto('/docs/react/')
+  await page.getByRole('button', { name: /Search docs/ }).click()
+  const search = page.getByRole('combobox')
+  const results = page
+    .getByRole('group', { name: 'Documentation', exact: true })
+    .getByRole('option')
+  for (const [lowercase, variants, firstPath] of [
+    ['srcset', ['srcSet', 'SRCSET'], '/docs/guides/hd-images/'],
+    [
+      'onopenchange',
+      ['onOpenChange', 'ONOPENCHANGE'],
+      '/docs/reference/react/image-zoom/#state-props',
+    ],
+    ['imagezoom', ['ImageZoom', 'IMAGEZOOM'], '/docs/reference/react/image-zoom/'],
+  ] as const) {
+    await search.fill(lowercase)
+    await expect(results.first()).toHaveAttribute('href', firstPath)
+    const paths = await results.evaluateAll(elements =>
+      elements.map(element => element.getAttribute('href'))
+    )
+    for (const variant of variants) {
+      await search.fill(variant)
+      await expect
+        .poll(() =>
+          results.evaluateAll(elements => elements.map(element => element.getAttribute('href')))
+        )
+        .toEqual(paths)
+    }
+  }
+})
 
 test('the search engine loads on demand and is reused after closing the palette', async ({
   page,
