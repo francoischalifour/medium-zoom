@@ -1281,7 +1281,7 @@ td code {
   }
 }
 
-/* Two crops share one lit surface, opening outward from the headline. */
+/* A lit image surface sits inside the dominant crop; outer marks recede. */
 .hero {
   position: relative;
   isolation: isolate;
@@ -1306,7 +1306,7 @@ td code {
 .hero::before {
   z-index: -1;
   height: 560px;
-  background: color-mix(in srgb, var(--foreground) 16%, transparent);
+  background: color-mix(in srgb, var(--foreground) 22%, transparent);
   mask:
     url('./assets/hero-zoom-frames.svg') center top / var(--hero-frame-width)
       var(--hero-frame-height) no-repeat,
@@ -1319,14 +1319,14 @@ td code {
   transform-origin: 50% 209px;
   height: 560px;
   background:
-    linear-gradient(
-        color-mix(in srgb, var(--foreground) 1.2%, transparent),
-        color-mix(in srgb, var(--foreground) 0.4%, transparent) 55%,
-        transparent
+    radial-gradient(
+        ellipse at 50% 45%,
+        color-mix(in srgb, var(--foreground) 2.5%, transparent),
+        transparent 75%
       )
       center var(--hero-crop-top) / var(--hero-crop-width) var(--hero-crop-height) no-repeat,
     radial-gradient(
-      ellipse min(38vw, 520px) 240px at 50% 209px,
+      ellipse min(28vw, 380px) 180px at 50% 209px,
       var(--hero-spotlight),
       transparent 85%
     );
@@ -1351,14 +1351,17 @@ td code {
   }
 }
 
-/* Native scroll timelines keep decorative motion out of application state. */
-@supports (animation-timeline: scroll(root block)) and (animation-range: 0px 600px) {
+/* The crop opens as the light recedes, leaving the content stationary. */
+@supports (animation-timeline: scroll(root block)) and (animation-range: 0px 300px) {
   @media (prefers-reduced-motion: no-preference) {
     .hero::before,
     .hero::after {
       animation: hero-zoom-expand 1s linear both;
       animation-timeline: scroll(root block);
-      animation-range: 0px 600px;
+      animation-range: 0px 300px;
+    }
+    .hero::after {
+      animation-name: hero-light-fade;
     }
   }
 }
@@ -1367,7 +1370,15 @@ td code {
     transform: scale(1);
   }
   to {
-    transform: scale(1.04);
+    transform: scale(1.08);
+  }
+}
+@keyframes hero-light-fade {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.45;
   }
 }
 
