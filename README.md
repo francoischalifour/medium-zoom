@@ -3,7 +3,7 @@
   medium-zoom
 </h1>
 
-<p align="center">Lightweight image zoom for JavaScript and React.</p>
+<p align="center">Lightweight image zoom for the web. Zero dependencies, any framework, React via shadcn.</p>
 
 <div align="center">
   <a href="https://www.npmjs.com/package/medium-zoom"><img src="https://img.shields.io/npm/v/medium-zoom.svg" alt="npm version"></a>

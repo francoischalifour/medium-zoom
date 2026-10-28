@@ -18,7 +18,7 @@ test('JavaScript page presents the library with the shared preview and code rail
 }, testInfo) => {
   const errors = observeErrors(page, { includeConsole: true })
   await openJavaScriptPage(page)
-  await expect(page.getByText('No dependencies. Works with any framework.')).toBeVisible()
+  await expect(page.getByText('Zero dependencies, any framework, React via shadcn.')).toBeVisible()
   await expect(page.locator('.section-links:visible [aria-current="page"]')).toHaveText(
     'JavaScript'
   )
