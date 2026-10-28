@@ -79,10 +79,15 @@ test('both pages ship readable HTML and complete sharing metadata without JavaSc
         'content',
         documentTitle
       )
-      await expect(page.locator('meta[name="description"]')).toHaveAttribute(
-        'content',
-        /lightweight.*lightbox alternative/i
-      )
+      const description =
+        canonical === '/' ? packageJson.description : /lightweight.*lightbox alternative/i
+      for (const selector of [
+        'meta[name="description"]',
+        'meta[property="og:description"]',
+        'meta[name="twitter:description"]',
+      ]) {
+        await expect(page.locator(selector)).toHaveAttribute('content', description)
+      }
       await expect(page.getByRole('heading', { level: 1 })).toContainText(heading)
       await expect(page.locator('.hero-install')).toContainText(
         canonical === '/' ? 'npm install medium-zoom' : 'shadcn@latest add'
@@ -111,6 +116,8 @@ test('both pages ship readable HTML and complete sharing metadata without JavaSc
         const software = schema['@graph'].find(
           (entity: { '@type': string }) => entity['@type'] === 'SoftwareSourceCode'
         )
+        expect(software.description).toBe(packageJson.description)
+        await expect(page.locator('.hero > p').first()).toHaveText(packageJson.description)
         expect(software.version).toBe(packageJson.version)
         expect(software.url).toBe(`${origin}/`)
         expect(software.sameAs).toEqual([

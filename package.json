@@ -1,7 +1,7 @@
 {
   "name": "medium-zoom",
   "version": "1.1.2",
-  "description": "Lightweight Medium-style image zoom for the web. Zero dependencies, any framework, React component via shadcn.",
+  "description": "Lightweight image zoom for the web. Zero dependencies, any framework, React via shadcn.",
   "keywords": [
     "click-to-zoom",
     "dependency-free",

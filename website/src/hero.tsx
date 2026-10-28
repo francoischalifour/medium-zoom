@@ -28,11 +28,11 @@ export function Hero({ page }: { page: SitePage }) {
         </span>
       </h1>
       <p>
-        {isReact
-          ? 'Lightweight image zoom for React.'
-          : 'Lightweight image zoom in a few lines of JavaScript.'}
+        {isReact ? 'Lightweight image zoom for React.' : 'Lightweight image zoom for the web.'}{' '}
         <br />
-        {isReact ? 'Keep the source. Make it yours.' : 'No dependencies. Works with any framework.'}
+        {isReact
+          ? 'Keep the source. Make it yours.'
+          : 'Zero dependencies, any framework, React via shadcn.'}
       </p>
       <div className="hero-actions">
         <SiteLink className="button button-primary" href="#usage-title">
