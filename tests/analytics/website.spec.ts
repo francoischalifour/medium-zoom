@@ -10,7 +10,12 @@ type Event = {
   properties: Record<string, unknown>
 }
 
-async function intercept(page: Page) {
+async function intercept(page: Page, consent = true) {
+  if (consent) {
+    await page.addInitScript(() => {
+      localStorage.setItem('medium-zoom:analytics-consent', 'granted')
+    })
+  }
   const events: Event[] = []
   await page.context().route('https://api.altertable.ai/**', async route => {
     if (route.request().method() === 'POST') {
@@ -317,4 +322,225 @@ test('palette install actions respect package selection and clipboard permission
   await page.getByRole('option', { name: /Copy React install command/ }).click()
   await expect(page.getByRole('dialog')).not.toBeVisible()
   expect(events.filter(event => event.event === 'Install Command Copied')).toHaveLength(1)
+})
+
+test('analytics waits for acceptance, remembers the choice, and allows withdrawal', async ({
+  page,
+  context,
+}) => {
+  const events = await intercept(page, false)
+  const requests: string[] = []
+  page.on('request', request => {
+    if (request.url().includes('api.altertable.ai')) {
+      requests.push(request.url())
+    }
+  })
+  await page.goto(`${origin}/`)
+  const banner = page.getByRole('region', { name: 'Analytics preferences', exact: true })
+  await expect(banner).toBeVisible()
+  await clipboardPermission(context, page, 'granted')
+  await page
+    .locator('.hero-install')
+    .getByRole('button', { name: 'Copy install command', exact: true })
+    .click()
+  await expect(page.getByRole('status').filter({ hasText: 'Copied to clipboard' })).toBeVisible()
+  expect(
+    await page.evaluate(() => Object.keys(localStorage).filter(key => key.startsWith('atbl')))
+  ).toEqual([])
+  expect(requests).toEqual([])
+  await banner.getByRole('button', { name: 'Accept', exact: true }).click()
+  await expect(banner).not.toBeVisible()
+  await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(1)
+  expect(events.filter(event => event.event === 'Install Command Copied')).toHaveLength(0)
+  await page.reload()
+  await expect(banner).not.toBeVisible()
+  await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(2)
+  await page.getByRole('button', { name: 'Analytics preferences', exact: true }).click()
+  await expect(banner.getByRole('button', { name: 'Accept', exact: true })).toBeFocused()
+  await banner.getByRole('button', { name: 'No thanks', exact: true }).click()
+  await expect(banner).not.toBeVisible()
+  await expect(
+    page.getByRole('button', { name: 'Analytics preferences', exact: true })
+  ).toBeFocused()
+  const count = requests.length
+  await page.reload()
+  await expect(banner).not.toBeVisible()
+  await page
+    .locator('.hero-install')
+    .getByRole('button', { name: 'Copy install command', exact: true })
+    .click()
+  await expect(page.getByRole('status').filter({ hasText: 'Copied to clipboard' })).toBeVisible()
+  expect(requests).toHaveLength(count)
+  await page.getByRole('button', { name: 'Analytics preferences', exact: true }).click()
+  await banner.getByRole('button', { name: 'Accept', exact: true }).click()
+  await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(3)
+})
+
+test('declining is remembered without initializing analytics', async ({ page }) => {
+  const events = await intercept(page, false)
+  await page.goto(`${origin}/docs/react/`)
+  const banner = page.getByRole('region', { name: 'Analytics preferences', exact: true })
+  await banner.getByRole('button', { name: 'No thanks', exact: true }).click()
+  await page.reload()
+  await expect(banner).not.toBeVisible()
+  expect(events).toEqual([])
+  expect(
+    await page.evaluate(() => Object.keys(localStorage).filter(key => key.startsWith('atbl')))
+  ).toEqual([])
+})
+
+test('a choice still works when browser storage rejects writes', async ({ page }) => {
+  await page.addInitScript(() => {
+    Storage.prototype.setItem = () => {
+      throw new DOMException('Storage is full', 'QuotaExceededError')
+    }
+  })
+  const events = await intercept(page, false)
+  await page.goto(`${origin}/`)
+  const banner = page.getByRole('region', { name: 'Analytics preferences', exact: true })
+  await banner.getByRole('button', { name: 'No thanks', exact: true }).click()
+  await expect(banner).not.toBeVisible()
+  expect(events).toEqual([])
+  await page.getByRole('button', { name: 'Analytics preferences', exact: true }).click()
+  await banner.getByRole('button', { name: 'Accept', exact: true }).click()
+  await expect(banner).not.toBeVisible()
+  await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(1)
+})
+
+test('withdrawal in another tab stops automatic and interaction tracking', async ({
+  page,
+  context,
+}) => {
+  const events = await intercept(page, false)
+  await page.goto(`${origin}/docs/react/`)
+  const banner = page.getByRole('region', { name: 'Analytics preferences', exact: true })
+  await banner.getByRole('button', { name: 'Accept', exact: true }).click()
+  await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(1)
+  const other = await context.newPage()
+  await other.route(`${origin}/**`, route => route.fulfill({ body: '<title>Preferences</title>' }))
+  await other.goto(origin)
+  await other.evaluate(() => localStorage.setItem('medium-zoom:analytics-consent', 'denied'))
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const key = Object.keys(localStorage).find(
+          key => key.startsWith('atbl.') && key.endsWith('.session')
+        )
+        return key ? JSON.parse(localStorage.getItem(key)!).trackingConsent : null
+      })
+    )
+    .toBe('denied')
+  await page.bringToFront()
+  await page.getByRole('button', { name: /Search docs/ }).click()
+  await page.getByRole('combobox').fill('margin')
+  await expect.poll(() => new URL(page.url()).searchParams.get('q')).toBe('margin')
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(1_100) // Beyond the SDK delivery interval.
+  expect(events.filter(event => event.event === '$pageview')).toHaveLength(1)
+  await other.close()
+})
+
+test('local consent preview opens with a saved choice and never enables delivery', async ({
+  page,
+}) => {
+  const events = await intercept(page)
+  await page.route(`${testUrl}/**`, async route => {
+    const response = await page.request.get(
+      `${testUrl}/analytics${new URL(route.request().url()).pathname}`
+    )
+    await route.fulfill({ response })
+  })
+  const banner = page.getByRole('region', { name: 'Analytics preferences', exact: true })
+  await page.goto('/react')
+  await expect(banner).not.toBeVisible()
+  await page.goto('/react?analytics-consent=preview')
+  await expect(banner).toBeVisible()
+  await banner.getByRole('button', { name: 'Accept', exact: true }).click()
+  await expect(banner).not.toBeVisible()
+  await page.getByRole('button', { name: 'Analytics preferences', exact: true }).click()
+  await banner.getByRole('button', { name: 'No thanks', exact: true }).click()
+  await expect(banner).not.toBeVisible()
+  expect(events).toEqual([])
+  expect(
+    await page.evaluate(() => Object.keys(localStorage).filter(key => key.startsWith('atbl')))
+  ).toEqual([])
+  await page.reload()
+  await expect(banner).toBeVisible()
+})
+
+test('consent panel keeps footer links reachable across viewport sizes', async ({ page }) => {
+  await intercept(page, false)
+  await page.goto(`${origin}/react`)
+  const banner = page.getByRole('region', { name: 'Analytics preferences', exact: true })
+  await expect(banner).toBeVisible()
+  for (const width of [390, 320, 1_280]) {
+    await page.setViewportSize({ width, height: 844 })
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          Number.parseFloat(
+            document.documentElement.style.getPropertyValue('--analytics-consent-clearance')
+          )
+        )
+      )
+      .toBeGreaterThan(0)
+    const license = page.getByRole('link', { name: /MIT license/ })
+    await page.getByRole('link', { name: /Changelog/ }).focus()
+    await page.keyboard.press('Tab')
+    await expect(license).toBeFocused()
+    await expect
+      .poll(async () => {
+        const panel = await banner.boundingBox()
+        const link = await license.boundingBox()
+        return !!panel && !!link && link.y + link.height <= panel.y
+      })
+      .toBe(true)
+    const panel = (await banner.boundingBox())!
+    if (width <= 600) {
+      expect(panel.x).toBe(0)
+      expect(panel.width).toBe(width)
+      expect(panel.y + panel.height).toBe(844)
+    } else {
+      expect(panel.width).toBe(340)
+      expect(panel.x).toBeGreaterThan(0)
+    }
+  }
+  await banner.getByRole('button', { name: 'No thanks', exact: true }).click()
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        document.documentElement.style.getPropertyValue('--analytics-consent-clearance')
+      )
+    )
+    .toBe('')
+})
+
+test('Escape dismisses reopened preferences without changing the saved choice', async ({
+  page,
+}) => {
+  await intercept(page, false)
+  await page.goto(`${origin}/react`)
+  const banner = page.getByRole('region', { name: 'Analytics preferences', exact: true })
+  const preferences = page.getByRole('button', { name: 'Analytics preferences', exact: true })
+  await banner.getByRole('button', { name: 'Accept', exact: true }).focus()
+  await page.keyboard.press('Escape')
+  await expect(banner).toBeVisible()
+  expect(
+    await page.evaluate(() => localStorage.getItem('medium-zoom:analytics-consent'))
+  ).toBeNull()
+  for (const [label, value] of [
+    ['No thanks', 'denied'],
+    ['Accept', 'granted'],
+  ] as const) {
+    await banner.getByRole('button', { name: label, exact: true }).click()
+    await preferences.click()
+    await expect(banner.getByRole('button', { name: 'Accept', exact: true })).toBeFocused()
+    await page.keyboard.press('Escape')
+    await expect(banner).not.toBeVisible()
+    await expect(preferences).toBeFocused()
+    expect(await page.evaluate(() => localStorage.getItem('medium-zoom:analytics-consent'))).toBe(
+      value
+    )
+    await preferences.click()
+  }
 })

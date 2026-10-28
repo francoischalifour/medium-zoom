@@ -1,5 +1,6 @@
 import * as React from 'react'
 
+import { AnalyticsPreferences } from './analytics-preferences'
 import { CommandPalette } from './command-palette'
 import { Icon, SiteLink } from './site-components'
 import { githubStars, githubStarLabel, repositoryUrl, type SitePage } from './site-data'
@@ -110,6 +111,7 @@ export function SiteFooter({ page }: { page?: SitePage | 'docs' }) {
             v{__MEDIUM_ZOOM_VERSION__}
           </SiteLink>
         </p>
+        <AnalyticsPreferences />
       </div>
       <nav aria-label="Footer navigation">
         <div className="footer-nav-group">
