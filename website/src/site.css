@@ -307,8 +307,37 @@ h1 {
   margin: 0;
   font: inherit;
 }
-.hero h1 span {
+.hero h1 {
+  margin-bottom: 22px;
+  line-height: 1.04;
+}
+.hero h1 > span {
   color: var(--muted-foreground);
+}
+.hero h1 .hero-technology {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.28em;
+  margin-top: 0.04em;
+  font-size: 0.88em;
+  line-height: 1.08;
+}
+.hero-technology-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18em;
+  color: var(--foreground);
+}
+.hero-technology svg {
+  width: 0.62em;
+  height: 0.62em;
+  flex-shrink: 0;
+  transform: translateY(-0.035em);
+}
+.hero-technology .hero-react-mark {
+  width: 0.78em;
+  height: 0.78em;
 }
 .github-link {
   display: inline-flex;
@@ -1033,6 +1062,9 @@ td code {
   }
   .hero {
     padding: 24px 0 32px;
+  }
+  .hero h1 {
+    font-size: clamp(28px, 8.4vw, 44px);
   }
   .hero p {
     font-size: 14px;

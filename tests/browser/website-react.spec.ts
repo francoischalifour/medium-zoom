@@ -14,7 +14,7 @@ for (const path of ['/', '/react']) {
     })
     const response = await page.goto(path)
     const html = await response!.text()
-    expect(html).toContain('Your images,')
+    expect(html).toContain('Bring images closer')
     expect(html).toContain('Add zoom to your project.')
     await expect(
       page.locator('.hero-install').getByRole('radio', { name: 'bun', exact: true })

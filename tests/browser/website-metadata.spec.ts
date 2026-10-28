@@ -60,11 +60,11 @@ test('both pages ship readable HTML and complete sharing metadata without JavaSc
   const page = await context.newPage()
   try {
     for (const [path, canonical, heading, image, documentTitle] of [
-      ['/', '/', 'Your images,', 'og-javascript.jpg', 'JavaScript image zoom • medium-zoom'],
+      ['/', '/', 'Bring images closer', 'og-javascript.jpg', 'JavaScript image zoom • medium-zoom'],
       [
         '/react',
         '/react',
-        'Your images,',
+        'Bring images closer',
         'og-react.jpg',
         'React image zoom for shadcn/ui • medium-zoom',
       ],
