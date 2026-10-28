@@ -1,11 +1,11 @@
-export type AnalyticsConsent = 'granted' | 'denied' | null
+export type AnalyticsConsent = 'granted' | 'denied'
 const storageKey = 'medium-zoom:analytics-consent'
 const changeEvent = 'medium-zoom:analytics-consent'
-let memoryConsent: AnalyticsConsent | undefined
+let unsavedConsent: AnalyticsConsent | undefined
 
-export function getAnalyticsConsent(): AnalyticsConsent {
-  if (memoryConsent !== undefined) {
-    return memoryConsent
+export function getAnalyticsConsent(): AnalyticsConsent | null {
+  if (unsavedConsent !== undefined) {
+    return unsavedConsent
   }
   try {
     const value = localStorage.getItem(storageKey)
@@ -15,13 +15,13 @@ export function getAnalyticsConsent(): AnalyticsConsent {
   }
 }
 
-export function setAnalyticsConsent(consent: Exclude<AnalyticsConsent, null>) {
+export function setAnalyticsConsent(consent: AnalyticsConsent) {
   try {
     localStorage.setItem(storageKey, consent)
-    memoryConsent = undefined
+    unsavedConsent = undefined
   } catch {
     // Honor the choice for this page even when storage is unavailable.
-    memoryConsent = consent
+    unsavedConsent = consent
   }
   window.dispatchEvent(new Event(changeEvent))
 }
@@ -35,7 +35,7 @@ export function subscribeAnalyticsConsent(onChange: () => void) {
     'storage',
     event => {
       if (event.key === storageKey || event.key === null) {
-        memoryConsent = undefined
+        unsavedConsent = undefined
         onChange()
       }
     },

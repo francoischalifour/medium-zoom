@@ -17,13 +17,13 @@ function getClient() {
   if (!siteAnalyticsEnabled || getAnalyticsConsent() !== 'granted') {
     return null
   }
-  if (client !== undefined) {
-    if (client && client.getTrackingConsent() !== 'granted') {
-      client.configure({ trackingConsent: 'granted', autoCapture: true })
-    }
-    return client
-  }
   try {
+    if (client !== undefined) {
+      if (client && client.getTrackingConsent() !== 'granted') {
+        client.configure({ trackingConsent: 'granted', autoCapture: true })
+      }
+      return client
+    }
     let lastPage: string | undefined
     let lastSearch = ''
     altertable.init(apiKey, {
@@ -86,26 +86,24 @@ export function initSiteAnalytics() {
     return
   }
   initialized = true
-  const start = () => {
-    getClient()
-  }
-  subscribeAnalyticsConsent(() => {
+  const syncConsent = () => {
     if (getAnalyticsConsent() === 'granted') {
-      start()
-    } else {
-      try {
-        client?.configure({ trackingConsent: 'denied', autoCapture: false })
-      } catch {
-        // Consent changes must not interrupt the website.
-      }
+      getClient()
+      return
     }
-  })
+    try {
+      client?.configure({ trackingConsent: 'denied', autoCapture: false })
+    } catch {
+      // Consent changes must not interrupt the website.
+    }
+  }
+  subscribeAnalyticsConsent(syncConsent)
   if (typeof window.requestIdleCallback === 'function') {
-    window.requestIdleCallback(start, { timeout: 3_000 })
+    window.requestIdleCallback(syncConsent, { timeout: 3_000 })
   } else if (document.readyState === 'complete') {
-    start()
+    syncConsent()
   } else {
-    window.addEventListener('load', start, { once: true })
+    window.addEventListener('load', syncConsent, { once: true })
   }
 
   document.addEventListener(
