@@ -1,0 +1,22 @@
+name: Feature request
+description: Would you like to add something?
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: Describe the problem you want to solve and why it matters.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solution
+      description: Describe what you would like to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Implementation
+      description: Do you have an idea how this could be implemented? Include any alternatives you have considered.
