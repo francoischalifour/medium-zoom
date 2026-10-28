@@ -1,4 +1,4 @@
-export const isSupported = node => node.tagName === 'IMG'
+export const isSupported = node => node.tagName === 'IMG' || node.tagName === 'VIDEO'
 
 /* eslint-disable-next-line no-prototype-builtins */
 export const isNodeList = selector => NodeList.prototype.isPrototypeOf(selector)
