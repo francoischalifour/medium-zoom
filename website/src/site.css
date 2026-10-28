@@ -1587,3 +1587,85 @@ td code {
   width: 12px;
   height: 12px;
 }
+
+.analytics-preferences {
+  display: block;
+  margin-top: 8px;
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 12px;
+}
+.analytics-consent {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 25;
+  width: min(340px, calc(100vw - 32px));
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--background);
+  color: var(--muted-foreground);
+  box-shadow: var(--shadow-image);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.analytics-consent p {
+  margin: 0;
+}
+.analytics-consent .analytics-consent-title {
+  margin-bottom: 4px;
+  color: var(--foreground);
+  font-weight: 550;
+  letter-spacing: -0.01em;
+}
+.analytics-consent-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.analytics-consent-actions button {
+  flex: 1;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--foreground);
+  font-weight: 500;
+}
+@media (hover: hover) and (pointer: fine) {
+  .analytics-consent-actions button:hover {
+    background: var(--hover);
+  }
+  .analytics-preferences:hover {
+    color: var(--foreground);
+  }
+}
+
+/* Keep the end of the page and focused controls clear of the consent panel. */
+:root {
+  scroll-padding-bottom: var(--analytics-consent-clearance, 0px);
+}
+body::after {
+  content: '';
+  display: block;
+  height: var(--analytics-consent-clearance, 0px);
+}
+@media (max-width: 600px) {
+  .analytics-consent {
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    padding: 14px max(16px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom))
+      max(16px, env(safe-area-inset-left));
+    border-width: 1px 0 0;
+    border-radius: 0;
+    box-shadow: 0 -4px 20px rgb(0 0 0 / 4%);
+  }
+  .analytics-consent-actions button {
+    min-height: 44px;
+  }
+}
