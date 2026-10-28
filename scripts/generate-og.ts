@@ -103,6 +103,47 @@ ${sharedStyles}
     type: 'jpeg',
     quality: 90,
   })
+
+  // GitHub repository settings use a 2:1 card, separate from the website OG cards.
+  await page.setViewportSize({ width: 1_280, height: 640 })
+  await page.setContent(`<!doctype html><html><head><style>
+${sharedStyles}
+    body { position: relative; width: 1280px; height: 640px; overflow: hidden; background: white; color: #18181b; }
+    header { position: relative; z-index: 3; font-size: 28px; letter-spacing: -1px; }
+    header svg { width: 36px; height: 36px; }
+    h1 { position: absolute; z-index: 3; left: 64px; top: 190px; margin: 0; font-size: 84px; font-weight: 600; line-height: 1.04; letter-spacing: -4px; }
+    .description { position: absolute; left: 64px; top: 402px; margin: 0; font-size: 23px; letter-spacing: -0.5px; color: #71717a; }
+    .frame { position: absolute; --corner: #b8b8bf; background: linear-gradient(var(--corner), var(--corner)) top left / 23px 2px, linear-gradient(var(--corner), var(--corner)) top left / 2px 23px, linear-gradient(var(--corner), var(--corner)) top right / 23px 2px, linear-gradient(var(--corner), var(--corner)) top right / 2px 23px, linear-gradient(var(--corner), var(--corner)) bottom left / 23px 2px, linear-gradient(var(--corner), var(--corner)) bottom left / 2px 23px, linear-gradient(var(--corner), var(--corner)) bottom right / 23px 2px, linear-gradient(var(--corner), var(--corner)) bottom right / 2px 23px; background-repeat: no-repeat; }
+    .frame-large { left: 688px; top: 112px; width: 544px; height: 416px; }
+    .frame-echo { left: 657px; top: 81px; width: 606px; height: 478px; opacity: 0.22; }
+    .photo { position: absolute; border-radius: 8px; }
+    .photo img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+    .after { left: 704px; top: 128px; width: 512px; height: 384px; box-shadow: 0 20px 56px #18181b14; }
+    .before { z-index: 2; left: 568px; top: 368px; width: 176px; height: 132px; border: 5px solid white; box-sizing: content-box; box-shadow: 0 8px 32px #18181b26; }
+    .cursor { position: absolute; right: 20px; bottom: 17px; width: 37px; height: 37px; color: white; filter: drop-shadow(0 2px 3px #0008); }
+    footer { position: absolute; left: 64px; top: 456px; font-size: 20px; letter-spacing: -0.3px; color: #71717a; }
+    footer strong { font-weight: 500; color: #18181b; }
+  </style></head><body>
+    ${brandHeader}
+    <h1>Bring images<br />closer.</h1>
+    <p class="description">Image zoom for the web. Since 2016.</p>
+    <div class="frame frame-echo"></div>
+    <div class="frame frame-large"></div>
+    <div class="photo after"><img src="data:image/jpeg;base64,${oceanSunsetBase64}" alt="Expanded ocean sunset" /></div>
+    <div class="photo before">
+      <img src="data:image/jpeg;base64,${oceanSunsetBase64}" alt="Ocean sunset thumbnail" />
+      <svg class="cursor" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="13" cy="13" r="8" fill="#111113" /><path d="m19 19 8 8M9.5 13h7m-3.5-3.5v7" /></svg>
+    </div>
+    <footer><span><strong>3 kB</strong> · zero dependencies · any framework</span></footer>
+  </body></html>`)
+  await page.evaluate(async () => {
+    await document.fonts.ready
+    await Promise.all([...document.images].map(image => image.decode()))
+  })
+  await page.screenshot({
+    path: fileURLToPath(new URL('../.github/social-preview.png', import.meta.url)),
+    type: 'png',
+  })
 } finally {
   await browser.close()
 }

@@ -43,6 +43,8 @@ Documentation search uses MiniSearch, loaded when the command palette opens. The
 
 Run `bun run update:downloads` to refresh the committed npm download snapshot. The browser adds newer reported days on page load and keeps the snapshot if npm is unavailable.
 
+Run `bun run generate:og` to regenerate the website sharing images and the 1280×640 GitHub social preview at `.github/social-preview.png`. Commit the generated images. To update the repository preview, upload that PNG in the repository's **Settings → General → Social preview → Edit → Upload an image**; GitHub does not pick it up from the repository automatically.
+
 ## Verify changes
 
 Build the site before checking documentation, metadata, and analytics:
