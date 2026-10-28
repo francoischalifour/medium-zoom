@@ -7,7 +7,7 @@ const registry = 'https://medium-zoom.francoischalifour.com/r/image-zoom.json'
 
 async function ready(page: Page) {
   await page.goto(demo)
-  await expect(page.getByRole('heading', { name: /Your images,/ })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Bring images closer/ })).toBeVisible()
   await decodeImages(
     page.getByRole('article', { name: 'Landscape example', exact: true }).locator('.demo-stage img')
   )

@@ -6,7 +6,7 @@ import { test, expect } from './website-fixture'
 
 async function openJavaScriptPage(page: Page) {
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: /Your images,/ })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Bring images closer/ })).toBeVisible()
   await decodeImages(page.locator('#zoom-default'))
   await page.evaluate(() => document.fonts.ready)
   const install = await page.locator('.hero-install').boundingBox()
@@ -56,7 +56,7 @@ test('shared navigation preserves theme and typography across both pages and bac
   await expect(page).toHaveURL(`${testUrl}/react`)
   await expect(page.locator('html')).toHaveClass('dark')
   await expect(page.locator('.section-links:visible [aria-current="page"]')).toHaveText('React')
-  await expect(page.getByRole('heading', { name: /Your images,/ })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Bring images closer/ })).toBeVisible()
   const nextHeader = await page.locator('.navigation').boundingBox()
   expect(nextHeader).toEqual(header)
   await page.screenshot({ path: testInfo.outputPath('react-dark.png'), fullPage: true })
@@ -65,7 +65,7 @@ test('shared navigation preserves theme and typography across both pages and bac
     .getByRole('navigation', { name: /^(Main navigation|Product navigation)$/ })
     .getByRole('link', { name: 'JavaScript', exact: true })
     .click()
-  await expect(page.getByRole('heading', { name: /Your images,/ })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Bring images closer/ })).toBeVisible()
   await expect(page.locator('html')).not.toHaveClass('dark')
   await page.getByRole('button', { name: 'Switch to dark theme' }).click()
   await page.goBack()
@@ -119,7 +119,7 @@ test('mobile navigation remains usable and both pages fit the viewport', async (
     .getByRole('navigation', { name: /^(Main navigation|Product navigation)$/ })
     .getByRole('link', { name: 'React', exact: true })
     .click()
-  await expect(page.getByRole('heading', { name: /Your images,/ })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Bring images closer/ })).toBeVisible()
   await page.screenshot({ path: testInfo.outputPath('react-mobile.png'), fullPage: true })
   await page.setViewportSize({ width: 320, height: 740 })
   await expect
