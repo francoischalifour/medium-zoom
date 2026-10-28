@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/francoischalifour/medium-zoom/compare/1.1.2...1.1.3) (2026-10-28)
+
+
+### Bug Fixes
+
+* **release:** omit v prefix from GitHub release titles ([#246](https://github.com/francoischalifour/medium-zoom/issues/246)) ([5e5ac59](https://github.com/francoischalifour/medium-zoom/commit/5e5ac592ce70fd6637783a30bec78b5fa73fc215))
+
 ## [1.1.2](https://github.com/francoischalifour/medium-zoom/compare/1.1.1...1.1.2) (2026-10-25)
 
 
