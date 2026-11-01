@@ -15,7 +15,7 @@ const banner = `/*! ${pkg.name} ${pkg.version} | ${pkg.license} License | https:
 const stylesheetPath = new URL('../src/medium-zoom.css', import.meta.url)
 // Mangle only private session state and feature hooks; preserve public options and DOM APIs.
 const privateProperties =
-  /^__mz_(original|zoomed|nodes|template|closing|cancelOpen|viewportScale|isPinching|scrollTimer|defaults|update|viewport|mount|load|host|disposeHost)$/
+  /^__mz_(original|zoomed|nodes|template|closing|cancelOpen|viewportScale|isPinching|scrollTimer|defaults|update|viewport|mount|load|host|disposeHost|zoom|navigate|refreshHost|setup|outgoing|transition)$/
 
 type Profile = 'modern' | 'compat'
 
@@ -73,7 +73,10 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
         if (declaration?.type !== 'chunk') {
           continue
         }
-        declaration.code = declaration.code.replace(/\n[ \t]*\/\*\* The control that opened the zoom;[^\n]*\*\/\n[ \t]*trigger\?: HTMLElement;/, '')
+        declaration.code = declaration.code.replace(
+          /\n[ \t]*\/\*\* The control that opened the zoom;[^\n]*\*\/\n[ \t]*trigger\?: HTMLElement;/,
+          ''
+        )
         declaration.code = declaration.code.replace(
           /export \{([^}]+)\}/g,
           (_match, names: string) => `export {${names.replace(/\btype\s+/g, '')}}`
@@ -84,6 +87,10 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
       if (chunk.name.endsWith('.d')) {
         return
       }
+      source = source.replace(
+        /(['"])medium-zoom\/session\1/g,
+        JSON.stringify(`../session/index.${options.format === 'cjs' ? 'cjs' : 'mjs'}`)
+      )
       const result =
         profile === 'compat'
           ? transformSync(source, {
@@ -112,7 +119,7 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
         ? (
             await minifyJavaScript(result.code, {
               ecma: profile === 'compat' ? 5 : 2_020,
-              compress: { passes: profile === 'compat' ? 2 : 1 },
+              compress: { passes: profile === 'compat' ? 3 : 2 },
               module: options.format === 'es',
               // CJS bindings are module-local, just like ESM bindings.
               ...(options.format === 'cjs' && { toplevel: true }),
@@ -137,6 +144,12 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
                     $__mz_load: 'l',
                     $__mz_host: 'h',
                     $__mz_disposeHost: 'j',
+                    $__mz_zoom: 'q',
+                    $__mz_navigate: 'g',
+                    $__mz_refreshHost: 'r',
+                    $__mz_setup: 'b',
+                    $__mz_outgoing: 'x',
+                    $__mz_transition: 'e',
                   },
                 },
               },
@@ -214,12 +227,21 @@ function browserBundle(
 }
 
 function featureBundle(
-  name: 'core' | 'features' | 'pure' | 'compat' | 'compat/pure' | 'modern' | 'renderers',
+  name:
+    | 'core'
+    | 'features'
+    | 'pure'
+    | 'compat'
+    | 'compat/pure'
+    | 'modern'
+    | 'renderers'
+    | 'session',
   format: 'esm' | 'cjs'
 ): UserConfig {
   const sources = {
     core: 'src/core.ts',
     renderers: 'src/renderers/index.ts',
+    session: 'src/session.ts',
     features: 'src/features/index.ts',
     pure: format === 'cjs' ? 'src/pure-commonjs.ts' : 'src/pure.ts',
     'compat/pure': format === 'cjs' ? 'src/pure-commonjs.ts' : 'src/pure.ts',
@@ -233,7 +255,7 @@ function featureBundle(
       : name === 'pure'
         ? defaultProfile
         : 'modern'
-  const full = name !== 'core' && name !== 'features' && name !== 'renderers'
+  const full = name !== 'core' && name !== 'features' && name !== 'renderers' && name !== 'session'
   return {
     ...browserBundle(
       source,
@@ -244,7 +266,7 @@ function featureBundle(
     ),
     entry: { [`${name}/index`]: source },
     // Keep the opaque feature type shared with the core declaration entry.
-    deps: { neverBundle: ['medium-zoom/core'] },
+    deps: { neverBundle: ['medium-zoom/core', 'medium-zoom/session'] },
     dts: {
       generator: 'oxc',
       tsconfig: fileURLToPath(new URL('../tsconfig.json', import.meta.url)),
@@ -300,6 +322,8 @@ export default defineConfig([
   browserBundle('src/medium-zoom.ts', 'pure/medium-zoom.umd.js', 'umd', false),
   browserBundle('src/medium-zoom.ts', 'pure/medium-zoom.min.umd.js', 'umd'),
   featureBundle('core', 'esm'),
+  featureBundle('session', 'esm'),
+  featureBundle('session', 'cjs'),
   featureBundle('renderers', 'esm'),
   featureBundle('renderers', 'cjs'),
   featureBundle('features', 'esm'),

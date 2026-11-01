@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { join } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { runInNewContext } from 'node:vm'
 
 import { parse } from 'acorn'
@@ -83,7 +85,9 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
         'pure/index.cjs',
         'pure/index.mjs',
         'renderers/index.cjs',
-        'renderers/index.mjs'
+        'renderers/index.mjs',
+        'session/index.mjs',
+        'session/index.cjs'
       )
     }
     assert.deepEqual(
@@ -94,7 +98,7 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
     for (const path of files.filter(path => /\.(?:[mc])?js$/.test(path))) {
       const code = readFileSync(join(artifact.root, 'dist', path), 'utf8')
       const esm = path.endsWith('.mjs') || path.endsWith('.esm.js') || path === 'pure/index.js'
-      const modern = /^(core|features|modern|renderers)\//.test(path)
+      const modern = /^(core|features|modern|renderers|session)\//.test(path)
       parse(code, {
         ecmaVersion: modern ? 2_020 : esm ? 2_015 : 5,
         sourceType: esm ? 'module' : 'script',
@@ -130,7 +134,9 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
       assert(!code.includes('__TEST__'), `${path} must not ship test branches`)
       if (esm) {
         const loaded = await import(
-          `data:text/javascript;base64,${Buffer.from(code).toString('base64')}`
+          path.endsWith('.mjs')
+            ? pathToFileURL(join(artifact.root, 'dist', path)).href
+            : `data:text/javascript;base64,${Buffer.from(code).toString('base64')}`
         )
         assert.equal(
           typeof (path.startsWith('core/')
@@ -139,23 +145,31 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
               ? loaded.hdImage
               : path.startsWith('renderers/')
                 ? loaded.dialog
-                : loaded.default),
+                : path.startsWith('session/')
+                  ? loaded.createZoomSession
+                  : loaded.default),
           'function'
         )
         continue
       }
       if (path.endsWith('.cjs')) {
         const commonjs = { exports: {} as Record<string, unknown> }
-        runInNewContext(code, { module: commonjs, exports: commonjs.exports })
+        runInNewContext(code, {
+          module: commonjs,
+          exports: commonjs.exports,
+          require: createRequire(join(artifact.root, 'dist', path)),
+        })
         assert.equal(
-          typeof (!/^(core|features|renderers)\//.test(path)
+          typeof (!/^(core|features|renderers|session)\//.test(path)
             ? commonjs.exports
             : commonjs.exports[
                 path.startsWith('core/')
                   ? 'createMediumZoom'
                   : path.startsWith('renderers/')
                     ? 'dialog'
-                    : 'hdImage'
+                    : path.startsWith('session/')
+                      ? 'createZoomSession'
+                      : 'hdImage'
               ]),
           'function'
         )
@@ -170,7 +184,11 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
       runInNewContext(code, context)
       assert.equal(typeof context.mediumZoom, 'function', `${path} browser global`)
       const commonjs = { exports: {} }
-      runInNewContext(code, { module: commonjs, exports: commonjs.exports })
+      runInNewContext(code, {
+        module: commonjs,
+        exports: commonjs.exports,
+        require: createRequire(join(artifact.root, 'dist', path)),
+      })
       assert.equal(typeof commonjs.exports, 'function', `${path} CommonJS export`)
       let amd: unknown
       const define = (_dependencies: string[], factory: () => unknown) => {

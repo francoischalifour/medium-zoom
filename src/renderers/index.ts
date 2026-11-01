@@ -1,4 +1,5 @@
 import type { ZoomRenderer } from 'medium-zoom/core'
+
 import type { RendererHooks } from '../engine/types'
 
 export interface DialogOptions {
@@ -12,12 +13,19 @@ export interface DialogOptions {
 export function dialog({ label, closeLabel = 'Close image' }: DialogOptions = {}): ZoomRenderer {
   const renderer: RendererHooks = {
     mount(image, original, close, trigger = document.activeElement as HTMLElement) {
+      image.removeAttribute('aria-hidden')
       const element = document.createElement('dialog')
       if (typeof element.showModal !== 'function') {
         throw new Error('Medium Zoom dialog renderer requires HTMLDialogElement.showModal()')
       }
       element.className = 'medium-zoom-dialog'
-      element.setAttribute('aria-label', label?.trim() || image.alt.trim() || 'Zoomed image')
+      element.setAttribute(
+        'aria-label',
+        label?.trim() ||
+          image.alt.trim() ||
+          original.getAttribute('aria-label')?.trim() ||
+          'Zoomed image'
+      )
       // Viewport coordinates keep the top-layer host independent of document scroll.
       element.style.cssText =
         'position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;color:inherit;overflow:hidden;'
@@ -40,7 +48,9 @@ export function dialog({ label, closeLabel = 'Close image' }: DialogOptions = {}
         }
       })
       element.addEventListener('close', () => {
-        if (!disposed) close()
+        if (!disposed) {
+          close()
+        }
       })
       element.addEventListener('cancel', event => {
         event.preventDefault()
@@ -61,11 +71,26 @@ export function dialog({ label, closeLabel = 'Close image' }: DialogOptions = {}
       }
       return {
         element,
+        update(next, source) {
+          next.removeAttribute('aria-hidden')
+          const { top, left } = source.getBoundingClientRect()
+          next.style.top = `${top}px`
+          next.style.left = `${left}px`
+          element.setAttribute(
+            'aria-label',
+            label?.trim() ||
+              next.alt.trim() ||
+              source.getAttribute('aria-label')?.trim() ||
+              'Zoomed image'
+          )
+        },
         dispose() {
           disposed = true
           element.close()
           element.remove()
-          if (trigger?.isConnected) trigger.focus({ preventScroll: true })
+          if (trigger?.isConnected) {
+            trigger.focus({ preventScroll: true })
+          }
         },
       }
     },

@@ -1,6 +1,6 @@
 import type { TemplateOptions, ZoomFeature } from 'medium-zoom/core'
 
-import type { FeatureHooks, Session } from '../engine/types'
+import type { FeatureHooks, Scene } from '../engine/types'
 import { isNode } from '../utils'
 
 const resolveTemplate = (target: string | HTMLTemplateElement): HTMLTemplateElement | null =>
@@ -8,7 +8,7 @@ const resolveTemplate = (target: string | HTMLTemplateElement): HTMLTemplateElem
     ? (target as HTMLTemplateElement)
     : document.querySelector<HTMLTemplateElement>(target)
 
-interface TemplateSession extends Session {
+interface TemplateScene extends Scene {
   __mz_template?: HTMLDivElement
 }
 
@@ -19,7 +19,7 @@ export const updateTemplate: NonNullable<FeatureHooks['__mz_update']> = options 
 }
 
 export const mountTemplate: NonNullable<FeatureHooks['__mz_mount']> = (
-  session: TemplateSession,
+  session: TemplateScene,
   options
 ) => {
   if (!options.template) {
@@ -33,7 +33,7 @@ export const mountTemplate: NonNullable<FeatureHooks['__mz_mount']> = (
 }
 
 export const closeTemplate: NonNullable<FeatureHooks['__mz_closing']> = (
-  session: TemplateSession
+  session: TemplateScene
 ) => {
   if (!session.__mz_template) {
     return

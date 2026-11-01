@@ -12,6 +12,7 @@ const experimental = packExperimental()
 const roots: Record<string, string> = {
   package: artifact.root,
   experimental: experimental.root,
+  experiments: resolve('tests/experimental'),
   baseline: resolve('node_modules/medium-zoom-baseline'),
   images: resolve('stories/images'),
   site: resolve('website/dist'),

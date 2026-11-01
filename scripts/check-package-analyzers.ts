@@ -60,6 +60,7 @@ function checkAttw(archive: string, experimental: boolean) {
         './core',
         './features',
         './renderers',
+        './session',
         './pure',
         './compat',
         './compat/pure',

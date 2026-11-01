@@ -33,12 +33,12 @@ export default defineConfig({
     { name: 'webkit', testIgnore: '**/mobile.spec.ts', use: { ...devices['Desktop Safari'] } },
     {
       name: 'mobile-chromium',
-      testMatch: ['**/mobile.spec.ts', '**/dialog.spec.ts'],
+      testMatch: ['**/mobile.spec.ts', '**/dialog.spec.ts', '**/gallery.spec.ts'],
       use: { ...devices['Pixel 7'] },
     },
     {
       name: 'mobile-webkit',
-      testMatch: ['**/mobile.spec.ts', '**/dialog.spec.ts'],
+      testMatch: ['**/mobile.spec.ts', '**/dialog.spec.ts', '**/gallery.spec.ts'],
       use: { ...devices['iPhone 13'] },
     },
   ],

@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
+
 import { preparePage } from './helpers'
 
 async function fixture(page: Page, hd = false) {
@@ -73,7 +74,9 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
       await page.locator('#outside').evaluate(element => element === document.activeElement)
     ).toBe(false)
     await page.keyboard.press('Escape')
-    if (reducedMotion === 'no-preference') await expect(modal).toHaveJSProperty('open', true)
+    if (reducedMotion === 'no-preference') {
+      await expect(modal).toHaveJSProperty('open', true)
+    }
     await expect(modal).toHaveCount(0)
     await expect(page.locator('#trigger')).toBeFocused()
     await expect(page.locator('body')).toHaveAttribute('data-events', 'open,opened,close,closed,')
@@ -260,7 +263,9 @@ test('clone retains the renderer and owns independent sessions; detach cleans up
   await page.evaluate(async () => {
     const clone = window.zoom.clone().attach('#image')
     await clone.open({ trigger: document.querySelector('#trigger')! })
-    if (window.zoom.getZoomedImage()) throw Error('Clone changed the source instance')
+    if (window.zoom.getZoomedImage()) {
+      throw Error('Clone changed the source instance')
+    }
     clone.detach()
   })
   await expect(page.locator('dialog')).toHaveCount(0)
@@ -333,8 +338,9 @@ for (const kind of ['element', 'coordinates'] as const) {
         container:
           kind === 'element' ? element : { width: width + left, height: height + top, left, top },
       })
-      if (kind === 'element' && window.zoom.getOptions().container !== element)
+      if (kind === 'element' && window.zoom.getOptions().container !== element) {
         throw Error('Container identity lost')
+      }
       await window.zoom.open()
     }, kind)
     const image = await page.locator('dialog img').boundingBox()

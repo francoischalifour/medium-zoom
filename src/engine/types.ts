@@ -1,7 +1,11 @@
-import type { ZoomOptions } from '../types'
+import type { Zoom, ZoomOptions } from '../types'
 
 export type Cleanup = () => void
-export interface Session {
+export interface Scene {
+  __mz_outgoing?: HTMLElement[]
+  __mz_zoom?: Zoom
+  __mz_navigate?: (target: HTMLImageElement) => Promise<Zoom>
+  __mz_refreshHost?: (image: HTMLImageElement, original: HTMLImageElement) => void
   __mz_host?: HTMLElement
   __mz_disposeHost?: Cleanup
   __mz_original?: HTMLImageElement
@@ -23,16 +27,18 @@ export interface Viewport {
 
 // Only built-in features implement this contract. The engine owns cancellation.
 export interface FeatureHooks {
+  __mz_setup?: (zoom: Zoom) => void
+  __mz_transition?: (session: Scene, done: () => void) => Cleanup | undefined
   __mz_defaults?: Partial<ZoomOptions>
   __mz_update?: (options: ZoomOptions, previous: ZoomOptions) => void
   __mz_viewport?: (options: ZoomOptions, viewport: Viewport) => Viewport
-  __mz_mount?: (session: Session, options: ZoomOptions) => void
+  __mz_mount?: (session: Scene, options: ZoomOptions) => void
   __mz_load?: (
-    session: Session,
+    session: Scene,
     ready: (target?: HTMLImageElement) => void,
     close: () => void
   ) => Cleanup | undefined
-  __mz_closing?: (session: Session) => void
+  __mz_closing?: (session: Scene) => void
 }
 
 export interface RendererHooks {
@@ -44,5 +50,9 @@ export interface RendererHooks {
   ) => {
     element: HTMLElement
     dispose: Cleanup
+    update?: (image: HTMLImageElement, original: HTMLImageElement) => void
   }
 }
+
+export type EngineHooks = Required<Omit<FeatureHooks, '__mz_setup' | '__mz_transition'>> &
+  Pick<FeatureHooks, '__mz_transition'>

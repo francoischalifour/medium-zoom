@@ -42,6 +42,9 @@
       ],
       "renderers": [
         "dist/renderers/index.d.cts"
+      ],
+      "session": [
+        "dist/session/index.d.cts"
       ]
     }
   },
@@ -133,6 +136,16 @@
       "require": {
         "types": "./dist/renderers/index.d.cts",
         "default": "./dist/renderers/index.cjs"
+      }
+    },
+    "./session": {
+      "import": {
+        "types": "./dist/session/index.d.mts",
+        "default": "./dist/session/index.mjs"
+      },
+      "require": {
+        "types": "./dist/session/index.d.cts",
+        "default": "./dist/session/index.cjs"
       }
     }
   }

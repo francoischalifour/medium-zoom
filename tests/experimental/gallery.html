@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Medium Zoom — accessible gallery experiment</title>
+    <link rel="stylesheet" href="/experimental/dist/modern/style.css" />
+    <style>
+      :root {
+        color-scheme: light;
+        font: 16px/1.5 system-ui;
+        color: #242424;
+        background: #f6f5f1;
+      }
+      body {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 56px 24px;
+      }
+      h1 {
+        font-size: clamp(32px, 5vw, 56px);
+        line-height: 1.1;
+        letter-spacing: -0.04em;
+      }
+      p {
+        max-width: 58ch;
+        color: #62615c;
+      }
+      .gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 24px;
+        margin-top: 40px;
+      }
+      figure {
+        margin: 0;
+      }
+      img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+      }
+      figcaption {
+        margin-top: 12px;
+        color: #62615c;
+      }
+      .medium-zoom-image:focus-visible {
+        outline: 3px solid #215ce0;
+        outline-offset: 6px;
+      }
+      .eyebrow {
+        font-size: 12px;
+        font-weight: 650;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+      .caption {
+        position: fixed;
+        left: 50%;
+        bottom: 96px;
+        transform: translateX(-50%);
+        white-space: nowrap;
+        z-index: 2147483647;
+        padding: 12px 16px;
+        background: white;
+        border-radius: 8px;
+      }
+      .caption a {
+        color: inherit;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="eyebrow">Medium Zoom · Architecture experiment</p>
+    <h1>A gallery you can use<br />from the keyboard.</h1>
+    <p>
+      Tab to a photograph and press Enter or Space. Use the arrow keys or gallery buttons to browse.
+      Escape closes the image and returns focus to where you started.
+    </p>
+    <div class="gallery">
+      <figure>
+        <img
+          src="/images/image-1.jpg"
+          data-zoom-src="/images/image-1.jpg"
+          width="640"
+          alt="Waves breaking under an orange and purple sunset"
+        />
+        <figcaption>01 · Last light</figcaption>
+      </figure>
+      <figure>
+        <img
+          src="/images/image-2.jpg"
+          width="640"
+          alt="A colorful longboard leaning against a fence"
+        />
+        <figcaption>02 · The longboard</figcaption>
+      </figure>
+      <figure>
+        <img src="/images/image-1.jpg" width="640" alt="Clouds over the ocean at sunset" />
+        <figcaption>03 · Back to the ocean</figcaption>
+      </figure>
+    </div>
+    <template id="caption"
+      ><div class="caption">
+        <a href="https://github.com/francoischalifour/medium-zoom">Medium Zoom on GitHub</a>
+      </div></template
+    >
+    <script type="module">
+      import { createMediumZoom } from '/experimental/dist/core/index.mjs'
+      import {
+        accessibility,
+        gallery,
+        hdImage,
+        template,
+      } from '/experimental/dist/features/index.mjs'
+      import { dialog } from '/experimental/dist/renderers/index.mjs'
+      const mediumZoom = createMediumZoom({
+        renderer: dialog(),
+        features: [accessibility(), gallery(), hdImage(), template()],
+      })
+      window.zoom = mediumZoom('.gallery img', { margin: 72, template: '#caption' })
+    </script>
+  </body>
+</html>

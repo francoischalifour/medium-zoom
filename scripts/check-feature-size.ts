@@ -10,12 +10,17 @@ import { build } from 'tsdown'
 // Import every feature in each fixture to verify unused exports are eliminated.
 const variants = {
   core: [],
+  'core + session': [],
   'core + HD': ['hdImage'],
   'core + container': ['container'],
   'core + template': ['template'],
   'core + all features': ['hdImage', 'container', 'template'],
   'core + dialog': [],
   'dialog + all features': ['hdImage', 'container', 'template'],
+  'dialog + accessibility': ['accessibility'],
+  'dialog + gallery': ['gallery'],
+  'dialog + accessible gallery': ['accessibility', 'gallery'],
+  'dialog + gallery + all': ['accessibility', 'gallery', 'hdImage', 'container', 'template'],
   full: null,
   'pure full': null,
   'compat full': null,
@@ -35,11 +40,13 @@ try {
   for (const [index, [name, features]] of Object.entries(variants).entries()) {
     const entry = join(directory, `${index}.ts`)
     const modal = name.includes('dialog')
+    const session = name.includes('session')
     const source = features
       ? `import { createMediumZoom } from ${JSON.stringify(resolve('dist/core/index.mjs'))};
-         import { hdImage, container, template } from ${JSON.stringify(resolve('dist/features/index.mjs'))};
+         import { hdImage, container, template, accessibility, gallery } from ${JSON.stringify(resolve('dist/features/index.mjs'))};
          ${modal ? `import { dialog } from ${JSON.stringify(resolve('dist/renderers/index.mjs'))};` : ''}
-         globalThis.zoom = createMediumZoom({ ${modal ? 'renderer: dialog(),' : ''} features: [${features.map(name => `${name}()`).join(',')}] })('img');`
+         ${session ? `import { createZoomSession } from ${JSON.stringify(resolve('dist/session/index.mjs'))};` : ''}
+         globalThis.zoom = ${session ? 'createZoomSession(' : ''}createMediumZoom({ ${modal ? 'renderer: dialog(),' : ''} features: [${features.map(name => `${name}()`).join(',')}] })('img')${session ? ')' : ''};`
       : `import mediumZoom from ${JSON.stringify(resolve(fullEntries[name]))}; globalThis.zoom = mediumZoom('img');`
     writeFileSync(entry, source)
     const output = join(directory, `output-${index}`)
@@ -67,8 +74,26 @@ try {
       assert(!code.includes('initCustomEvent'), `${name}: no legacy event fallback`)
       assert(!code.includes('.keyCode'), `${name}: no legacy keyboard fallback`)
     }
+    assert.equal(
+      code.includes('WeakMap'),
+      session ||
+        (features as string[] | null)?.includes('accessibility') ||
+        (features as string[] | null)?.includes('gallery') ||
+        false,
+      `${name}: session and gallery isolation`
+    )
     assert.equal(code.includes('showModal'), modal, `${name}: dialog renderer isolation`)
     const included = features || variants['core + all features']
+    assert.equal(
+      code.includes('Previous image'),
+      included.includes('gallery'),
+      `${name}: gallery isolation`
+    )
+    assert.equal(
+      code.includes('aria-haspopup'),
+      included.includes('accessibility'),
+      `${name}: accessibility isolation`
+    )
     assert.equal(
       code.includes('data-zoom-src'),
       included.includes('hdImage'),

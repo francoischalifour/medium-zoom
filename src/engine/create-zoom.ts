@@ -3,9 +3,9 @@ import { getPromise, createCustomEvent, getScrollY, isEscape, assign } from '#pl
 import type { Zoom, ZoomFactory, ZoomOptions, ZoomSelector, ZoomOpenOptions } from '../types'
 import { cloneTarget, createOverlay, getImagesFromSelectors, isSvg } from '../utils'
 import { waitForTransition } from './transition'
-import type { FeatureHooks, Session, RendererHooks } from './types'
+import type { EngineHooks, Scene, RendererHooks } from './types'
 
-const transformNodes = (session: Session, transform: string) => {
+const transformNodes = (session: Scene, transform: string) => {
   ;(session.__mz_nodes || []).forEach(node => {
     if (node.tagName === 'IMG') {
       node.style.transform = transform
@@ -13,7 +13,7 @@ const transformNodes = (session: Session, transform: string) => {
   })
 }
 
-export const createZoom = (hooks: Required<FeatureHooks>, renderer?: RendererHooks): ZoomFactory => {
+export const createZoom = (hooks: EngineHooks, renderer?: RendererHooks): ZoomFactory => {
   const mediumZoom: ZoomFactory = (
     selector?: ZoomSelector | ZoomOptions,
     options: ZoomOptions = {}
@@ -21,7 +21,7 @@ export const createZoom = (hooks: Required<FeatureHooks>, renderer?: RendererHoo
     const Promise = getPromise()
 
     const _close = () => {
-      void close()
+      void zoom.close()
     }
 
     const _dispatchEvent = (image: HTMLImageElement, type: string) =>
@@ -29,19 +29,33 @@ export const createZoom = (hooks: Required<FeatureHooks>, renderer?: RendererHoo
 
     const _handleClick = (event: MouseEvent) => {
       const { target } = event
+      if (
+        renderer &&
+        (event.defaultPrevented ||
+          /^(link|checkbox|radio|switch|menuitem)$/.test(
+            (target as Element).getAttribute('role') || ''
+          ) ||
+          (target as Element).parentElement?.closest(
+            'button,a[href],input,select,textarea,summary,label,[role="button"],[role="link"],[role="checkbox"],[role="radio"],[role="switch"],[role="menuitem"],[contenteditable]'
+          ))
+      ) {
+        return
+      }
 
       if (target === overlay) {
         void close()
         return
       }
 
-      if (renderer && active.__mz_original) return
+      if (renderer && active.__mz_original) {
+        return
+      }
 
       if (images.indexOf(target as HTMLImageElement) === -1) {
         return
       }
 
-      void toggle({ target: target as HTMLElement })
+      void zoom.toggle({ target: target as HTMLElement })
     }
 
     const _handleScroll = () => {
@@ -187,7 +201,9 @@ export const createZoom = (hooks: Required<FeatureHooks>, renderer?: RendererHoo
 
     const _updateGlobalEvents = (enabled: boolean) => {
       const method = enabled ? 'addEventListener' : 'removeEventListener'
-      if (!renderer) document[method]('keyup', _handleKeyUp as EventListener)
+      if (!renderer) {
+        document[method]('keyup', _handleKeyUp as EventListener)
+      }
       document[method]('scroll', _handleScroll)
       const touchOptions = { passive: true }
       ;['touchstart', 'touchend', 'touchcancel'].forEach(type =>
@@ -196,8 +212,9 @@ export const createZoom = (hooks: Required<FeatureHooks>, renderer?: RendererHoo
       window[method]('resize', _close)
     }
 
-    const open = ({ target, trigger }: ZoomOpenOptions = {}) => {
-      const current: Session = {}
+    const open = ({ target, trigger }: ZoomOpenOptions = {}, previous?: Scene) => {
+      const current: Scene = {}
+      const replacing = renderer ? previous : undefined
       const _animate = (zoomTarget = current.__mz_original!) => {
         const margin = zoomOptions.margin!
         let viewport = {
@@ -237,9 +254,27 @@ export const createZoom = (hooks: Required<FeatureHooks>, renderer?: RendererHoo
       }
 
       return new Promise<Zoom>((resolve, reject) => {
-        if (active.__mz_original || (target && images.indexOf(target as HTMLImageElement) === -1)) {
+        if (
+          (!replacing && active.__mz_original) ||
+          replacing?.__mz_closing ||
+          (target && images.indexOf(target as HTMLImageElement) === -1)
+        ) {
           resolve(zoom)
           return
+        }
+        if (replacing) {
+          current.__mz_host = replacing.__mz_host
+          current.__mz_disposeHost = replacing.__mz_disposeHost
+          replacing.__mz_cancelOpen?.()
+          clearTimeout(replacing.__mz_scrollTimer || undefined)
+          replacing.__mz_original!.classList.remove('medium-zoom-image--hidden')
+          const nodes = replacing.__mz_nodes!.concat(replacing.__mz_outgoing || [])
+          current.__mz_outgoing = nodes.filter(node => node.tagName === 'IMG' && node.isConnected)
+          nodes.forEach(node => {
+            if (node.tagName !== 'IMG' && node !== overlay) {
+              node.remove()
+            }
+          })
         }
         active = current
 
@@ -281,23 +316,52 @@ export const createZoom = (hooks: Required<FeatureHooks>, renderer?: RendererHoo
 
         scrollTop = getScrollY()
         current.__mz_zoomed = cloneTarget(current.__mz_original)
+        if (replacing) {
+          current.__mz_zoomed.style.visibility = 'hidden'
+        }
         current.__mz_nodes = [current.__mz_zoomed, overlay]
 
         try {
-          const host = renderer?.mount(current.__mz_zoomed, current.__mz_original, _close, trigger)
-          current.__mz_host = host ? host.element : document.body
-          current.__mz_disposeHost = host?.dispose
+          if (renderer) {
+            const host = previous
+              ? undefined
+              : renderer.mount(current.__mz_zoomed, current.__mz_original, _close, trigger)
+            current.__mz_host = previous ? previous.__mz_host : host!.element
+            current.__mz_disposeHost = previous ? previous.__mz_disposeHost : host!.dispose
+            current.__mz_refreshHost = previous ? previous.__mz_refreshHost : host!.update
+            current.__mz_zoom = zoom
+            current.__mz_navigate = target =>
+              active === current ? open({ target }, current) : Promise.resolve(zoom)
+            current.__mz_refreshHost?.(current.__mz_zoomed, current.__mz_original)
+          } else {
+            current.__mz_host = document.body
+          }
         } catch (error) {
           reject(error)
           finishOpening()
+          current.__mz_disposeHost?.()
           active = {}
           _updateGlobalEvents(false)
           return
         }
-        if (current.__mz_closing) return
-        current.__mz_host.appendChild(overlay)
+        if (current.__mz_closing) {
+          return
+        }
+        // Keep the backdrop below outgoing frames while a gallery scene is loading.
+        if (!replacing) {
+          current.__mz_host!.appendChild(overlay)
+        }
 
-        hooks.__mz_mount(current, zoomOptions)
+        try {
+          hooks.__mz_mount(current, zoomOptions)
+        } catch (error) {
+          reject(error)
+          void close()
+          return
+        }
+        if (current.__mz_closing || active !== current) {
+          return
+        }
 
         // If the selected <img> tag is inside a <picture> tag, set the
         // currently-applied source as the cloned `src=` attribute.
@@ -310,7 +374,7 @@ export const createZoom = (hooks: Required<FeatureHooks>, renderer?: RendererHoo
           current.__mz_zoomed.src = current.__mz_original.currentSrc
         }
 
-        current.__mz_host.appendChild(current.__mz_zoomed)
+        current.__mz_host!.appendChild(current.__mz_zoomed)
 
         frame = window.requestAnimationFrame(() => {
           document.body.classList.add('medium-zoom--opened')
@@ -323,7 +387,10 @@ export const createZoom = (hooks: Required<FeatureHooks>, renderer?: RendererHoo
 
         const animate = (target?: HTMLImageElement) => {
           _animate(target)
-          cancelTransition = waitForTransition(current.__mz_zoomed!, () => finishOpening(true))
+          const done = () => finishOpening(true)
+          cancelTransition =
+            (renderer && hooks.__mz_transition?.(current, done)) ||
+            waitForTransition(current.__mz_zoomed!, done)
         }
 
         cancelImage = hooks.__mz_load(current, animate, _close)
@@ -333,8 +400,12 @@ export const createZoom = (hooks: Required<FeatureHooks>, renderer?: RendererHoo
       })
     }
 
-    const close = () =>
-      new Promise<Zoom>(resolve => {
+    let closing: Promise<Zoom> | undefined
+    const close = () => {
+      if (closing) {
+        return closing
+      }
+      const promise = new Promise<Zoom>(resolve => {
         const current = active
         if (!current.__mz_original || current.__mz_closing) {
           resolve(zoom)
@@ -349,7 +420,7 @@ export const createZoom = (hooks: Required<FeatureHooks>, renderer?: RendererHoo
         isAnimating = true
         const finishClosing = () => {
           current.__mz_original!.classList.remove('medium-zoom-image--hidden')
-          ;(current.__mz_nodes || []).forEach(node => {
+          ;(current.__mz_nodes || []).concat(current.__mz_outgoing || []).forEach(node => {
             node.removeEventListener('click', _close)
             if (node.parentNode) {
               node.parentNode.removeChild(node)
@@ -357,9 +428,12 @@ export const createZoom = (hooks: Required<FeatureHooks>, renderer?: RendererHoo
           })
           const disposeHost = current.__mz_disposeHost
           active = {}
+          closing = undefined
           isAnimating = false
           _updateGlobalEvents(false)
-          if (disposeHost) disposeHost()
+          if (disposeHost) {
+            disposeHost()
+          }
           resolve(zoom)
           _dispatchEvent(current.__mz_original!, 'closed')
         }
@@ -376,6 +450,11 @@ export const createZoom = (hooks: Required<FeatureHooks>, renderer?: RendererHoo
           finishClosing()
         }
       })
+      if (active.__mz_closing) {
+        closing = promise
+      }
+      return promise
+    }
 
     const toggle = (options: ZoomOpenOptions = {}) => {
       if (active.__mz_original) {
@@ -400,7 +479,7 @@ export const createZoom = (hooks: Required<FeatureHooks>, renderer?: RendererHoo
     let isAnimating = false
     let scrollTop = 0
     let zoomOptions: ZoomOptions = options
-    let active: Session = {}
+    let active: Scene = {}
 
     // Construct the public instance before attach() returns it.
     const zoom: Zoom = {
