@@ -1,0 +1,27 @@
+.medium-zoom-gallery {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  box-sizing: border-box;
+  transform: translateX(-50%);
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 8px;
+  background: white;
+  color: black;
+  font: 16px system-ui;
+}
+.medium-zoom-gallery > span {
+  white-space: nowrap;
+}
+.medium-zoom-gallery > button {
+  min-height: 44px;
+  padding: 8px 12px;
+  font: inherit;
+  cursor: pointer;
+}

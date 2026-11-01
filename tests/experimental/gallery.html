@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Medium Zoom — accessible gallery experiment</title>
     <link rel="stylesheet" href="/experimental/dist/modern/style.css" />
+    <link rel="stylesheet" href="/experimental/dist/controls/style.css" />
     <style>
       :root {
         color-scheme: light;
@@ -108,18 +109,19 @@
     >
     <script type="module">
       import { createMediumZoom } from '/experimental/dist/core/index.mjs'
-      import {
-        accessibility,
-        gallery,
-        hdImage,
-        template,
-      } from '/experimental/dist/features/index.mjs'
+      import { accessibility, hdImage, template } from '/experimental/dist/features/index.mjs'
+      import { createGallery } from '/experimental/dist/gallery/index.mjs'
+      import { mountGalleryControls } from '/experimental/dist/controls/index.mjs'
+      import { createZoomSession } from '/experimental/dist/session/index.mjs'
       import { dialog } from '/experimental/dist/renderers/index.mjs'
       const mediumZoom = createMediumZoom({
-        renderer: dialog(),
-        features: [accessibility(), gallery(), hdImage(), template()],
+        renderer: dialog({
+          content: ({ element, zoom }) => mountGalleryControls(element, createGallery(zoom)),
+        }),
+        features: [accessibility(), hdImage(), template()],
       })
       window.zoom = mediumZoom('.gallery img', { margin: 72, template: '#caption' })
+      createZoomSession(window.zoom)
     </script>
   </body>
 </html>

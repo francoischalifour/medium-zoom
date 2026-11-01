@@ -1,18 +1,12 @@
-import { getScrollX, getScrollY } from '#platform'
-
+import { getTargetAdapter } from './targets'
+import type { ZoomTarget } from './targets/types'
 import type { ZoomSelector } from './types'
 
-export const isSupported = (node: Element): node is HTMLImageElement => node.tagName === 'IMG'
-
-export const isNode = (selector: unknown): selector is HTMLElement =>
+export const isSupported = (node: ZoomTarget): boolean => !!getTargetAdapter(node)
+export const isNode = (selector: unknown): selector is ZoomTarget =>
   !!selector && (selector as Node).nodeType === 1
 
-export const isSvg = (image: HTMLImageElement): boolean => {
-  const source = image.currentSrc || image.src
-  return source.substr(-4).toLowerCase() === '.svg'
-}
-
-export const getImagesFromSelector = (selector: unknown): HTMLImageElement[] => {
+export const getImagesFromSelector = (selector: unknown): ZoomTarget[] => {
   try {
     if (Array.isArray(selector)) {
       return selector.filter(isSupported)
@@ -20,7 +14,7 @@ export const getImagesFromSelector = (selector: unknown): HTMLImageElement[] => 
 
     if (NodeList.prototype.isPrototypeOf(selector as object)) {
       // Do not use spread operator or Array.from() for IE support
-      return (Array.prototype.slice.call(selector) as Element[]).filter(isSupported)
+      return (Array.prototype.slice.call(selector) as ZoomTarget[]).filter(isSupported)
     }
 
     if (isNode(selector)) {
@@ -29,9 +23,9 @@ export const getImagesFromSelector = (selector: unknown): HTMLImageElement[] => 
 
     if (typeof selector === 'string') {
       // Do not use spread operator or Array.from() for IE support
-      return (Array.prototype.slice.call(document.querySelectorAll(selector)) as Element[]).filter(
-        isSupported
-      )
+      return (
+        Array.prototype.slice.call(document.querySelectorAll(selector)) as ZoomTarget[]
+      ).filter(isSupported)
     }
 
     return []
@@ -44,12 +38,12 @@ export const getImagesFromSelector = (selector: unknown): HTMLImageElement[] => 
   }
 }
 
-export const getImagesFromSelectors = (selectors: ArrayLike<ZoomSelector>): HTMLImageElement[] =>
+export const getImagesFromSelectors = (selectors: ArrayLike<ZoomSelector>): ZoomTarget[] =>
   Array.prototype.reduce.call(
     selectors,
-    (images, selector) => (images as HTMLImageElement[]).concat(getImagesFromSelector(selector)),
+    (images, selector) => (images as ZoomTarget[]).concat(getImagesFromSelector(selector)),
     []
-  ) as HTMLImageElement[]
+  ) as ZoomTarget[]
 
 export const createOverlay = (background: string | undefined): HTMLDivElement => {
   const overlay = document.createElement('div')
@@ -57,21 +51,4 @@ export const createOverlay = (background: string | undefined): HTMLDivElement =>
   overlay.style.background = background || ''
 
   return overlay
-}
-
-export const cloneTarget = (template: HTMLImageElement): HTMLImageElement => {
-  const { top, left, width, height } = template.getBoundingClientRect()
-  const clone = template.cloneNode() as HTMLImageElement
-  const scrollTop = getScrollY()
-  const scrollLeft = getScrollX()
-
-  clone.removeAttribute('id')
-  clone.style.position = 'absolute'
-  clone.style.top = `${top + scrollTop}px`
-  clone.style.left = `${left + scrollLeft}px`
-  clone.style.width = `${width}px`
-  clone.style.height = `${height}px`
-  clone.style.transform = ''
-
-  return clone
 }

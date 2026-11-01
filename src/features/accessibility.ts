@@ -1,5 +1,4 @@
 import type { ZoomFeature } from 'medium-zoom/core'
-import { createZoomSession } from 'medium-zoom/session'
 
 import type { FeatureHooks } from '../engine/types'
 
@@ -8,8 +7,9 @@ const interactive =
 
 /** Keyboard triggers for bare images; authored interactive wrappers keep their own semantics. */
 export function accessibility(): ZoomFeature<{}> {
-  const labels = new WeakMap<HTMLElement, string | null>()
+  const labels = new WeakMap<Element, string | null>()
   const feature: FeatureHooks = {
+    __mz_requiresModal: true,
     __mz_setup(zoom) {
       const records = new Map<HTMLElement, () => void>()
       // Engine instance methods close over state and never use `this`.
@@ -17,31 +17,6 @@ export function accessibility(): ZoomFeature<{}> {
       const attach = zoom.attach
       const detach = zoom.detach
       // oxlint-enable typescript/unbound-method
-      const session = createZoomSession(zoom)
-      let requested = false
-      zoom.open = options => {
-        requested = true
-        return session
-          .open({
-            ...options,
-            trigger:
-              options?.trigger ||
-              ((options?.target || zoom.getImages()[0])?.closest(interactive) as HTMLElement) ||
-              options?.target ||
-              zoom.getImages()[0],
-          })
-          .finally(() => {
-            if (!zoom.getZoomedImage()) {
-              requested = false
-            }
-          })
-      }
-      zoom.close = () => {
-        requested = false
-        return session.close()
-      }
-      zoom.toggle = options =>
-        requested || zoom.getZoomedImage() ? zoom.close() : zoom.open(options)
       const sync = () => {
         for (const [image, cleanup] of records) {
           if (!zoom.getImages().includes(image)) {
@@ -98,20 +73,16 @@ export function accessibility(): ZoomFeature<{}> {
         return zoom
       }
       zoom.detach = (...selectors) => {
-        void zoom.close()
         detach(...selectors)
         sync()
         return zoom
       }
       sync()
     },
-    __mz_mount(session) {
+    __mz_mount({ frame, original }) {
+      const image = frame.content
       // A clone is content, never a second activation control.
-      if (!session.__mz_navigate) {
-        throw new Error('Medium Zoom accessibility requires a modal renderer')
-      }
-      const image = session.__mz_zoomed!
-      const label = labels.get(session.__mz_original!)
+      const label = labels.get(original)
       if (label === null) {
         image.removeAttribute('aria-label')
       } else if (label !== undefined) {

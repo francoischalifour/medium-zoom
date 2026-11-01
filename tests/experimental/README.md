@@ -1,308 +1,257 @@
 # Experimental architecture and packaging
 
-These builds and proposed import paths are unpublished prototypes. They are not
-included in the release tarball and carry no public API commitment. The examples
-below describe the candidate API in this fixture, not imports available from npm.
+All imports below describe a private fixture, not the published npm API. The release
+manifest still publishes the nine existing v1 distribution files, without new export
+maps or type mappings. `packExperimental()` stages candidate entries in a temporary
+package. Keep these contracts private until their behavior and cost are agreed.
 
-`package.json` in this directory is a private fixture manifest. `packExperimental()`
-merges it with the release metadata in a temporary directory, copies the local
-build outputs, and packs that fixture without modifying the release package.
+See [the packaging proposal](PACKAGING.md) for the export map, release sequence,
+React delivery and the distinction between npm package size and browser transfer.
 
-- `bun run build` builds release and experimental artifacts locally.
-- `bun run test:package` checks the actual release tarball, then the private fixture.
-- `bun run test:size` measures the local release and experimental bundles.
-- Browser tests use `/package` for the release tarball and `/experimental` for the
-  private fixture. Proposed consumer/type tests live in `types/` here.
+## Ownership boundaries
 
-The release manifest deliberately has no export map or prototype type mappings.
-Its explicit file list contains only the nine existing v1 distribution files.
-Keep proposed entries in this fixture until their public surface is agreed.
+| Layer              | Owns                                                                                   | Does not own                                                  |
+| ------------------ | -------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Target adapter     | Detection, source resolution, DOM measurements, intrinsic dimensions, frame creation   | Engine lifecycle or gallery UI                                |
+| Pure geometry      | Fitting layout/painted content into a viewport, local clipping insets                  | DOM reads or writes                                           |
+| Rendered frame     | Content/root nodes, geometry application, clipping, visibility, idempotent disposal    | Gallery selection or session ownership                        |
+| Engine             | Loading, opening/replacement/closing, interruption, completion, frame retirement       | Application controls or target-specific source logic          |
+| Modal renderer     | Persistent host, modal naming/inertness, loading semantics, focus return, content slot | Collection order or traversal                                 |
+| Session            | Per-document ownership, queued requests, cancellation, coalescing, disposal            | Keyboard augmentation or gallery state                        |
+| Gallery controller | Attached-image order, selection, bounds, subscriptions                                 | DOM creation, styles, keyboard listeners, session arbitration |
+| Controls adapter   | Buttons, live position, keyboard bindings, optional stylesheet                         | Image loading, positioning, transitions, frame cleanup        |
 
-## Core and optional features
+Features receive a narrow content context: the original target, a read-only frame
+surface (`element` and `content`), and append operations that transfer ownership to the
+engine. They cannot inspect or mutate the engine's scene state. Mount callbacks return
+closing cleanup; the factory composes those callbacks in either feature order. Option
+updates and viewport transforms compose as well. One image loader is allowed per factory;
+conflicts and modal-only feature requirements fail at factory creation.
 
-The default import includes every feature and keeps the existing API. For a smaller
-bundle, create a factory with only the features your application needs:
+The gallery controller validates its private selection capability at creation. It never
+adds methods to the public v1 `Zoom` type. The engine's private capability is absent from
+compat/default instances and declarations.
 
-```ts
-import { createMediumZoom } from 'medium-zoom/core'
-import { hdImage, container, template } from 'medium-zoom/features'
-
-import 'medium-zoom/style.css'
-
-const mediumZoom = createMediumZoom({
-  features: [hdImage(), container(), template()],
-})
-
-const zoom = mediumZoom('.image', {
-  margin: 24,
-  container: '#gallery',
-  template: '#zoom-template',
-})
-
-zoom.update({ margin: 48 })
-```
-
-Call `createMediumZoom()` without features for basic zooming. Core includes the
-instance methods, image positioning, dismissal, reduced
-motion, and pinch handling. It preserves the displayed source of `<picture>` images.
-
-| Feature           | Adds                                                                    |
-| ----------------- | ----------------------------------------------------------------------- |
-| `hdImage()`       | Loading `data-zoom-src` and larger `srcset` candidates when opening     |
-| `container()`     | The `container` option, including coordinate options and merged updates |
-| `template()`      | The `template` option and its mounting and cleanup                      |
-| `accessibility()` | Bare-image keyboard triggers and shared session coordination            |
-| `gallery()`       | Persistent modal browsing and position announcements                    |
-
-Core never injects CSS. Import `medium-zoom/style.css` explicitly, or include the
-stylesheet in your application's CSS build. The legacy `medium-zoom/dist/style.css`
-path remains available. Both `core` and `pure` support ESM and CommonJS.
-
-Features are fixed when the factory is created, and their order does not matter.
-Each instance owns its state. `clone()` retains the factory's features; `update()`
-changes options without installing or removing features. TypeScript infers the
-available options from the installed features (TypeScript 5.0 or later). Importing features alone does not
-inject styles, and unused feature exports can be removed by your bundler.
-
-The package export map retains the documented legacy entry points and extensionless
-file imports. Directory imports with a trailing slash must use the canonical
-`medium-zoom/dist/pure` path instead.
-
-## Browser profiles
-
-In v1, the default and pure entries use the compatibility profile. Modern builds
-require ES2020 syntax support and native `Promise`, `CustomEvent`, `scrollX` /
-`scrollY`, and media-query `change` listeners. Compatibility is selected at build
-time; modern bundles contain no legacy platform fallbacks or global polyfills.
-
-| Entry                     | Profile            | Features                     | Styles          |
-| ------------------------- | ------------------ | ---------------------------- | --------------- |
-| `medium-zoom`             | Compat, v1 default | All                          | Injected        |
-| `medium-zoom/compat`      | Compat, explicit   | All                          | Injected        |
-| `medium-zoom/pure`        | Compat, v1 default | All                          | Explicit import |
-| `medium-zoom/compat/pure` | Compat, explicit   | All                          | Explicit import |
-| `medium-zoom/modern`      | Modern             | All                          | Injected        |
-| `medium-zoom/core`        | Modern             | Selected by the factory      | Explicit import |
-| `medium-zoom/features`    | Modern             | Individual feature functions | None            |
-
-For explicit compatibility without injected CSS:
+## Factory and selected features
 
 ```ts
-import mediumZoom from 'medium-zoom/compat/pure'
-
-import 'medium-zoom/compat/style.css'
-```
-
-Use `medium-zoom/style.css` with core. In v1 it retains the compatibility cursor
-fallbacks, as does the legacy `medium-zoom/dist/style.css` path. For CSS without
-legacy fallbacks, use `medium-zoom/modern/style.css`. The explicit
-`medium-zoom/compat/style.css` stylesheet stays compatible across major versions.
-Legacy `dist` JavaScript entries retain v1's compatibility profile and ES5 implementation.
-
-Compat preserves v1's behavior when native `Promise` is missing: zoom interactions
-run, but the returned values do not support promise chaining. Supply a real
-Promise polyfill when completion promises are needed. No global APIs are patched
-by Medium Zoom.
-
-The planned v2 default is the modern profile, including the `pure` entry. Explicit
-`compat` and `compat/pure` imports retain their meaning across that switch. Core
-stays CSS-free. Reduced motion, cancellation, image loading, responsive sources,
-and pinch handling are supported by both profiles.
-
-## Native dialog renderer
-
-Use the opt-in native dialog renderer for modal focus containment, an accessible name,
-a visible close button, and focus return. Import the stylesheet explicitly:
-
-```html
-<button type="button" id="enlarge" aria-label="Enlarge sunset photograph">
-  <img id="sunset" src="sunset.jpg" alt="Sunset over the ocean" />
-</button>
-```
-
-```js
+import { mountGalleryControls } from 'medium-zoom/controls'
 import { createMediumZoom } from 'medium-zoom/core'
-import { hdImage, container, template } from 'medium-zoom/features'
+import { hdImage, container, template, accessibility } from 'medium-zoom/features'
+import { createGallery } from 'medium-zoom/gallery'
 import { dialog } from 'medium-zoom/renderers'
-
-import 'medium-zoom/style.css'
-
-const mediumZoom = createMediumZoom({
-  renderer: dialog({ closeLabel: 'Close image' }),
-  features: [hdImage(), container(), template()],
-})
-const image = document.querySelector('#sunset')
-const trigger = document.querySelector('#enlarge')
-const zoom = mediumZoom(image)
-trigger.addEventListener('click', () => {
-  void zoom.open({ target: image, trigger })
-})
-```
-
-The native button activates with Enter, Space, or a pointer. In React, Vue, or Svelte,
-render the button in your component and call `zoom.open({ target: imageRef, trigger: buttonRef })`
-from its click handler. Keep references to the actual elements and detach the instance
-on unmount. Medium Zoom does not wrap, replace, or move your original image or trigger,
-and does not add roles or keyboard listeners to framework-owned elements. An image
-alone remains a pointer trigger; provide a button for keyboard access.
-
-`dialog({ label, closeLabel })` fixes the renderer at factory creation. `label` defaults
-to the image's nonempty alt text, then `"Zoomed image"`; provide a meaningful label for
-decorative images and localize both labels as needed. The close button receives initial
-focus. The `trigger` passed to `open()` or `toggle()` receives focus after closing;
-otherwise the previously focused element is used if it remains connected. `clone()`
-retains the renderer and features, with independent opening state.
-
-The dialog uses `showModal()` and the browser's top layer. All zoomed images, HD images,
-and cloned template content mount inside it, so they remain interactive while the page
-is inert. A custom container controls the image's bounds; it does not become the modal's
-DOM parent. The viewport host preserves geometry on scrolled pages and above stacking
-contexts. Element containers retain their DOM identity when updated, rather than being
-merged as coordinate objects. Avoid overriding `.medium-zoom-dialog` positioning or transforming the host.
-Templates can include focusable controls; wire dismissal to `zoom.close()` so the closing
-animation completes. Native `method="dialog"` form submissions also use this lifecycle. Escape, the backdrop, the zoomed image, and the
-close button use the same close lifecycle. Escape's native `cancel` event is prevented until the animation
-finishes, then the renderer calls `dialog.close()`. Reduced-motion styles still apply.
-
-This option requires native `HTMLDialogElement.showModal()` (Chrome 37+, Firefox 98+,
-Safari/iOS 15.4+, Chromium Edge 79+). See the [HTML dialog specification](https://html.spec.whatwg.org/multipage/interactive-elements.html#the-dialog-element)
-and [MDN showModal documentation](https://developer.mozilla.org/en-US/docs/Web/API/HTMLDialogElement/showModal).
-There is no automatic fallback or polyfill; unsupported browsers reject `open()` without
-leaving an active session. To select the legacy renderer there, check for
-`typeof HTMLDialogElement !== 'undefined' && typeof HTMLDialogElement.prototype.showModal === 'function'`
-before passing `renderer: dialog()` to the factory. The default renderer retains legacy
-browser support. Neither core nor the renderer injects the shared stylesheet. Only the
-opt-in renderer creates its own scoped backdrop rule and control styles.
-
-## Accessible gallery composition
-
-```ts
-import { createMediumZoom } from 'medium-zoom/core'
-import { accessibility, gallery, hdImage, template } from 'medium-zoom/features'
-import { dialog } from 'medium-zoom/renderers'
+import { createZoomSession } from 'medium-zoom/session'
 
 import 'medium-zoom/modern/style.css'
+import 'medium-zoom/controls/style.css'
 
-const zoom = createMediumZoom({
-  renderer: dialog(),
-  features: [accessibility(), gallery(), hdImage(), template()],
-})('.gallery img', { margin: 72, template: '#caption' })
+const mediumZoom = createMediumZoom({
+  renderer: dialog({
+    content: ({ element, zoom }) => mountGalleryControls(element, createGallery(zoom)),
+  }),
+  features: [accessibility(), hdImage(), container(), template()],
+})
+const zoom = mediumZoom('.gallery img', { margin: 72, template: '#caption' })
+const session = createZoomSession(zoom)
+const gallery = createGallery(zoom)
+
+await session.open({ target: image, trigger: button })
+await gallery.next()
+await gallery.previous()
+const unsubscribe = gallery.subscribe(() => console.log(gallery.getSnapshot()))
+
+// The application owns the controller and session lifetime.
+unsubscribe()
+gallery.dispose()
+await session.dispose()
 ```
 
-`accessibility()` adds Enter/Space activation to bare images, preserves authored labels
-and tab order, restores attributes on detach, and coordinates independent zoom instances
-through the session module below. Native button/link wrappers retain their authored
-activation; call `zoom.open({ target: image, trigger: button })` from the button handler.
-Prevented clicks do not activate zoom. The modal exposes enlarged content even when a
-framework intentionally hides its source image from the accessibility tree.
+Core is CSS-free. `hdImage()` adds `data-zoom-src` / larger srcset loading; `container()`
+adds element/coordinate bounds; `template()` adds cloned template content. TypeScript
+infers the options installed by the factory. Features are fixed at factory creation;
+`clone()` retains the renderer/features and owns a fresh instance.
 
-`gallery()` uses this instance's attached images in attachment order. It adds Previous /
-Next buttons, ArrowLeft / ArrowRight navigation, and a localized live position label.
-Navigation stops at either end. Boundary buttons use `aria-disabled` and ignore activation
-while retaining focus. Arrow keys inside editable controls and native media controls keep
-their usual behavior. Both features require a modal renderer when opening.
+`accessibility()` only enhances bare-image triggers and strips activation semantics from
+content clones. It preserves authored labels/tab order and restores attributes/listeners
+on detach. Native and ARIA interactive wrappers keep their authored activation. Provide
+your own visible `:focus-visible` style. Session installation is explicit and independent:
+`createZoomSession(zoom)` makes pointer, keyboard and framework calls to that instance use
+the same coordinator. Calling it again for the same instance returns the same session.
 
-The dialog, backdrop, close button, and gallery controls stay mounted across images.
-The outgoing photograph remains visible during HD loading. Both pointer and keyboard
-navigation switch immediately between already-fitted images, without replaying a
-thumbnail zoom or fading between selections. Initial opening and final closing keep
-the usual zoom transition and respect reduced motion.
-Closing removes both incoming and outgoing images and returns focus to the original
-trigger once. Each selection emits `open` / `opened` on its source; final dismissal emits
-`close` / `closed` on the selected source. Navigation does not emit dismissal events for
-each outgoing image. HD replacement still exposes one accessible image.
+The modal uses `showModal()` and the native top layer. All target frames, HD replacements,
+template content, and application controls stay inside it. A visible Close image button
+receives initial focus; closing restores the explicit trigger or previous focus if still
+connected. `dialog({ content })` mounts application-owned DOM inside the host and accepts
+a cleanup callback. React can own a root there without exposing its implementation to
+core. Native `method="dialog"` submissions and Escape use the normal close lifecycle.
+Unsupported native dialog environments reject opening without leaving an active scene.
 
-The CSS-free core still requires the explicit stylesheet. Supply your own visible
-`:focus-visible` style for bare triggers; the local demo includes one. Run:
+## Headless gallery and optional controls
+
+`createGallery(zoom)` returns one controller per instance. `getSnapshot()` has stable
+identity until its state changes and exposes `images`, `current`, `index`, `canPrevious`,
+and `canNext`. It supports `subscribe`, `select(index)`, `previous`, `next`, `attach`,
+`detach`, and `dispose`. Use controller attachment methods when changing the collection
+so subscribers update immediately. Bounds stop at either end. Selection emits normal
+`open` / `opened` events; final dismissal emits `close` / `closed` on the selected source.
+
+Gallery creation and traversal produce no controls or styles. `mountGalleryControls()`
+is the optional stock DOM adapter. Labels and live-position formatting belong to that
+adapter. Its appearance is in `controls/style.css`, with overridable classes rather than
+inline presentation. Boundary buttons remain focusable via `aria-disabled` and ignore
+activation. `bindGalleryKeyboard()` is independently reusable; it leaves editing/media
+and protected ARIA input controls alone.
+
+Both pointer and keyboard navigation switch fitted frames instantly by default. The
+host, overlay, close control, and application content persist between selections. The
+outgoing frame remains visible while a new HD source loads. Initial opening and final
+closing retain the normal reduced-motion-aware zoom.
+
+The shadcn composition proof lives in
+`examples/shadcn/tests/experimental/gallery-controls.tsx`. Its `Root`, `Previous`, `Next`,
+and `Position` components render from the same controller through `useSyncExternalStore`.
+React owns all navigation markup and styling; no stock gallery controls are created.
+The proof uses independent sessions, native button triggers, framework-hidden source
+images, Strict Mode cleanup, and unmount/remount. It is excluded from the released shadcn
+example's typecheck because candidate package paths are unpublished; the root typecheck
+and browser harness explicitly build and verify it against the private entries. The
+current published ImageZoom implementation and registry remain unchanged.
+
+## Target adapters, measurements and frames
+
+`src/targets/` is internal. There is intentionally no adapter, geometry, or frame-creation
+package entry. The registry starts with the existing `<img>` adapter. It preserves selected
+`<picture>` sources, normal srcset/sizes attributes, clone attributes except the id,
+document-scroll positioning for body rendering, and viewport positioning for native
+modal rendering. Intrinsic zero-dimension fallback and the existing SVG-file sizing policy
+are retained.
+
+A target adapter supplies layout bounds, painted-content bounds, intrinsic dimensions,
+and optional clipping bounds to the pure fitting function. The current image measurement
+uses the same rectangle for layout and painted content. Object-fit/object-position DOM
+calculations are deliberately deferred. Geometry tests cover differing painted bounds and
+clipping insets so that later measurement changes have an established numerical contract.
+Frames apply those results; the engine does not discover frames by testing tag names.
+
+Resolved sources are passed explicitly into both measurement and frame creation.
+Adapters have their own source type, which can later describe an SVG resource graph
+instead of a URL. A frame may own a wrapper and a different content element. Future SVG
+adapters can handle viewBox, preserveAspectRatio, identifier remapping and referenced
+resources inside frame creation without changing the engine lifecycle. Existing SVG
+files and SVG data URLs in `<img>` have explicit regression coverage. Inline `<svg>` and
+SVG `<use>` support remain separate increments; this change does not attach them.
+
+## Optional user-land gallery transitions
+
+```ts
+const renderer = dialog({
+  transition: ({ incoming, outgoing, direction, signal }) => {
+    const animations = incoming.map(frame =>
+      frame.element.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 120 })
+    )
+    signal.addEventListener(
+      'abort',
+      () => {
+        animations.forEach(animation => animation.cancel())
+      },
+      { once: true }
+    )
+    return Promise.all(animations.map(animation => animation.finished)).then(() => undefined)
+  },
+})
+```
+
+The optional strategy receives only already-fitted frame surfaces, their geometry,
+relative selection direction, and an abort signal. It receives no frame disposal or
+geometry-mutation methods. Frame references are leased until the strategy settles or is
+aborted; consumers must release their own external resources then. The engine owns
+retirement of outgoing frames and completion of the opening promise. No animation
+library is bundled.
+
+Rapid selection, close, detach and session disposal cancel obsolete strategies. Late
+promise settlement cannot complete an old scene. Associated Web Animations are canceled
+on completion/interruption so they cannot override later closing geometry. Reduced motion
+bypasses strategies and aborts a running one. A thrown/rejected strategy rejects selection
+and uses normal close cleanup; a subsequent opening remains possible. Strategies run only
+between selections, not during initial opening or final closing.
+
+## Browser profiles and private packaging
+
+V1 root, legacy dist, and pure entries retain the compat profile and ES5 implementation.
+Compatibility keeps Promise, CustomEvent, scroll and keyboard fallbacks without patching
+globals. The legacy no-Promise mode still runs interactions without chainable completion;
+provide native promises/a polyfill when using the modern session entry. Modern modules
+use ES2020 and native platform APIs. Native dialog is an additional requirement for the
+modal renderer. The intended v2 default can change separately from explicit compat.
+
+| Candidate entry              | Contents                                                        |
+| ---------------------------- | --------------------------------------------------------------- |
+| `core`                       | Factory, adapter/frame/geometry engine, no CSS injection        |
+| `features`                   | HD, container, template, keyboard trigger adapter               |
+| `session`                    | Framework-independent instance ownership and cancellation       |
+| `gallery`                    | Headless state and traversal                                    |
+| `controls`                   | Optional stock controls and keyboard binding                    |
+| `controls/style.css`         | Optional stock gallery presentation                             |
+| `renderers`                  | Native modal and optional consumer transition execution         |
+| `modern` / `compat` / `pure` | Full selected profiles, retaining earlier experiment boundaries |
+
+Every JS candidate has ESM/CommonJS and matching declarations. Packed consumer tests
+cover the actual release boundary, the private fixture, Node/bundler resolution and
+legacy TypeScript consumers. Adapter/geometry/frame internals are not independently
+exported. Importing unused optional entries does not make their controls appear in a
+rebundled consumer; size assertions check those boundaries.
+
+## Verification, examples and measured cost
 
 ```fish
 bun run build
-env MEDIUM_ZOOM_TEST_PORT=4385 bun tests/server.ts
+bun run check:library
+env MEDIUM_ZOOM_TEST_PORT=4390 bun tests/server.ts
 ```
 
-Then open `http://127.0.0.1:4385/experiments/gallery.html` for the maintained local example.
+Open `/experiments/gallery.html` for stock controls and `/composition/` for the React /
+shadcn proof. The harness builds the private React page into `.cache/gallery-composition`.
+Browser regressions cover both UIs, default instant switching, lifecycle races, HD source
+cancellation, custom transition completion/abort/failure, focus, and accessible content.
+Pure geometry tests compare current raster fitting over a range of source/viewport bounds
+and test painted-content/clipping separation and zero-size cases.
 
-## Shared adapter session
+Measurements use Bun’s gzip level 9 and the same installed toolchain. The exact pre-refactor
+commit `c58b314` was rebuilt separately. Raw artifacts include their license banner;
+consumer JS is rebundled/minified ES2020 and excludes React. CSS is shown separately;
+total transfer sums the independently compressed assets. Compression
+and tree shaking depend on the composition, so do not add raw module sizes to these
+consumer totals.
 
-The proposed `medium-zoom/session` subpath is a framework-independent extraction of the
-ownership and cancellation concept in the shadcn component. It is separate from the
-engine's internal per-image `Scene`. It has no React dependency and can wrap the existing
-compat factory as well as the modern factory:
+| Raw artifact       |  Before |   After | Change |
+| ------------------ | ------: | ------: | -----: |
+| Core ESM           | 3,225 B | 4,052 B | +827 B |
+| Compat/default ESM | 3,631 B | 4,351 B | +720 B |
+| Modern full ESM    | 3,525 B | 4,339 B | +814 B |
 
-```ts
-import { createZoomSession } from 'medium-zoom/session'
+| Selected library consumer   | JS gzip | CSS gzip | Total transfer |
+| --------------------------- | ------: | -------: | -------------: |
+| core                        | 4,017 B |    251 B |        4,268 B |
+| core + session              | 4,623 B |    251 B |        4,874 B |
+| core + dialog               | 4,857 B |    251 B |        5,108 B |
+| dialog + headless gallery   | 5,233 B |    251 B |        5,484 B |
+| gallery + session           | 5,783 B |    251 B |        6,034 B |
+| gallery + default controls  | 6,183 B |    544 B |        6,727 B |
+| accessible gallery          | 6,574 B |    544 B |        7,118 B |
+| gallery + all features      | 7,229 B |    544 B |        7,773 B |
+| gallery + custom transition | 5,864 B |    251 B |        6,115 B |
 
-const session = createZoomSession(zoom)
-await session.open({ target: image, trigger: button })
-await session.close()
-await session.dispose() // Cancels pending work, closes, detaches, releases listeners.
-```
+The headless gallery entry is **607 B gzip**, stock controls are
+**724 B**, and the session entry is **788 B**.
+Shared modern zoom CSS adds **251 B**; stock control CSS adds
+**293 B** only when selected. Custom React controls use application
+styles and an existing React runtime; those are outside this library comparison.
 
-One active owner is coordinated per document. A later request supersedes an earlier
-queued request, repeated opening/closing coalesces, and a session can reopen after an
-in-flight close. `close()` waits for an existing native/legacy close lifecycle, including
-Escape closes started inside core. `dispose()` makes future openings inert. A framework
-adapter should keep a session in a ref and dispose it in effect cleanup; controlled
-state, React commit timing, image refs, and theme resolution remain in the component.
-The current shipped shadcn component keeps its existing implementation until the new
-subpath is deliberately published; it cannot import an unpublished API from npm.
+These boundaries have a measurable fixed cost: compat/default grows by
+**720 B** despite preserving its behavior. The preparation does not retain the old
+3,500 B target. Per-entry budgets and selected-consumer isolation assertions record
+this explicitly. No public release manifest or browser support contract was expanded.
 
-`accessibility()` uses the same session entry automatically. Its built feature module
-imports the sibling session module, so directly loaded ESM modules and bundled consumers
-share one coordinator instead of embedding separate registries. The private package has
-ESM, CommonJS, and matching declarations for this subpath. Consumer tests verify Node,
-bundler, legacy TypeScript, and CommonJS resolution. No separate npm package or React
-runtime dependency is needed. The release manifest still publishes only the nine legacy
-v1 files; all candidate entries remain private in this experiment.
-
-## Architecture result and size
-
-The experiment needed two genuine engine extensions: a persistent renderer host across
-image scenes, and a transition hook that commits fitted content. It also exposed that
-feature composition previously overwrote mount/closing hooks. Those hooks now compose
-in either order, along with option updates and viewport transforms. Image loading and
-image transition each have one owner; conflicting owners fail explicitly. Instance setup
-lets adapters share session coordination without putting keyboard or React code in core.
-
-Core and compat are not byte-for-byte unchanged: shared host/lifecycle scaffolding costs
-some bytes. The session module, native modal implementation, keyboard adapter, gallery
-controls, and gallery implementation are excluded from default/compat consumers.
-`bun run test:size` measures each selected consumer and asserts this isolation, including
-that unused gallery/accessibility exports and legacy fallbacks are removed.
-
-Measurements below are gzip at level 9, with the exact architecture baseline rebuilt
-from commit `7344df9` using the same installed toolchain. Raw artifacts include the license
-banner; consumer bundles are rebundled/minified to ES2020 and exclude shared CSS. Do not
-add the two tables together: gzip compression and tree shaking depend on the composition.
-
-| Raw artifact         | Baseline | Experiment | Change |
-| -------------------- | -------: | ---------: | -----: |
-| Core ESM             |  2,577 B |    3,222 B | +645 B |
-| Compat / default ESM |  3,491 B |    3,626 B | +135 B |
-| Modern full ESM      |  3,277 B |    3,522 B | +245 B |
-
-| Consumer selection          |    Gzip |
-| --------------------------- | ------: |
-| core                        | 3,203 B |
-| core + session              | 3,711 B |
-| core + dialog               | 3,861 B |
-| dialog + accessibility      | 4,883 B |
-| dialog + gallery            | 4,609 B |
-| dialog + accessible gallery | 5,568 B |
-| dialog + gallery + all      | 6,198 B |
-
-The standalone session module is **703 B ESM / 752 B CommonJS gzip**. Its incremental
-cost in the rebundled core consumer is **508 B**. The shared modern stylesheet adds
-**251 B gzip**; compatibility CSS remains **258 B**. Gallery navigation has no animation and adds no animation-library dependency. Session requires native promises,
-even when wrapping the compat factory.
-
-The compat/default ESM increase is **135 B (3.9%)**. This preserves the compatibility
-contract but exceeds the architecture branch's earlier 3,500 B budget; the experimental
-budgets now record that cost explicitly. Core grows by **646 B** for composable setup,
-persistent scenes, interactive-wrapper ownership, interruption cleanup, and the transition seam. The result demonstrates
-that the capabilities compose independently, with a measurable shared-engine cost.
-
-Manual screen-reader validation remains outstanding. Automated checks cover native modal
-semantics, accessible names, background inertness, focus containment/return, cancellation,
-interruption, and instant pointer/keyboard/reduced-motion switching. Native browser/assistive
-technology behavior still deserves a manual pass before making this API public.
+Manual screen-reader testing remains outstanding. Firefox cannot currently start locally
+(`Could not find profile folder`); Chromium/WebKit desktop and mobile provide the automated
+browser evidence. Broader SVG support is deliberately not claimed by this preparation.

@@ -22,7 +22,9 @@
       "medium-zoom/compat": ["./src/index.ts"],
       "medium-zoom/compat/pure": ["./src/pure.ts"],
       "medium-zoom/renderers": ["./src/renderers/index.ts"],
-      "medium-zoom/session": ["./src/session.ts"]
+      "medium-zoom/session": ["./src/session.ts"],
+      "medium-zoom/gallery": ["./src/gallery.ts"],
+      "medium-zoom/controls": ["./src/controls.ts"]
     },
     "jsx": "react-jsx"
   },
@@ -33,7 +35,8 @@
     "scripts/**/*.ts",
     "tests/**/*.ts",
     "stories/catalogue/**/*.ts",
-    "examples/*/vite.config.ts"
+    "examples/*/vite.config.ts",
+    "examples/shadcn/tests/experimental/**/*.tsx"
   ],
   "exclude": ["**/node_modules", "tests/fixtures/next/.next"]
 }

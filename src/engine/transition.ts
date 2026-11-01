@@ -1,14 +1,14 @@
 import { listenForMotionChange } from '#platform'
 
 // A transition may be disabled, cancelled, or have no change to animate.
-export const waitForTransition = (image: HTMLImageElement, done: () => void): (() => void) => {
+export const waitForTransition = (image: Element, done: () => void): (() => void) => {
   let timer: ReturnType<typeof setTimeout>
   let frame: number
   let finished = false
   const query = window.matchMedia('(prefers-reduced-motion)')
   const getTime = (value: string) => Math.max(...value.split(',').map(parseFloat))
-  const finish = (event?: TransitionEvent) => {
-    if (finished || (event && event.propertyName !== 'transform')) {
+  const finish = (event?: Event) => {
+    if (finished || (event && (event as TransitionEvent).propertyName !== 'transform')) {
       return
     }
     cleanup()

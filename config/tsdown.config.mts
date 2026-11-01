@@ -14,8 +14,7 @@ import pkg from '../package.json' with { type: 'json' }
 const banner = `/*! ${pkg.name} ${pkg.version} | ${pkg.license} License | https://github.com/${pkg.repository} */`
 const stylesheetPath = new URL('../src/medium-zoom.css', import.meta.url)
 // Mangle only private session state and feature hooks; preserve public options and DOM APIs.
-const privateProperties =
-  /^__mz_(original|zoomed|nodes|template|closing|cancelOpen|viewportScale|isPinching|scrollTimer|defaults|update|viewport|mount|load|host|disposeHost|zoom|navigate|refreshHost|setup|outgoing|transition)$/
+const privateProperties = /^__mz_/
 
 type Profile = 'modern' | 'compat'
 
@@ -131,7 +130,6 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
                     $__mz_original: 'o',
                     $__mz_zoomed: 'z',
                     $__mz_nodes: 'n',
-                    $__mz_template: 't',
                     $__mz_closing: 'c',
                     $__mz_cancelOpen: 'a',
                     $__mz_viewportScale: 'v',
@@ -142,14 +140,14 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
                     $__mz_viewport: 'w',
                     $__mz_mount: 'm',
                     $__mz_load: 'l',
-                    $__mz_host: 'h',
-                    $__mz_disposeHost: 'j',
-                    $__mz_zoom: 'q',
-                    $__mz_navigate: 'g',
-                    $__mz_refreshHost: 'r',
                     $__mz_setup: 'b',
                     $__mz_outgoing: 'x',
-                    $__mz_transition: 'e',
+                    $__mz_view: 'h',
+                    $__mz_closeContent: 'j',
+                    $__mz_select: 'g',
+                    $__mz_primary: 'k',
+                    $__mz_frames: 'f',
+                    $__mz_requiresModal: 'r',
                   },
                 },
               },
@@ -235,13 +233,17 @@ function featureBundle(
     | 'compat/pure'
     | 'modern'
     | 'renderers'
-    | 'session',
+    | 'session'
+    | 'gallery'
+    | 'controls',
   format: 'esm' | 'cjs'
 ): UserConfig {
   const sources = {
     core: 'src/core.ts',
     renderers: 'src/renderers/index.ts',
     session: 'src/session.ts',
+    gallery: 'src/gallery.ts',
+    controls: 'src/controls.ts',
     features: 'src/features/index.ts',
     pure: format === 'cjs' ? 'src/pure-commonjs.ts' : 'src/pure.ts',
     'compat/pure': format === 'cjs' ? 'src/pure-commonjs.ts' : 'src/pure.ts',
@@ -255,7 +257,13 @@ function featureBundle(
       : name === 'pure'
         ? defaultProfile
         : 'modern'
-  const full = name !== 'core' && name !== 'features' && name !== 'renderers' && name !== 'session'
+  const full =
+    name !== 'core' &&
+    name !== 'features' &&
+    name !== 'renderers' &&
+    name !== 'session' &&
+    name !== 'gallery' &&
+    name !== 'controls'
   return {
     ...browserBundle(
       source,
@@ -322,6 +330,20 @@ export default defineConfig([
   browserBundle('src/medium-zoom.ts', 'pure/medium-zoom.umd.js', 'umd', false),
   browserBundle('src/medium-zoom.ts', 'pure/medium-zoom.min.umd.js', 'umd'),
   featureBundle('core', 'esm'),
+  featureBundle('gallery', 'esm'),
+  featureBundle('gallery', 'cjs'),
+  {
+    ...featureBundle('controls', 'esm'),
+    onSuccess(config) {
+      const css = transformCss({
+        filename: 'controls.css',
+        code: Buffer.from(readFileSync(new URL('../src/controls.css', import.meta.url))),
+        minify: true,
+      }).code
+      writeFileSync(join(config.outDir, 'controls/style.css'), css)
+    },
+  },
+  featureBundle('controls', 'cjs'),
   featureBundle('session', 'esm'),
   featureBundle('session', 'cjs'),
   featureBundle('renderers', 'esm'),

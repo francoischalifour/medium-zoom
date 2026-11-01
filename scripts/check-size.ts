@@ -1,37 +1,86 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { styleText } from 'node:util'
 import { gzipSync } from 'node:zlib'
 
+import {
+  releaseEntries,
+  extensionEntries,
+  profileEntries,
+  type PackageEntry,
+} from '../config/package.config.mts'
 import budgets from '../config/size.config.mts'
+import { bytes, table } from './size-report'
 
-const formatBytes = (bytes: number) => `${bytes.toLocaleString('en-US')} B`
-const pathWidth = Math.max('File'.length, ...budgets.map(({ path }) => path.length))
-const sizeWidth = Math.max(
-  'Budget'.length,
-  ...budgets.map(({ maxBytes }) => formatBytes(maxBytes).length)
-)
-const remainingWidth = Math.max('Remaining'.length, sizeWidth)
-const usedWidth = Math.max('Used'.length, '100.0%'.length)
-
-console.log(
-  styleText(
-    'bold',
-    `${'File'.padEnd(pathWidth)}  ${'Gzip'.padStart(sizeWidth)}  ${'Budget'.padStart(sizeWidth)}  ${'Used'.padStart(usedWidth)}  ${'Remaining'.padStart(remainingWidth)}`
-  )
-)
-
+const size = (path: string) => gzipSync(readFileSync(path), { level: 9 }).length
+const failures: string[] = []
 for (const { path, maxBytes } of budgets) {
-  const size = gzipSync(readFileSync(path), { level: 9 }).length
-  const formattedSize = formatBytes(size).padStart(sizeWidth)
-  const formattedBudget = formatBytes(maxBytes).padStart(sizeWidth)
-  const remaining = maxBytes - size
-  const usedPercent = ((size / maxBytes) * 100).toFixed(1)
-  const usedColor = size > maxBytes ? 'red' : size >= maxBytes * 0.9 ? 'yellow' : 'green'
-  const formattedRemaining = formatBytes(remaining).padStart(remainingWidth)
-  const formattedUsed = styleText(usedColor, `${usedPercent}%`.padStart(usedWidth))
-  console.log(
-    `${path.padEnd(pathWidth)}  ${formattedSize}  ${formattedBudget}  ${formattedUsed}  ${formattedRemaining}`
-  )
-  assert(size <= maxBytes, `${path} exceeds its existing gzip budget`)
+  const measured = size(path)
+  if (measured > maxBytes) {
+    failures.push(`${path}: ${bytes(measured)} > ${bytes(maxBytes)}`)
+  }
 }
+const release = JSON.parse(readFileSync('package.json', 'utf8'))
+const candidate = JSON.parse(readFileSync('tests/experimental/package.json', 'utf8'))
+assert.equal(candidate.private, true)
+const inventory = [...releaseEntries, ...extensionEntries, ...profileEntries]
+for (const entry of inventory) {
+  for (const path of [entry.esm, entry.cjs, entry.umd, entry.css].filter(Boolean) as string[]) {
+    assert(
+      budgets.some(budget => budget.path === path),
+      `${entry.path}: missing artifact budget for ${path}`
+    )
+  }
+}
+for (const entry of releaseEntries) {
+  assert(release.files.includes(entry.esm))
+}
+for (const entry of [...extensionEntries, ...profileEntries]) {
+  assert(
+    candidate.exports[`./${entry.path.slice('medium-zoom/'.length)}`],
+    `${entry.path}: missing candidate export`
+  )
+  assert(!release.files.includes(entry.esm), `${entry.path}: unexpectedly in release package`)
+}
+function report(title: string, entries: PackageEntry[]) {
+  console.log(`\n${title}`)
+  table(
+    ['Import', 'Role', 'Includes', 'ESM gzip', 'CJS gzip', 'UMD gzip', 'CSS gzip'],
+    entries.map(entry => [
+      entry.path,
+      entry.kind,
+      entry.includes,
+      bytes(size(entry.esm)),
+      entry.cjs ? bytes(size(entry.cjs)) : '—',
+      entry.umd ? bytes(size(entry.umd)) : '—',
+      entry.css ? `${bytes(size(entry.css))}${entry.injected ? ' injected*' : ' explicit'}` : '—',
+    ])
+  )
+}
+console.log('PACKAGE INVENTORY · one medium-zoom npm package · current build · gzip level 9')
+report('RELEASE MANIFEST · existing v1 entries', releaseEntries)
+report('PRIVATE CANDIDATE · opt-in building blocks', extensionEntries)
+report('PRIVATE CANDIDATE · alternate presets/aliases (not extensions)', profileEntries)
+console.log(
+  '\n* Injected CSS is already inside JS; do not add it again. Explicit CSS is a separate asset.'
+)
+console.log(
+  'Raw entry sizes are not consumer totals: tree shaking and shared compression change the result.'
+)
+console.log(
+  'Internal target adapters/geometry/frames have no package export. React/shadcn UI remains application source.'
+)
+console.log(
+  `Budgets: ${budgets.length} artifacts checked; ${failures.length ? 'FAILED' : 'passed'}. Use --artifacts for file-level detail.`
+)
+if (process.argv.includes('--artifacts')) {
+  table(
+    ['Artifact', 'Gzip', 'Budget', 'Headroom'],
+    budgets.map(({ path, maxBytes }) => [
+      path,
+      bytes(size(path)),
+      bytes(maxBytes),
+      bytes(maxBytes - size(path)),
+    ])
+  )
+}
+assert.equal(failures.length, 0, failures.join('\n'))

@@ -19,20 +19,37 @@ async function fixture(page: Page, order = false) {
     () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
   )
   await page.addStyleTag({ url: '/experimental/dist/modern/style.css' })
+  await page.addStyleTag({ url: '/experimental/dist/controls/style.css' })
   await page.evaluate(async reverse => {
     const core = '/experimental/dist/core/index.mjs'
     const featuresPath = '/experimental/dist/features/index.mjs'
     const renderers = '/experimental/dist/renderers/index.mjs'
     const { createMediumZoom } = (await import(core)) as typeof import('../../src/core')
-    const { accessibility, gallery, hdImage, template } = (await import(
+    const { accessibility, hdImage, template } = (await import(
       featuresPath
     )) as typeof import('../../src/features')
     const { dialog } = (await import(renderers)) as typeof import('../../src/renderers')
-    const features = [accessibility(), gallery(), hdImage(), template()]
-    window.mediumZoom = createMediumZoom({
-      renderer: dialog(),
+    const { createGallery } = (await import(
+      String('/experimental/dist/gallery/index.mjs')
+    )) as typeof import('../../src/gallery')
+    const { mountGalleryControls } = (await import(
+      String('/experimental/dist/controls/index.mjs')
+    )) as typeof import('../../src/controls')
+    const { createZoomSession } = (await import(
+      String('/experimental/dist/session/index.mjs')
+    )) as typeof import('../../src/session')
+    const features = [accessibility(), hdImage(), template()]
+    const factory = createMediumZoom({
+      renderer: dialog({
+        content: ({ element, zoom }) => mountGalleryControls(element, createGallery(zoom)),
+      }),
       features: reverse ? features.reverse() : features,
     })
+    window.mediumZoom = (selector?: unknown, options?: import('../../src/types').ZoomOptions) => {
+      const zoom = factory(selector as import('../../src/types').ZoomSelector, options)
+      createZoomSession(zoom)
+      return zoom
+    }
     window.zoom = window.mediumZoom('#first, #second, #third', { template: '#caption' })
   }, order)
 }
@@ -344,28 +361,34 @@ test('the combined modal has no automated accessibility violations', async ({ pa
   expect(results.violations).toEqual([])
 })
 
-test('gallery without a modal renderer rejects and cleans up', async ({ page }) => {
+test('gallery and modal-only features reject incompatible factories before DOM mutation', async ({
+  page,
+}) => {
   await fixture(page)
   expect(
     await page.evaluate(async () => {
       const core = '/experimental/dist/core/index.mjs'
       const features = '/experimental/dist/features/index.mjs'
+      const galleries = '/experimental/dist/gallery/index.mjs'
       const { createMediumZoom } = (await import(core)) as typeof import('../../src/core')
-      const { gallery } = (await import(features)) as typeof import('../../src/features')
-      window.zoom.detach()
-      window.zoom = createMediumZoom({ features: [gallery()] })('#first')
+      const { accessibility } = (await import(features)) as typeof import('../../src/features')
+      const { createGallery } = (await import(galleries)) as typeof import('../../src/gallery')
+      let rejected = 0
       try {
-        await window.zoom.open()
-        return false
+        createMediumZoom({ features: [accessibility()] })
       } catch {
-        await window.zoom.close()
-        return window.zoom.getZoomedImage() === null
+        rejected++
       }
+      const zoom = createMediumZoom()()
+      try {
+        createGallery(zoom)
+      } catch {
+        rejected++
+      }
+      return rejected
     })
-  ).toBe(true)
-  await expect(
-    page.locator('dialog, .medium-zoom-overlay, .medium-zoom-image--opened')
-  ).toHaveCount(0)
+  ).toBe(2)
+  await expect(page.locator('dialog, .medium-zoom-overlay')).toHaveCount(0)
 })
 
 test('authored image labels survive trigger enhancement and cloning', async ({ page }) => {
@@ -440,14 +463,22 @@ test('disposing after pointer navigation hands ownership to a fresh session', as
   await page.evaluate(async () => {
     window.zoom.detach()
     const core = '/experimental/dist/core/index.mjs'
-    const features = '/experimental/dist/features/index.mjs'
     const renderers = '/experimental/dist/renderers/index.mjs'
     const sessions = '/experimental/dist/session/index.mjs'
     const { createMediumZoom } = (await import(core)) as typeof import('../../src/core')
-    const { gallery } = (await import(features)) as typeof import('../../src/features')
+    const { createGallery } = (await import(
+      String('/experimental/dist/gallery/index.mjs')
+    )) as typeof import('../../src/gallery')
+    const { mountGalleryControls } = (await import(
+      String('/experimental/dist/controls/index.mjs')
+    )) as typeof import('../../src/controls')
     const { dialog } = (await import(renderers)) as typeof import('../../src/renderers')
     const { createZoomSession } = (await import(sessions)) as typeof import('../../src/session')
-    const factory = createMediumZoom({ renderer: dialog(), features: [gallery()] })
+    const factory = createMediumZoom({
+      renderer: dialog({
+        content: ({ element, zoom }) => mountGalleryControls(element, createGallery(zoom)),
+      }),
+    })
     const first = createZoomSession(factory('#first, #second'))
     await first.open()
     document

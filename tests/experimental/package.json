@@ -45,6 +45,12 @@
       ],
       "session": [
         "dist/session/index.d.cts"
+      ],
+      "gallery": [
+        "dist/gallery/index.d.cts"
+      ],
+      "controls": [
+        "dist/controls/index.d.cts"
       ]
     }
   },
@@ -147,6 +153,27 @@
         "types": "./dist/session/index.d.cts",
         "default": "./dist/session/index.cjs"
       }
-    }
+    },
+    "./gallery": {
+      "import": {
+        "types": "./dist/gallery/index.d.mts",
+        "default": "./dist/gallery/index.mjs"
+      },
+      "require": {
+        "types": "./dist/gallery/index.d.cts",
+        "default": "./dist/gallery/index.cjs"
+      }
+    },
+    "./controls": {
+      "import": {
+        "types": "./dist/controls/index.d.mts",
+        "default": "./dist/controls/index.mjs"
+      },
+      "require": {
+        "types": "./dist/controls/index.d.cts",
+        "default": "./dist/controls/index.cjs"
+      }
+    },
+    "./controls/style.css": "./dist/controls/style.css"
   }
 }

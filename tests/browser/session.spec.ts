@@ -98,7 +98,7 @@ test('close waits for an Escape close already started inside legacy core', async
   ).toBe(0)
 })
 
-test('the standalone entry and accessibility feature share one document coordinator', async ({
+test('explicit sessions coordinate keyboard adapters and standalone consumers', async ({
   page,
 }) => {
   await fixture(page)
@@ -111,7 +111,12 @@ test('the standalone entry and accessibility feature share one document coordina
     const { dialog } = (await import(renderers)) as typeof import('../../src/renderers')
     await window.zoomSessions[0]!.open()
     const zoom = createMediumZoom({ renderer: dialog(), features: [accessibility()] })('#second')
-    await zoom.open()
+    const session = (window.zoomSessions[1] = (
+      (await import(
+        String('/experimental/dist/session/index.mjs')
+      )) as typeof import('../../src/session')
+    ).createZoomSession(zoom))
+    await session.open()
     if (window.zoomSessions[0]!.zoom.getZoomedImage()) {
       throw new Error('Session was bundled twice')
     }

@@ -1,4 +1,7 @@
-import type { ZoomRenderer } from 'medium-zoom/core'
+import type { GalleryTransition } from '../targets/types'
+import { runGalleryTransition } from './transition'
+export type { GalleryTransition, GalleryTransitionContext } from '../targets/types'
+import type { ZoomRenderer, Zoom } from 'medium-zoom/core'
 
 import type { RendererHooks } from '../engine/types'
 
@@ -7,25 +10,32 @@ export interface DialogOptions {
   label?: string
   /** Visible and accessible close button text, for localization. */
   closeLabel?: string
+  /** Optional user-land strategy for already-fitted gallery frames. Default: instant. */
+  transition?: GalleryTransition
+  /** Mount application-owned content inside the modal; return its cleanup. */
+  content?: (view: {
+    readonly element: HTMLDialogElement
+    readonly zoom: Zoom
+    close: () => void
+  }) => void | (() => void)
 }
 
 /** A native modal host. Requires HTMLDialogElement.showModal; no polyfill is installed. */
-export function dialog({ label, closeLabel = 'Close image' }: DialogOptions = {}): ZoomRenderer {
+export function dialog({
+  label,
+  closeLabel = 'Close image',
+  content,
+  transition,
+}: DialogOptions = {}): ZoomRenderer {
   const renderer: RendererHooks = {
-    mount(image, original, close, trigger = document.activeElement as HTMLElement) {
-      image.removeAttribute('aria-hidden')
+    mount({ frame, zoom, close, trigger = document.activeElement as HTMLElement }) {
+      frame.content.removeAttribute('aria-hidden')
       const element = document.createElement('dialog')
       if (typeof element.showModal !== 'function') {
         throw new Error('Medium Zoom dialog renderer requires HTMLDialogElement.showModal()')
       }
       element.className = 'medium-zoom-dialog'
-      element.setAttribute(
-        'aria-label',
-        label?.trim() ||
-          image.alt.trim() ||
-          original.getAttribute('aria-label')?.trim() ||
-          'Zoomed image'
-      )
+      element.setAttribute('aria-label', label?.trim() || frame.label || 'Zoomed image')
       // Viewport coordinates keep the top-layer host independent of document scroll.
       element.style.cssText =
         'position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;color:inherit;overflow:hidden;'
@@ -56,36 +66,38 @@ export function dialog({ label, closeLabel = 'Close image' }: DialogOptions = {}
         event.preventDefault()
         close()
       })
-      // The existing overlay owns backdrop fading and click dismissal inside the modal.
-      const { top, left } = original.getBoundingClientRect()
-      image.style.top = `${top}px`
-      image.style.left = `${left}px`
+      // The existing overlay owns fading and click dismissal inside the modal.
       element.appendChild(style)
       element.appendChild(button)
       document.body.appendChild(element)
+      let cleanup: void | (() => void) = undefined
       try {
+        cleanup = content?.({ element, zoom, close })
         element.showModal()
       } catch (error) {
+        cleanup?.()
         element.remove()
         throw error
       }
       return {
         element,
-        update(next, source) {
-          next.removeAttribute('aria-hidden')
-          const { top, left } = source.getBoundingClientRect()
-          next.style.top = `${top}px`
-          next.style.left = `${left}px`
-          element.setAttribute(
-            'aria-label',
-            label?.trim() ||
-              next.alt.trim() ||
-              source.getAttribute('aria-label')?.trim() ||
-              'Zoomed image'
-          )
+        update(next) {
+          next.content.removeAttribute('aria-hidden')
+          element.setAttribute('aria-label', label?.trim() || next.label || 'Zoomed image')
+        },
+        ...(transition && {
+          transition: (frames, done) => runGalleryTransition(transition, frames, done),
+        }),
+        setLoading(loading) {
+          if (loading) {
+            element.setAttribute('aria-busy', 'true')
+          } else {
+            element.removeAttribute('aria-busy')
+          }
         },
         dispose() {
           disposed = true
+          cleanup?.()
           element.close()
           element.remove()
           if (trigger?.isConnected) {

@@ -8,12 +8,17 @@ export interface ZoomSession<Options extends CoreZoomOptions = ZoomOptions> {
   dispose(): Promise<void>
 }
 
+const sessions = new WeakMap<object, unknown>()
 const active = new WeakMap<Document, { owner: object; close: () => Promise<unknown> }>()
 
 /** One cancellable owner per document, shared by vanilla and framework adapters. */
 export function createZoomSession<Options extends CoreZoomOptions>(
   zoom: Zoom<Options>
 ): ZoomSession<Options> {
+  const existing = sessions.get(zoom) as ZoomSession<Options> | undefined
+  if (existing) {
+    return existing
+  }
   // Engine methods capture their state; adapters may replace the public methods afterward.
   // oxlint-disable-next-line typescript/unbound-method
   const { open, close, detach } = zoom
@@ -58,6 +63,14 @@ export function createZoomSession<Options extends CoreZoomOptions>(
       }
       const document = image.ownerDocument
       const previous = active.get(document)
+      if (
+        previous?.owner === session &&
+        !closing &&
+        zoom.getZoomedImage() &&
+        image !== zoom.getZoomedImage()
+      ) {
+        return open(options)
+      }
       if (previous?.owner === session && pending) {
         return pending
       }
@@ -128,6 +141,15 @@ export function createZoomSession<Options extends CoreZoomOptions>(
       detach()
       await closed
     },
+  }
+  sessions.set(zoom, session)
+  zoom.open = options => session.open(options)
+  zoom.close = () => session.close()
+  zoom.toggle = options =>
+    pending || zoom.getZoomedImage() ? session.close() : session.open(options)
+  zoom.detach = (...selectors) => {
+    void session.close()
+    return detach(...selectors)
   }
   return session
 }

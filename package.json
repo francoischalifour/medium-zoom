@@ -89,7 +89,7 @@
     "test:package": "bun scripts/check-package.ts",
     "test:size": "bun scripts/check-size.ts && bun scripts/check-feature-size.ts",
     "check": "bun run check:library && bun run build:demo && bun run test:examples && bun run test:browser && bun run test:rsc && bun run test:analytics && bun run test:registry",
-    "check:library": "bun run format:check && bun run build && bun run lint && bun run typecheck && bun run test:size && bun run test:package",
+    "check:library": "bun run format:check && bun run build && bun run lint && bun run typecheck && bun run test:size && bun run test:package && bun run test:geometry",
     "prepublishOnly": "bun run check",
     "dev:example": "bun scripts/dev-example.ts",
     "test:examples": "bun scripts/check-examples.ts",
@@ -102,7 +102,8 @@
     "test:rsc": "playwright test --config config/playwright.rsc.config.mts",
     "test:docs": "bun scripts/check-docs.ts && bun run test:browser website-docs.spec.ts website-hierarchy.spec.ts",
     "typecheck:registry": "mkdir -p .cache && wrangler types .cache/worker-types.d.ts --config config/wrangler.jsonc && tsc --noEmit -p config/tsconfig.worker.json",
-    "test:registry": "node --experimental-strip-types --test tests/registry-downloads.test.mts"
+    "test:registry": "node --experimental-strip-types --test tests/registry-downloads.test.mts",
+    "test:geometry": "node --experimental-strip-types --test tests/geometry.test.mts"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",

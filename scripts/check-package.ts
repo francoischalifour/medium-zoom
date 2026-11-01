@@ -11,9 +11,24 @@ import { checkAnalyzers } from './check-package-analyzers.ts'
 import { checkConsumers } from './check-package-consumers.ts'
 import { packExperimental } from './pack-experimental.ts'
 import { pack } from './pack.ts'
+import { bytes, table } from './size-report'
+
+const packageRows: string[][] = []
 
 async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boolean) {
   try {
+    const packedFiles = readdirSync(artifact.root, { recursive: true, encoding: 'utf8' }).filter(
+      path => statSync(join(artifact.root, path)).isFile()
+    )
+    packageRows.push([
+      experimental ? 'private candidate fixture' : 'current release manifest',
+      String(packedFiles.length),
+      bytes(statSync(artifact.archive).size),
+      bytes(packedFiles.reduce((sum, path) => sum + statSync(join(artifact.root, path)).size, 0)),
+      experimental
+        ? 'all experimental entries + legacy files'
+        : 'legacy distributions + declarations/docs',
+    ])
     const metadata = JSON.parse(readFileSync(join(artifact.root, 'package.json'), 'utf8'))
     assert.equal(metadata.main, 'dist/medium-zoom.min.js')
     assert.equal(metadata.module, 'dist/medium-zoom.esm.js')
@@ -87,7 +102,11 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
         'renderers/index.cjs',
         'renderers/index.mjs',
         'session/index.mjs',
-        'session/index.cjs'
+        'session/index.cjs',
+        'gallery/index.mjs',
+        'gallery/index.cjs',
+        'controls/index.mjs',
+        'controls/index.cjs'
       )
     }
     assert.deepEqual(
@@ -98,7 +117,7 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
     for (const path of files.filter(path => /\.(?:[mc])?js$/.test(path))) {
       const code = readFileSync(join(artifact.root, 'dist', path), 'utf8')
       const esm = path.endsWith('.mjs') || path.endsWith('.esm.js') || path === 'pure/index.js'
-      const modern = /^(core|features|modern|renderers|session)\//.test(path)
+      const modern = /^(core|features|modern|renderers|session|gallery|controls)\//.test(path)
       parse(code, {
         ecmaVersion: modern ? 2_020 : esm ? 2_015 : 5,
         sourceType: esm ? 'module' : 'script',
@@ -147,7 +166,11 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
                 ? loaded.dialog
                 : path.startsWith('session/')
                   ? loaded.createZoomSession
-                  : loaded.default),
+                  : path.startsWith('gallery/')
+                    ? loaded.createGallery
+                    : path.startsWith('controls/')
+                      ? loaded.mountGalleryControls
+                      : loaded.default),
           'function'
         )
         continue
@@ -160,7 +183,7 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
           require: createRequire(join(artifact.root, 'dist', path)),
         })
         assert.equal(
-          typeof (!/^(core|features|renderers|session)\//.test(path)
+          typeof (!/^(core|features|renderers|session|gallery|controls)\//.test(path)
             ? commonjs.exports
             : commonjs.exports[
                 path.startsWith('core/')
@@ -169,7 +192,11 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
                     ? 'dialog'
                     : path.startsWith('session/')
                       ? 'createZoomSession'
-                      : 'hdImage'
+                      : path.startsWith('gallery/')
+                        ? 'createGallery'
+                        : path.startsWith('controls/')
+                          ? 'mountGalleryControls'
+                          : 'hdImage'
               ]),
           'function'
         )
@@ -235,3 +262,6 @@ assert.equal(
   releaseManifest,
   'Private fixture checks must not mutate release metadata'
 )
+
+console.log('\nPACKAGE CONTENTS · npm download/install cost, not browser bundle cost')
+table(['Manifest', 'Files', 'Tarball', 'Unpacked', 'Contents'], packageRows)

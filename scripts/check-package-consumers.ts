@@ -33,6 +33,10 @@ export async function checkConsumers(artifact: ReturnType<typeof pack>, experime
       'core',
       'features',
       'renderers',
+      'gallery',
+      'controls',
+      'dist/gallery/index.mjs',
+      'dist/controls/index.mjs',
       'session',
       'dist/session/index.mjs',
       'dist/session/index.cjs',
@@ -192,7 +196,9 @@ async function checkBundlerResolution(
         ['medium-zoom/style.css', 'dist/style.css'],
         ['medium-zoom/core', 'dist/core/index.mjs'],
         ['medium-zoom/features', 'dist/features/index.mjs'],
-        ['medium-zoom/renderers', 'dist/renderers/index.mjs']
+        ['medium-zoom/renderers', 'dist/renderers/index.mjs'],
+        ['medium-zoom/gallery', 'dist/gallery/index.mjs'],
+        ['medium-zoom/controls', 'dist/controls/index.mjs']
       )
     }
     for (const [specifier, path] of paths) {

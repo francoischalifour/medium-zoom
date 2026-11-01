@@ -1,5 +1,5 @@
 import { createMediumZoom, type CoreZoomOptions, type Zoom } from 'medium-zoom/core'
-import { hdImage, container, template, accessibility, gallery } from 'medium-zoom/features'
+import { hdImage, container, template, accessibility } from 'medium-zoom/features'
 
 const core = createMediumZoom()
 const basic: Zoom<CoreZoomOptions> = core('img', { margin: 16 })
@@ -57,18 +57,21 @@ dialog({ label: 42 })
 
 const accessibleGallery = createMediumZoom({
   renderer: dialog(),
-  features: [
-    accessibility(),
-    gallery({ positionLabel: (position, total) => `${position}/${total}` }),
-    hdImage(),
-    template(),
-  ],
+  features: [accessibility(), hdImage(), template()],
 })
 accessibleGallery('img', { template: '#caption' }).clone().attach('img')
 // @ts-expect-error accessibility and gallery do not implicitly enable container options
 accessibleGallery('img', { container: '#gallery' })
-// @ts-expect-error gallery label formatter receives numeric positions
-gallery({ positionLabel: (position: string) => position })
+import { mountGalleryControls } from 'medium-zoom/controls'
+import { createGallery } from 'medium-zoom/gallery'
+const controller = createGallery(accessibleGallery('img'))
+mountGalleryControls(document.createElement('div'), controller, {
+  positionLabel: (position, total) => `${position}/${total}`,
+})
+mountGalleryControls(document.createElement('div'), controller, {
+  // @ts-expect-error gallery label formatter receives numeric positions
+  positionLabel: (position: string) => position,
+})
 
 import { createZoomSession, type ZoomSession } from 'medium-zoom/session'
 const session: ZoomSession<CoreZoomOptions> = createZoomSession(core('img'))
