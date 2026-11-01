@@ -1,10 +1,14 @@
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
   "name": "medium-zoom",
+  "main": "../website/worker.ts",
   "account_id": "b41c9db3b56da737528cffc5cb203c10",
   "compatibility_date": "2026-10-25",
   "workers_dev": true,
   "preview_urls": true,
+  "secrets": {
+    "required": ["ALTERTABLE_API_KEY"],
+  },
   "routes": [
     {
       "pattern": "medium-zoom.francoischalifour.com",
@@ -13,6 +17,8 @@
   ],
   "assets": {
     "directory": "../website/dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/r/*"],
     "not_found_handling": "404-page",
   },
 }

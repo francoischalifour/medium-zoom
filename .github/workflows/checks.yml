@@ -39,6 +39,7 @@ jobs:
         id: playwright
         run: bun scripts/playwright-image.ts >> "$GITHUB_OUTPUT"
       - run: bun run check:library
+      - run: bun run test:registry
       - run: bun run build:demo
       - run: bun run test:examples
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
