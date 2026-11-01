@@ -1,6 +1,7 @@
-import { isNode } from '../utils'
 import type { TemplateOptions, ZoomFeature } from 'medium-zoom/core'
+
 import type { FeatureHooks, Session } from '../engine/types'
+import { isNode } from '../utils'
 
 interface TemplateSession extends Session {
   __mz_template?: HTMLDivElement
@@ -17,7 +18,9 @@ export function template(): ZoomFeature<TemplateOptions> {
       }
     },
     mount(session: TemplateSession, options) {
-      if (!options.template) return
+      if (!options.template) {
+        return
+      }
       const target = isNode(options.template)
         ? (options.template as HTMLTemplateElement)
         : document.querySelector<HTMLTemplateElement>(options.template)!
@@ -27,7 +30,9 @@ export function template(): ZoomFeature<TemplateOptions> {
       session.__mz_nodes!.push(session.__mz_template)
     },
     closing(session: TemplateSession) {
-      if (!session.__mz_template) return
+      if (!session.__mz_template) {
+        return
+      }
       session.__mz_template.style.transition = parseFloat(
         window.getComputedStyle(session.__mz_zoomed!).transitionDuration
       )

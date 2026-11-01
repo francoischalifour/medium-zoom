@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { createRequire } from 'node:module'
+
 import mediumZoom from 'medium-zoom'
 
 const require = createRequire(import.meta.url)
@@ -18,8 +19,9 @@ for (const path of [
   assert.equal(typeof require(specifier), 'function', specifier)
   assert.equal(typeof (await import(specifier)).default, 'function', specifier)
 }
-for (const path of ['dist/medium-zoom.esm.js', 'dist/pure/index.js', 'dist/style.css'])
+for (const path of ['dist/medium-zoom.esm.js', 'dist/pure/index.js', 'dist/style.css']) {
   assert(require.resolve(`medium-zoom/${path}`))
+}
 assert.equal(typeof (await import('medium-zoom/dist/pure')).default, 'function')
 
 for (const [entry, names] of Object.entries({

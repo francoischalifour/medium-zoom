@@ -1,12 +1,15 @@
 import { getPromise, createCustomEvent, getScrollY, isEscape } from '#platform'
+
 import type { Zoom, ZoomFactory, ZoomOptions, ZoomSelector, ZoomOpenOptions } from '../types'
-import type { FeatureHooks, Session } from './types'
-import { waitForTransition } from './transition'
 import { cloneTarget, createOverlay, getImagesFromSelectors, isSvg } from '../utils'
+import { waitForTransition } from './transition'
+import type { FeatureHooks, Session } from './types'
 
 const transformNodes = (session: Session, transform: string) => {
   ;(session.__mz_nodes || []).forEach(node => {
-    if (node.tagName === 'IMG') node.style.transform = transform
+    if (node.tagName === 'IMG') {
+      node.style.transform = transform
+    }
   })
 }
 
@@ -69,7 +72,9 @@ export const createZoomFactory = ({
         return
       }
 
-      if (isAnimating) return
+      if (isAnimating) {
+        return
+      }
 
       if (
         Math.abs(scrollTop - currentScroll) > zoomOptions.scrollOffset! &&
@@ -80,11 +85,17 @@ export const createZoomFactory = ({
     }
 
     const _handleTouch = (event: TouchEvent) => {
-      if (event.touches.length >= 2) active.__mz_isPinching = true
-      if (active.__mz_isPinching) _handleScroll()
+      if (event.touches.length >= 2) {
+        active.__mz_isPinching = true
+      }
+      if (active.__mz_isPinching) {
+        _handleScroll()
+      }
 
       // Keep protecting the gesture when one finger lifts before the other.
-      if (event.touches.length === 0) active.__mz_isPinching = false
+      if (event.touches.length === 0) {
+        active.__mz_isPinching = false
+      }
     }
 
     const _handleKeyUp = (event: KeyboardEvent) => {
@@ -101,7 +112,9 @@ export const createZoomFactory = ({
       }
 
       features.forEach(feature => {
-        if (feature.update) feature.update(options, zoomOptions)
+        if (feature.update) {
+          feature.update(options, zoomOptions)
+        }
       })
 
       zoomOptions = { ...zoomOptions, ...newOptions }
@@ -118,7 +131,9 @@ export const createZoomFactory = ({
     let clickListening = false
     const _updateClickListener = () => {
       const enabled = images.length > 0
-      if (clickListening === enabled) return
+      if (clickListening === enabled) {
+        return
+      }
 
       document[enabled ? 'addEventListener' : 'removeEventListener'](
         'click',
@@ -197,7 +212,9 @@ export const createZoomFactory = ({
 
     let globalListening = false
     const _updateGlobalEvents = (enabled: boolean) => {
-      if (globalListening === enabled) return
+      if (globalListening === enabled) {
+        return
+      }
 
       const method = enabled ? 'addEventListener' : 'removeEventListener'
       document[method]('keyup', _handleKeyUp as EventListener)
@@ -220,7 +237,9 @@ export const createZoomFactory = ({
           left: margin,
           top: margin,
         }
-        if (hooks.viewport) viewport = hooks.viewport(zoomOptions, viewport)
+        if (hooks.viewport) {
+          viewport = hooks.viewport(zoomOptions, viewport)
+        }
         const {
           width: viewportWidth,
           height: viewportHeight,
@@ -236,7 +255,9 @@ export const createZoomFactory = ({
           : zoomTarget.naturalHeight || viewportHeight
         const { top, left, width, height } = zoomTarget.getBoundingClientRect()
 
-        if (!width || !height) return
+        if (!width || !height) {
+          return
+        }
 
         const scaleX = Math.min(Math.max(width, naturalWidth), viewportWidth) / width
         const scaleY = Math.min(Math.max(height, naturalHeight), viewportHeight) / height
@@ -259,9 +280,15 @@ export const createZoomFactory = ({
         let cancelImage: (() => void) | undefined
         let frame: number
         const finishOpening = (opened = false) => {
-          if (!current.__mz_cancelOpen) return
-          if (cancelTransition) cancelTransition()
-          if (cancelImage) cancelImage()
+          if (!current.__mz_cancelOpen) {
+            return
+          }
+          if (cancelTransition) {
+            cancelTransition()
+          }
+          if (cancelImage) {
+            cancelImage()
+          }
           window.cancelAnimationFrame(frame)
           current.__mz_cancelOpen = null
           isAnimating = false
@@ -281,7 +308,9 @@ export const createZoomFactory = ({
         _updateGlobalEvents(true)
         isAnimating = true
         _dispatchEvent(current.__mz_original!, 'open')
-        if (current.__mz_closing) return
+        if (current.__mz_closing) {
+          return
+        }
 
         scrollTop = getScrollY()
         current.__mz_zoomed = cloneTarget(current.__mz_original)
@@ -289,7 +318,9 @@ export const createZoomFactory = ({
 
         document.body.appendChild(overlay)
 
-        if (hooks.mount) hooks.mount(current, zoomOptions)
+        if (hooks.mount) {
+          hooks.mount(current, zoomOptions)
+        }
 
         // If the selected <img> tag is inside a <picture> tag, set the
         // currently-applied source as the cloned `src=` attribute.
@@ -318,8 +349,12 @@ export const createZoomFactory = ({
           cancelTransition = waitForTransition(current.__mz_zoomed!, () => finishOpening(true))
         }
 
-        if (hooks.load) cancelImage = hooks.load(current, animate, _close)
-        if (!cancelImage) animate()
+        if (hooks.load) {
+          cancelImage = hooks.load(current, animate, _close)
+        }
+        if (!cancelImage) {
+          animate()
+        }
       })
     }
 
@@ -332,14 +367,18 @@ export const createZoomFactory = ({
         }
 
         current.__mz_closing = true
-        if (current.__mz_cancelOpen) current.__mz_cancelOpen()
+        if (current.__mz_cancelOpen) {
+          current.__mz_cancelOpen()
+        }
         clearTimeout(current.__mz_scrollTimer || undefined)
         isAnimating = true
         const finishClosing = () => {
           current.__mz_original!.classList.remove('medium-zoom-image--hidden')
           ;(current.__mz_nodes || []).forEach(node => {
             node.removeEventListener('click', _close)
-            if (node.parentNode) node.parentNode.removeChild(node)
+            if (node.parentNode) {
+              node.parentNode.removeChild(node)
+            }
           })
           active = {}
           isAnimating = false
@@ -349,12 +388,18 @@ export const createZoomFactory = ({
         }
 
         // Install completion before dispatching events, whose listeners may interact again.
-        if (current.__mz_zoomed) waitForTransition(current.__mz_zoomed!, finishClosing)
+        if (current.__mz_zoomed) {
+          waitForTransition(current.__mz_zoomed!, finishClosing)
+        }
         document.body.classList.remove('medium-zoom--opened')
         transformNodes(current, '')
-        if (hooks.closing) hooks.closing(current)
+        if (hooks.closing) {
+          hooks.closing(current)
+        }
         _dispatchEvent(current.__mz_original!, 'close')
-        if (!current.__mz_zoomed) finishClosing()
+        if (!current.__mz_zoomed) {
+          finishClosing()
+        }
       })
 
     const toggle = ({ target }: ZoomOpenOptions = {}) => {

@@ -1,12 +1,14 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+
 import { transformSync } from '@babel/core'
 import { parse } from 'acorn'
 import { transform as transformCss } from 'lightningcss'
 import { minify as minifyJavaScript } from 'terser'
 import { defineConfig } from 'tsdown'
 import type { TsdownPlugin, UserConfig } from 'tsdown'
+
 import pkg from '../package.json' with { type: 'json' }
 
 const banner = `/*! ${pkg.name} ${pkg.version} | ${pkg.license} License | https://github.com/${pkg.repository} */`
@@ -24,10 +26,14 @@ function stylesheet(profile: Profile): TsdownPlugin {
   return {
     name: 'medium-zoom-stylesheet',
     resolveId(source) {
-      if (source === './medium-zoom.css') return '\0medium-zoom-stylesheet'
+      if (source === './medium-zoom.css') {
+        return '\0medium-zoom-stylesheet'
+      }
     },
     load(id) {
-      if (id !== '\0medium-zoom-stylesheet') return
+      if (id !== '\0medium-zoom-stylesheet') {
+        return
+      }
       this.addWatchFile(stylesheetPath.pathname)
       const source = readFileSync(stylesheetPath, 'utf8')
       const css = transformCss({
@@ -64,7 +70,9 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
       // Preserve the older declaration syntax of the existing root and pure entries.
       for (const fileName of ['medium-zoom.d.ts', 'pure/index.d.ts']) {
         const declaration = bundle[fileName]
-        if (declaration?.type !== 'chunk') continue
+        if (declaration?.type !== 'chunk') {
+          continue
+        }
         declaration.code = declaration.code.replace(
           /export \{([^}]+)\}/g,
           (_match, names: string) => `export {${names.replace(/\btype\s+/g, '')}}`
@@ -72,7 +80,9 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
       }
     },
     async renderChunk(source, chunk, options) {
-      if (chunk.name.endsWith('.d')) return
+      if (chunk.name.endsWith('.d')) {
+        return
+      }
       const result =
         profile === 'compat'
           ? transformSync(source, {
@@ -94,7 +104,9 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
               comments: true,
             })
           : { code: source }
-      if (!result?.code) throw new Error('The browser syntax transform did not emit code')
+      if (!result?.code) {
+        throw new Error('The browser syntax transform did not emit code')
+      }
       const code = minify
         ? (
             await minifyJavaScript(result.code, {
@@ -123,7 +135,9 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
             })
           ).code
         : result.code
-      if (!code) throw new Error('The browser minifier did not emit code')
+      if (!code) {
+        throw new Error('The browser minifier did not emit code')
+      }
       // Line-based package analyzers can mistake URL strings for comments.
       // Keep ESM exports visible on their own lines regardless of minifier formatting.
       let output = code

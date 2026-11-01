@@ -6,48 +6,21 @@
     "skipLibCheck": true,
     "noEmit": true,
     "target": "ES2023",
-    "lib": [
-      "ES2023",
-      "DOM",
-      "DOM.Iterable"
-    ],
-    "types": [
-      "node",
-      "vite/client"
-    ],
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node", "vite/client"],
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "paths": {
-      "medium-zoom/pure": [
-        "./src/pure.ts"
-      ],
-      "medium-zoom/core": [
-        "./src/core.ts"
-      ],
-      "medium-zoom/features": [
-        "./src/features/index.ts"
-      ],
-      "medium-zoom": [
-        "./src/medium-zoom.ts"
-      ],
-      "medium-zoom/dist/pure": [
-        "./src/medium-zoom.ts"
-      ],
-      "medium-zoom/dist/pure/index.js": [
-        "./src/medium-zoom.ts"
-      ],
-      "#platform": [
-        "./src/platform/modern.ts"
-      ],
-      "medium-zoom/modern": [
-        "./src/index.ts"
-      ],
-      "medium-zoom/compat": [
-        "./src/index.ts"
-      ],
-      "medium-zoom/compat/pure": [
-        "./src/pure.ts"
-      ]
+      "medium-zoom/pure": ["./src/pure.ts"],
+      "medium-zoom/core": ["./src/core.ts"],
+      "medium-zoom/features": ["./src/features/index.ts"],
+      "medium-zoom": ["./src/medium-zoom.ts"],
+      "medium-zoom/dist/pure": ["./src/medium-zoom.ts"],
+      "medium-zoom/dist/pure/index.js": ["./src/medium-zoom.ts"],
+      "#platform": ["./src/platform/modern.ts"],
+      "medium-zoom/modern": ["./src/index.ts"],
+      "medium-zoom/compat": ["./src/index.ts"],
+      "medium-zoom/compat/pure": ["./src/pure.ts"]
     },
     "jsx": "react-jsx"
   },
@@ -59,5 +32,6 @@
     "tests/**/*.ts",
     "stories/catalogue/**/*.ts",
     "examples/*/vite.config.ts"
-  ]
+  ],
+  "exclude": ["**/node_modules", "tests/fixtures/next/.next"]
 }

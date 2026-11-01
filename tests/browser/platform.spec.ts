@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
+
 import { preparePage, openImage, finishAnimations } from './helpers'
 
 const profiles = {
@@ -37,8 +38,9 @@ async function loadProfile(page: Page, file: string) {
       window.mediumZoom = (await import(url)).default
     }
   }, file)
-  if (file === 'core/index.cjs')
+  if (file === 'core/index.cjs') {
     await page.addStyleTag({ url: '/experimental/dist/modern/style.css' })
+  }
 }
 
 for (const [profile, file] of Object.entries(profiles)) {
@@ -154,11 +156,15 @@ test('modern rendering matches compat and the v1 default', async ({ page }) => {
         template: '#template',
       })
     })
-    if (file.includes('/pure/')) await page.addStyleTag({ url: '/package/dist/style.css' })
+    if (file.includes('/pure/')) {
+      await page.addStyleTag({ url: '/package/dist/style.css' })
+    }
     await openImage(page, page.locator('#image'))
     await finishAnimations(page)
     screenshots.push(await page.screenshot())
     await page.evaluate(() => window.zoom.close())
   }
-  for (const screenshot of screenshots.slice(1)) expect(screenshot).toEqual(screenshots[0])
+  for (const screenshot of screenshots.slice(1)) {
+    expect(screenshot).toEqual(screenshots[0])
+  }
 })

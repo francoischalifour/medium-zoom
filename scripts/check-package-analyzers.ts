@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+
 import { publint } from 'publint'
 import { formatMessage } from 'publint/utils'
 
@@ -25,7 +26,9 @@ async function checkPublint(archive: string) {
     pack: { tarball: new Uint8Array(readFileSync(archive)).buffer },
     level: 'warning',
   })
-  for (const message of result.messages) console.log(formatMessage(message, result.pkg))
+  for (const message of result.messages) {
+    console.log(formatMessage(message, result.pkg))
+  }
   // These established ESM .js paths cannot be renamed or put in a type:module
   // package without breaking v1's dist imports or callable UMD main.
   const legacyEsmPaths = new Set(['/dist/medium-zoom.esm.js', '/dist/pure/index.js'])
@@ -33,7 +36,9 @@ async function checkPublint(archive: string) {
   for (const message of result.messages) {
     assert.equal(message.code, 'FILE_INVALID_FORMAT', 'Unexpected publint finding')
     assert.equal(message.type, 'warning')
-    if (message.code !== 'FILE_INVALID_FORMAT') continue
+    if (message.code !== 'FILE_INVALID_FORMAT') {
+      continue
+    }
     assert(message.args.actualFilePath)
     assert(
       legacyEsmPaths.has(message.args.actualFilePath.replace(/^\./, '')),
@@ -99,9 +104,11 @@ function checkAttw(archive: string, experimental: boolean) {
     for (const mode of modes) {
       const actual = resolutions[mode].visibleProblems.map(index => analysis.problems[index].kind)
       let expected: string[] = []
-      if (entry === '.') expected = ['FalseExportDefault']
-      else if (entry.startsWith('./dist/pure') && mode.startsWith('node16-'))
+      if (entry === '.') {
+        expected = ['FalseExportDefault']
+      } else if (entry.startsWith('./dist/pure') && mode.startsWith('node16-')) {
         expected = ['UnexpectedModuleSyntax']
+      }
       assert.deepEqual(actual, expected, `${entry}: ${mode}`)
     }
   }

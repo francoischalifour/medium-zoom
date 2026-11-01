@@ -8,12 +8,16 @@ export const waitForTransition = (image: HTMLImageElement, done: () => void): ((
   const query = window.matchMedia('(prefers-reduced-motion)')
   const getTime = (value: string) => Math.max(...value.split(',').map(parseFloat))
   const finish = (event?: TransitionEvent) => {
-    if (finished || (event && event.propertyName !== 'transform')) return
+    if (finished || (event && event.propertyName !== 'transform')) {
+      return
+    }
     cleanup()
     done()
   }
   const motionChange = () => {
-    if (query.matches) finish()
+    if (query.matches) {
+      finish()
+    }
   }
   const cleanup = () => {
     finished = true
@@ -29,6 +33,8 @@ export const waitForTransition = (image: HTMLImageElement, done: () => void): ((
   const duration = (getTime(style.transitionDuration) + getTime(style.transitionDelay)) * 1_000
   timer = setTimeout(finish, Math.max(0, duration) + 50)
   // Let the opening body class update before completing a zero-duration zoom.
-  if (duration <= 0) frame = window.requestAnimationFrame(() => finish())
+  if (duration <= 0) {
+    frame = window.requestAnimationFrame(() => finish())
+  }
   return cleanup
 }

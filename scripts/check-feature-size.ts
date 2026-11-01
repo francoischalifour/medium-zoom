@@ -3,6 +3,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { gzipSync } from 'node:zlib'
+
 import { build } from 'tsdown'
 
 // Measure consumers targeting ES2020, including styled compat and modern full entries.

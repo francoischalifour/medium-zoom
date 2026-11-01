@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+
 import { preparePage, openImage } from './helpers'
 
 type Feature = 'hdImage' | 'container' | 'template'

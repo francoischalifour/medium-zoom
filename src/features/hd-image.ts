@@ -1,4 +1,5 @@
 import type { ZoomFeature } from 'medium-zoom/core'
+
 import type { FeatureHooks } from '../engine/types'
 
 export function hdImage(): ZoomFeature<{}> {
@@ -7,11 +8,15 @@ export function hdImage(): ZoomFeature<{}> {
       const original = session.__mz_original!
       const zoomed = session.__mz_zoomed!
       const source = original.getAttribute('data-zoom-src')
-      if (!source && !original.hasAttribute('srcset')) return
+      if (!source && !original.hasAttribute('srcset')) {
+        return
+      }
       // Install handlers before assigning sources: Firefox may queue a cached load.
       const hd = document.createElement('img')
       ;(Array.prototype.slice.call(zoomed.attributes) as Attr[]).forEach(({ name, value }) => {
-        if (!/^(src|srcset|sizes|loading)$/.test(name)) hd.setAttribute(name, value)
+        if (!/^(src|srcset|sizes|loading)$/.test(name)) {
+          hd.setAttribute(name, value)
+        }
       })
       const cleanup = () => {
         hd.removeEventListener('load', finish)
@@ -19,7 +24,9 @@ export function hdImage(): ZoomFeature<{}> {
       }
       const finish = () => {
         cleanup()
-        if (session.__mz_closing) return
+        if (session.__mz_closing) {
+          return
+        }
         if (hd.naturalWidth) {
           hd.classList.add('medium-zoom-image--opened')
           hd.addEventListener('click', close)
@@ -32,7 +39,9 @@ export function hdImage(): ZoomFeature<{}> {
       }
       hd.addEventListener('load', finish)
       hd.addEventListener('error', finish)
-      if (!source) hd.srcset = zoomed.srcset
+      if (!source) {
+        hd.srcset = zoomed.srcset
+      }
       hd.src = source || zoomed.src
       return cleanup
     },

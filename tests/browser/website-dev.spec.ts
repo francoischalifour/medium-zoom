@@ -15,7 +15,7 @@ test('website development loads library source instead of the built ES module', 
 }) => {
   test.skip(browserName !== 'chromium', 'Development module resolution is shared tooling.')
   const bundle = resolve('dist/medium-zoom.esm.js')
-  const source = resolve('src/index.js')
+  const source = resolve('src/index.ts')
   let loadedLibrarySource = false
   const server = await createServer({
     configFile: resolve('config/vite.website.config.mts'),

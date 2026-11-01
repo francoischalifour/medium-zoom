@@ -26,6 +26,7 @@ bundle, create a factory with only the features your application needs:
 ```ts
 import { createMediumZoom } from 'medium-zoom/core'
 import { hdImage, container, template } from 'medium-zoom/features'
+
 import 'medium-zoom/style.css'
 
 const mediumZoom = createMediumZoom({
@@ -86,6 +87,7 @@ For explicit compatibility without injected CSS:
 
 ```ts
 import mediumZoom from 'medium-zoom/compat/pure'
+
 import 'medium-zoom/compat/style.css'
 ```
 

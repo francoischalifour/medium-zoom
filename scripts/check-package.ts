@@ -2,11 +2,13 @@ import assert from 'node:assert/strict'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { runInNewContext } from 'node:vm'
+
 import { parse } from 'acorn'
-import { packExperimental } from './pack-experimental.ts'
-import { pack } from './pack.ts'
+
 import { checkAnalyzers } from './check-package-analyzers.ts'
 import { checkConsumers } from './check-package-consumers.ts'
+import { packExperimental } from './pack-experimental.ts'
+import { pack } from './pack.ts'
 
 async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boolean) {
   try {
@@ -66,7 +68,7 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
       )
     }
     const expectedScripts = releasedFiles.filter(path => path.endsWith('.js'))
-    if (experimental)
+    if (experimental) {
       expectedScripts.push(
         'compat/index.cjs',
         'compat/index.mjs',
@@ -81,6 +83,7 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
         'pure/index.cjs',
         'pure/index.mjs'
       )
+    }
     assert.deepEqual(
       files.filter(path => /\.(?:[mc])?js$/.test(path)).sort(),
       expectedScripts.sort()
@@ -95,7 +98,9 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
         sourceType: esm ? 'module' : 'script',
       })
       // ESM syntax is intentionally retained; its implementation must still be ES5.
-      if (esm && !modern) parse(code.replace(/export\s*\{[^}]+\};?\s*$/, ''), { ecmaVersion: 5 })
+      if (esm && !modern) {
+        parse(code.replace(/export\s*\{[^}]+\};?\s*$/, ''), { ecmaVersion: 5 })
+      }
       const banner = `/*! medium-zoom ${metadata.version} | MIT License | https://github.com/francoischalifour/medium-zoom */`
       assert(code.startsWith(banner + '\n'), `${path} must start with the release banner`)
       assert.equal(code.split(banner).length - 1, 1, `${path} must contain exactly one banner`)
@@ -106,8 +111,9 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
           '.keyCode',
           '.addListener(',
           'documentElement.scrollTop',
-        ])
+        ]) {
           assert(code.includes(fallback), `${path} must retain ${fallback}`)
+        }
       }
       if (modern) {
         for (const fallback of [
@@ -115,8 +121,9 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
           '.keyCode',
           '.addListener(',
           'documentElement.scrollTop',
-        ])
+        ]) {
           assert(!code.includes(fallback), `${path} must not ship ${fallback}`)
+        }
       }
       assert(!code.includes('__TEST__'), `${path} must not ship test branches`)
       if (esm) {

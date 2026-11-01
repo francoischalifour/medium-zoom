@@ -1,6 +1,7 @@
-import { isNode } from '../utils'
 import type { ContainerOptions, ZoomFeature } from 'medium-zoom/core'
+
 import type { FeatureHooks } from '../engine/types'
+import { isNode } from '../utils'
 
 export function container(): ZoomFeature<ContainerOptions> {
   const feature: FeatureHooks = {
@@ -12,7 +13,9 @@ export function container(): ZoomFeature<ContainerOptions> {
     },
     viewport(options, viewport) {
       const target = options.container
-      if (!target) return viewport
+      if (!target) {
+        return viewport
+      }
       const margin = options.margin!
       if (target instanceof Object) {
         const box = {

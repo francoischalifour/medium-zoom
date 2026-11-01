@@ -2,7 +2,9 @@ import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
 import { copyFileSync, cpSync, mkdirSync, realpathSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
+
 import { build, createServer } from 'vite'
+
 import type { pack } from './pack.ts'
 
 export async function checkConsumers(artifact: ReturnType<typeof pack>, experimental = false) {
@@ -11,17 +13,20 @@ export async function checkConsumers(artifact: ReturnType<typeof pack>, experime
   const packageRoot = join(consumer, 'node_modules/medium-zoom')
   cpSync(artifact.root, packageRoot, { recursive: true })
   const fixtures = experimental ? 'tests/experimental/types' : 'tests/types'
-  for (const file of ['consumer.ts', 'commonjs.cts', 'node-esm.mts', 'runtime.mjs'])
+  for (const file of ['consumer.ts', 'commonjs.cts', 'node-esm.mts', 'runtime.mjs']) {
     copyFileSync(join(fixtures, file), join(consumer, file))
+  }
 
   copyFileSync('tests/types/bundler.mjs', join(consumer, 'bundler.mjs'))
 
-  if (experimental)
-    for (const extension of ['ts', 'cts', 'mts'])
+  if (experimental) {
+    for (const extension of ['ts', 'cts', 'mts']) {
       copyFileSync(
         join(fixtures, 'features-consumer.ts'),
         join(consumer, `features-consumer.${extension}`)
       )
+    }
+  }
 
   if (!experimental) {
     const unpublished = [
@@ -54,8 +59,9 @@ export async function checkConsumers(artifact: ReturnType<typeof pack>, experime
   await checkBundlerConsumer(consumer)
 
   // Use Node, not Bun's more permissive module loader, for real package resolution.
-  for (const file of ['output/commonjs.cjs', 'runtime.mjs'])
+  for (const file of ['output/commonjs.cjs', 'runtime.mjs']) {
     execFileSync('node', [join(consumer, file)], { cwd: consumer, stdio: 'inherit' })
+  }
 }
 
 function checkTypes(consumer: string, experimental: boolean) {
@@ -168,7 +174,7 @@ async function checkBundlerResolution(
       ['medium-zoom/dist/pure', 'dist/pure/index.js'],
       ['medium-zoom/dist/pure/index.js', 'dist/pure/index.js'],
     ]
-    if (experimental)
+    if (experimental) {
       paths.push(
         ['medium-zoom/compat', 'dist/compat/index.mjs'],
         ['medium-zoom/compat/pure', 'dist/compat/pure/index.mjs'],
@@ -180,6 +186,7 @@ async function checkBundlerResolution(
         ['medium-zoom/core', 'dist/core/index.mjs'],
         ['medium-zoom/features', 'dist/features/index.mjs']
       )
+    }
     for (const [specifier, path] of paths) {
       const resolved = await server.environments.client.pluginContainer.resolveId(
         specifier,

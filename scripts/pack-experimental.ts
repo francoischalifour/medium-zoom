@@ -9,6 +9,7 @@ import {
 } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
+
 import { pack } from './pack.ts'
 
 // Stage proposed exports outside the release package. Never modify its manifest.
@@ -21,8 +22,9 @@ export function packExperimental(): ReturnType<typeof pack> {
     const proposal = JSON.parse(readFileSync('tests/experimental/package.json', 'utf8'))
     writeFileSync(join(root, 'package.json'), JSON.stringify({ ...metadata, ...proposal }))
     cpSync(resolve('dist'), join(root, 'dist'), { recursive: true })
-    for (const file of ['README.md', 'CHANGELOG.md', 'LICENSE'])
+    for (const file of ['README.md', 'CHANGELOG.md', 'LICENSE']) {
       copyFileSync(file, join(root, file))
+    }
     const artifact = pack(root)
     return {
       ...artifact,

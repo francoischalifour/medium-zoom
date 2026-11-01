@@ -48,7 +48,10 @@ export default defineConfig(({ command }) =>
       alias: {
         // Package rebuilds temporarily remove dist/; development follows source.
         ...(command === 'serve'
-          ? { 'medium-zoom': fileURLToPath(new URL('../src/index.js', import.meta.url)) }
+          ? {
+              'medium-zoom': fileURLToPath(new URL('../src/index.ts', import.meta.url)),
+              '#platform': fileURLToPath(new URL('../src/platform/compat.ts', import.meta.url)),
+            }
           : {}),
         '@/components/ui/image-zoom': fileURLToPath(
           new URL('../examples/shadcn/src/components/ui/image-zoom.tsx', import.meta.url)

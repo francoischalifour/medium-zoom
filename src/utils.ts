@@ -1,4 +1,5 @@
 import { getScrollX, getScrollY } from '#platform'
+
 import type { ZoomSelector } from './types'
 
 export const isSupported = (node: Element): node is HTMLImageElement => node.tagName === 'IMG'
