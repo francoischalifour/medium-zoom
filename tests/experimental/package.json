@@ -48,9 +48,6 @@
       ],
       "gallery": [
         "dist/gallery/index.d.cts"
-      ],
-      "controls": [
-        "dist/controls/index.d.cts"
       ]
     }
   },
@@ -163,17 +160,6 @@
         "types": "./dist/gallery/index.d.cts",
         "default": "./dist/gallery/index.cjs"
       }
-    },
-    "./controls": {
-      "import": {
-        "types": "./dist/controls/index.d.mts",
-        "default": "./dist/controls/index.mjs"
-      },
-      "require": {
-        "types": "./dist/controls/index.d.cts",
-        "default": "./dist/controls/index.cjs"
-      }
-    },
-    "./controls/style.css": "./dist/controls/style.css"
+    }
   }
 }

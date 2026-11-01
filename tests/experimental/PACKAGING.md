@@ -1,7 +1,7 @@
 # Packaging proposal
 
 Ship one npm package, `medium-zoom`, with opt-in subpath exports. Treat session,
-gallery, renderers and controls as separately importable modules of that package.
+gallery and renderers as separately importable modules of that package.
 Do not create separate npm packages for them: they share the zoom lifecycle and versioned
 contracts, and a separate package would not reduce the selected browser bundle.
 
@@ -28,18 +28,17 @@ installed sizes for both manifests and verifies their packed consumers.
 
 ## Export responsibilities
 
-| Proposed export         | Category                      | What a consumer gets                                     | Requirements / CSS                                                            |
-| ----------------------- | ----------------------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `medium-zoom`           | compatibility preset          | engine + HD, container, template; CSS injected           | preserve v1 imports and behavior                                              |
-| `medium-zoom/core`      | engine and factory            | lifecycle, target frames and positioning                 | explicit `modern/style.css`; no optional features                             |
-| `medium-zoom/features`  | tree-shaken feature factories | `hdImage`, `container`, `template`, `accessibility`      | select factories in `createMediumZoom`; accessibility requires modal renderer |
-| `medium-zoom/renderers` | modal renderer                | `dialog`, focus/inertness, optional transition strategy  | install through factory; native dialog support                                |
-| `medium-zoom/session`   | headless coordinator          | `createZoomSession`, document ownership and cancellation | install on an existing zoom; no CSS or renderer dependency                    |
-| `medium-zoom/gallery`   | headless controller           | `createGallery`, selection and subscriptions             | existing zoom with modal selection capability; no CSS                         |
-| `medium-zoom/controls`  | optional DOM adapter          | stock navigation, live position and keyboard binding     | gallery controller; explicit `controls/style.css` for stock appearance        |
+| Proposed export         | Category                      | What a consumer gets                                                      | Requirements / CSS                                                            |
+| ----------------------- | ----------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `medium-zoom`           | compatibility preset          | engine + HD, container, template; CSS injected                            | preserve v1 imports and behavior                                              |
+| `medium-zoom/core`      | engine and factory            | lifecycle, target frames and positioning                                  | explicit `modern/style.css`; no optional features                             |
+| `medium-zoom/features`  | tree-shaken feature factories | `hdImage`, `container`, `template`, `accessibility`                       | select factories in `createMediumZoom`; accessibility requires modal renderer |
+| `medium-zoom/renderers` | modal renderer                | `dialog`, focus/inertness, optional transition strategy                   | install through factory; native dialog support                                |
+| `medium-zoom/session`   | headless coordinator          | `createZoomSession`, document ownership and cancellation                  | install on an existing zoom; no CSS or renderer dependency                    |
+| `medium-zoom/gallery`   | headless controller           | `createGallery`, selection/subscriptions and opt-in `bindGalleryKeyboard` | existing zoom with modal selection capability; no CSS                         |
 
 The session is shipped as `medium-zoom/session`; consumers do not need accessibility or
-stock controls to use it. Gallery can work without session for one instance. Installing
+application controls to use it. Gallery can work without session for one instance. Installing
 session routes pointer, keyboard and framework calls through the same coordinator and
 arbitrates multiple instances.
 
@@ -50,6 +49,24 @@ unless a supported bundler cannot achieve this isolation.
 Target adapters, pure geometry, rendered-frame creation and mutable scene state remain
 internal, with no export contract. Consumer transitions receive leased prepared-frame
 surfaces and cancellation, not engine disposal methods. No animation dependency ships.
+
+## Headless UI and the core ceiling
+
+There is no `controls` export or stylesheet and no automatic dialog close button.
+`dialog({ content })` exposes the host, zoom instance and close action; applications
+supply a visible close control, initial focus and navigation/announcement UI. Vanilla
+and React examples demonstrate that ownership outside the packed runtime. Keep focus
+containment, inertness, Escape and focus return with the renderer.
+
+`bindGalleryKeyboard` lives alongside the gallery controller and tree-shakes independently.
+The size matrix measures it as a separate capability. Do not include it in core or add
+framework presentation dependencies to the package.
+
+Enforce **3,800 B gzip** for each raw core module format and the rebundled ESM core
+consumer, with CSS separate. Raw ESM is **3,754 B**, CommonJS **3,791 B**; the ESM consumer
+is **3,729 B**. New features must preserve that ceiling. Modal activation rules, replacement
+transition styling and application transition descriptors belong to the optional renderer;
+the engine retains loading, interruption, completion and frame disposal.
 
 ## Compatibility and preset policy
 
@@ -75,7 +92,7 @@ Changing what an existing path means requires its own compatibility decision.
 Keep the React compound components as registry/application source that imports the same
 session and gallery subpaths. The runtime package does not depend on React and does not
 bundle those components. Applications own their controls, styles and transition strategy;
-stock DOM controls are optional. The private composition proof exercises this split, but
+the runtime creates no control markup or control styles. The private composition proof exercises this split, but
 this change does not yet migrate the published shadcn registry component.
 
 ## Release sequence

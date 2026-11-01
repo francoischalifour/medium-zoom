@@ -18,12 +18,7 @@ export function createImageFrame(image: HTMLImageElement): RenderedFrame {
     get geometry() {
       return geometry
     },
-    apply(next, instant) {
-      const transition = instant ? image.style.getPropertyValue('transition') : ''
-      const priority = instant ? image.style.getPropertyPriority('transition') : ''
-      if (instant) {
-        image.style.setProperty('transition', 'none', 'important')
-      }
+    apply(next) {
       geometry = next
       image.style.transform = `scale(${next.scale}) translate3d(${next.translateX}px, ${next.translateY}px, 0)`
       if (next.clip) {
@@ -31,21 +26,9 @@ export function createImageFrame(image: HTMLImageElement): RenderedFrame {
       } else if (image.style.clipPath !== initialClip) {
         image.style.clipPath = initialClip
       }
-      if (instant) {
-        image.style.visibility = ''
-        image.getBoundingClientRect()
-        if (transition) {
-          image.style.setProperty('transition', transition, priority)
-        } else {
-          image.style.removeProperty('transition')
-        }
-      }
     },
     setVisible(visible) {
       image.style.visibility = visible ? '' : 'hidden'
-    },
-    hideForTransition() {
-      image.setAttribute('aria-hidden', 'true')
     },
     reset() {
       image.style.transform = ''
@@ -67,8 +50,7 @@ export const imageAdapter: TargetAdapter<HTMLImageElement, string> = {
     return image.currentSrc || image.src
   },
   measure(image, source, viewport) {
-    const { left, top, width, height } = image.getBoundingClientRect()
-    const layout = { left, top, width, height }
+    const layout = image.getBoundingClientRect()
     // Retain v1's SVG-file sizing policy during extraction. Other SVG forms are separate work.
     const vector = source.substr(-4).toLowerCase() === '.svg'
     return {

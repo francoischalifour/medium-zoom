@@ -29,7 +29,9 @@ async function fixture(page: Page) {
   })
 }
 
-test('headless traversal creates no controls and publishes stable snapshots', async ({ page }) => {
+test('headless traversal creates no controls, retains modal focus and publishes stable snapshots', async ({
+  page,
+}) => {
   await fixture(page)
   const result = await page.evaluate(async () => {
     const gallery = window.galleryController
@@ -40,7 +42,11 @@ test('headless traversal creates no controls and publishes stable snapshots', as
     const indexes: number[] = []
     const unsubscribe = gallery.subscribe(() => indexes.push(gallery.getSnapshot().index))
     await window.zoom.open()
+    const focusContained = document.activeElement === document.querySelector('dialog')
     await gallery.next()
+    const controls = document.querySelectorAll(
+      'dialog button, dialog input, dialog [role="button"]'
+    ).length
     const selected = gallery.getSnapshot()
     await gallery.next()
     const bounded = gallery.getSnapshot() === selected
@@ -49,12 +55,19 @@ test('headless traversal creates no controls and publishes stable snapshots', as
     unsubscribe()
     return {
       indexes,
+      focusContained,
       bounded,
       closed: gallery.getSnapshot().index,
-      controls: document.querySelectorAll('.medium-zoom-gallery').length,
+      controls,
     }
   })
-  expect(result).toEqual({ indexes: [0, 1, 0, -1], bounded: true, closed: -1, controls: 0 })
+  expect(result).toEqual({
+    indexes: [0, 1, 0, -1],
+    focusContained: true,
+    bounded: true,
+    closed: -1,
+    controls: 0,
+  })
 })
 
 test('controller owns dynamic collection bounds and releases subscriptions', async ({ page }) => {

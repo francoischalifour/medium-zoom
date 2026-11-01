@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Medium Zoom — accessible gallery experiment</title>
     <link rel="stylesheet" href="/experimental/dist/modern/style.css" />
-    <link rel="stylesheet" href="/experimental/dist/controls/style.css" />
+    <link rel="stylesheet" href="/experiments/gallery-controls.css" />
     <style>
       :root {
         color-scheme: light;
@@ -111,12 +111,19 @@
       import { createMediumZoom } from '/experimental/dist/core/index.mjs'
       import { accessibility, hdImage, template } from '/experimental/dist/features/index.mjs'
       import { createGallery } from '/experimental/dist/gallery/index.mjs'
-      import { mountGalleryControls } from '/experimental/dist/controls/index.mjs'
+      import { mountExampleControls, mountCloseControl } from '/experiments/gallery-controls.mjs'
       import { createZoomSession } from '/experimental/dist/session/index.mjs'
       import { dialog } from '/experimental/dist/renderers/index.mjs'
       const mediumZoom = createMediumZoom({
         renderer: dialog({
-          content: ({ element, zoom }) => mountGalleryControls(element, createGallery(zoom)),
+          content: view => {
+            const close = mountCloseControl(view)
+            const controls = mountExampleControls(view.element, createGallery(view.zoom))
+            return () => {
+              controls()
+              close()
+            }
+          },
         }),
         features: [accessibility(), hdImage(), template()],
       })

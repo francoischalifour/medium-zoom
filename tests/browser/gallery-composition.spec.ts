@@ -35,6 +35,7 @@ test('shadcn compound controls reuse the headless model without stock UI', async
             .filter(animation => animation.playState === 'running').length
       )
   ).toBe(0)
+  await page.screenshot({ path: test.info().outputPath('gallery.png') })
   await page.keyboard.press('ArrowRight')
   await expect(page.getByRole('status')).toHaveText('3 / 3')
   await page.keyboard.press('Escape')

@@ -1,7 +1,6 @@
-import { bindGalleryKeyboard } from 'medium-zoom/controls'
 import { createMediumZoom } from 'medium-zoom/core'
 import { hdImage } from 'medium-zoom/features'
-import { createGallery, type GalleryController } from 'medium-zoom/gallery'
+import { bindGalleryKeyboard, createGallery, type GalleryController } from 'medium-zoom/gallery'
 import { dialog } from 'medium-zoom/renderers'
 import { createZoomSession, type ZoomSession } from 'medium-zoom/session'
 import * as React from 'react'
@@ -26,20 +25,27 @@ function Example() {
       const factory = createMediumZoom({
         features: [hdImage()],
         renderer: dialog({
-          content: ({ element, zoom }) => {
+          content: ({ element, zoom, close }) => {
             const node = document.createElement('div')
             element.append(node)
             const root = createRoot(node)
             const gallery = createGallery(zoom)
             const unbind = bindGalleryKeyboard(element, gallery)
             root.render(
-              <GalleryControls.Root gallery={gallery} className="photo-toolbar">
-                <GalleryControls.Previous aria-label="Previous photograph">
-                  ← Back
-                </GalleryControls.Previous>
-                <GalleryControls.Position />
-                <GalleryControls.Next aria-label="Next photograph">Forward →</GalleryControls.Next>
-              </GalleryControls.Root>
+              <>
+                <button className="photo-close" autoFocus onClick={close}>
+                  Close image
+                </button>
+                <GalleryControls.Root gallery={gallery} className="photo-toolbar">
+                  <GalleryControls.Previous aria-label="Previous photograph">
+                    ← Back
+                  </GalleryControls.Previous>
+                  <GalleryControls.Position />
+                  <GalleryControls.Next aria-label="Next photograph">
+                    Forward →
+                  </GalleryControls.Next>
+                </GalleryControls.Root>
+              </>
             )
             return () => {
               unbind()

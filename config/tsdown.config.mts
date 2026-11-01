@@ -234,8 +234,7 @@ function featureBundle(
     | 'modern'
     | 'renderers'
     | 'session'
-    | 'gallery'
-    | 'controls',
+    | 'gallery',
   format: 'esm' | 'cjs'
 ): UserConfig {
   const sources = {
@@ -243,7 +242,6 @@ function featureBundle(
     renderers: 'src/renderers/index.ts',
     session: 'src/session.ts',
     gallery: 'src/gallery.ts',
-    controls: 'src/controls.ts',
     features: 'src/features/index.ts',
     pure: format === 'cjs' ? 'src/pure-commonjs.ts' : 'src/pure.ts',
     'compat/pure': format === 'cjs' ? 'src/pure-commonjs.ts' : 'src/pure.ts',
@@ -262,8 +260,7 @@ function featureBundle(
     name !== 'features' &&
     name !== 'renderers' &&
     name !== 'session' &&
-    name !== 'gallery' &&
-    name !== 'controls'
+    name !== 'gallery'
   return {
     ...browserBundle(
       source,
@@ -332,18 +329,6 @@ export default defineConfig([
   featureBundle('core', 'esm'),
   featureBundle('gallery', 'esm'),
   featureBundle('gallery', 'cjs'),
-  {
-    ...featureBundle('controls', 'esm'),
-    onSuccess(config) {
-      const css = transformCss({
-        filename: 'controls.css',
-        code: Buffer.from(readFileSync(new URL('../src/controls.css', import.meta.url))),
-        minify: true,
-      }).code
-      writeFileSync(join(config.outDir, 'controls/style.css'), css)
-    },
-  },
-  featureBundle('controls', 'cjs'),
   featureBundle('session', 'esm'),
   featureBundle('session', 'cjs'),
   featureBundle('renderers', 'esm'),

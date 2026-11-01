@@ -1,5 +1,5 @@
 import type { GalleryTransition } from '../targets/types'
-import { runGalleryTransition } from './transition'
+import { prepareFrame, runGalleryTransition } from './transition'
 export type { GalleryTransition, GalleryTransitionContext } from '../targets/types'
 import type { ZoomRenderer, Zoom } from 'medium-zoom/core'
 
@@ -8,8 +8,6 @@ import type { RendererHooks } from '../engine/types'
 export interface DialogOptions {
   /** Accessible dialog name. Defaults to the image alt text, then "Zoomed image". */
   label?: string
-  /** Visible and accessible close button text, for localization. */
-  closeLabel?: string
   /** Optional user-land strategy for already-fitted gallery frames. Default: instant. */
   transition?: GalleryTransition
   /** Mount application-owned content inside the modal; return its cleanup. */
@@ -21,13 +19,18 @@ export interface DialogOptions {
 }
 
 /** A native modal host. Requires HTMLDialogElement.showModal; no polyfill is installed. */
-export function dialog({
-  label,
-  closeLabel = 'Close image',
-  content,
-  transition,
-}: DialogOptions = {}): ZoomRenderer {
+export function dialog({ label, content, transition }: DialogOptions = {}): ZoomRenderer {
   const renderer: RendererHooks = {
+    acceptsTrigger(event) {
+      const target = event.target as Element
+      return !(
+        event.defaultPrevented ||
+        /^(link|checkbox|radio|switch|menuitem)$/.test(target.getAttribute('role') || '') ||
+        target.parentElement?.closest(
+          'button,a[href],input,select,textarea,summary,label,[role="button"],[role="link"],[role="checkbox"],[role="radio"],[role="switch"],[role="menuitem"],[contenteditable]'
+        )
+      )
+    },
     mount({ frame, zoom, close, trigger = document.activeElement as HTMLElement }) {
       frame.content.removeAttribute('aria-hidden')
       const element = document.createElement('dialog')
@@ -41,14 +44,7 @@ export function dialog({
         'position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;color:inherit;overflow:hidden;'
       const style = document.createElement('style')
       style.textContent = '.medium-zoom-dialog::backdrop{background:transparent}'
-      const button = document.createElement('button')
-      button.type = 'button'
-      button.textContent = closeLabel.trim() || 'Close image'
-      button.autofocus = true
-      button.style.cssText =
-        'position:absolute;top:16px;right:16px;z-index:2147483647;padding:12px 16px;border:1px solid currentColor;border-radius:4px;background:white;color:black;font:inherit;cursor:pointer;'
       let disposed = false
-      button.addEventListener('click', close)
       element.addEventListener('submit', event => {
         const form = event.target as HTMLFormElement
         const submitter = (event as SubmitEvent).submitter as HTMLButtonElement | null
@@ -68,7 +64,6 @@ export function dialog({
       })
       // The existing overlay owns fading and click dismissal inside the modal.
       element.appendChild(style)
-      element.appendChild(button)
       document.body.appendChild(element)
       let cleanup: void | (() => void) = undefined
       try {
@@ -81,6 +76,7 @@ export function dialog({
       }
       return {
         element,
+        prepare: prepareFrame,
         update(next) {
           next.content.removeAttribute('aria-hidden')
           element.setAttribute('aria-label', label?.trim() || next.label || 'Zoomed image')

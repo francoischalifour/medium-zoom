@@ -23,8 +23,9 @@ async function fixture(page: Page, hd = false) {
       features
     )) as typeof import('../../src/features')
     const { dialog } = (await import(renderers)) as typeof import('../../src/renderers')
+    const { mountCloseControl } = await import(String('/experiments/gallery-controls.mjs'))
     window.zoom = createMediumZoom({
-      renderer: dialog(),
+      renderer: dialog({ content: mountCloseControl }),
       features: [hdImage(), template(), container()],
     })('#image')
     document.querySelector('#trigger')!.addEventListener('click', event => {

@@ -30,16 +30,7 @@ export const createZoom = (hooks: EngineHooks, renderer?: RendererHooks): ZoomFa
 
     const _handleClick = (event: MouseEvent) => {
       const { target } = event
-      if (
-        renderer &&
-        (event.defaultPrevented ||
-          /^(link|checkbox|radio|switch|menuitem)$/.test(
-            (target as Element).getAttribute('role') || ''
-          ) ||
-          (target as Element).parentElement?.closest(
-            'button,a[href],input,select,textarea,summary,label,[role="button"],[role="link"],[role="checkbox"],[role="radio"],[role="switch"],[role="menuitem"],[contenteditable]'
-          ))
-      ) {
+      if (renderer?.acceptsTrigger?.(event) === false) {
         return
       }
 
@@ -213,13 +204,12 @@ export const createZoom = (hooks: EngineHooks, renderer?: RendererHooks): ZoomFa
       window[method]('resize', _close)
     }
 
-    const open = ({ target, trigger }: ZoomOpenOptions = {}, previous?: Scene) => {
+    const open = ({ target, trigger }: ZoomOpenOptions = {}) => {
       const current: Scene = {}
-      previous ||=
+      const replacing =
         renderer && target && active.__mz_original && target !== active.__mz_original
           ? active
           : undefined
-      const replacing = renderer ? previous : undefined
       const _animate = (zoomTarget = current.__mz_original!) => {
         const margin = zoomOptions.margin!
         let viewport = {
@@ -233,7 +223,13 @@ export const createZoom = (hooks: EngineHooks, renderer?: RendererHooks): ZoomFa
         const measurement = adapter.measure(zoomTarget, adapter.resolveSource(zoomTarget), viewport)
         const geometry = fitTarget(measurement, viewport)
         if (geometry) {
-          current.__mz_frames!.forEach(frame => frame.apply(geometry, !!replacing))
+          current.__mz_frames!.forEach(frame => {
+            if (replacing) {
+              current.__mz_view!.prepare(frame, geometry)
+            } else {
+              frame.apply(geometry)
+            }
+          })
         }
       }
 
@@ -382,12 +378,9 @@ export const createZoom = (hooks: EngineHooks, renderer?: RendererHooks): ZoomFa
           _animate(target?.content)
           current.__mz_view?.setLoading(false)
           if (replacing) {
-            current.__mz_outgoing!.forEach(frame => {
-              if (frame.geometry) {
-                frame.apply(frame.geometry, true)
-              }
-            })
-            current.__mz_outgoing!.forEach(frame => frame.hideForTransition())
+            current.__mz_outgoing!.forEach(frame =>
+              current.__mz_view!.prepare(frame, frame.geometry, true)
+            )
             const complete = (error?: unknown) => {
               if (!current.__mz_cancelOpen || active !== current) {
                 return
@@ -412,20 +405,8 @@ export const createZoom = (hooks: EngineHooks, renderer?: RendererHooks): ZoomFa
                   : -1
               cancelTransition = transition(
                 {
-                  outgoing: current
-                    .__mz_outgoing!.filter(frame => frame.geometry)
-                    .map(frame => ({
-                      element: frame.element,
-                      content: frame.content,
-                      geometry: frame.geometry!,
-                    })),
-                  incoming: incoming
-                    .filter(frame => frame.geometry)
-                    .map(frame => ({
-                      element: frame.element,
-                      content: frame.content,
-                      geometry: frame.geometry!,
-                    })),
+                  outgoing: current.__mz_outgoing!,
+                  incoming,
                   direction,
                 },
                 complete

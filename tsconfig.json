@@ -23,8 +23,7 @@
       "medium-zoom/compat/pure": ["./src/pure.ts"],
       "medium-zoom/renderers": ["./src/renderers/index.ts"],
       "medium-zoom/session": ["./src/session.ts"],
-      "medium-zoom/gallery": ["./src/gallery.ts"],
-      "medium-zoom/controls": ["./src/controls.ts"]
+      "medium-zoom/gallery": ["./src/gallery.ts"]
     },
     "jsx": "react-jsx"
   },

@@ -197,8 +197,7 @@ async function checkBundlerResolution(
         ['medium-zoom/core', 'dist/core/index.mjs'],
         ['medium-zoom/features', 'dist/features/index.mjs'],
         ['medium-zoom/renderers', 'dist/renderers/index.mjs'],
-        ['medium-zoom/gallery', 'dist/gallery/index.mjs'],
-        ['medium-zoom/controls', 'dist/controls/index.mjs']
+        ['medium-zoom/gallery', 'dist/gallery/index.mjs']
       )
     }
     for (const [specifier, path] of paths) {

@@ -42,7 +42,7 @@ full().update({ container: 42 })
 
 import { dialog } from 'medium-zoom/renderers'
 const modal = createMediumZoom({
-  renderer: dialog({ label: 'Photo', closeLabel: 'Close' }),
+  renderer: dialog({ label: 'Photo' }),
   features: [template(), hdImage()],
 })
 const modalZoom = modal('img', { template: '#template' })
@@ -62,16 +62,14 @@ const accessibleGallery = createMediumZoom({
 accessibleGallery('img', { template: '#caption' }).clone().attach('img')
 // @ts-expect-error accessibility and gallery do not implicitly enable container options
 accessibleGallery('img', { container: '#gallery' })
-import { mountGalleryControls } from 'medium-zoom/controls'
-import { createGallery } from 'medium-zoom/gallery'
+import { bindGalleryKeyboard, createGallery } from 'medium-zoom/gallery'
 const controller = createGallery(accessibleGallery('img'))
-mountGalleryControls(document.createElement('div'), controller, {
-  positionLabel: (position, total) => `${position}/${total}`,
-})
-mountGalleryControls(document.createElement('div'), controller, {
-  // @ts-expect-error gallery label formatter receives numeric positions
-  positionLabel: (position: string) => position,
-})
+const unbind = bindGalleryKeyboard(document.createElement('div'), controller)
+unbind()
+// @ts-expect-error keyboard binding requires a DOM event host
+bindGalleryKeyboard({}, controller)
+// @ts-expect-error renderer provides no default close-control options
+dialog({ closeLabel: 'Close' })
 
 import { createZoomSession, type ZoomSession } from 'medium-zoom/session'
 const session: ZoomSession<CoreZoomOptions> = createZoomSession(core('img'))

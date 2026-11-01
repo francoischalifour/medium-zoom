@@ -10,16 +10,17 @@ React delivery and the distinction between npm package size and browser transfer
 
 ## Ownership boundaries
 
-| Layer              | Owns                                                                                   | Does not own                                                  |
-| ------------------ | -------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| Target adapter     | Detection, source resolution, DOM measurements, intrinsic dimensions, frame creation   | Engine lifecycle or gallery UI                                |
-| Pure geometry      | Fitting layout/painted content into a viewport, local clipping insets                  | DOM reads or writes                                           |
-| Rendered frame     | Content/root nodes, geometry application, clipping, visibility, idempotent disposal    | Gallery selection or session ownership                        |
-| Engine             | Loading, opening/replacement/closing, interruption, completion, frame retirement       | Application controls or target-specific source logic          |
-| Modal renderer     | Persistent host, modal naming/inertness, loading semantics, focus return, content slot | Collection order or traversal                                 |
-| Session            | Per-document ownership, queued requests, cancellation, coalescing, disposal            | Keyboard augmentation or gallery state                        |
-| Gallery controller | Attached-image order, selection, bounds, subscriptions                                 | DOM creation, styles, keyboard listeners, session arbitration |
-| Controls adapter   | Buttons, live position, keyboard bindings, optional stylesheet                         | Image loading, positioning, transitions, frame cleanup        |
+| Layer              | Owns                                                                                                                                  | Does not own                                                  |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Target adapter     | Detection, source resolution, DOM measurements, intrinsic dimensions, frame creation                                                  | Engine lifecycle or gallery UI                                |
+| Pure geometry      | Fitting layout/painted content into a viewport, local clipping insets                                                                 | DOM reads or writes                                           |
+| Rendered frame     | Content/root nodes, geometry application, clipping, visibility, idempotent disposal                                                   | Gallery selection or session ownership                        |
+| Engine             | Loading, opening/replacement/closing, interruption, completion, frame retirement                                                      | Application controls or target-specific source logic          |
+| Modal renderer     | Persistent host, activation policy, naming/inertness, focus return, replacement presentation, transition descriptors and content slot | Collection order, traversal or frame disposal                 |
+| Session            | Per-document ownership, queued requests, cancellation, coalescing, disposal                                                           | Keyboard augmentation or gallery state                        |
+| Gallery controller | Attached-image order, selection, bounds, subscriptions                                                                                | DOM creation, styles, keyboard listeners, session arbitration |
+| Application UI     | Close/navigation controls, live position, labels, focus indication and presentation                                                   | Engine lifecycle and positioning                              |
+| Keyboard helper    | Optional arrow-key listener and cleanup                                                                                               | DOM creation, labels or styles                                |
 
 Features receive a narrow content context: the original target, a read-only frame
 surface (`element` and `content`), and append operations that transfer ownership to the
@@ -35,19 +36,30 @@ compat/default instances and declarations.
 ## Factory and selected features
 
 ```ts
-import { mountGalleryControls } from 'medium-zoom/controls'
 import { createMediumZoom } from 'medium-zoom/core'
 import { hdImage, container, template, accessibility } from 'medium-zoom/features'
-import { createGallery } from 'medium-zoom/gallery'
+import { bindGalleryKeyboard, createGallery } from 'medium-zoom/gallery'
 import { dialog } from 'medium-zoom/renderers'
 import { createZoomSession } from 'medium-zoom/session'
 
 import 'medium-zoom/modern/style.css'
-import 'medium-zoom/controls/style.css'
 
 const mediumZoom = createMediumZoom({
   renderer: dialog({
-    content: ({ element, zoom }) => mountGalleryControls(element, createGallery(zoom)),
+    content: ({ element, zoom, close }) => {
+      // Application-owned UI; style and localize this control in your application.
+      const button = document.createElement('button')
+      button.type = 'button'
+      button.textContent = 'Close image'
+      button.autofocus = true
+      button.addEventListener('click', close)
+      element.append(button)
+      const unbind = bindGalleryKeyboard(element, createGallery(zoom))
+      return () => {
+        unbind()
+        button.remove()
+      }
+    },
   }),
   features: [accessibility(), hdImage(), container(), template()],
 })
@@ -79,14 +91,15 @@ your own visible `:focus-visible` style. Session installation is explicit and in
 the same coordinator. Calling it again for the same instance returns the same session.
 
 The modal uses `showModal()` and the native top layer. All target frames, HD replacements,
-template content, and application controls stay inside it. A visible Close image button
-receives initial focus; closing restores the explicit trigger or previous focus if still
+template content, and application controls stay inside it. The renderer creates no
+buttons or other controls. Applications supply a visible close action and choose initial
+focus with `autofocus`; closing restores the explicit trigger or previous focus if still
 connected. `dialog({ content })` mounts application-owned DOM inside the host and accepts
 a cleanup callback. React can own a root there without exposing its implementation to
 core. Native `method="dialog"` submissions and Escape use the normal close lifecycle.
 Unsupported native dialog environments reject opening without leaving an active scene.
 
-## Headless gallery and optional controls
+## Headless gallery and keyboard helpers
 
 `createGallery(zoom)` returns one controller per instance. `getSnapshot()` has stable
 identity until its state changes and exposes `images`, `current`, `index`, `canPrevious`,
@@ -95,12 +108,15 @@ and `canNext`. It supports `subscribe`, `select(index)`, `previous`, `next`, `at
 so subscribers update immediately. Bounds stop at either end. Selection emits normal
 `open` / `opened` events; final dismissal emits `close` / `closed` on the selected source.
 
-Gallery creation and traversal produce no controls or styles. `mountGalleryControls()`
-is the optional stock DOM adapter. Labels and live-position formatting belong to that
-adapter. Its appearance is in `controls/style.css`, with overridable classes rather than
-inline presentation. Boundary buttons remain focusable via `aria-disabled` and ignore
-activation. `bindGalleryKeyboard()` is independently reusable; it leaves editing/media
-and protected ARIA input controls alone.
+Gallery creation and traversal produce no controls or styles. The runtime package has
+no controls entry or controls stylesheet, including no default dialog close button.
+Applications own navigation markup, live-position announcements, labels and visual state.
+The examples keep unavailable boundary buttons focusable through `aria-disabled` and
+ignore their activation.
+
+`bindGalleryKeyboard(element, gallery)` is an opt-in export from `medium-zoom/gallery`.
+It returns cleanup, creates no DOM, and leaves editing/media and protected ARIA input
+controls alone. It tree-shakes out when the consumer only imports `createGallery`.
 
 Both pointer and keyboard navigation switch fitted frames instantly by default. The
 host, overlay, close control, and application content persist between selections. The
@@ -189,17 +205,15 @@ modal renderer. The intended v2 default can change separately from explicit comp
 | `core`                       | Factory, adapter/frame/geometry engine, no CSS injection        |
 | `features`                   | HD, container, template, keyboard trigger adapter               |
 | `session`                    | Framework-independent instance ownership and cancellation       |
-| `gallery`                    | Headless state and traversal                                    |
-| `controls`                   | Optional stock controls and keyboard binding                    |
-| `controls/style.css`         | Optional stock gallery presentation                             |
+| `gallery`                    | Headless state, traversal and opt-in keyboard binding           |
 | `renderers`                  | Native modal and optional consumer transition execution         |
 | `modern` / `compat` / `pure` | Full selected profiles, retaining earlier experiment boundaries |
 
 Every JS candidate has ESM/CommonJS and matching declarations. Packed consumer tests
 cover the actual release boundary, the private fixture, Node/bundler resolution and
 legacy TypeScript consumers. Adapter/geometry/frame internals are not independently
-exported. Importing unused optional entries does not make their controls appear in a
-rebundled consumer; size assertions check those boundaries.
+exported. Size assertions check that optional keyboard bindings, feature factories and
+modal code stay absent when unselected. No runtime entry provides control markup.
 
 ## Verification, examples and measured cost
 
@@ -209,7 +223,7 @@ bun run check:library
 env MEDIUM_ZOOM_TEST_PORT=4390 bun tests/server.ts
 ```
 
-Open `/experiments/gallery.html` for stock controls and `/composition/` for the React /
+Open `/experiments/gallery.html` for application-owned vanilla UI and `/composition/` for the React /
 shadcn proof. The harness builds the private React page into `.cache/gallery-composition`.
 Browser regressions cover both UIs, default instant switching, lifecycle races, HD source
 cancellation, custom transition completion/abort/failure, focus, and accessible content.
@@ -225,32 +239,40 @@ consumer totals.
 
 | Raw artifact       |  Before |   After | Change |
 | ------------------ | ------: | ------: | -----: |
-| Core ESM           | 3,225 B | 4,052 B | +827 B |
-| Compat/default ESM | 3,631 B | 4,351 B | +720 B |
-| Modern full ESM    | 3,525 B | 4,339 B | +814 B |
+| Core ESM           | 3,225 B | 3,754 B | +529 B |
+| Compat/default ESM | 3,631 B | 4,225 B | +594 B |
+| Modern full ESM    | 3,525 B | 4,206 B | +681 B |
 
 | Selected library consumer   | JS gzip | CSS gzip | Total transfer |
 | --------------------------- | ------: | -------: | -------------: |
-| core                        | 4,017 B |    251 B |        4,268 B |
-| core + session              | 4,623 B |    251 B |        4,874 B |
-| core + dialog               | 4,857 B |    251 B |        5,108 B |
-| dialog + headless gallery   | 5,233 B |    251 B |        5,484 B |
-| gallery + session           | 5,783 B |    251 B |        6,034 B |
-| gallery + default controls  | 6,183 B |    544 B |        6,727 B |
-| accessible gallery          | 6,574 B |    544 B |        7,118 B |
-| gallery + all features      | 7,229 B |    544 B |        7,773 B |
-| gallery + custom transition | 5,864 B |    251 B |        6,115 B |
+| core                        | 3,729 B |    251 B |        3,980 B |
+| core + session              | 4,330 B |    251 B |        4,581 B |
+| core + HD                   | 4,047 B |    251 B |        4,298 B |
+| core + container            | 3,959 B |    251 B |        4,210 B |
+| core + template             | 3,887 B |    251 B |        4,138 B |
+| core + legacy features      | 4,409 B |    251 B |        4,660 B |
+| core + dialog               | 4,741 B |    251 B |        4,992 B |
+| dialog + accessibility      | 5,193 B |    251 B |        5,444 B |
+| dialog + headless gallery   | 5,121 B |    251 B |        5,372 B |
+| gallery + session           | 5,665 B |    251 B |        5,916 B |
+| gallery + keyboard          | 5,820 B |    251 B |        6,071 B |
+| accessible gallery          | 6,220 B |    251 B |        6,471 B |
+| gallery + all features      | 6,866 B |    251 B |        7,117 B |
+| gallery + custom transition | 5,747 B |    251 B |        5,998 B |
 
-The headless gallery entry is **607 B gzip**, stock controls are
-**724 B**, and the session entry is **788 B**.
-Shared modern zoom CSS adds **251 B**; stock control CSS adds
-**293 B** only when selected. Custom React controls use application
-styles and an existing React runtime; those are outside this library comparison.
+Both raw core ESM (**3,754 B**) and CommonJS (**3,791 B**) have a hard **3,800 B gzip**
+budget, including the banner. The rebundled core consumer is also checked against that
+ceiling; CSS is separate. The headless refactor reduces core ESM by **298 B** from commit
+`1b509aa` without dropping adapter, geometry or frame boundaries.
 
-These boundaries have a measurable fixed cost: compat/default grows by
-**720 B** despite preserving its behavior. The preparation does not retain the old
-3,500 B target. Per-entry budgets and selected-consumer isolation assertions record
-this explicitly. No public release manifest or browser support contract was expanded.
+The gallery entry, including the independently selectable keyboard helper, is **814 B**;
+the session entry is **788 B**. Shared modern zoom CSS adds **251 B**. All close/navigation
+markup, announcements and control styles belong to the application. React and application
+UI costs are outside the library matrix; no control CSS is hidden in these totals.
+
+Compat/default grows **594 B** from `c58b314` while preserving its behavior. Per-entry
+budgets and selected-consumer isolation assertions record this explicitly. No public
+release manifest or browser support contract was expanded.
 
 Manual screen-reader testing remains outstanding. Firefox cannot currently start locally
 (`Could not find profile folder`); Chromium/WebKit desktop and mobile provide the automated

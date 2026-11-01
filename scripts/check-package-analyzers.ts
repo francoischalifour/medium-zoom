@@ -62,7 +62,6 @@ function checkAttw(archive: string, experimental: boolean) {
         './renderers',
         './session',
         './gallery',
-        './controls',
         './pure',
         './compat',
         './compat/pure',

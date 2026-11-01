@@ -13,7 +13,7 @@ interface Variant {
   modal?: boolean
   session?: boolean
   gallery?: boolean
-  controls?: boolean
+  keyboard?: boolean
   transition?: boolean
   entry?: string
 }
@@ -28,19 +28,19 @@ const variants: Record<string, Variant> = {
   'dialog + accessibility': { modal: true, features: ['accessibility'] },
   'dialog + headless gallery': { modal: true, gallery: true },
   'gallery + session': { modal: true, gallery: true, session: true },
-  'gallery + default controls': { modal: true, gallery: true, session: true, controls: true },
+  'gallery + keyboard': { modal: true, gallery: true, session: true, keyboard: true },
   'accessible gallery': {
     modal: true,
     gallery: true,
     session: true,
-    controls: true,
+    keyboard: true,
     features: ['accessibility'],
   },
   'gallery + all features': {
     modal: true,
     gallery: true,
     session: true,
-    controls: true,
+    keyboard: true,
     features: ['accessibility', 'hdImage', 'container', 'template'],
   },
   'gallery + custom transition': { modal: true, gallery: true, session: true, transition: true },
@@ -60,7 +60,7 @@ try {
       modal = false,
       session = false,
       gallery = false,
-      controls = false,
+      keyboard = false,
       transition = false,
       entry: full,
     } = variant
@@ -72,9 +72,8 @@ try {
       import {hdImage,container,template,accessibility} from ${path('features')};
       ${modal ? `import {dialog} from ${path('renderers')};` : ''}
       ${session ? `import {createZoomSession} from ${path('session')};` : ''}
-      ${gallery ? `import {createGallery} from ${path('gallery')};` : ''}
-      ${controls ? `import {mountGalleryControls} from ${path('controls')};` : ''}
-      const zoom=createMediumZoom({${modal ? `renderer:dialog({${controls ? 'content:({element,zoom})=>mountGalleryControls(element,createGallery(zoom)),' : ''}${transition ? 'transition:({incoming,signal})=>Promise.all(incoming.map(frame=>{const animation=frame.element.animate([{opacity:0},{opacity:1}],{duration:120});signal.addEventListener("abort",()=>animation.cancel(),{once:true});return animation.finished})).then(()=>undefined),' : ''}}),` : ''}features:[${features.map(feature => `${feature}()`).join(',')}]})('img');
+      ${gallery ? `import {createGallery,bindGalleryKeyboard} from ${path('gallery')};` : ''}
+      const zoom=createMediumZoom({${modal ? `renderer:dialog({${keyboard ? 'content:({element,zoom})=>bindGalleryKeyboard(element,createGallery(zoom)),' : ''}${transition ? 'transition:({incoming,signal})=>Promise.all(incoming.map(frame=>{const animation=frame.element.animate([{opacity:0},{opacity:1}],{duration:120});signal.addEventListener("abort",()=>animation.cancel(),{once:true});return animation.finished})).then(()=>undefined),' : ''}}),` : ''}features:[${features.map(feature => `${feature}()`).join(',')}]})('img');
       ${session ? 'globalThis.session=createZoomSession(zoom);' : ''}
       globalThis.zoom=zoom;
       ${gallery ? 'globalThis.gallery=createGallery(zoom);' : ''}`
@@ -100,7 +99,15 @@ try {
       `${name}: CSS injection`
     )
     assert.equal(code.includes('showModal'), modal, `${name}: modal isolation`)
-    assert.equal(code.includes('Previous image'), controls, `${name}: default UI isolation`)
+    assert(
+      !code.includes('Previous image') && !code.includes('Close image'),
+      `${name}: no built-in UI`
+    )
+    assert.equal(
+      code.includes('ArrowLeft'),
+      keyboard,
+      `${name}: optional keyboard binding isolation`
+    )
     assert.equal(
       code.includes('snapshot') || code.includes('getSnapshot'),
       gallery,
@@ -141,7 +148,6 @@ try {
   const cssSize = (path: string) => gzipSync(readFileSync(path), { level: 9 }).length
   const modernCss = cssSize('dist/modern/style.css')
   const compatCss = cssSize('dist/style.css')
-  const controlsCss = cssSize('dist/controls/style.css')
   const comparison: Record<string, string> = {
     'core + session': 'core',
     'core + HD': 'core',
@@ -152,27 +158,23 @@ try {
     'dialog + accessibility': 'core + dialog',
     'dialog + headless gallery': 'core + dialog',
     'gallery + session': 'dialog + headless gallery',
-    'gallery + default controls': 'gallery + session',
-    'accessible gallery': 'gallery + default controls',
+    'gallery + keyboard': 'gallery + session',
+    'accessible gallery': 'gallery + keyboard',
     'gallery + all features': 'accessible gallery',
     'gallery + custom transition': 'gallery + session',
   }
   const stylesFor = (name: string, variant: Variant) =>
-    variant.entry
-      ? ['pure full', 'compat pure'].includes(name)
-        ? compatCss
-        : 0
-      : modernCss + (variant.controls ? controlsCss : 0)
+    variant.entry ? (['pure full', 'compat pure'].includes(name) ? compatCss : 0) : modernCss
   const total = (name: string) => results[name]! + stylesFor(name, variants[name]!)
   console.log('\nCONSUMER MATRIX · private candidate API · tree-shaken ESM · gzip level 9')
   console.log(
     'Exports below are subpaths of ONE medium-zoom package, not separate npm dependencies.'
   )
   console.log(
-    'Every row includes core; modal/gallery/session/control requirements are listed explicitly.'
+    'Every row includes core; modal/gallery/session/keyboard requirements are listed explicitly.'
   )
   console.log(
-    'Columns map to renderers/session/gallery/controls exports. Features: H=hdImage, C=container, T=template, A=accessibility.'
+    'Columns map to renderers/session/gallery exports. Keyboard is an opt-in gallery helper. Features: H=hdImage, C=container, T=template, A=accessibility.'
   )
   const rows = (names: string[]) =>
     names.map(name => {
@@ -188,7 +190,7 @@ try {
         variant.modal ? 'yes' : '—',
         variant.session ? 'yes' : '—',
         variant.gallery ? 'yes' : '—',
-        variant.controls ? 'yes' : '—',
+        variant.keyboard ? 'yes' : '—',
         variant.gallery ? (variant.transition ? 'custom' : 'instant') : '—',
         bytes(results[name]!),
         bytes(stylesFor(name, variant)),
@@ -210,7 +212,7 @@ try {
         'Dialog',
         'Session',
         'Gallery',
-        'Controls',
+        'Keyboard',
         'Switch',
         'JS gzip',
         'CSS gzip',
@@ -222,7 +224,7 @@ try {
     )
   }
   console.log(
-    '\nPRESET CONSUMERS · these include HD/container/template, never dialog/session/gallery/controls'
+    '\nPRESET CONSUMERS · these include HD/container/template, never dialog/session/gallery'
   )
   const presetImports: Record<string, string> = {
     full: 'medium-zoom',
@@ -247,6 +249,9 @@ try {
     '\n* Total sums independently gzipped JS/CSS assets. Injected CSS is already in JS; standalone CSS is counted once.'
   )
   console.log(
+    'Application-owned control markup/styles and visible close UI are excluded; no runtime entry supplies them.'
+  )
+  console.log(
     'Deltas compare complete rows, not standalone module sizes. No React runtime or application styles are included.'
   )
   console.log(
@@ -257,7 +262,8 @@ try {
   )
 
   assert(results.core < results.full!)
-  assert(results['dialog + headless gallery']! < results['gallery + default controls']!)
+  assert(results['gallery + session']! < results['gallery + keyboard']!)
+  assert(results.core! <= 3_800, 'Core consumer JS exceeds the 3,800 B gzip ceiling')
   assert(results['pure full']! < results.full!)
 } finally {
   rmSync(directory, { recursive: true, force: true })

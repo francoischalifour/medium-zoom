@@ -63,6 +63,10 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
       'pure/medium-zoom.umd.js',
       'style.css',
     ]
+    assert(
+      !files.some(path => path.startsWith('controls/')),
+      'The runtime package must not contain built-in controls or their stylesheet'
+    )
     if (!experimental) {
       const packedFiles = readdirSync(artifact.root, { recursive: true, encoding: 'utf8' }).filter(
         path => statSync(join(artifact.root, path)).isFile()
@@ -104,9 +108,7 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
         'session/index.mjs',
         'session/index.cjs',
         'gallery/index.mjs',
-        'gallery/index.cjs',
-        'controls/index.mjs',
-        'controls/index.cjs'
+        'gallery/index.cjs'
       )
     }
     assert.deepEqual(
@@ -117,7 +119,7 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
     for (const path of files.filter(path => /\.(?:[mc])?js$/.test(path))) {
       const code = readFileSync(join(artifact.root, 'dist', path), 'utf8')
       const esm = path.endsWith('.mjs') || path.endsWith('.esm.js') || path === 'pure/index.js'
-      const modern = /^(core|features|modern|renderers|session|gallery|controls)\//.test(path)
+      const modern = /^(core|features|modern|renderers|session|gallery)\//.test(path)
       parse(code, {
         ecmaVersion: modern ? 2_020 : esm ? 2_015 : 5,
         sourceType: esm ? 'module' : 'script',
@@ -168,9 +170,7 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
                   ? loaded.createZoomSession
                   : path.startsWith('gallery/')
                     ? loaded.createGallery
-                    : path.startsWith('controls/')
-                      ? loaded.mountGalleryControls
-                      : loaded.default),
+                    : loaded.default),
           'function'
         )
         continue
@@ -183,7 +183,7 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
           require: createRequire(join(artifact.root, 'dist', path)),
         })
         assert.equal(
-          typeof (!/^(core|features|renderers|session|gallery|controls)\//.test(path)
+          typeof (!/^(core|features|renderers|session|gallery)\//.test(path)
             ? commonjs.exports
             : commonjs.exports[
                 path.startsWith('core/')
@@ -194,9 +194,7 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
                       ? 'createZoomSession'
                       : path.startsWith('gallery/')
                         ? 'createGallery'
-                        : path.startsWith('controls/')
-                          ? 'mountGalleryControls'
-                          : 'hdImage'
+                        : 'hdImage'
               ]),
           'function'
         )

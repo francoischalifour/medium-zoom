@@ -19,7 +19,7 @@ async function fixture(page: Page, order = false) {
     () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
   )
   await page.addStyleTag({ url: '/experimental/dist/modern/style.css' })
-  await page.addStyleTag({ url: '/experimental/dist/controls/style.css' })
+  await page.addStyleTag({ url: '/experiments/gallery-controls.css' })
   await page.evaluate(async reverse => {
     const core = '/experimental/dist/core/index.mjs'
     const featuresPath = '/experimental/dist/features/index.mjs'
@@ -32,16 +32,23 @@ async function fixture(page: Page, order = false) {
     const { createGallery } = (await import(
       String('/experimental/dist/gallery/index.mjs')
     )) as typeof import('../../src/gallery')
-    const { mountGalleryControls } = (await import(
-      String('/experimental/dist/controls/index.mjs')
-    )) as typeof import('../../src/controls')
+    const { mountExampleControls, mountCloseControl } = (await import(
+      String('/experiments/gallery-controls.mjs')
+    )) as typeof import('../experimental/gallery-controls.mjs')
     const { createZoomSession } = (await import(
       String('/experimental/dist/session/index.mjs')
     )) as typeof import('../../src/session')
     const features = [accessibility(), hdImage(), template()]
     const factory = createMediumZoom({
       renderer: dialog({
-        content: ({ element, zoom }) => mountGalleryControls(element, createGallery(zoom)),
+        content: view => {
+          const close = mountCloseControl(view)
+          const controls = mountExampleControls(view.element, createGallery(view.zoom))
+          return () => {
+            controls()
+            close()
+          }
+        },
       }),
       features: reverse ? features.reverse() : features,
     })
@@ -469,14 +476,21 @@ test('disposing after pointer navigation hands ownership to a fresh session', as
     const { createGallery } = (await import(
       String('/experimental/dist/gallery/index.mjs')
     )) as typeof import('../../src/gallery')
-    const { mountGalleryControls } = (await import(
-      String('/experimental/dist/controls/index.mjs')
-    )) as typeof import('../../src/controls')
+    const { mountExampleControls, mountCloseControl } = (await import(
+      String('/experiments/gallery-controls.mjs')
+    )) as typeof import('../experimental/gallery-controls.mjs')
     const { dialog } = (await import(renderers)) as typeof import('../../src/renderers')
     const { createZoomSession } = (await import(sessions)) as typeof import('../../src/session')
     const factory = createMediumZoom({
       renderer: dialog({
-        content: ({ element, zoom }) => mountGalleryControls(element, createGallery(zoom)),
+        content: view => {
+          const close = mountCloseControl(view)
+          const controls = mountExampleControls(view.element, createGallery(view.zoom))
+          return () => {
+            controls()
+            close()
+          }
+        },
       }),
     })
     const first = createZoomSession(factory('#first, #second'))

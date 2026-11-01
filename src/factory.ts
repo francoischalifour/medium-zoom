@@ -34,29 +34,29 @@ const createZoomFactory = ({
     __mz_mount: noop,
     __mz_load: noop,
   }
-  features.forEach(feature => assign(hooks.__mz_defaults, feature.__mz_defaults))
+  let load: FeatureHooks['__mz_load']
+  features.forEach(feature => {
+    assign(hooks.__mz_defaults, feature.__mz_defaults)
+    if (feature.__mz_load) {
+      if (load) {
+        throw new Error('Medium Zoom supports one image loader per factory')
+      }
+      load = feature.__mz_load
+    }
+  })
+  hooks.__mz_load = load || noop
   hooks.__mz_update = (options, previous) =>
     features.forEach(feature => feature.__mz_update?.(options, previous))
   hooks.__mz_viewport = (options, viewport) =>
     features.reduce((box, feature) => feature.__mz_viewport?.(options, box) || box, viewport)
   hooks.__mz_mount = (content, options) => {
-    const closing: (() => void)[] = []
-    features.forEach(feature => {
-      const cleanup = feature.__mz_mount?.(content, options)
-      if (cleanup) {
-        closing.push(cleanup)
-      }
-    })
+    const closing = features
+      .map(feature => feature.__mz_mount?.(content, options))
+      .filter((cleanup): cleanup is () => void => !!cleanup)
     if (closing.length) {
       return () => closing.forEach(cleanup => cleanup())
     }
   }
-  // There is currently one loading capability; reject conflicts instead of silently dropping one.
-  const loaders = features.filter(feature => feature.__mz_load)
-  if (loaders.length > 1) {
-    throw new Error('Medium Zoom supports one image loader per factory')
-  }
-  hooks.__mz_load = loaders[0]?.__mz_load || noop
   const mediumZoom = createZoom(hooks, renderer)
   const factory: ZoomFactory = (selector?: ZoomSelector | ZoomOptions, options?: ZoomOptions) => {
     const zoom = mediumZoom(selector as ZoomSelector, options)

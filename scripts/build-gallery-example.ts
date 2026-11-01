@@ -13,7 +13,7 @@ export async function buildGalleryExample() {
     plugins: [react()],
     resolve: {
       alias: Object.fromEntries(
-        ['core', 'features', 'gallery', 'controls', 'renderers', 'session'].map(name => [
+        ['core', 'features', 'gallery', 'renderers', 'session'].map(name => [
           `medium-zoom/${name}`,
           resolve(`dist/${name}/index.mjs`),
         ])

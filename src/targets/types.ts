@@ -10,9 +10,8 @@ export interface PreparedFrame extends FrameSurface {
 export interface RenderedFrame extends FrameSurface {
   readonly geometry: FrameGeometry | null
   readonly label: string
-  apply(geometry: FrameGeometry, instant?: boolean): void
+  apply(geometry: FrameGeometry): void
   setVisible(visible: boolean): void
-  hideForTransition(): void
   reset(): void
   dispose(): void
 }

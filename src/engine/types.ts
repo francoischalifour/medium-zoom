@@ -1,5 +1,6 @@
-import type { RenderedFrame, ZoomTarget, PreparedTransition } from '../targets/types'
+import type { RenderedFrame, ZoomTarget } from '../targets/types'
 import type { Zoom, ZoomOptions } from '../types'
+import type { FrameGeometry } from './geometry'
 
 export type Cleanup = () => void
 // Per-opening state belongs only to the engine.
@@ -52,15 +53,22 @@ export interface FeatureHooks {
   ) => Cleanup | undefined
 }
 
+export interface FrameTransition {
+  readonly outgoing: readonly RenderedFrame[]
+  readonly incoming: readonly RenderedFrame[]
+  readonly direction: -1 | 0 | 1
+}
 export interface RenderHost {
   readonly element: HTMLElement
   update(frame: RenderedFrame): void
-  transition?: (frames: PreparedTransition, done: (error?: unknown) => void) => Cleanup
+  prepare(frame: RenderedFrame, geometry: FrameGeometry | null, outgoing?: boolean): void
+  transition?: (frames: FrameTransition, done: (error?: unknown) => void) => Cleanup
   setLoading(loading: boolean): void
   dispose(): void
 }
 
 export interface RendererHooks {
+  acceptsTrigger?: (event: MouseEvent) => boolean
   mount: (context: {
     readonly frame: RenderedFrame
     readonly zoom: Zoom

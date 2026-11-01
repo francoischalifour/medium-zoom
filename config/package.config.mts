@@ -46,13 +46,7 @@ export const extensionEntries: PackageEntry[] = [
   optional('features', 'feature factories', 'HD/container/template/accessibility'),
   optional('renderers', 'modal renderer', 'native dialog + optional transition runner'),
   optional('session', 'coordinator', 'ownership/cancellation; no UI'),
-  optional('gallery', 'headless controller', 'selection/subscriptions; no UI'),
-  optional(
-    'controls',
-    'DOM adapter',
-    'stock buttons/live status + keyboard',
-    'dist/controls/style.css'
-  ),
+  optional('gallery', 'headless controller', 'selection/subscriptions + keyboard; no UI'),
 ]
 export const profileEntries: PackageEntry[] = [
   {
