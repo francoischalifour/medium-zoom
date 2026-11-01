@@ -19,3 +19,5 @@ export const listenForMotionChange = (
   query.addEventListener('change', listener)
   return () => query.removeEventListener('change', listener)
 }
+
+export const assign: typeof Object.assign = Object.assign

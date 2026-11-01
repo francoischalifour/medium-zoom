@@ -13,9 +13,9 @@ import pkg from '../package.json' with { type: 'json' }
 
 const banner = `/*! ${pkg.name} ${pkg.version} | ${pkg.license} License | https://github.com/${pkg.repository} */`
 const stylesheetPath = new URL('../src/medium-zoom.css', import.meta.url)
-// Restrict property mangling to private per-opening state, excluding public options and DOM APIs.
-const privateSessionProperties =
-  /^__mz_(original|zoomed|nodes|template|closing|cancelOpen|viewportScale|isPinching|scrollTimer)$/
+// Mangle only private session state and feature hooks; preserve public options and DOM APIs.
+const privateProperties =
+  /^__mz_(original|zoomed|nodes|template|closing|cancelOpen|viewportScale|isPinching|scrollTimer|defaults|update|viewport|mount|load)$/
 
 type Profile = 'modern' | 'compat'
 
@@ -111,11 +111,12 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
         ? (
             await minifyJavaScript(result.code, {
               ecma: profile === 'compat' ? 5 : 2_020,
+              compress: { passes: profile === 'compat' ? 2 : 1 },
               module: options.format === 'es',
               // CJS bindings are module-local, just like ESM bindings.
               ...(options.format === 'cjs' && { toplevel: true }),
-              mangle: { properties: { regex: privateSessionProperties } },
-              // Core and features are bundled independently: their session keys must agree.
+              mangle: { properties: { regex: privateProperties } },
+              // Core and features are bundled independently: their private keys must agree.
               nameCache: {
                 props: {
                   props: {
@@ -128,6 +129,11 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
                     $__mz_viewportScale: 'v',
                     $__mz_isPinching: 'p',
                     $__mz_scrollTimer: 's',
+                    $__mz_defaults: 'd',
+                    $__mz_update: 'u',
+                    $__mz_viewport: 'w',
+                    $__mz_mount: 'm',
+                    $__mz_load: 'l',
                   },
                 },
               },

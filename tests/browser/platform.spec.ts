@@ -12,38 +12,88 @@ const profiles = {
   modernCoreCjs: 'core/index.cjs',
 } as const
 
-async function loadProfile(page: Page, file: string) {
-  await page.evaluate(async file => {
-    const url = `/${file === 'medium-zoom.esm.js' ? 'package' : 'experimental'}/dist/${file}`
-    if (file.endsWith('.cjs')) {
-      const loadCommonJS = async (url: string): Promise<unknown> => {
-        const commonjs = { exports: {} as unknown }
-        const source = await (await fetch(url)).text()
-        // oxlint-disable-next-line typescript/no-implied-eval -- Execute our packed CJS artifact in its module scope.
-        new Function('module', 'exports', source)(commonjs, commonjs.exports)
-        return commonjs.exports
+async function loadProfile(page: Page, file: string, withoutAssign = false) {
+  await page.evaluate(
+    async ({ file, withoutAssign }) => {
+      const nativeAssign = Object.assign
+      if (withoutAssign) {
+        Object.defineProperty(Object, 'assign', { value: undefined, configurable: true })
       }
-      if (file === 'core/index.cjs') {
-        const core = (await loadCommonJS(url)) as typeof import('../../src/core')
-        const { hdImage, container, template } = (await loadCommonJS(
-          '/experimental/dist/features/index.cjs'
-        )) as typeof import('../../src/features')
-        window.mediumZoom = core.createMediumZoom({
-          features: [hdImage(), container(), template()],
-        })
-      } else {
-        window.mediumZoom = (await loadCommonJS(url)) as typeof window.mediumZoom
+      try {
+        const url = `/${file === 'medium-zoom.esm.js' ? 'package' : 'experimental'}/dist/${file}`
+        if (file.endsWith('.cjs')) {
+          const loadCommonJS = async (url: string): Promise<unknown> => {
+            const commonjs = { exports: {} as unknown }
+            const source = await (await fetch(url)).text()
+            // oxlint-disable-next-line typescript/no-implied-eval -- Execute our packed CJS artifact in its module scope.
+            new Function('module', 'exports', source)(commonjs, commonjs.exports)
+            return commonjs.exports
+          }
+          if (file === 'core/index.cjs') {
+            const core = (await loadCommonJS(url)) as typeof import('../../src/core')
+            const { hdImage, container, template } = (await loadCommonJS(
+              '/experimental/dist/features/index.cjs'
+            )) as typeof import('../../src/features')
+            window.mediumZoom = core.createMediumZoom({
+              features: [hdImage(), container(), template()],
+            })
+          } else {
+            window.mediumZoom = (await loadCommonJS(url)) as typeof window.mediumZoom
+          }
+        } else {
+          window.mediumZoom = (await import(url)).default
+        }
+      } finally {
+        Object.defineProperty(Object, 'assign', { value: nativeAssign, configurable: true })
       }
-    } else {
-      window.mediumZoom = (await import(url)).default
-    }
-  }, file)
+    },
+    { file, withoutAssign }
+  )
   if (file === 'core/index.cjs') {
     await page.addStyleTag({ url: '/experimental/dist/modern/style.css' })
   }
 }
 
 for (const [profile, file] of Object.entries(profiles)) {
+  if (profile.startsWith('compat')) {
+    test(`${profile}: option copying works without native Object.assign`, async ({ page }) => {
+      await preparePage(page)
+      await loadProfile(page, file, true)
+      const result = await page.evaluate(async () => {
+        const options = Object.create({ inherited: true })
+        options.container = { width: 600 }
+        Object.defineProperty(options, 'margin', { value: 99, enumerable: false })
+        const zoom = window.mediumZoom('#image', options)
+        zoom.update({ container: { top: 12 } })
+        const clone = zoom.clone({ margin: 16 })
+        await zoom.open()
+        await zoom.close()
+        return {
+          options: zoom.getOptions(),
+          cloned: clone.getOptions(),
+          closed: zoom.getZoomedImage(),
+        }
+      })
+      expect(result).toEqual({
+        options: {
+          margin: 0,
+          background: '#fff',
+          scrollOffset: 40,
+          container: { width: 600, top: 12 },
+          template: null,
+        },
+        cloned: {
+          margin: 16,
+          background: '#fff',
+          scrollOffset: 40,
+          container: { width: 600, top: 12 },
+          template: null,
+        },
+        closed: null,
+      })
+    })
+  }
+
   test(`${profile}: Promise compatibility stays isolated`, async ({ page }) => {
     await preparePage(page)
     await loadProfile(page, file)

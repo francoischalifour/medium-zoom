@@ -39,3 +39,18 @@ export const listenForMotionChange = (
   query.addListener(listener)
   return () => query.removeListener(listener)
 }
+
+// Match the object-spread fallback without installing a global polyfill.
+export const assign: typeof Object.assign =
+  Object.assign ||
+  function (target: Record<string, unknown>) {
+    for (let index = 1; index < arguments.length; index++) {
+      const source = arguments[index]
+      for (const key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          target[key] = source[key]
+        }
+      }
+    }
+    return target
+  }

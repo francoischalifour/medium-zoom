@@ -1,4 +1,4 @@
-import { getPromise, createCustomEvent, getScrollY, isEscape } from '#platform'
+import { getPromise, createCustomEvent, getScrollY, isEscape, assign } from '#platform'
 
 import type { Zoom, ZoomFactory, ZoomOptions, ZoomSelector, ZoomOpenOptions } from '../types'
 import { cloneTarget, createOverlay, getImagesFromSelectors, isSvg } from '../utils'
@@ -13,19 +13,7 @@ const transformNodes = (session: Session, transform: string) => {
   })
 }
 
-export const createZoomFactory = ({
-  features = [],
-}: { features?: readonly FeatureHooks[] } = {}): ZoomFactory => {
-  // A factory keeps its capabilities even if the caller later edits its array.
-  features = features.slice()
-  const hooks = features.reduce<FeatureHooks>(
-    (hooks, feature) => ({
-      ...hooks,
-      ...feature,
-      defaults: { ...hooks.defaults, ...feature.defaults },
-    }),
-    { defaults: { margin: 0, background: '#fff', scrollOffset: 40 } }
-  )
+export const createZoom = (hooks: Required<FeatureHooks>): ZoomFactory => {
   const mediumZoom: ZoomFactory = (
     selector?: ZoomSelector | ZoomOptions,
     options: ZoomOptions = {}
@@ -111,13 +99,9 @@ export const createZoomFactory = ({
         overlay.style.background = options.background
       }
 
-      features.forEach(feature => {
-        if (feature.update) {
-          feature.update(options, zoomOptions)
-        }
-      })
+      hooks.__mz_update(options, zoomOptions)
 
-      zoomOptions = { ...zoomOptions, ...newOptions }
+      zoomOptions = assign({}, zoomOptions, newOptions)
 
       images.forEach(image => {
         _dispatchEvent(image, 'update')
@@ -126,24 +110,13 @@ export const createZoomFactory = ({
       return zoom
     }
 
-    const clone = (options?: ZoomOptions) => mediumZoom({ ...zoomOptions, ...options })
+    const clone = (options?: ZoomOptions) => mediumZoom(assign({}, zoomOptions, options))
 
-    let clickListening = false
-    const _updateClickListener = () => {
-      const enabled = images.length > 0
-      if (clickListening === enabled) {
-        return
+    const attach: Zoom['attach'] = function () {
+      const newImages = getImagesFromSelectors(arguments)
+      if (!images.length && newImages.length) {
+        document.addEventListener('click', _handleClick as EventListener)
       }
-
-      document[enabled ? 'addEventListener' : 'removeEventListener'](
-        'click',
-        _handleClick as EventListener
-      )
-      clickListening = enabled
-    }
-
-    const attach = (...selectors: ZoomSelector[]) => {
-      const newImages = getImagesFromSelectors(selectors)
 
       newImages
         .filter(newImage => images.indexOf(newImage) === -1)
@@ -158,26 +131,26 @@ export const createZoomFactory = ({
         })
       })
 
-      _updateClickListener()
-
       return zoom
     }
 
-    const detach = (...selectors: ZoomSelector[]) => {
+    const detach: Zoom['detach'] = function () {
       if (active.__mz_zoomed) {
         void close()
       }
 
-      const imagesToDetach = selectors.length > 0 ? getImagesFromSelectors(selectors) : images
+      const imagesToDetach = arguments.length > 0 ? getImagesFromSelectors(arguments) : images
 
       imagesToDetach.forEach(image => {
         image.classList.remove('medium-zoom-image')
         _dispatchEvent(image, 'detach')
       })
 
-      images = images.filter(image => imagesToDetach.indexOf(image) === -1)
-      _updateClickListener()
-
+      const remaining = images.filter(image => imagesToDetach.indexOf(image) === -1)
+      if (images.length && !remaining.length) {
+        document.removeEventListener('click', _handleClick as EventListener)
+      }
+      images = remaining
       return zoom
     }
 
@@ -210,12 +183,7 @@ export const createZoomFactory = ({
       return zoom
     }
 
-    let globalListening = false
     const _updateGlobalEvents = (enabled: boolean) => {
-      if (globalListening === enabled) {
-        return
-      }
-
       const method = enabled ? 'addEventListener' : 'removeEventListener'
       document[method]('keyup', _handleKeyUp as EventListener)
       document[method]('scroll', _handleScroll)
@@ -224,7 +192,6 @@ export const createZoomFactory = ({
         document[method](type, _handleTouch as EventListener, touchOptions)
       )
       window[method]('resize', _close)
-      globalListening = enabled
     }
 
     const open = ({ target }: ZoomOpenOptions = {}) => {
@@ -237,9 +204,7 @@ export const createZoomFactory = ({
           left: margin,
           top: margin,
         }
-        if (hooks.viewport) {
-          viewport = hooks.viewport(zoomOptions, viewport)
-        }
+        viewport = hooks.__mz_viewport(zoomOptions, viewport)
         const {
           width: viewportWidth,
           height: viewportHeight,
@@ -318,9 +283,7 @@ export const createZoomFactory = ({
 
         document.body.appendChild(overlay)
 
-        if (hooks.mount) {
-          hooks.mount(current, zoomOptions)
-        }
+        hooks.__mz_mount(current, zoomOptions)
 
         // If the selected <img> tag is inside a <picture> tag, set the
         // currently-applied source as the cloned `src=` attribute.
@@ -349,9 +312,7 @@ export const createZoomFactory = ({
           cancelTransition = waitForTransition(current.__mz_zoomed!, () => finishOpening(true))
         }
 
-        if (hooks.load) {
-          cancelImage = hooks.load(current, animate, _close)
-        }
+        cancelImage = hooks.__mz_load(current, animate, _close)
         if (!cancelImage) {
           animate()
         }
@@ -393,9 +354,7 @@ export const createZoomFactory = ({
         }
         document.body.classList.remove('medium-zoom--opened')
         transformNodes(current, '')
-        if (hooks.closing) {
-          hooks.closing(current)
-        }
+        hooks.__mz_closing(current)
         _dispatchEvent(current.__mz_original!, 'close')
         if (!current.__mz_zoomed) {
           finishClosing()
@@ -455,7 +414,11 @@ export const createZoomFactory = ({
     }
 
     // Apply the default option values
-    zoomOptions = { ...hooks.defaults, ...zoomOptions }
+    zoomOptions = assign(
+      { margin: 0, background: '#fff', scrollOffset: 40 },
+      hooks.__mz_defaults,
+      zoomOptions
+    )
 
     const overlay = createOverlay(zoomOptions.background)
 

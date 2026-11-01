@@ -21,14 +21,14 @@ export interface Viewport {
 
 // Only built-in features implement this contract. The engine owns cancellation.
 export interface FeatureHooks {
-  defaults?: Partial<ZoomOptions>
-  update?: (options: ZoomOptions, previous: ZoomOptions) => void
-  viewport?: (options: ZoomOptions, viewport: Viewport) => Viewport
-  mount?: (session: Session, options: ZoomOptions) => void
-  load?: (
+  __mz_defaults?: Partial<ZoomOptions>
+  __mz_update?: (options: ZoomOptions, previous: ZoomOptions) => void
+  __mz_viewport?: (options: ZoomOptions, viewport: Viewport) => Viewport
+  __mz_mount?: (session: Session, options: ZoomOptions) => void
+  __mz_load?: (
     session: Session,
     ready: (target?: HTMLImageElement) => void,
     close: () => void
   ) => Cleanup | undefined
-  closing?: (session: Session) => void
+  __mz_closing?: (session: Session) => void
 }
