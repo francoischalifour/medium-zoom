@@ -20,49 +20,66 @@ async function fixture(page: Page, order = false) {
   )
   await page.addStyleTag({ url: '/experimental/dist/modern/style.css' })
   await page.addStyleTag({ url: '/experiments/gallery-controls.css' })
-  await page.evaluate(async reverse => {
-    const core = '/experimental/dist/core/index.mjs'
-    const featuresPath = '/experimental/dist/features/index.mjs'
-    const renderers = '/experimental/dist/renderers/index.mjs'
-    const { createMediumZoom } = (await import(core)) as typeof import('../../src/core')
-    const { accessibility, hdImage, template } = (await import(
-      featuresPath
-    )) as typeof import('../../src/features')
-    const { dialog } = (await import(renderers)) as typeof import('../../src/renderers')
+  await page.evaluate(async sessionFirst => {
+    const { createZoom } = (await import(
+      String('/experimental/dist/core/index.mjs')
+    )) as typeof import('../../src/core')
+    const { loadHdImage } = (await import(
+      String('/experimental/dist/loaders/index.mjs')
+    )) as typeof import('../../src/loaders')
+    const { bindZoomTriggers } = (await import(
+      String('/experimental/dist/triggers/index.mjs')
+    )) as typeof import('../../src/triggers')
+    const { templateContent } = (await import(
+      String('/experimental/dist/content/index.mjs')
+    )) as typeof import('../../src/content')
     const { createGallery } = (await import(
       String('/experimental/dist/gallery/index.mjs')
     )) as typeof import('../../src/gallery')
+    const { dialog } = (await import(
+      String('/experimental/dist/renderers/index.mjs')
+    )) as typeof import('../../src/renderers')
     const { mountExampleControls, mountCloseControl } = (await import(
       String('/experiments/gallery-controls.mjs')
     )) as typeof import('../experimental/gallery-controls.mjs')
     const { createZoomSession } = (await import(
       String('/experimental/dist/session/index.mjs')
     )) as typeof import('../../src/session')
-    const features = [accessibility(), hdImage(), template()]
-    const factory = createMediumZoom({
-      renderer: dialog({
-        content: view => {
-          const close = mountCloseControl(view)
-          const controls = mountExampleControls(view.element, createGallery(view.zoom))
-          return () => {
-            controls()
-            close()
-          }
-        },
-      }),
-      features: reverse ? features.reverse() : features,
-    })
-    window.mediumZoom = (selector?: unknown, options?: import('../../src/types').ZoomOptions) => {
-      const zoom = factory(selector as import('../../src/types').ZoomSelector, options)
-      createZoomSession(zoom)
+    window.mediumZoom = ((
+      selector?: import('../../src/types').ZoomSelector,
+      { template, ...options }: import('../../src/types').ZoomOptions = {}
+    ) => {
+      const zoom = createZoom(selector, {
+        ...options,
+        loader: loadHdImage,
+        renderer: dialog({
+          content: view => {
+            const close = mountCloseControl(view)
+            const controls = mountExampleControls(view.element, createGallery(view.zoom))
+            const content = template ? templateContent(template)(view) : undefined
+            return () => {
+              content?.()
+              controls()
+              close()
+            }
+          },
+        }),
+      })
+      if (sessionFirst) {
+        createZoomSession(zoom)
+        bindZoomTriggers(zoom)
+      } else {
+        bindZoomTriggers(zoom)
+        createZoomSession(zoom)
+      }
       return zoom
-    }
+    }) as import('../../src/types').ZoomFactory
     window.zoom = window.mediumZoom('#first, #second, #third', { template: '#caption' })
   }, order)
 }
 
 for (const reverse of [false, true]) {
-  test(`composed gallery preserves its modal, controls and focus (${reverse ? 'reversed' : 'forward'} hooks)`, async ({
+  test(`composed gallery preserves its modal, controls and focus (${reverse ? 'session first' : 'bindings first'})`, async ({
     page,
   }) => {
     await fixture(page, reverse)
@@ -218,14 +235,22 @@ test('navigation cancels stale HD loading while retaining one modal and one acce
   await expect(page.locator('.medium-zoom-image--hidden')).toHaveCount(0)
 })
 
-test('clones retain accessibility and gallery capabilities with independent sessions', async ({
+test('clones retain rendering strategies with explicit bindings and independent sessions', async ({
   page,
 }) => {
   await fixture(page)
-  await page.evaluate(() => {
+  await page.evaluate(async () => {
+    const { bindZoomTriggers } = (await import(
+      String('/experimental/dist/triggers/index.mjs')
+    )) as typeof import('../../src/triggers')
+    const { createZoomSession } = (await import(
+      String('/experimental/dist/session/index.mjs')
+    )) as typeof import('../../src/session')
     const clone = window.zoom.clone().attach('#linked')
     window.zoom.detach()
     clone.attach('#first', '#second', '#third')
+    bindZoomTriggers(clone)
+    createZoomSession(clone)
     window.zoom = clone
   })
   await page.locator('#second').focus()
@@ -375,18 +400,18 @@ test('gallery and modal-only features reject incompatible factories before DOM m
   expect(
     await page.evaluate(async () => {
       const core = '/experimental/dist/core/index.mjs'
-      const features = '/experimental/dist/features/index.mjs'
+      const triggers = '/experimental/dist/triggers/index.mjs'
       const galleries = '/experimental/dist/gallery/index.mjs'
-      const { createMediumZoom } = (await import(core)) as typeof import('../../src/core')
-      const { accessibility } = (await import(features)) as typeof import('../../src/features')
+      const { createZoom } = (await import(core)) as typeof import('../../src/core')
+      const { bindZoomTriggers } = (await import(triggers)) as typeof import('../../src/triggers')
       const { createGallery } = (await import(galleries)) as typeof import('../../src/gallery')
       let rejected = 0
       try {
-        createMediumZoom({ features: [accessibility()] })
+        bindZoomTriggers(createZoom())
       } catch {
         rejected++
       }
-      const zoom = createMediumZoom()()
+      const zoom = createZoom()
       try {
         createGallery(zoom)
       } catch {
@@ -472,7 +497,7 @@ test('disposing after pointer navigation hands ownership to a fresh session', as
     const core = '/experimental/dist/core/index.mjs'
     const renderers = '/experimental/dist/renderers/index.mjs'
     const sessions = '/experimental/dist/session/index.mjs'
-    const { createMediumZoom } = (await import(core)) as typeof import('../../src/core')
+    const { createZoom } = (await import(core)) as typeof import('../../src/core')
     const { createGallery } = (await import(
       String('/experimental/dist/gallery/index.mjs')
     )) as typeof import('../../src/gallery')
@@ -481,18 +506,19 @@ test('disposing after pointer navigation hands ownership to a fresh session', as
     )) as typeof import('../experimental/gallery-controls.mjs')
     const { dialog } = (await import(renderers)) as typeof import('../../src/renderers')
     const { createZoomSession } = (await import(sessions)) as typeof import('../../src/session')
-    const factory = createMediumZoom({
-      renderer: dialog({
-        content: view => {
-          const close = mountCloseControl(view)
-          const controls = mountExampleControls(view.element, createGallery(view.zoom))
-          return () => {
-            controls()
-            close()
-          }
-        },
-      }),
-    })
+    const factory = (selector: import('../../src/types').ZoomSelector) =>
+      createZoom(selector, {
+        renderer: dialog({
+          content: view => {
+            const close = mountCloseControl(view)
+            const controls = mountExampleControls(view.element, createGallery(view.zoom))
+            return () => {
+              controls()
+              close()
+            }
+          },
+        }),
+      })
     const first = createZoomSession(factory('#first, #second'))
     await first.open()
     document

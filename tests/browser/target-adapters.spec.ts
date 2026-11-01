@@ -13,12 +13,12 @@ for (const modal of [false, true]) {
     const result = await page.evaluate(async modal => {
       const core = '/experimental/dist/core/index.mjs',
         renderers = '/experimental/dist/renderers/index.mjs'
-      const { createMediumZoom } = (await import(core)) as typeof import('../../src/core')
+      const { createZoom } = (await import(core)) as typeof import('../../src/core')
       const { dialog } = (await import(renderers)) as typeof import('../../src/renderers')
       const source = document.querySelector<HTMLImageElement>('#image')!
       window.scrollTo(0, 350)
       const before = source.getBoundingClientRect().toJSON()
-      window.zoom = createMediumZoom(modal ? { renderer: dialog() } : {})(source)
+      window.zoom = createZoom(source, modal ? { renderer: dialog() } : {})
       const opening = window.zoom.open()
       const clone = document.querySelector<HTMLImageElement>('.medium-zoom-image--opened')!
       const initial = clone.getBoundingClientRect().toJSON()

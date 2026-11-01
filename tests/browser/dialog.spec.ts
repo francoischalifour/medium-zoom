@@ -2,6 +2,12 @@ import { test, expect, type Page } from '@playwright/test'
 
 import { preparePage } from './helpers'
 
+declare global {
+  interface Window {
+    configureDialog(options: import('../../src/types').ZoomOptions): void
+  }
+}
+
 async function fixture(page: Page, hd = false) {
   await preparePage(page, {
     body: `<button id="trigger" aria-label="Enlarge mountain"><img id="image" src="/images/image-1.jpg" width="160" alt="Mountain" ${hd ? 'data-zoom-src="/images/image-2.jpg"' : ''}></button>
@@ -15,19 +21,47 @@ async function fixture(page: Page, hd = false) {
   )
   await page.addStyleTag({ url: '/experimental/dist/modern/style.css' })
   await page.evaluate(async () => {
-    const core = '/experimental/dist/core/index.mjs'
-    const features = '/experimental/dist/features/index.mjs'
-    const renderers = '/experimental/dist/renderers/index.mjs'
-    const { createMediumZoom } = (await import(core)) as typeof import('../../src/core')
-    const { hdImage, template, container } = (await import(
-      features
-    )) as typeof import('../../src/features')
-    const { dialog } = (await import(renderers)) as typeof import('../../src/renderers')
+    const { createZoom } = (await import(
+      String('/experimental/dist/core/index.mjs')
+    )) as typeof import('../../src/core')
+    const { loadHdImage } = (await import(
+      String('/experimental/dist/loaders/index.mjs')
+    )) as typeof import('../../src/loaders')
+    const { containerBounds } = (await import(
+      String('/experimental/dist/viewport/index.mjs')
+    )) as typeof import('../../src/viewport')
+    const { templateContent } = (await import(
+      String('/experimental/dist/content/index.mjs')
+    )) as typeof import('../../src/content')
+    const { dialog } = (await import(
+      String('/experimental/dist/renderers/index.mjs')
+    )) as typeof import('../../src/renderers')
     const { mountCloseControl } = await import(String('/experiments/gallery-controls.mjs'))
-    window.zoom = createMediumZoom({
-      renderer: dialog({ content: mountCloseControl }),
-      features: [hdImage(), template(), container()],
-    })('#image')
+    let selected: import('../../src/types').ZoomOptions = {}
+    window.zoom = createZoom('#image', {
+      renderer: dialog({
+        content: view => {
+          const close = mountCloseControl(view)
+          const content = selected.template ? templateContent(selected.template)(view) : undefined
+          return () => {
+            content?.()
+            close()
+          }
+        },
+      }),
+      loader: loadHdImage,
+      viewport: (bounds, options) =>
+        selected.container ? containerBounds(selected.container)(bounds, options) : bounds,
+    })
+    window.configureDialog = ({ container, template, ...options }) => {
+      if (container !== undefined) {
+        selected = { ...selected, container }
+      }
+      if (template !== undefined) {
+        selected = { ...selected, template }
+      }
+      window.zoom.update(options)
+    }
     document.querySelector('#trigger')!.addEventListener('click', event => {
       void window.zoom.open({
         target: document.querySelector('#image')!,
@@ -49,7 +83,7 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
     await page.emulateMedia({ reducedMotion })
     await fixture(page, true)
     await page.evaluate(() =>
-      window.zoom.update({ template: '#template', container: '#container' })
+      window.configureDialog({ template: '#template', container: '#container' })
     )
     await page.locator('#trigger').focus()
     await page.keyboard.press('Enter')
@@ -100,7 +134,7 @@ test('top layer and scrolled geometry with custom container, backdrop and image 
   await page.evaluate(() => {
     document.querySelector<HTMLElement>('#trigger')!.style.marginTop = '600px'
     window.scrollTo(0, 450)
-    window.zoom.update({ container: '#container', margin: 12 })
+    window.configureDialog({ container: '#container', margin: 12 })
     const cover = document.createElement('div')
     cover.style.cssText =
       'position:fixed;inset:0;z-index:2147483647;pointer-events:none;background:rgba(0,0,0,.1)'
@@ -212,7 +246,7 @@ test('template dialog forms use the animated close lifecycle', async ({ page }) 
   await page.evaluate(() => {
     document.querySelector('template')!.innerHTML =
       '<form method="dialog" style="position:fixed;top:16px;left:16px"><button>Done</button></form>'
-    window.zoom.update({ template: '#template' })
+    window.configureDialog({ template: '#template' })
   })
   await page.locator('#trigger').click()
   await expect(page.locator('body')).toHaveAttribute('data-events', 'open,opened,')
@@ -335,13 +369,10 @@ for (const kind of ['element', 'coordinates'] as const) {
     await page.evaluate(async kind => {
       const element = document.querySelector<HTMLElement>('#container')!
       const { width, height, left, top } = element.getBoundingClientRect()
-      window.zoom.update({
+      window.configureDialog({
         container:
           kind === 'element' ? element : { width: width + left, height: height + top, left, top },
       })
-      if (kind === 'element' && window.zoom.getOptions().container !== element) {
-        throw Error('Container identity lost')
-      }
       await window.zoom.open()
     }, kind)
     const image = await page.locator('dialog img').boundingBox()

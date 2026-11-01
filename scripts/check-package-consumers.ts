@@ -22,8 +22,8 @@ export async function checkConsumers(artifact: ReturnType<typeof pack>, experime
   if (experimental) {
     for (const extension of ['ts', 'cts', 'mts']) {
       copyFileSync(
-        join(fixtures, 'features-consumer.ts'),
-        join(consumer, `features-consumer.${extension}`)
+        join(fixtures, 'strategies-consumer.ts'),
+        join(consumer, `strategies-consumer.${extension}`)
       )
     }
   }
@@ -32,6 +32,10 @@ export async function checkConsumers(artifact: ReturnType<typeof pack>, experime
     const unpublished = [
       'core',
       'features',
+      'loaders',
+      'viewport',
+      'content',
+      'triggers',
       'renderers',
       'gallery',
       'controls',
@@ -79,30 +83,30 @@ function checkTypes(consumer: string, experimental: boolean) {
   // Configuration belongs to each case; names are only diagnostic labels.
   const cases = [
     {
-      name: 'features-bundler',
+      name: 'strategies-bundler',
       module: 'ESNext',
       moduleResolution: 'Bundler',
-      file: 'features-consumer.ts',
+      file: 'strategies-consumer.ts',
     },
     {
-      name: 'features-legacy',
+      name: 'strategies-legacy',
       module: 'ESNext',
       moduleResolution: 'Node10',
-      file: 'features-consumer.ts',
+      file: 'strategies-consumer.ts',
       compiler: 'typescript-legacy',
       esModuleInterop: false,
     },
     {
-      name: 'features-commonjs',
+      name: 'strategies-commonjs',
       module: 'Node16',
       moduleResolution: 'Node16',
-      file: 'features-consumer.cts',
+      file: 'strategies-consumer.cts',
     },
     {
-      name: 'features-node-esm',
+      name: 'strategies-node-esm',
       module: 'NodeNext',
       moduleResolution: 'NodeNext',
-      file: 'features-consumer.mts',
+      file: 'strategies-consumer.mts',
     },
     {
       name: 'unpublished-boundary',
@@ -129,7 +133,7 @@ function checkTypes(consumer: string, experimental: boolean) {
     { name: 'node-esm', module: 'Node16', moduleResolution: 'Node16', file: 'node-esm.mts' },
     { name: 'nodenext', module: 'NodeNext', moduleResolution: 'NodeNext', file: 'node-esm.mts' },
   ].filter(({ name }) =>
-    experimental ? name !== 'unpublished-boundary' : !name.startsWith('features-')
+    experimental ? name !== 'unpublished-boundary' : !name.startsWith('strategies-')
   )
   for (const {
     name,
@@ -195,7 +199,9 @@ async function checkBundlerResolution(
         ['medium-zoom/pure', 'dist/pure/index.mjs'],
         ['medium-zoom/style.css', 'dist/style.css'],
         ['medium-zoom/core', 'dist/core/index.mjs'],
-        ['medium-zoom/features', 'dist/features/index.mjs'],
+        ...['loaders', 'viewport', 'content', 'triggers'].map(
+          name => [`medium-zoom/${name}`, `dist/${name}/index.mjs`] as [string, string]
+        ),
         ['medium-zoom/renderers', 'dist/renderers/index.mjs'],
         ['medium-zoom/gallery', 'dist/gallery/index.mjs']
       )

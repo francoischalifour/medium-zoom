@@ -104,13 +104,14 @@ test('explicit sessions coordinate keyboard adapters and standalone consumers', 
   await fixture(page)
   await page.evaluate(async () => {
     const core = '/experimental/dist/core/index.mjs'
-    const features = '/experimental/dist/features/index.mjs'
+    const triggers = '/experimental/dist/triggers/index.mjs'
     const renderers = '/experimental/dist/renderers/index.mjs'
-    const { createMediumZoom } = (await import(core)) as typeof import('../../src/core')
-    const { accessibility } = (await import(features)) as typeof import('../../src/features')
+    const { createZoom } = (await import(core)) as typeof import('../../src/core')
+    const { bindZoomTriggers } = (await import(triggers)) as typeof import('../../src/triggers')
     const { dialog } = (await import(renderers)) as typeof import('../../src/renderers')
     await window.zoomSessions[0]!.open()
-    const zoom = createMediumZoom({ renderer: dialog(), features: [accessibility()] })('#second')
+    const zoom = createZoom('#second', { renderer: dialog() })
+    bindZoomTriggers(zoom)
     const session = (window.zoomSessions[1] = (
       (await import(
         String('/experimental/dist/session/index.mjs')

@@ -87,7 +87,7 @@
     "test": "bun run test:browser",
     "test:browser": "playwright test --config config/playwright.config.mts",
     "test:package": "bun scripts/check-package.ts",
-    "test:size": "bun scripts/check-size.ts && bun scripts/check-feature-size.ts",
+    "test:size": "bun scripts/check-size.ts && bun scripts/check-composition-size.ts",
     "check": "bun run check:library && bun run build:demo && bun run test:examples && bun run test:browser && bun run test:rsc && bun run test:analytics && bun run test:registry",
     "check:library": "bun run format:check && bun run build && bun run lint && bun run typecheck && bun run test:size && bun run test:package && bun run test:geometry",
     "prepublishOnly": "bun run check",

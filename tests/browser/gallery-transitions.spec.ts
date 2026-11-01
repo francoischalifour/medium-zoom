@@ -29,18 +29,18 @@ async function fixture(page: Page, mode: 'deferred' | 'throw' | 'reject' | 'anim
       renderers = '/experimental/dist/renderers/index.mjs',
       galleries = '/experimental/dist/gallery/index.mjs',
       sessions = '/experimental/dist/session/index.mjs'
-    const { createMediumZoom } = (await import(core)) as typeof import('../../src/core')
+    const { createZoom } = (await import(core)) as typeof import('../../src/core')
     const { dialog } = (await import(renderers)) as typeof import('../../src/renderers')
     const { createGallery } = (await import(galleries)) as typeof import('../../src/gallery')
     const { createZoomSession } = (await import(sessions)) as typeof import('../../src/session')
     window.transitionLog = []
     window.finishTransitions = []
     window.gallerySettled = 0
-    const { hdImage } = (await import(
-      String('/experimental/dist/features/index.mjs')
-    )) as typeof import('../../src/features')
-    window.zoom = createMediumZoom({
-      features: [hdImage()],
+    const { loadHdImage } = (await import(
+      String('/experimental/dist/loaders/index.mjs')
+    )) as typeof import('../../src/loaders')
+    window.zoom = createZoom('img', {
+      loader: loadHdImage,
       renderer: dialog({
         transition: ({ outgoing, incoming, direction, signal }) => {
           if (mode === 'throw') {
@@ -91,7 +91,7 @@ async function fixture(page: Page, mode: 'deferred' | 'throw' | 'reject' | 'anim
           })
         },
       }),
-    })('img')
+    })
     createZoomSession(window.zoom)
     window.transitionGallery = createGallery(window.zoom)
     await window.zoom.open({ trigger: document.querySelector('#trigger')! })

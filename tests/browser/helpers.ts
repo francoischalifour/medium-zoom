@@ -52,19 +52,6 @@ export async function loadBundle(
     })
     return
   }
-  if (distribution === 'package' && test.info().project.metadata.composed) {
-    await page.evaluate(async () => {
-      const coreUrl = '/experimental/dist/core/index.mjs'
-      const featureUrl = '/experimental/dist/features/index.mjs'
-      const { createMediumZoom } = (await import(coreUrl)) as typeof import('../../src/core')
-      const { hdImage, container, template } = (await import(
-        featureUrl
-      )) as typeof import('../../src/features')
-      window.mediumZoom = createMediumZoom({ features: [template(), container(), hdImage()] })
-    })
-    await page.addStyleTag({ url: '/experimental/dist/modern/style.css' })
-    return
-  }
   const { file, format } = bundles[bundle]
   const url = `/${distribution}/dist/${file}`
   if (format === 'esm') {

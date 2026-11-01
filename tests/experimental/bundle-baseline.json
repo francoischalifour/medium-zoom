@@ -1,0 +1,107 @@
+{
+  "revision": "53e96a2",
+  "description": "Headless feature-array architecture, measured before explicit strategy APIs",
+  "compression": "Bun gzipSync level 9",
+  "bun": "1.4.4",
+  "rawEsm": {
+    "core": 3754,
+    "features": 1861,
+    "renderers": 1392,
+    "session": 788,
+    "gallery": 814,
+    "compat": 4225,
+    "modern": 4206
+  },
+  "consumers": {
+    "core": {
+      "js": 3729,
+      "css": 251
+    },
+    "core + session": {
+      "js": 4330,
+      "css": 251
+    },
+    "core + HD": {
+      "js": 4047,
+      "css": 251
+    },
+    "core + container": {
+      "js": 3959,
+      "css": 251
+    },
+    "core + template": {
+      "js": 3887,
+      "css": 251
+    },
+    "core + legacy features": {
+      "js": 4409,
+      "css": 251
+    },
+    "core + dialog": {
+      "js": 4741,
+      "css": 251
+    },
+    "dialog + accessibility": {
+      "js": 5193,
+      "css": 251
+    },
+    "dialog + headless gallery": {
+      "js": 5121,
+      "css": 251
+    },
+    "gallery + session": {
+      "js": 5665,
+      "css": 251
+    },
+    "gallery + keyboard": {
+      "js": 5820,
+      "css": 251
+    },
+    "accessible gallery": {
+      "js": 6220,
+      "css": 251
+    },
+    "gallery + all features": {
+      "js": 6866,
+      "css": 251
+    },
+    "gallery + custom transition": {
+      "js": 5747,
+      "css": 251
+    }
+  },
+  "presets": {
+    "medium-zoom": {
+      "js": 4172,
+      "css": 0
+    },
+    "medium-zoom/pure": {
+      "js": 3954,
+      "css": 258
+    },
+    "medium-zoom/compat": {
+      "js": 4172,
+      "css": 0
+    },
+    "medium-zoom/compat/pure": {
+      "js": 3954,
+      "css": 258
+    },
+    "medium-zoom/modern": {
+      "js": 3938,
+      "css": 0
+    }
+  },
+  "packages": {
+    "release": {
+      "files": 13,
+      "tarball": 30690,
+      "unpacked": 136852
+    },
+    "candidate": {
+      "files": 50,
+      "tarball": 65292,
+      "unpacked": 332155
+    }
+  }
+}

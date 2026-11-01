@@ -66,6 +66,12 @@ export const imageAdapter: TargetAdapter<HTMLImageElement, string> = {
     const { left, top, width, height } = image.getBoundingClientRect()
     const clone = image.cloneNode() as HTMLImageElement
     clone.removeAttribute('id')
+    const label = (image as ZoomTarget).__mz_triggerLabel
+    if (label === null) {
+      clone.removeAttribute('aria-label')
+    } else if (label !== undefined) {
+      clone.setAttribute('aria-label', label)
+    }
     clone.style.position = 'absolute'
     clone.style.left = `${left + (coordinates === 'document' ? getScrollX() : 0)}px`
     clone.style.top = `${top + (coordinates === 'document' ? getScrollY() : 0)}px`

@@ -25,8 +25,14 @@ for (const path of ['dist/medium-zoom.esm.js', 'dist/pure/index.js', 'dist/style
 assert.equal(typeof (await import('medium-zoom/dist/pure')).default, 'function')
 
 for (const [entry, names] of Object.entries({
-  core: ['createMediumZoom'],
-  features: ['hdImage', 'container', 'template'],
+  core: ['createZoom'],
+  loaders: ['loadHdImage'],
+  viewport: ['containerBounds'],
+  content: ['templateContent'],
+  triggers: ['bindZoomTriggers'],
+  gallery: ['createGallery', 'bindGalleryKeyboard'],
+  session: ['createZoomSession'],
+  renderers: ['dialog'],
 })) {
   const esm = await import(`medium-zoom/${entry}`)
   const cjs = require(`medium-zoom/${entry}`)

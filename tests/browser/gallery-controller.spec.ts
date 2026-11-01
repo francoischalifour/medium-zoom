@@ -19,11 +19,11 @@ async function fixture(page: Page) {
       sessions = '/experimental/dist/session/index.mjs',
       galleries = '/experimental/dist/gallery/index.mjs',
       renderers = '/experimental/dist/renderers/index.mjs'
-    const { createMediumZoom } = (await import(core)) as typeof import('../../src/core')
+    const { createZoom } = (await import(core)) as typeof import('../../src/core')
     const { createZoomSession } = (await import(sessions)) as typeof import('../../src/session')
     const { createGallery } = (await import(galleries)) as typeof import('../../src/gallery')
     const { dialog } = (await import(renderers)) as typeof import('../../src/renderers')
-    window.zoom = createMediumZoom({ renderer: dialog() })('img')
+    window.zoom = createZoom('img', { renderer: dialog() })
     createZoomSession(window.zoom)
     window.galleryController = createGallery(window.zoom)
   })

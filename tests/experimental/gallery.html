@@ -108,26 +108,31 @@
       </div></template
     >
     <script type="module">
-      import { createMediumZoom } from '/experimental/dist/core/index.mjs'
-      import { accessibility, hdImage, template } from '/experimental/dist/features/index.mjs'
+      import { createZoom } from '/experimental/dist/core/index.mjs'
+      import { loadHdImage } from '/experimental/dist/loaders/index.mjs'
+      import { bindZoomTriggers } from '/experimental/dist/triggers/index.mjs'
+      import { templateContent } from '/experimental/dist/content/index.mjs'
       import { createGallery } from '/experimental/dist/gallery/index.mjs'
       import { mountExampleControls, mountCloseControl } from '/experiments/gallery-controls.mjs'
       import { createZoomSession } from '/experimental/dist/session/index.mjs'
       import { dialog } from '/experimental/dist/renderers/index.mjs'
-      const mediumZoom = createMediumZoom({
+      window.zoom = createZoom('.gallery img', {
         renderer: dialog({
           content: view => {
+            const content = templateContent('#caption')(view)
             const close = mountCloseControl(view)
             const controls = mountExampleControls(view.element, createGallery(view.zoom))
             return () => {
+              content?.()
               controls()
               close()
             }
           },
         }),
-        features: [accessibility(), hdImage(), template()],
+        loader: loadHdImage,
+        margin: 72,
       })
-      window.zoom = mediumZoom('.gallery img', { margin: 72, template: '#caption' })
+      bindZoomTriggers(window.zoom)
       createZoomSession(window.zoom)
     </script>
   </body>

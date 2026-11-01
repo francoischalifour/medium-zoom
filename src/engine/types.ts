@@ -1,5 +1,5 @@
 import type { RenderedFrame, ZoomTarget } from '../targets/types'
-import type { Zoom, ZoomOptions } from '../types'
+import type { CoreZoomOptions, Zoom, ZoomOptions } from '../types'
 import type { FrameGeometry } from './geometry'
 
 export type Cleanup = () => void
@@ -39,18 +39,18 @@ export interface Viewport {
   top: number
 }
 
-// Only built-in features implement this contract. The engine owns cancellation.
-export interface FeatureHooks {
-  __mz_setup?: (zoom: Zoom) => void
-  __mz_requiresModal?: boolean
+export type ZoomLoader = (
+  content: ContentContext,
+  ready: (frame?: RenderedFrame) => void
+) => Cleanup | void
+export type ZoomViewport = (viewport: Viewport, options: Readonly<CoreZoomOptions>) => Viewport
+// Optional internal adapters preserve the legacy preset's option/update/content behavior.
+export interface EngineStrategies {
+  loader?: ZoomLoader
+  viewport?: ZoomViewport
   __mz_defaults?: Partial<ZoomOptions>
   __mz_update?: (options: ZoomOptions, previous: ZoomOptions) => void
-  __mz_viewport?: (options: ZoomOptions, viewport: Viewport) => Viewport
   __mz_mount?: (content: ContentContext, options: ZoomOptions) => Cleanup | void
-  __mz_load?: (
-    content: ContentContext,
-    ready: (frame?: RenderedFrame) => void
-  ) => Cleanup | undefined
 }
 
 export interface FrameTransition {
@@ -76,5 +76,3 @@ export interface RendererHooks {
     readonly trigger?: HTMLElement
   }) => RenderHost
 }
-
-export type EngineHooks = Required<Omit<FeatureHooks, '__mz_setup' | '__mz_requiresModal'>>

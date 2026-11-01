@@ -6,9 +6,13 @@ import type { Zoom, ZoomFactory, ZoomOptions, ZoomSelector, ZoomOpenOptions } fr
 import { createOverlay, getImagesFromSelectors } from '../utils'
 import { fitTarget } from './geometry'
 import { waitForTransition } from './transition'
-import type { EngineHooks, Scene, RendererHooks, ContentContext, GallerySource } from './types'
+import type { EngineStrategies, Scene, ContentContext, GallerySource, RendererHooks } from './types'
 
-export const createZoom = (hooks: EngineHooks, renderer?: RendererHooks): ZoomFactory => {
+export const createEngine = (
+  strategies: EngineStrategies,
+  renderer?: RendererHooks
+): ZoomFactory => {
+  const { loader, viewport: measureViewport } = strategies
   const mediumZoom: ZoomFactory = (
     selector?: ZoomSelector | ZoomOptions,
     options: ZoomOptions = {}
@@ -107,7 +111,7 @@ export const createZoom = (hooks: EngineHooks, renderer?: RendererHooks): ZoomFa
         overlay.style.background = options.background
       }
 
-      hooks.__mz_update(options, zoomOptions)
+      strategies.__mz_update?.(options, zoomOptions)
 
       zoomOptions = assign({}, zoomOptions, newOptions)
 
@@ -121,17 +125,17 @@ export const createZoom = (hooks: EngineHooks, renderer?: RendererHooks): ZoomFa
     const clone = (options?: ZoomOptions) => mediumZoom(assign({}, zoomOptions, options))
 
     const attach: Zoom['attach'] = function () {
-      const newImages = getImagesFromSelectors(arguments)
+      const newImages = getImagesFromSelectors(arguments).filter(
+        image => images.indexOf(image) === -1
+      )
       if (!images.length && newImages.length) {
         document.addEventListener('click', _handleClick as EventListener)
       }
 
-      newImages
-        .filter(newImage => images.indexOf(newImage) === -1)
-        .forEach(newImage => {
-          images.push(newImage)
-          newImage.classList.add('medium-zoom-image')
-        })
+      newImages.forEach(newImage => {
+        images.push(newImage)
+        newImage.classList.add('medium-zoom-image')
+      })
 
       eventListeners.forEach(({ type, listener, options }) => {
         newImages.forEach(image => {
@@ -139,6 +143,7 @@ export const createZoom = (hooks: EngineHooks, renderer?: RendererHooks): ZoomFa
         })
       })
 
+      newImages.forEach(image => _dispatchEvent(image, 'attach'))
       return zoom
     }
 
@@ -218,7 +223,7 @@ export const createZoom = (hooks: EngineHooks, renderer?: RendererHooks): ZoomFa
           left: margin,
           top: margin,
         }
-        viewport = hooks.__mz_viewport(zoomOptions, viewport)
+        viewport = measureViewport?.(viewport, zoomOptions) || viewport
         const adapter = getTargetAdapter(zoomTarget)!
         const measurement = adapter.measure(zoomTarget, adapter.resolveSource(zoomTarget), viewport)
         const geometry = fitTarget(measurement, viewport)
@@ -260,7 +265,7 @@ export const createZoom = (hooks: EngineHooks, renderer?: RendererHooks): ZoomFa
         active = current
 
         let cancelTransition: (() => void) | undefined
-        let cancelImage: (() => void) | undefined
+        let cancelImage: (() => void) | void
         let frame: number
         const finishOpening = (opened = false) => {
           if (!current.__mz_cancelOpen) {
@@ -342,10 +347,17 @@ export const createZoom = (hooks: EngineHooks, renderer?: RendererHooks): ZoomFa
           original: current.__mz_original,
           frame: { element: current.__mz_primary.element, content: current.__mz_primary.content },
           append(node) {
+            if (active !== current || current.__mz_closing) {
+              return
+            }
             host.appendChild(node)
             current.__mz_nodes!.push(node)
           },
           appendFrame(frame) {
+            if (active !== current || current.__mz_closing) {
+              frame.dispose()
+              return
+            }
             host.appendChild(frame.element)
             frame.element.addEventListener('click', _close)
             if (current.__mz_frames!.indexOf(frame) === -1) {
@@ -354,7 +366,7 @@ export const createZoom = (hooks: EngineHooks, renderer?: RendererHooks): ZoomFa
           },
         }
         try {
-          current.__mz_closeContent = hooks.__mz_mount(content, zoomOptions)
+          current.__mz_closeContent = strategies.__mz_mount?.(content, zoomOptions)
         } catch (error) {
           reject(error)
           void close()
@@ -373,57 +385,76 @@ export const createZoom = (hooks: EngineHooks, renderer?: RendererHooks): ZoomFa
         current.__mz_original.classList.add('medium-zoom-image--hidden')
         current.__mz_primary.element.classList.add('medium-zoom-image--opened')
 
+        let prepared = false
         const animate = (target?: RenderedFrame) => {
-          const incoming = current.__mz_frames!
-          _animate(target?.content)
-          current.__mz_view?.setLoading(false)
-          if (replacing) {
-            current.__mz_outgoing!.forEach(frame =>
-              current.__mz_view!.prepare(frame, frame.geometry, true)
-            )
-            const complete = (error?: unknown) => {
-              if (!current.__mz_cancelOpen || active !== current) {
-                return
-              }
-              cancelTransition = undefined
-              disposeFrames(current.__mz_outgoing!)
-              current.__mz_outgoing = []
-              if (error !== undefined) {
-                reject(error)
-                void close()
-              } else {
-                finishOpening(true)
-              }
-            }
-            const transition = current.__mz_primary!.geometry
-              ? current.__mz_view?.transition
-              : undefined
-            if (transition) {
-              const direction =
-                images.indexOf(current.__mz_original!) > images.indexOf(replacing.__mz_original!)
-                  ? 1
-                  : -1
-              cancelTransition = transition(
-                {
-                  outgoing: current.__mz_outgoing!,
-                  incoming,
-                  direction,
-                },
-                complete
+          if (prepared || !current.__mz_cancelOpen || current.__mz_closing || active !== current) {
+            return
+          }
+          prepared = true
+          try {
+            const incoming = current.__mz_frames!
+            _animate(target?.content)
+            current.__mz_view?.setLoading(false)
+            if (replacing) {
+              current.__mz_outgoing!.forEach(frame =>
+                current.__mz_view!.prepare(frame, frame.geometry, true)
               )
+              const complete = (error?: unknown) => {
+                if (!current.__mz_cancelOpen || active !== current) {
+                  return
+                }
+                cancelTransition = undefined
+                disposeFrames(current.__mz_outgoing!)
+                current.__mz_outgoing = []
+                if (error !== undefined) {
+                  reject(error)
+                  void close()
+                } else {
+                  finishOpening(true)
+                }
+              }
+              const transition = current.__mz_primary!.geometry
+                ? current.__mz_view?.transition
+                : undefined
+              if (transition) {
+                const direction =
+                  images.indexOf(current.__mz_original!) > images.indexOf(replacing.__mz_original!)
+                    ? 1
+                    : -1
+                cancelTransition = transition(
+                  {
+                    outgoing: current.__mz_outgoing!,
+                    incoming,
+                    direction,
+                  },
+                  complete
+                )
+              } else {
+                complete()
+              }
             } else {
-              complete()
+              cancelTransition = waitForTransition(current.__mz_primary!.element, () =>
+                finishOpening(true)
+              )
             }
-          } else {
-            cancelTransition = waitForTransition(current.__mz_primary!.element, () =>
-              finishOpening(true)
-            )
+          } catch (error) {
+            reject(error)
+            void close()
           }
         }
 
-        cancelImage = hooks.__mz_load(content, animate)
-        if (!cancelImage) {
-          animate()
+        try {
+          if (loader) {
+            cancelImage = loader(content, animate)
+            if (!current.__mz_cancelOpen && cancelImage) {
+              cancelImage()
+            }
+          } else {
+            animate()
+          }
+        } catch (error) {
+          reject(error)
+          void close()
         }
       })
     }
@@ -544,7 +575,7 @@ export const createZoom = (hooks: EngineHooks, renderer?: RendererHooks): ZoomFa
     // Apply the default option values
     zoomOptions = assign(
       { margin: 0, background: '#fff', scrollOffset: 40 },
-      hooks.__mz_defaults,
+      strategies.__mz_defaults,
       zoomOptions
     )
 

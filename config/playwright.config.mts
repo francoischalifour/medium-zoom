@@ -18,12 +18,6 @@ export default defineConfig({
   projects: [
     { name: 'chromium', testIgnore: '**/mobile.spec.ts', use: { ...devices['Desktop Chrome'] } },
     {
-      name: 'composed-chromium',
-      testMatch: ['**/api.spec.ts', '**/loading.spec.ts', '**/motion.spec.ts'],
-      metadata: { composed: true },
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
       name: 'modern-chromium',
       testMatch: ['**/api.spec.ts', '**/loading.spec.ts', '**/motion.spec.ts'],
       metadata: { modernFull: true },
@@ -41,6 +35,8 @@ export default defineConfig({
         '**/gallery-controller.spec.ts',
         '**/gallery-transitions.spec.ts',
         '**/target-adapters.spec.ts',
+        '**/strategies.spec.ts',
+        '**/triggers.spec.ts',
       ],
       use: { ...devices['Pixel 7'] },
     },
@@ -54,6 +50,8 @@ export default defineConfig({
         '**/gallery-controller.spec.ts',
         '**/gallery-transitions.spec.ts',
         '**/target-adapters.spec.ts',
+        '**/strategies.spec.ts',
+        '**/triggers.spec.ts',
       ],
       use: { ...devices['iPhone 13'] },
     },

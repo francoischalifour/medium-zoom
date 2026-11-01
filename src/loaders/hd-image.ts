@@ -1,18 +1,15 @@
-import type { ZoomFeature } from 'medium-zoom/core'
-
-import type { FeatureHooks } from '../engine/types'
+import type { ZoomLoader } from '../core'
 import { createImageFrame, isImage } from '../targets/image'
 
-export const loadHdImage: NonNullable<FeatureHooks['__mz_load']> = (
-  { original, frame, appendFrame },
-  ready
-) => {
+export const loadHdImage: ZoomLoader = ({ original, frame, appendFrame }, ready) => {
   if (!isImage(original) || !isImage(frame.content)) {
+    ready()
     return
   }
   const zoomed = frame.content
   const source = original.getAttribute('data-zoom-src')
   if (!source && !original.hasAttribute('srcset')) {
+    ready()
     return
   }
   // Install handlers before assigning sources: Firefox may queue a cached load.
@@ -50,11 +47,4 @@ export const loadHdImage: NonNullable<FeatureHooks['__mz_load']> = (
   }
   hd.src = source || zoomed.src
   return cleanup
-}
-
-export function hdImage(): ZoomFeature<{}> {
-  const feature: FeatureHooks = {
-    __mz_load: loadHdImage,
-  }
-  return feature as unknown as ZoomFeature<{}>
 }

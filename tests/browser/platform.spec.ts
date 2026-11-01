@@ -31,12 +31,10 @@ async function loadProfile(page: Page, file: string, withoutAssign = false) {
           }
           if (file === 'core/index.cjs') {
             const core = (await loadCommonJS(url)) as typeof import('../../src/core')
-            const { hdImage, container, template } = (await loadCommonJS(
-              '/experimental/dist/features/index.cjs'
-            )) as typeof import('../../src/features')
-            window.mediumZoom = core.createMediumZoom({
-              features: [hdImage(), container(), template()],
-            })
+            window.mediumZoom = ((
+              selector?: import('../../src/types').ZoomSelector,
+              options?: import('../../src/types').ZoomOptions
+            ) => core.createZoom(selector, options)) as import('../../src/types').ZoomFactory
           } else {
             window.mediumZoom = (await loadCommonJS(url)) as typeof window.mediumZoom
           }
@@ -163,7 +161,7 @@ for (const [profile, file] of Object.entries(profiles)) {
         return (error as Error).name
       }
     })
-    expect(result).toBe('TypeError')
+    expect(result).toBe(file === 'core/index.cjs' ? 'accepted' : 'TypeError')
   })
 
   for (const legacy of ['Esc', 'keyCode'] as const) {
@@ -194,7 +192,10 @@ for (const [profile, file] of Object.entries(profiles)) {
 
 test('modern rendering matches compat and the v1 default', async ({ page }) => {
   const screenshots = []
-  for (const file of ['medium-zoom.esm.js', ...Object.values(profiles)]) {
+  for (const file of [
+    'medium-zoom.esm.js',
+    ...Object.values(profiles).filter(file => file !== 'core/index.cjs'),
+  ]) {
     await preparePage(page, {
       body: `<img id="image" src="/images/image-1.jpg" data-zoom-src="/images/image-2.jpg" width="160" alt="Zoom fixture"><template id="template"><div>Caption</div></template>`,
     })
@@ -215,6 +216,6 @@ test('modern rendering matches compat and the v1 default', async ({ page }) => {
     await page.evaluate(() => window.zoom.close())
   }
   for (const screenshot of screenshots.slice(1)) {
-    expect(screenshot).toEqual(screenshots[0])
+    expect(screenshot.equals(screenshots[0]!)).toBe(true)
   }
 })

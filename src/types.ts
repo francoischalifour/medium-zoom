@@ -167,21 +167,7 @@ export interface ZoomFactory<Options extends CoreZoomOptions = ZoomOptions> {
   (options?: Options): Zoom<Options>
 }
 
-// Feature functions carry their options at the type level; their hooks stay internal.
-declare const featureOptions: unique symbol
-export interface ZoomFeature<Options extends object = object> {
-  readonly [featureOptions]: Options
-}
-
-type FeatureOptionFunctions<Feature> =
-  Feature extends ZoomFeature<infer Options> ? (options: Options) => void : never
-
-export type FeatureOptions<Features extends readonly ZoomFeature[]> = CoreZoomOptions &
-  (FeatureOptionFunctions<Features[number]> extends (options: infer Options) => void
-    ? Options
-    : object)
-
-// Renderers are fixed at factory creation, like features.
+// Rendering strategy is fixed at instance creation.
 declare const rendererType: unique symbol
 export interface ZoomRenderer {
   readonly [rendererType]: true

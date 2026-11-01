@@ -1,6 +1,6 @@
-import { createMediumZoom } from 'medium-zoom/core'
-import { hdImage } from 'medium-zoom/features'
+import { createZoom } from 'medium-zoom/core'
 import { bindGalleryKeyboard, createGallery, type GalleryController } from 'medium-zoom/gallery'
+import { loadHdImage } from 'medium-zoom/loaders'
 import { dialog } from 'medium-zoom/renderers'
 import { createZoomSession, type ZoomSession } from 'medium-zoom/session'
 import * as React from 'react'
@@ -22,8 +22,8 @@ function Example() {
       if (disposed) {
         return
       }
-      const factory = createMediumZoom({
-        features: [hdImage()],
+      const zoom = createZoom(images.current!.querySelectorAll('img'), {
+        loader: loadHdImage,
         renderer: dialog({
           content: ({ element, zoom, close }) => {
             const node = document.createElement('div')
@@ -54,8 +54,8 @@ function Example() {
             }
           },
         }),
+        margin: 72,
       })
-      const zoom = factory(images.current!.querySelectorAll('img'), { margin: 72 })
       current = { session: createZoomSession(zoom), gallery: createGallery(zoom) }
       setOwner(current)
     }

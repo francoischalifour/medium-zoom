@@ -39,11 +39,14 @@ export const releaseEntries: PackageEntry[] = [
 export const extensionEntries: PackageEntry[] = [
   optional(
     'core',
-    'engine/factory',
-    'no features, renderer, session or UI',
+    'instance API',
+    'lifecycle/contracts; strategies imported separately',
     'dist/modern/style.css'
   ),
-  optional('features', 'feature factories', 'HD/container/template/accessibility'),
+  optional('loaders', 'loading strategy', 'loadHdImage; ready + cancellation'),
+  optional('viewport', 'measurement strategy', 'containerBounds; positioning-time layout'),
+  optional('content', 'content helper', 'templateContent; renderer slot + cleanup'),
+  optional('triggers', 'DOM binding', 'bindZoomTriggers; activation + cleanup'),
   optional('renderers', 'modal renderer', 'native dialog + optional transition runner'),
   optional('session', 'coordinator', 'ownership/cancellation; no UI'),
   optional('gallery', 'headless controller', 'selection/subscriptions + keyboard; no UI'),

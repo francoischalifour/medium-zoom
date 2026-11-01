@@ -19,9 +19,6 @@
       "core": [
         "dist/core/index.d.cts"
       ],
-      "features": [
-        "dist/features/index.d.cts"
-      ],
       "dist/pure": [
         "dist/pure/index.d.ts"
       ],
@@ -48,6 +45,18 @@
       ],
       "gallery": [
         "dist/gallery/index.d.cts"
+      ],
+      "loaders": [
+        "dist/loaders/index.d.cts"
+      ],
+      "viewport": [
+        "dist/viewport/index.d.cts"
+      ],
+      "content": [
+        "dist/content/index.d.cts"
+      ],
+      "triggers": [
+        "dist/triggers/index.d.cts"
       ]
     }
   },
@@ -65,16 +74,6 @@
       "require": {
         "types": "./dist/core/index.d.cts",
         "default": "./dist/core/index.cjs"
-      }
-    },
-    "./features": {
-      "import": {
-        "types": "./dist/features/index.d.mts",
-        "default": "./dist/features/index.mjs"
-      },
-      "require": {
-        "types": "./dist/features/index.d.cts",
-        "default": "./dist/features/index.cjs"
       }
     },
     "./dist/pure": {
@@ -159,6 +158,46 @@
       "require": {
         "types": "./dist/gallery/index.d.cts",
         "default": "./dist/gallery/index.cjs"
+      }
+    },
+    "./loaders": {
+      "import": {
+        "types": "./dist/loaders/index.d.mts",
+        "default": "./dist/loaders/index.mjs"
+      },
+      "require": {
+        "types": "./dist/loaders/index.d.cts",
+        "default": "./dist/loaders/index.cjs"
+      }
+    },
+    "./viewport": {
+      "import": {
+        "types": "./dist/viewport/index.d.mts",
+        "default": "./dist/viewport/index.mjs"
+      },
+      "require": {
+        "types": "./dist/viewport/index.d.cts",
+        "default": "./dist/viewport/index.cjs"
+      }
+    },
+    "./content": {
+      "import": {
+        "types": "./dist/content/index.d.mts",
+        "default": "./dist/content/index.mjs"
+      },
+      "require": {
+        "types": "./dist/content/index.d.cts",
+        "default": "./dist/content/index.cjs"
+      }
+    },
+    "./triggers": {
+      "import": {
+        "types": "./dist/triggers/index.d.mts",
+        "default": "./dist/triggers/index.mjs"
+      },
+      "require": {
+        "types": "./dist/triggers/index.d.cts",
+        "default": "./dist/triggers/index.cjs"
       }
     }
   }

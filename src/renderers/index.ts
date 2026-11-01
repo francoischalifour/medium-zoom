@@ -1,4 +1,4 @@
-import type { GalleryTransition } from '../targets/types'
+import type { ZoomTarget, GalleryTransition } from '../targets/types'
 import { prepareFrame, runGalleryTransition } from './transition'
 export type { GalleryTransition, GalleryTransitionContext } from '../targets/types'
 import type { ZoomRenderer, Zoom } from 'medium-zoom/core'
@@ -26,13 +26,14 @@ export function dialog({ label, content, transition }: DialogOptions = {}): Zoom
       return !(
         event.defaultPrevented ||
         /^(link|checkbox|radio|switch|menuitem)$/.test(target.getAttribute('role') || '') ||
+        (target.getAttribute('role') === 'button' &&
+          (target as ZoomTarget).__mz_triggerLabel === undefined) ||
         target.parentElement?.closest(
           'button,a[href],input,select,textarea,summary,label,[role="button"],[role="link"],[role="checkbox"],[role="radio"],[role="switch"],[role="menuitem"],[contenteditable]'
         )
       )
     },
     mount({ frame, zoom, close, trigger = document.activeElement as HTMLElement }) {
-      frame.content.removeAttribute('aria-hidden')
       const element = document.createElement('dialog')
       if (typeof element.showModal !== 'function') {
         throw new Error('Medium Zoom dialog renderer requires HTMLDialogElement.showModal()')
@@ -43,7 +44,8 @@ export function dialog({ label, content, transition }: DialogOptions = {}): Zoom
       element.style.cssText =
         'position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;color:inherit;overflow:hidden;'
       const style = document.createElement('style')
-      style.textContent = '.medium-zoom-dialog::backdrop{background:transparent}'
+      style.textContent =
+        '.medium-zoom-dialog::backdrop{background:transparent}.medium-zoom-dialog>.medium-zoom-overlay{z-index:-1}'
       let disposed = false
       element.addEventListener('submit', event => {
         const form = event.target as HTMLFormElement
@@ -78,7 +80,9 @@ export function dialog({ label, content, transition }: DialogOptions = {}): Zoom
         element,
         prepare: prepareFrame,
         update(next) {
-          next.content.removeAttribute('aria-hidden')
+          for (const name of ['aria-hidden', 'role', 'tabindex', 'aria-haspopup']) {
+            next.content.removeAttribute(name)
+          }
           element.setAttribute('aria-label', label?.trim() || next.label || 'Zoomed image')
         },
         ...(transition && {

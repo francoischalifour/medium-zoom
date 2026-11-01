@@ -9,6 +9,7 @@ import {
   type PackageEntry,
 } from '../config/package.config.mts'
 import budgets from '../config/size.config.mts'
+import baseline from '../tests/experimental/bundle-baseline.json' with { type: 'json' }
 import { bytes, table } from './size-report'
 
 const size = (path: string) => gzipSync(readFileSync(path), { level: 9 }).length
@@ -60,6 +61,21 @@ console.log('PACKAGE INVENTORY · one medium-zoom npm package · current build �
 report('RELEASE MANIFEST · existing v1 entries', releaseEntries)
 report('PRIVATE CANDIDATE · opt-in building blocks', extensionEntries)
 report('PRIVATE CANDIDATE · alternate presets/aliases (not extensions)', profileEntries)
+console.log(`\nRAW ESM COMPARISON · ${baseline.revision} → current · gzip level 9`)
+table(
+  ['Entry', 'Before', 'After', 'Change'],
+  ['core', 'compat', 'modern', 'renderers', 'session', 'gallery'].map(name => {
+    const before = (baseline.rawEsm as Record<string, number>)[name]!,
+      after = size(`dist/${name}/index.mjs`),
+      delta = after - before
+    return [
+      `medium-zoom/${name}`,
+      bytes(before),
+      bytes(after),
+      `${delta >= 0 ? '+' : '−'}${bytes(Math.abs(delta))}`,
+    ]
+  })
+)
 console.log(
   '\n* Injected CSS is already inside JS; do not add it again. Explicit CSS is a separate asset.'
 )

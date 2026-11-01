@@ -1,5 +1,5 @@
 import type { Bounds, FrameGeometry, TargetMeasurement } from '../engine/geometry'
-export type ZoomTarget = HTMLElement | SVGElement
+export type ZoomTarget = (HTMLElement | SVGElement) & { __mz_triggerLabel?: string | null }
 interface FrameSurface {
   readonly element: ZoomTarget
   readonly content: ZoomTarget

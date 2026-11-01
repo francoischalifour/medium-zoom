@@ -13,10 +13,16 @@ export async function buildGalleryExample() {
     plugins: [react()],
     resolve: {
       alias: Object.fromEntries(
-        ['core', 'features', 'gallery', 'renderers', 'session'].map(name => [
-          `medium-zoom/${name}`,
-          resolve(`dist/${name}/index.mjs`),
-        ])
+        [
+          'core',
+          'loaders',
+          'viewport',
+          'content',
+          'triggers',
+          'gallery',
+          'renderers',
+          'session',
+        ].map(name => [`medium-zoom/${name}`, resolve(`dist/${name}/index.mjs`)])
       ),
     },
     build: { outDir: resolve('.cache/gallery-composition'), emptyOutDir: true },

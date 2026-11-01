@@ -13,7 +13,6 @@
     "paths": {
       "medium-zoom/pure": ["./src/pure.ts"],
       "medium-zoom/core": ["./src/core.ts"],
-      "medium-zoom/features": ["./src/features/index.ts"],
       "medium-zoom": ["./src/medium-zoom.ts"],
       "medium-zoom/dist/pure": ["./src/medium-zoom.ts"],
       "medium-zoom/dist/pure/index.js": ["./src/medium-zoom.ts"],
@@ -23,7 +22,11 @@
       "medium-zoom/compat/pure": ["./src/pure.ts"],
       "medium-zoom/renderers": ["./src/renderers/index.ts"],
       "medium-zoom/session": ["./src/session.ts"],
-      "medium-zoom/gallery": ["./src/gallery.ts"]
+      "medium-zoom/gallery": ["./src/gallery.ts"],
+      "medium-zoom/loaders": ["./src/loaders.ts"],
+      "medium-zoom/viewport": ["./src/viewport.ts"],
+      "medium-zoom/content": ["./src/content.ts"],
+      "medium-zoom/triggers": ["./src/triggers.ts"]
     },
     "jsx": "react-jsx"
   },

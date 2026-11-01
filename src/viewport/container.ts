@@ -1,20 +1,17 @@
-import type { ContainerOptions, ZoomFeature } from 'medium-zoom/core'
-
 import { assign } from '#platform'
 
-import type { FeatureHooks } from '../engine/types'
+import type { ZoomViewport } from '../core'
+import type { Viewport } from '../engine/types'
+import type { ZoomContainer, ZoomOptions } from '../types'
 import { isNode } from '../utils'
 
-export const updateContainer: NonNullable<FeatureHooks['__mz_update']> = (options, previous) => {
+export const updateContainer = (options: ZoomOptions, previous: ZoomOptions): void => {
   if (options.container && options.container instanceof Object && !isNode(options.container)) {
     options.container = assign({}, previous.container, options.container)
   }
 }
 
-export const getContainerViewport: NonNullable<FeatureHooks['__mz_viewport']> = (
-  options,
-  viewport
-) => {
+export const getContainerViewport = (options: ZoomOptions, viewport: Viewport): Viewport => {
   const target = options.container
   if (!target) {
     return viewport
@@ -49,11 +46,7 @@ export const getContainerViewport: NonNullable<FeatureHooks['__mz_viewport']> = 
   }
 }
 
-export function container(): ZoomFeature<ContainerOptions> {
-  const feature: FeatureHooks = {
-    __mz_defaults: { container: null },
-    __mz_update: updateContainer,
-    __mz_viewport: getContainerViewport,
-  }
-  return feature as unknown as ZoomFeature<ContainerOptions>
+/** Measure the target at positioning time; bounds are strategy input, not zoom options. */
+export function containerBounds(target: string | HTMLElement | ZoomContainer | null): ZoomViewport {
+  return (viewport, options) => getContainerViewport({ ...options, container: target }, viewport)
 }

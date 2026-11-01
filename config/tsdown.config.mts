@@ -13,7 +13,7 @@ import pkg from '../package.json' with { type: 'json' }
 
 const banner = `/*! ${pkg.name} ${pkg.version} | ${pkg.license} License | https://github.com/${pkg.repository} */`
 const stylesheetPath = new URL('../src/medium-zoom.css', import.meta.url)
-// Mangle only private session state and feature hooks; preserve public options and DOM APIs.
+// Mangle only private scene state, compatibility hooks and binding metadata; preserve public options and DOM APIs.
 const privateProperties = /^__mz_/
 
 type Profile = 'modern' | 'compat'
@@ -123,7 +123,7 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
               // CJS bindings are module-local, just like ESM bindings.
               ...(options.format === 'cjs' && { toplevel: true }),
               mangle: { properties: { regex: privateProperties } },
-              // Core and features are bundled independently: their private keys must agree.
+              // Core, strategies and bindings are bundled independently: their private keys must agree.
               nameCache: {
                 props: {
                   props: {
@@ -147,7 +147,7 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
                     $__mz_select: 'g',
                     $__mz_primary: 'k',
                     $__mz_frames: 'f',
-                    $__mz_requiresModal: 'r',
+                    $__mz_triggerLabel: 't',
                   },
                 },
               },
@@ -224,10 +224,13 @@ function browserBundle(
   }
 }
 
-function featureBundle(
+function entryBundle(
   name:
     | 'core'
-    | 'features'
+    | 'loaders'
+    | 'viewport'
+    | 'content'
+    | 'triggers'
     | 'pure'
     | 'compat'
     | 'compat/pure'
@@ -242,7 +245,10 @@ function featureBundle(
     renderers: 'src/renderers/index.ts',
     session: 'src/session.ts',
     gallery: 'src/gallery.ts',
-    features: 'src/features/index.ts',
+    loaders: 'src/loaders.ts',
+    viewport: 'src/viewport.ts',
+    content: 'src/content.ts',
+    triggers: 'src/triggers.ts',
     pure: format === 'cjs' ? 'src/pure-commonjs.ts' : 'src/pure.ts',
     'compat/pure': format === 'cjs' ? 'src/pure-commonjs.ts' : 'src/pure.ts',
     compat: format === 'cjs' ? 'src/index-commonjs.ts' : 'src/index.ts',
@@ -257,7 +263,7 @@ function featureBundle(
         : 'modern'
   const full =
     name !== 'core' &&
-    name !== 'features' &&
+    !['loaders', 'viewport', 'content', 'triggers'].includes(name) &&
     name !== 'renderers' &&
     name !== 'session' &&
     name !== 'gallery'
@@ -270,7 +276,7 @@ function featureBundle(
       profile
     ),
     entry: { [`${name}/index`]: source },
-    // Keep the opaque feature type shared with the core declaration entry.
+    // Keep shared strategy/controller types on the core declaration entry.
     deps: { neverBundle: ['medium-zoom/core', 'medium-zoom/session'] },
     dts: {
       generator: 'oxc',
@@ -326,22 +332,24 @@ export default defineConfig([
   },
   browserBundle('src/medium-zoom.ts', 'pure/medium-zoom.umd.js', 'umd', false),
   browserBundle('src/medium-zoom.ts', 'pure/medium-zoom.min.umd.js', 'umd'),
-  featureBundle('core', 'esm'),
-  featureBundle('gallery', 'esm'),
-  featureBundle('gallery', 'cjs'),
-  featureBundle('session', 'esm'),
-  featureBundle('session', 'cjs'),
-  featureBundle('renderers', 'esm'),
-  featureBundle('renderers', 'cjs'),
-  featureBundle('features', 'esm'),
-  featureBundle('core', 'cjs'),
-  featureBundle('features', 'cjs'),
-  featureBundle('pure', 'esm'),
-  featureBundle('pure', 'cjs'),
-  featureBundle('compat', 'esm'),
-  featureBundle('compat', 'cjs'),
-  featureBundle('compat/pure', 'esm'),
-  featureBundle('compat/pure', 'cjs'),
-  featureBundle('modern', 'esm'),
-  featureBundle('modern', 'cjs'),
+  entryBundle('core', 'esm'),
+  entryBundle('gallery', 'esm'),
+  entryBundle('gallery', 'cjs'),
+  entryBundle('session', 'esm'),
+  entryBundle('session', 'cjs'),
+  entryBundle('renderers', 'esm'),
+  entryBundle('renderers', 'cjs'),
+  ...(['loaders', 'viewport', 'content', 'triggers'] as const).flatMap(name => [
+    entryBundle(name, 'esm'),
+    entryBundle(name, 'cjs'),
+  ]),
+  entryBundle('core', 'cjs'),
+  entryBundle('pure', 'esm'),
+  entryBundle('pure', 'cjs'),
+  entryBundle('compat', 'esm'),
+  entryBundle('compat', 'cjs'),
+  entryBundle('compat/pure', 'esm'),
+  entryBundle('compat/pure', 'cjs'),
+  entryBundle('modern', 'esm'),
+  entryBundle('modern', 'cjs'),
 ])

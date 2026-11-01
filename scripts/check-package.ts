@@ -7,6 +7,7 @@ import { runInNewContext } from 'node:vm'
 
 import { parse } from 'acorn'
 
+import baseline from '../tests/experimental/bundle-baseline.json' with { type: 'json' }
 import { checkAnalyzers } from './check-package-analyzers.ts'
 import { checkConsumers } from './check-package-consumers.ts'
 import { packExperimental } from './pack-experimental.ts'
@@ -14,17 +15,35 @@ import { pack } from './pack.ts'
 import { bytes, table } from './size-report'
 
 const packageRows: string[][] = []
+const entryFunctions: Record<string, string> = {
+  core: 'createZoom',
+  loaders: 'loadHdImage',
+  viewport: 'containerBounds',
+  content: 'templateContent',
+  triggers: 'bindZoomTriggers',
+  renderers: 'dialog',
+  session: 'createZoomSession',
+  gallery: 'createGallery',
+}
 
 async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boolean) {
   try {
     const packedFiles = readdirSync(artifact.root, { recursive: true, encoding: 'utf8' }).filter(
       path => statSync(join(artifact.root, path)).isFile()
     )
+    const before = baseline.packages[experimental ? 'candidate' : 'release']
+    const tarball = statSync(artifact.archive).size
+    const unpacked = packedFiles.reduce(
+      (sum, path) => sum + statSync(join(artifact.root, path)).size,
+      0
+    )
     packageRows.push([
       experimental ? 'private candidate fixture' : 'current release manifest',
       String(packedFiles.length),
-      bytes(statSync(artifact.archive).size),
-      bytes(packedFiles.reduce((sum, path) => sum + statSync(join(artifact.root, path)).size, 0)),
+      bytes(tarball),
+      bytes(unpacked),
+      `${tarball - before.tarball >= 0 ? '+' : '−'}${bytes(Math.abs(tarball - before.tarball))}`,
+      `${unpacked - before.unpacked >= 0 ? '+' : '−'}${bytes(Math.abs(unpacked - before.unpacked))}`,
       experimental
         ? 'all experimental entries + legacy files'
         : 'legacy distributions + declarations/docs',
@@ -97,8 +116,10 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
         'compat/pure/index.mjs',
         'core/index.cjs',
         'core/index.mjs',
-        'features/index.cjs',
-        'features/index.mjs',
+        ...['loaders', 'viewport', 'content', 'triggers'].flatMap(name => [
+          `${name}/index.cjs`,
+          `${name}/index.mjs`,
+        ]),
         'modern/index.cjs',
         'modern/index.mjs',
         'pure/index.cjs',
@@ -119,7 +140,8 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
     for (const path of files.filter(path => /\.(?:[mc])?js$/.test(path))) {
       const code = readFileSync(join(artifact.root, 'dist', path), 'utf8')
       const esm = path.endsWith('.mjs') || path.endsWith('.esm.js') || path === 'pure/index.js'
-      const modern = /^(core|features|modern|renderers|session|gallery)\//.test(path)
+      const modern =
+        /^(core|loaders|viewport|content|triggers|modern|renderers|session|gallery)\//.test(path)
       parse(code, {
         ecmaVersion: modern ? 2_020 : esm ? 2_015 : 5,
         sourceType: esm ? 'module' : 'script',
@@ -159,20 +181,8 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
             ? pathToFileURL(join(artifact.root, 'dist', path)).href
             : `data:text/javascript;base64,${Buffer.from(code).toString('base64')}`
         )
-        assert.equal(
-          typeof (path.startsWith('core/')
-            ? loaded.createMediumZoom
-            : path.startsWith('features/')
-              ? loaded.hdImage
-              : path.startsWith('renderers/')
-                ? loaded.dialog
-                : path.startsWith('session/')
-                  ? loaded.createZoomSession
-                  : path.startsWith('gallery/')
-                    ? loaded.createGallery
-                    : loaded.default),
-          'function'
-        )
+        const name = entryFunctions[path.split('/')[0]!]
+        assert.equal(typeof (name ? loaded[name] : loaded.default), 'function')
         continue
       }
       if (path.endsWith('.cjs')) {
@@ -182,22 +192,8 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
           exports: commonjs.exports,
           require: createRequire(join(artifact.root, 'dist', path)),
         })
-        assert.equal(
-          typeof (!/^(core|features|renderers|session|gallery)\//.test(path)
-            ? commonjs.exports
-            : commonjs.exports[
-                path.startsWith('core/')
-                  ? 'createMediumZoom'
-                  : path.startsWith('renderers/')
-                    ? 'dialog'
-                    : path.startsWith('session/')
-                      ? 'createZoomSession'
-                      : path.startsWith('gallery/')
-                        ? 'createGallery'
-                        : 'hdImage'
-              ]),
-          'function'
-        )
+        const name = entryFunctions[path.split('/')[0]!]
+        assert.equal(typeof (name ? commonjs.exports[name] : commonjs.exports), 'function')
         continue
       }
       const context: Record<string, unknown> = {
@@ -262,4 +258,15 @@ assert.equal(
 )
 
 console.log('\nPACKAGE CONTENTS · npm download/install cost, not browser bundle cost')
-table(['Manifest', 'Files', 'Tarball', 'Unpacked', 'Contents'], packageRows)
+table(
+  [
+    'Manifest',
+    'Files',
+    'Tarball',
+    'Unpacked',
+    `Δ tarball vs ${baseline.revision}`,
+    'Δ unpacked',
+    'Contents',
+  ],
+  packageRows
+)
