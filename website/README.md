@@ -63,3 +63,15 @@ The documentation checks compile authored JavaScript and TSX snippets against th
 Set `VITE_ALTERTABLE_API_KEY` in the root `.env.local` or build environment to a public Altertable browser ingestion key. Vite embeds this value in browser code, so never use an admin credential.
 
 Anonymous tracking runs only on the production domain. It records pageviews, successful command and code copies, opened images, and outbound links. The library and installable component contain no tracking. Analytics tests intercept ingestion requests.
+
+The Cloudflare Worker also records `Registry Component Downloaded` for successful production `GET` requests to component JSON endpoints. Configure its `ALTERTABLE_API_KEY` secret with an ingestion key for the same Altertable environment:
+
+```sh
+bunx wrangler secret put ALTERTABLE_API_KEY --config config/wrangler.jsonc
+```
+
+The Worker uses the direct HTTP ingestion API because the installed SDK manages browser identity and lifecycle. The API key selects the target environment. Events include the component, package version, path, and response status. They use the fixed source identity `medium-zoom-registry` and contain no visitor identifiers, IP addresses, user agents, or query strings. Compare weekly event counts with `Install Command Copied`; unique-user and session metrics do not apply to these downloads. Fetches may include retries, bots, and dependency resolution, so they do not prove successful installation or ongoing use.
+
+Registry requests run through the Worker before static asset serving, including cached assets. Analytics delivery runs in the background with a two-second timeout. Delivery failures are logged without blocking downloads. Missing keys disable tracking. Preview and local domains, registry indexes, unknown component paths, non-GET requests, and responses other than 200 are excluded. Preview deployments continue to serve only static assets.
+
+Run `bun run typecheck:registry` and `bun run test:registry` to verify the Worker types and download behavior without sending real analytics events.
