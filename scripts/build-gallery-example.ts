@@ -4,6 +4,8 @@ import react from '@vitejs/plugin-react'
 import { build as bundle } from 'tsdown'
 import { build } from 'vite'
 
+import { extensionEntries } from '../config/package.config.mts'
+
 export async function buildGalleryExample() {
   await build({
     configFile: false,
@@ -12,18 +14,7 @@ export async function buildGalleryExample() {
     logLevel: 'error',
     plugins: [react()],
     resolve: {
-      alias: Object.fromEntries(
-        [
-          'core',
-          'loaders',
-          'viewport',
-          'content',
-          'triggers',
-          'gallery',
-          'renderers',
-          'session',
-        ].map(name => [`medium-zoom/${name}`, resolve(`dist/${name}/index.mjs`)])
-      ),
+      alias: Object.fromEntries(extensionEntries.map(entry => [entry.path, resolve(entry.esm)])),
     },
     build: { outDir: resolve('.cache/gallery-composition'), emptyOutDir: true },
   })

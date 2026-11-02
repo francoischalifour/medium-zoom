@@ -1,5 +1,5 @@
 import type { ContentContext } from '../engine/types'
-import type { DialogOptions } from '../renderers'
+import type { ZoomContent } from '../types'
 import type { ZoomOptions } from '../types'
 
 const resolveTemplate = (target: string | HTMLTemplateElement): HTMLTemplateElement | null =>
@@ -31,9 +31,7 @@ export const mountTemplate = (
 }
 
 /** Optional renderer content: clone authored markup and remove it on host disposal. */
-export function templateContent(
-  target: string | HTMLTemplateElement
-): NonNullable<DialogOptions['content']> {
+export function templateContent(target: string | HTMLTemplateElement): ZoomContent {
   return ({ element }) => {
     const node = document.createElement('div')
     node.appendChild(resolveTemplate(target)!.content.cloneNode(true))

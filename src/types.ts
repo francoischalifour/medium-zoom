@@ -172,3 +172,10 @@ declare const rendererType: unique symbol
 export interface ZoomRenderer {
   readonly [rendererType]: true
 }
+
+/** Application-owned content mounted for a renderer host's lifetime. */
+export type ZoomContent = (view: {
+  readonly element: HTMLElement
+  readonly zoom: Zoom<CoreZoomOptions>
+  close: () => void
+}) => void | (() => void)

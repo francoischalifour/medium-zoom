@@ -5,6 +5,7 @@ import { join, resolve } from 'node:path'
 
 import { build, createServer } from 'vite'
 
+import { candidateEntries } from '../config/package.config.mts'
 import type { pack } from './pack.ts'
 
 export async function checkConsumers(artifact: ReturnType<typeof pack>, experimental = false) {
@@ -30,32 +31,14 @@ export async function checkConsumers(artifact: ReturnType<typeof pack>, experime
 
   if (!experimental) {
     const unpublished = [
-      'core',
-      'features',
-      'loaders',
-      'viewport',
-      'content',
-      'triggers',
-      'renderers',
-      'gallery',
-      'controls',
-      'dist/gallery/index.mjs',
-      'dist/controls/index.mjs',
-      'session',
-      'dist/session/index.mjs',
-      'dist/session/index.cjs',
-      'dist/renderers/index.mjs',
-      'dist/renderers/index.cjs',
-      'compat',
-      'compat/pure',
-      'modern',
-      'pure',
-      'dist/core/index.mjs',
-      'dist/features/index.mjs',
-      'dist/modern/index.mjs',
-      'dist/compat/index.mjs',
-      'dist/pure/index.mjs',
-      'dist/pure/index.cjs',
+      ...new Set([
+        ...candidateEntries.map(entry => entry.name),
+        ...candidateEntries.flatMap(entry => [entry.esm, entry.cjs]),
+        'features',
+        'controls',
+        'dist/features/index.mjs',
+        'dist/controls/index.mjs',
+      ]),
     ]
     writeFileSync(
       join(consumer, 'unpublished.ts'),
@@ -191,19 +174,10 @@ async function checkBundlerResolution(
     ]
     if (experimental) {
       paths.push(
-        ['medium-zoom/compat', 'dist/compat/index.mjs'],
-        ['medium-zoom/compat/pure', 'dist/compat/pure/index.mjs'],
-        ['medium-zoom/modern', 'dist/modern/index.mjs'],
+        ...candidateEntries.map(entry => [entry.path, entry.esm] as [string, string]),
         ['medium-zoom/modern/style.css', 'dist/modern/style.css'],
         ['medium-zoom/compat/style.css', 'dist/style.css'],
-        ['medium-zoom/pure', 'dist/pure/index.mjs'],
-        ['medium-zoom/style.css', 'dist/style.css'],
-        ['medium-zoom/core', 'dist/core/index.mjs'],
-        ...['loaders', 'viewport', 'content', 'triggers'].map(
-          name => [`medium-zoom/${name}`, `dist/${name}/index.mjs`] as [string, string]
-        ),
-        ['medium-zoom/renderers', 'dist/renderers/index.mjs'],
-        ['medium-zoom/gallery', 'dist/gallery/index.mjs']
+        ['medium-zoom/style.css', 'dist/style.css']
       )
     }
     for (const [specifier, path] of paths) {

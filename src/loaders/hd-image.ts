@@ -1,12 +1,11 @@
 import type { ZoomLoader } from '../core'
-import { createImageFrame, isImage } from '../targets/image'
+import { isImage } from '../targets/image'
 
-export const loadHdImage: ZoomLoader = ({ original, frame, appendFrame }, ready) => {
-  if (!isImage(original) || !isImage(frame.content)) {
+export const loadHdImage: ZoomLoader = ({ original, content: zoomed }, ready) => {
+  if (!isImage(original) || !isImage(zoomed)) {
     ready()
     return
   }
-  const zoomed = frame.content
   const source = original.getAttribute('data-zoom-src')
   if (!source && !original.hasAttribute('srcset')) {
     ready()
@@ -14,12 +13,12 @@ export const loadHdImage: ZoomLoader = ({ original, frame, appendFrame }, ready)
   }
   // Install handlers before assigning sources: Firefox may queue a cached load.
   const hd = document.createElement('img')
+  // Request attributes must be present before src: CORS/referrer policy cannot be adopted later.
   ;(Array.prototype.slice.call(zoomed.attributes) as Attr[]).forEach(({ name, value }) => {
     if (!/^(src|srcset|sizes|loading)$/.test(name)) {
       hd.setAttribute(name, value)
     }
   })
-  const hdFrame = createImageFrame(hd)
   let cancelled = false
   const cleanup = () => {
     cancelled = true
@@ -31,14 +30,10 @@ export const loadHdImage: ZoomLoader = ({ original, frame, appendFrame }, ready)
       return
     }
     cleanup()
-    if (hd.naturalWidth) {
-      hd.classList.add('medium-zoom-image--opened')
-      zoomed.setAttribute('aria-hidden', 'true')
-      appendFrame(hdFrame)
-    } else {
+    if (!hd.naturalWidth) {
       console.warn(`Unable to reach the zoom image target ${hd.currentSrc || hd.src}`)
     }
-    ready(hd.naturalWidth ? hdFrame : undefined)
+    ready(hd.naturalWidth ? hd : undefined)
   }
   hd.addEventListener('load', finish)
   hd.addEventListener('error', finish)

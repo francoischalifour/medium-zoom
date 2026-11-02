@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-import { preparePage, openImage } from './helpers'
+import { preparePage } from './helpers'
 
 for (const capabilities of [
   [],
@@ -49,7 +49,7 @@ for (const capabilities of [
       background: '#fff',
       scrollOffset: 40,
     })
-    await openImage(page, page.locator('#image'))
+    await page.evaluate(() => window.zoom.open())
     await expect(page.locator('.medium-zoom-image--opened')).toHaveCount(
       capabilities.includes('loader') ? 2 : 1
     )
@@ -292,3 +292,151 @@ test('synchronous loader readiness still releases its returned cleanup once', as
     })
   ).toEqual(['one', 'two'])
 })
+
+test('loader only supplies detached media and the engine owns its presentation and disposal', async ({
+  page,
+}) => {
+  await preparePage(page)
+  await page.addStyleTag({ url: '/experimental/dist/modern/style.css' })
+  expect(
+    await page.evaluate(async () => {
+      const { createZoom } = (await import(
+        String('/experimental/dist/core/index.mjs')
+      )) as typeof import('../../src/core')
+      let contract: string[] = []
+      const media = new Image()
+      media.src = '/images/image-2.jpg'
+      await media.decode()
+      const zoom = createZoom('#image', {
+        loader(context, ready) {
+          contract = Object.keys(context).sort()
+          ready(media)
+        },
+      })
+      await zoom.open()
+      const displayed =
+        media.isConnected &&
+        !!media.style.transform &&
+        media.classList.contains('medium-zoom-image--opened')
+      await zoom.close()
+      return { contract, displayed, removed: !media.isConnected }
+    })
+  ).toEqual({ contract: ['content', 'original'], displayed: true, removed: true })
+})
+
+test('content cleanup errors release the modal and session before rejecting close', async ({
+  page,
+}) => {
+  await preparePage(page)
+  expect(
+    await page.evaluate(async () => {
+      const { createZoom } = (await import(
+        String('/experimental/dist/core/index.mjs')
+      )) as typeof import('../../src/core')
+      const { dialog } = (await import(
+        String('/experimental/dist/renderers/index.mjs')
+      )) as typeof import('../../src/renderers')
+      const { createZoomSession } = (await import(
+        String('/experimental/dist/session/index.mjs')
+      )) as typeof import('../../src/session')
+      const zoom = createZoom('#image', {
+        renderer: dialog({
+          content: () => () => {
+            throw Error('cleanup failed')
+          },
+        }),
+      })
+      const session = createZoomSession(zoom)
+      await session.open()
+      let message = ''
+      try {
+        await session.close()
+      } catch (error) {
+        message = (error as Error).message
+      }
+      await session.dispose()
+      return {
+        message,
+        current: zoom.getZoomedImage(),
+        removed: !document.querySelector('dialog,.medium-zoom-overlay'),
+      }
+    })
+  ).toEqual({ message: 'cleanup failed', current: null, removed: true })
+})
+
+test('backdrop dismissal remains available across repeated openings', async ({ page }) => {
+  await preparePage(page)
+  await page.evaluate(async () => {
+    const { createZoom } = (await import(
+      String('/experimental/dist/core/index.mjs')
+    )) as typeof import('../../src/core')
+    window.zoom = createZoom('#image')
+    await window.zoom.open()
+    await window.zoom.close()
+    await window.zoom.open()
+  })
+  await page.locator('.medium-zoom-overlay').dispatchEvent('click')
+  await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
+})
+
+test('HD request attributes apply before fetching the replacement', async ({ page }) => {
+  await preparePage(page, {
+    body: '<img id="image" src="/images/image-1.jpg" data-zoom-src="https://photos.example/hd.jpg" crossorigin="anonymous" referrerpolicy="no-referrer" width="160" alt="Photo">',
+  })
+  let origin: string | undefined
+  let referrer: string | undefined
+  await page.route('https://photos.example/hd.jpg', async route => {
+    const headers = await route.request().allHeaders()
+    origin = headers.origin
+    referrer = headers.referer
+    await route.fulfill({
+      path: 'stories/images/image-2.jpg',
+      contentType: 'image/jpeg',
+      headers: { 'Access-Control-Allow-Origin': '*' },
+    })
+  })
+  await page.evaluate(async () => {
+    const { createZoom } = (await import(
+      String('/experimental/dist/core/index.mjs')
+    )) as typeof import('../../src/core')
+    const { loadHdImage } = (await import(
+      String('/experimental/dist/loaders/index.mjs')
+    )) as typeof import('../../src/loaders')
+    const zoom = createZoom('#image', { loader: loadHdImage })
+    await zoom.open()
+    await zoom.close()
+  })
+  expect(origin).toBe(new URL(page.url()).origin)
+  expect(referrer).toBeUndefined()
+})
+
+for (const kind of ['connected', 'incompatible'] as const) {
+  test(`loader rejects ${kind} media through normal cleanup`, async ({ page }) => {
+    await preparePage(page)
+    expect(
+      await page.evaluate(async kind => {
+        const { createZoom } = (await import(
+          String('/experimental/dist/core/index.mjs')
+        )) as typeof import('../../src/core')
+        const source = document.querySelector<HTMLImageElement>('#image')!
+        const zoom = createZoom(source, {
+          loader: (_context, ready) =>
+            ready(kind === 'connected' ? source : document.createElement('div')),
+        })
+        let rejected = false
+        try {
+          await zoom.open()
+        } catch {
+          rejected = true
+        }
+        await zoom.close()
+        return {
+          rejected,
+          kept: source.isConnected,
+          closed: !zoom.getZoomedImage(),
+          removed: !document.querySelector('.medium-zoom-overlay'),
+        }
+      }, kind)
+    ).toEqual({ rejected: true, kept: true, closed: true, removed: true })
+  })
+}

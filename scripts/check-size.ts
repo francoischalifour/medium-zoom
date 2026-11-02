@@ -3,6 +3,8 @@ import { readFileSync } from 'node:fs'
 import { gzipSync } from 'node:zlib'
 
 import {
+  candidateManifest,
+  candidateEntries,
   releaseEntries,
   extensionEntries,
   profileEntries,
@@ -21,8 +23,16 @@ for (const { path, maxBytes } of budgets) {
   }
 }
 const release = JSON.parse(readFileSync('package.json', 'utf8'))
-const candidate = JSON.parse(readFileSync('tests/experimental/package.json', 'utf8'))
+const candidate = candidateManifest()
 assert.equal(candidate.private, true)
+const sourcePaths = JSON.parse(readFileSync('tsconfig.json', 'utf8')).compilerOptions.paths
+for (const entry of candidateEntries) {
+  assert.deepEqual(
+    sourcePaths[entry.path],
+    [`./${entry.source.esm}`],
+    `${entry.path}: source alias drift`
+  )
+}
 const inventory = [...releaseEntries, ...extensionEntries, ...profileEntries]
 for (const entry of inventory) {
   for (const path of [entry.esm, entry.cjs, entry.umd, entry.css].filter(Boolean) as string[]) {

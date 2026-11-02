@@ -34,7 +34,9 @@ state; bindings own subscriptions/listeners and return cleanup. Cloning retains 
 and options but requires new application-owned bindings/controllers.
 
 Target adapters, pure geometry, frame creation and mutable scene state remain internal.
-Loader/frame-transfer and transition surfaces are still private candidate contracts.
+Loader result and transition surfaces are still private candidate contracts. Loaders
+supply detached media; frames and their lifecycle remain internal. `ZoomContent` is a
+renderer-neutral content contract; template helpers do not depend on dialog types.
 
 ## Compatibility and migration
 
@@ -54,6 +56,15 @@ not automatic dialog/gallery. Resolve redundant aliases before a public release:
 one canonical pure path and a modern preset only where a real consumer needs it, preserving
 historical compatibility aliases. Do not switch an existing root path's browser contract
 in a minor release. Evaluate the new API through a v2 prerelease while keeping v1 supported.
+
+`config/package.config.mts` is the candidate catalog: source/profile, primary export,
+ESM/CJS paths, CSS emission versus requirement, type mappings and budgets. Builds,
+staging, resolution checks and size output derive candidate metadata from it. The small
+`package.json` fixture retains only historical aliases; it is not a second candidate list.
+Hand-authored packed consumer fixtures independently verify those generated declarations.
+Source aliases are checked against the catalog. `bun run check:core` logs its checkout/ref
+and verifies build, sizes, packed consumers and geometry without browser/dev servers.
+The broader browser and framework suites remain separate checks.
 
 ## Measure three separate costs
 

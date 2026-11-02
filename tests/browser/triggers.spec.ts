@@ -175,3 +175,33 @@ test('authored image buttons keep their own click and keyboard behavior', async 
   await expect(page.locator('dialog')).toHaveCount(0)
   await expect(page.locator('#second')).toHaveAttribute('aria-label', 'Custom action')
 })
+
+test('unbinding removes pointer activation and preserves author updates made while bound', async ({
+  page,
+}) => {
+  await fixture(page)
+  await page.evaluate(() => {
+    const source = document.querySelector('#first')!
+    source.setAttribute('role', 'img')
+    source.setAttribute('aria-haspopup', 'menu')
+    source.setAttribute('tabindex', '7')
+    window.unbindTriggers()
+  })
+  const source = page.locator('#first')
+  await expect(source).toHaveAttribute('role', 'img')
+  await expect(source).toHaveAttribute('aria-haspopup', 'menu')
+  await expect(source).toHaveAttribute('tabindex', '7')
+  await source.click()
+  await source.focus()
+  await page.keyboard.press('Enter')
+  await expect(page.locator('dialog')).toHaveCount(0)
+})
+
+test('authored cancellation runs before delegated pointer activation', async ({ page }) => {
+  await fixture(page)
+  await page.evaluate(() =>
+    document.querySelector('#first')!.addEventListener('click', event => event.preventDefault())
+  )
+  await page.locator('#first').click()
+  await expect(page.locator('dialog')).toHaveCount(0)
+})

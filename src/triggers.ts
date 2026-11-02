@@ -6,13 +6,13 @@ const bindings = new WeakMap<object, () => void>()
 const interactive =
   'button,a[href],input,select,textarea,summary,label,[role="button"],[role="link"],[role="checkbox"],[role="radio"],[role="switch"],[role="menuitem"],[contenteditable]'
 
-/** Opt-in activation for bare images. Native/framework buttons keep their own activation. */
+/** Pointer and keyboard activation for bare images. Native/framework buttons keep their own activation. */
 export function bindZoomTriggers<Options extends CoreZoomOptions>(zoom: Zoom<Options>): () => void {
   const existing = bindings.get(zoom)
   if (existing) {
     return existing
   }
-  if (!(zoom as unknown as GallerySource).__mz_select) {
+  if (!(zoom as unknown as GallerySource).__mz$modal) {
     throw new Error('Medium Zoom trigger bindings require a modal renderer')
   }
   let bound = true
@@ -30,13 +30,9 @@ export function bindZoomTriggers<Options extends CoreZoomOptions>(zoom: Zoom<Opt
       const attributes = {
         role: 'button',
         tabindex: image.getAttribute('tabindex') || '0',
-        'aria-label':
-          image.getAttribute('aria-label') ||
-          `Zoom image${image.getAttribute('alt') ? `: ${image.getAttribute('alt')}` : ''}`,
         'aria-haspopup': 'dialog',
       }
       const previous = Object.keys(attributes).map(name => [name, image.getAttribute(name)])
-      image.__mz_triggerLabel = image.getAttribute('aria-label')
       for (const [name, value] of Object.entries(attributes)) {
         image.setAttribute(name, value)
       }
@@ -55,11 +51,34 @@ export function bindZoomTriggers<Options extends CoreZoomOptions>(zoom: Zoom<Opt
           }
         }
       }
+      const click = (event: MouseEvent) => {
+        if (
+          event.target === image &&
+          !event.defaultPrevented &&
+          !event.altKey &&
+          !event.ctrlKey &&
+          !event.metaKey &&
+          !event.shiftKey &&
+          event.button === 0
+        ) {
+          event.preventDefault()
+          void zoom.open({ target: image as HTMLElement, trigger: image as HTMLElement })
+        }
+      }
+      const hadClass = image.classList.contains('medium-zoom-image')
+      image.classList.add('medium-zoom-image')
+      image.ownerDocument.addEventListener('click', click as EventListener)
       image.addEventListener('keydown', keydown as EventListener)
       records.set(image, () => {
         image.removeEventListener('keydown', keydown as EventListener)
-        delete image.__mz_triggerLabel
+        image.ownerDocument.removeEventListener('click', click as EventListener)
+        if (!hadClass) {
+          image.classList.remove('medium-zoom-image')
+        }
         for (const [name, value] of previous) {
+          if (image.getAttribute(name!) !== attributes[name as keyof typeof attributes]) {
+            continue
+          }
           if (value === null) {
             image.removeAttribute(name!)
           } else {

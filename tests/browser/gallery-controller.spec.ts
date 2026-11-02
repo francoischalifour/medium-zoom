@@ -116,3 +116,36 @@ test('sessions and gallery traversal are independent and idempotent', async ({ p
     })
   ).toEqual({ sameSession: true, sameController: true, closed: true })
 })
+
+test('direct instance mutations publish settled collection state and stale disposal stays inert', async ({
+  page,
+}) => {
+  await fixture(page)
+  expect(
+    await page.evaluate(async () => {
+      const { createGallery } = (await import(
+        String('/experimental/dist/gallery/index.mjs')
+      )) as typeof import('../../src/gallery')
+      const old = window.galleryController
+      old.dispose()
+      const gallery = createGallery(window.zoom)
+      old.dispose()
+      const counts: number[] = []
+      gallery.subscribe(() => counts.push(gallery.getSnapshot().images.length))
+      const extra = document.createElement('img')
+      extra.src = '/images/image-1.jpg'
+      document.body.append(extra)
+      window.zoom.attach(extra)
+      await Promise.resolve()
+      window.zoom.detach(extra)
+      await Promise.resolve()
+      gallery.dispose()
+      gallery.subscribe(() => {
+        throw Error('Disposed subscription retained')
+      })
+      window.zoom.attach(extra)
+      await Promise.resolve()
+      return { counts, stable: createGallery(window.zoom) !== gallery }
+    })
+  ).toEqual({ counts: [3, 2], stable: true })
+})

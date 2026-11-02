@@ -32,8 +32,7 @@ export function createGallery<Options extends CoreZoomOptions>(
     return existing
   }
   const source = zoom as unknown as GallerySource
-  const select = source.__mz_select
-  if (!select) {
+  if (!source.__mz$modal) {
     throw new Error('Medium Zoom gallery requires a modal renderer')
   }
   const listeners = new Set<() => void>()
@@ -70,12 +69,33 @@ export function createGallery<Options extends CoreZoomOptions>(
   }
   const choose = (index: number) => {
     const target = getSnapshot().images[index]
-    return !disposed && target ? (select(target) as Promise<Zoom<Options>>) : Promise.resolve(zoom)
+    return !disposed && target ? zoom.open({ target }) : Promise.resolve(zoom)
   }
-  zoom.on('open', notify).on('closed', notify)
+  let queued = false
+  const collectionChanged = () => {
+    if (queued) {
+      return
+    }
+    queued = true
+    // detach notifications precede legacy collection mutation. Observe the settled batch.
+    queueMicrotask(() => {
+      queued = false
+      if (!disposed) {
+        notify()
+      }
+    })
+  }
+  zoom
+    .on('open', notify)
+    .on('closed', notify)
+    .on('attach', collectionChanged)
+    .on('detach', collectionChanged)
   const controller: GalleryController<Options> = {
     getSnapshot,
     subscribe(listener) {
+      if (disposed) {
+        return () => {}
+      }
       listeners.add(listener)
       return () => listeners.delete(listener)
     },
@@ -89,18 +109,23 @@ export function createGallery<Options extends CoreZoomOptions>(
     attach(...selectors) {
       if (!disposed) {
         zoom.attach(...selectors)
-        notify()
       }
     },
     detach(...selectors) {
       if (!disposed) {
         zoom.detach(...selectors)
-        notify()
       }
     },
     dispose() {
+      if (disposed) {
+        return
+      }
       disposed = true
-      zoom.off('open', notify).off('closed', notify)
+      zoom
+        .off('open', notify)
+        .off('closed', notify)
+        .off('attach', collectionChanged)
+        .off('detach', collectionChanged)
       listeners.clear()
       galleries.delete(zoom)
     },

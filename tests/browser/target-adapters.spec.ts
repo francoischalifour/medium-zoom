@@ -144,3 +144,80 @@ test('a frame restores authored clipping when geometry drops its crop or resets'
     connected: false,
   })
 })
+
+test('a constructor-local adapter owns separate frame roots, measurement and loader adoption', async ({
+  page,
+}) => {
+  await preparePage(page, {
+    body: '<div id="custom"><img src="/images/image-1.jpg" width="160" alt="Custom"></div><img id="plain" src="/images/image-2.jpg" width="160">',
+  })
+  expect(
+    await page.evaluate(async () => {
+      const { createEngine, imageAdapter } = (await import(
+        String('/composition/frame-probe.mjs')
+      )) as typeof import('../experimental/frame-probe')
+      const original = document.querySelector<HTMLElement>('#custom')!
+      let measured = 0,
+        adopted = 0,
+        disposed = 0
+      const custom: import('../../src/targets/types').TargetAdapter = {
+        supports: (node): node is HTMLElement => node === original,
+        resolveSource: () => '',
+        createFrame(target, _source, coordinates) {
+          const inner = imageAdapter.createFrame(target.querySelector('img')!, '', coordinates)
+          const root = document.createElement('section')
+          root.append(inner.element)
+          return {
+            ...inner,
+            element: root,
+            measure(viewport) {
+              measured++
+              return inner.measure(viewport)
+            },
+            adopt(media) {
+              adopted++
+              return inner.adopt(media)
+            },
+            dispose() {
+              disposed++
+              root.remove()
+            },
+          }
+        },
+      }
+      const adapters = [custom]
+      const zoom = createEngine(
+        { loader: (_context, ready) => ready() },
+        undefined,
+        undefined,
+        adapters
+      )(original)
+      adapters.length = 0
+      const ordinary = createEngine({})('#custom,#plain')
+      await zoom.open()
+      const root = document.querySelector('section')!
+      const separate =
+        root !== root.querySelector('img') && !!root.querySelector('img')!.style.transform
+      await zoom.close()
+      const media = new Image()
+      media.src = '/images/image-2.jpg'
+      await media.decode()
+      const loaded = createEngine(
+        { loader: (_context, ready) => ready(media) },
+        undefined,
+        undefined,
+        [custom]
+      )(original)
+      await loaded.open()
+      await loaded.close()
+      return {
+        measured,
+        adopted,
+        disposed,
+        separate,
+        removed: !root.isConnected,
+        isolated: ordinary.getImages().length === 1,
+      }
+    })
+  ).toEqual({ measured: 1, adopted: 1, disposed: 2, separate: true, removed: true, isolated: true })
+})

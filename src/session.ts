@@ -1,10 +1,11 @@
+import type { CoordinatedZoom, ZoomCommands } from './engine/bridge'
 import type { CoreZoomOptions, Zoom, ZoomOpenOptions, ZoomOptions } from './types'
 
 export interface ZoomSession<Options extends CoreZoomOptions = ZoomOptions> {
   readonly zoom: Zoom<Options>
   open(options?: ZoomOpenOptions): Promise<Zoom<Options>>
   close(): Promise<Zoom<Options>>
-  /** Cancel queued work, close, detach, and release document listeners. */
+  /** Close/detach and release coordination. The zoom can be reattached and coordinated again. */
   dispose(): Promise<void>
 }
 
@@ -19,9 +20,13 @@ export function createZoomSession<Options extends CoreZoomOptions>(
   if (existing) {
     return existing
   }
-  // Engine methods capture their state; adapters may replace the public methods afterward.
-  // oxlint-disable-next-line typescript/unbound-method
-  const { open, close, detach } = zoom
+  const source = zoom as CoordinatedZoom<Options>
+  if (!source.__mz$coordinate) {
+    throw new Error('Medium Zoom session requires a compatible engine')
+  }
+  let engine!: ZoomCommands<Options>
+  let released = false
+  let disposal: Promise<void> | undefined
   const documents = new Set<Document>()
   let revision = 0
   let disposed = false
@@ -69,7 +74,7 @@ export function createZoomSession<Options extends CoreZoomOptions>(
         zoom.getZoomedImage() &&
         image !== zoom.getZoomedImage()
       ) {
-        return open(options)
+        return engine.open(options)
       }
       if (previous?.owner === session && pending) {
         return pending
@@ -93,7 +98,7 @@ export function createZoomSession<Options extends CoreZoomOptions>(
             document.addEventListener('medium-zoom:closed', onClosed, true)
           }
           mounted = request
-          return open(options)
+          return engine.open(options)
         })
         .finally(() => {
           if (pending === opening) {
@@ -107,14 +112,17 @@ export function createZoomSession<Options extends CoreZoomOptions>(
       return opening
     },
     close() {
+      if (released) {
+        return Promise.resolve(zoom)
+      }
       ++revision
       if (closing) {
         return closing
       }
       const request = owned
-      const result = close()
-      const task = Promise.all([pending, completion || result])
-        .then(() => {
+      const result = engine.close()
+      const task = Promise.allSettled([pending, result, completion])
+        .then(results => {
           for (const document of documents) {
             if (active.get(document) === request) {
               active.delete(document)
@@ -125,6 +133,10 @@ export function createZoomSession<Options extends CoreZoomOptions>(
             document.removeEventListener('medium-zoom:closed', onClosed, true)
           }
           documents.clear()
+          const physical = results[1]!
+          if (physical.status === 'rejected') {
+            throw physical.reason
+          }
           return zoom
         })
         .finally(() => {
@@ -135,21 +147,38 @@ export function createZoomSession<Options extends CoreZoomOptions>(
       closing = task
       return task
     },
-    async dispose() {
+    dispose() {
+      if (disposal) {
+        return disposal
+      }
       disposed = true
       const closed = session.close()
-      detach()
-      await closed
+      engine.detach()
+      disposal = closed
+        .then(() => undefined)
+        .finally(() => {
+          release()
+          released = true
+          if (sessions.get(zoom) === session) {
+            sessions.delete(zoom)
+          }
+        })
+      return disposal
     },
   }
+  const release = source.__mz$coordinate(physical => {
+    engine = physical
+    return {
+      open: options => session.open(options),
+      close: () => session.close(),
+      toggle: options =>
+        pending || zoom.getZoomedImage() ? session.close() : session.open(options),
+      detach(...selectors) {
+        void session.close()
+        return physical.detach(...selectors)
+      },
+    }
+  })
   sessions.set(zoom, session)
-  zoom.open = options => session.open(options)
-  zoom.close = () => session.close()
-  zoom.toggle = options =>
-    pending || zoom.getZoomedImage() ? session.close() : session.open(options)
-  zoom.detach = (...selectors) => {
-    void session.close()
-    return detach(...selectors)
-  }
   return session
 }

@@ -7,6 +7,7 @@ export const isImage = (target: ZoomTarget): target is HTMLImageElement => targe
 
 /** The image frame owns the cloned node and the application of geometry/clipping. */
 export function createImageFrame(image: HTMLImageElement): RenderedFrame {
+  image.classList.add('medium-zoom-image')
   let geometry: FrameGeometry | null = null
   const initialClip = image.style.clipPath
   return {
@@ -17,6 +18,29 @@ export function createImageFrame(image: HTMLImageElement): RenderedFrame {
     },
     get geometry() {
       return geometry
+    },
+    measure(viewport) {
+      const source = image.currentSrc || image.src
+      const layout = image.getBoundingClientRect()
+      // Retain v1's SVG-file sizing policy during extraction. Other SVG forms are separate work.
+      const vector = source.substr(-4).toLowerCase() === '.svg'
+      return {
+        layout,
+        painted: layout,
+        intrinsic: {
+          width: vector ? viewport.width : image.naturalWidth,
+          height: vector ? viewport.height : image.naturalHeight,
+        },
+      }
+    },
+    adopt(content) {
+      if (!isImage(content)) {
+        throw new TypeError('Expected an image')
+      }
+      const replacement = content
+      replacement.style.cssText = image.style.cssText
+      replacement.className = image.className
+      return createImageFrame(replacement)
     },
     apply(next) {
       geometry = next
@@ -49,29 +73,10 @@ export const imageAdapter: TargetAdapter<HTMLImageElement, string> = {
   resolveSource(image) {
     return image.currentSrc || image.src
   },
-  measure(image, source, viewport) {
-    const layout = image.getBoundingClientRect()
-    // Retain v1's SVG-file sizing policy during extraction. Other SVG forms are separate work.
-    const vector = source.substr(-4).toLowerCase() === '.svg'
-    return {
-      layout,
-      painted: layout,
-      intrinsic: {
-        width: vector ? viewport.width : image.naturalWidth,
-        height: vector ? viewport.height : image.naturalHeight,
-      },
-    }
-  },
   createFrame(image, source, coordinates) {
     const { left, top, width, height } = image.getBoundingClientRect()
     const clone = image.cloneNode() as HTMLImageElement
     clone.removeAttribute('id')
-    const label = (image as ZoomTarget).__mz_triggerLabel
-    if (label === null) {
-      clone.removeAttribute('aria-label')
-    } else if (label !== undefined) {
-      clone.setAttribute('aria-label', label)
-    }
     clone.style.position = 'absolute'
     clone.style.left = `${left + (coordinates === 'document' ? getScrollX() : 0)}px`
     clone.style.top = `${top + (coordinates === 'document' ? getScrollY() : 0)}px`

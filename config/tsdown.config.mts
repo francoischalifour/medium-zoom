@@ -10,10 +10,11 @@ import { defineConfig } from 'tsdown'
 import type { TsdownPlugin, UserConfig } from 'tsdown'
 
 import pkg from '../package.json' with { type: 'json' }
+import { candidateEntries, type CandidateEntry } from './package.config.mts'
 
 const banner = `/*! ${pkg.name} ${pkg.version} | ${pkg.license} License | https://github.com/${pkg.repository} */`
 const stylesheetPath = new URL('../src/medium-zoom.css', import.meta.url)
-// Mangle only private scene state, compatibility hooks and binding metadata; preserve public options and DOM APIs.
+// Mangle local scene state. Stable cross-entry __mz$ bridge names stay descriptive; preserve public options and DOM APIs.
 const privateProperties = /^__mz_/
 
 type Profile = 'modern' | 'compat'
@@ -118,7 +119,7 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
         ? (
             await minifyJavaScript(result.code, {
               ecma: profile === 'compat' ? 5 : 2_020,
-              compress: { passes: profile === 'compat' ? 3 : 2 },
+              compress: { passes: 3 },
               module: options.format === 'es',
               // CJS bindings are module-local, just like ESM bindings.
               ...(options.format === 'cjs' && { toplevel: true }),
@@ -135,19 +136,11 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
                     $__mz_viewportScale: 'v',
                     $__mz_isPinching: 'p',
                     $__mz_scrollTimer: 's',
-                    $__mz_defaults: 'd',
-                    $__mz_update: 'u',
-                    $__mz_viewport: 'w',
-                    $__mz_mount: 'm',
-                    $__mz_load: 'l',
-                    $__mz_setup: 'b',
                     $__mz_outgoing: 'x',
                     $__mz_view: 'h',
                     $__mz_closeContent: 'j',
-                    $__mz_select: 'g',
                     $__mz_primary: 'k',
                     $__mz_frames: 'f',
-                    $__mz_triggerLabel: 't',
                   },
                 },
               },
@@ -211,6 +204,8 @@ function browserBundle(
     // Apply profile-specific lowering and minification once in the output plugin.
     minify: false,
     outputOptions: {
+      // No namespace branding is needed for callable/named package entries.
+      generatedCode: { symbols: false },
       entryFileNames: chunk =>
         chunk.name.endsWith('.d')
           ? /\.[mc]js$/.test(fileName)
@@ -224,49 +219,10 @@ function browserBundle(
   }
 }
 
-function entryBundle(
-  name:
-    | 'core'
-    | 'loaders'
-    | 'viewport'
-    | 'content'
-    | 'triggers'
-    | 'pure'
-    | 'compat'
-    | 'compat/pure'
-    | 'modern'
-    | 'renderers'
-    | 'session'
-    | 'gallery',
-  format: 'esm' | 'cjs'
-): UserConfig {
-  const sources = {
-    core: 'src/core.ts',
-    renderers: 'src/renderers/index.ts',
-    session: 'src/session.ts',
-    gallery: 'src/gallery.ts',
-    loaders: 'src/loaders.ts',
-    viewport: 'src/viewport.ts',
-    content: 'src/content.ts',
-    triggers: 'src/triggers.ts',
-    pure: format === 'cjs' ? 'src/pure-commonjs.ts' : 'src/pure.ts',
-    'compat/pure': format === 'cjs' ? 'src/pure-commonjs.ts' : 'src/pure.ts',
-    compat: format === 'cjs' ? 'src/index-commonjs.ts' : 'src/index.ts',
-    modern: format === 'cjs' ? 'src/index-commonjs.ts' : 'src/index.ts',
-  }
-  const source = sources[name]
-  const profile: Profile =
-    name === 'compat' || name === 'compat/pure'
-      ? 'compat'
-      : name === 'pure'
-        ? defaultProfile
-        : 'modern'
-  const full =
-    name !== 'core' &&
-    !['loaders', 'viewport', 'content', 'triggers'].includes(name) &&
-    name !== 'renderers' &&
-    name !== 'session' &&
-    name !== 'gallery'
+function entryBundle(entry: CandidateEntry, format: 'esm' | 'cjs'): UserConfig {
+  const { name, profile } = entry
+  const source = entry.source[format]
+  const full = entry.primaryExport === 'default'
   return {
     ...browserBundle(
       source,
@@ -283,10 +239,7 @@ function entryBundle(
       tsconfig: fileURLToPath(new URL('../tsconfig.json', import.meta.url)),
       cjsDefault: full && format === 'cjs',
     },
-    plugins: [
-      ...(name === 'compat' || name === 'modern' ? [stylesheet(profile)] : []),
-      browserSyntax(profile, true),
-    ],
+    plugins: [...(entry.emitsCss ? [stylesheet(profile)] : []), browserSyntax(profile, true)],
     ...(full &&
       format === 'cjs' && {
         onSuccess(config) {
@@ -332,24 +285,5 @@ export default defineConfig([
   },
   browserBundle('src/medium-zoom.ts', 'pure/medium-zoom.umd.js', 'umd', false),
   browserBundle('src/medium-zoom.ts', 'pure/medium-zoom.min.umd.js', 'umd'),
-  entryBundle('core', 'esm'),
-  entryBundle('gallery', 'esm'),
-  entryBundle('gallery', 'cjs'),
-  entryBundle('session', 'esm'),
-  entryBundle('session', 'cjs'),
-  entryBundle('renderers', 'esm'),
-  entryBundle('renderers', 'cjs'),
-  ...(['loaders', 'viewport', 'content', 'triggers'] as const).flatMap(name => [
-    entryBundle(name, 'esm'),
-    entryBundle(name, 'cjs'),
-  ]),
-  entryBundle('core', 'cjs'),
-  entryBundle('pure', 'esm'),
-  entryBundle('pure', 'cjs'),
-  entryBundle('compat', 'esm'),
-  entryBundle('compat', 'cjs'),
-  entryBundle('compat/pure', 'esm'),
-  entryBundle('compat/pure', 'cjs'),
-  entryBundle('modern', 'esm'),
-  entryBundle('modern', 'cjs'),
+  ...candidateEntries.flatMap(entry => [entryBundle(entry, 'esm'), entryBundle(entry, 'cjs')]),
 ])

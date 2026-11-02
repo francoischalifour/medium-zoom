@@ -142,7 +142,7 @@ try {
     )
     assert.equal(code.includes('ArrowLeft'), keyboard, `${name}: keyboard isolation`)
     assert.equal(code.includes('getSnapshot'), gallery, `${name}: controller isolation`)
-    assert.equal(code.includes('Zoom image'), triggers, `${name}: trigger binding isolation`)
+    assert.equal(code.includes('.repeat'), triggers, `${name}: trigger binding isolation`)
     assert.equal(code.includes('data-zoom-src'), !!full || loader, `${name}: loader isolation`)
     assert.equal(
       code.includes('.content.cloneNode'),

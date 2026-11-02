@@ -126,3 +126,48 @@ test('explicit sessions coordinate keyboard adapters and standalone consumers', 
   })
   await expect(page.locator('.medium-zoom-overlay, dialog')).toHaveCount(0)
 })
+
+test('coordination keeps command identities stable and releases a reusable zoom', async ({
+  page,
+}) => {
+  await fixture(page)
+  expect(
+    await page.evaluate(async () => {
+      const path = '/experimental/dist/session/index.mjs'
+      const { createZoomSession } = (await import(path)) as typeof import('../../src/session')
+      const zoom = window.zoom
+      // oxlint-disable-next-line typescript/unbound-method -- Identity comparison only.
+      const commands = [zoom.open, zoom.close, zoom.toggle, zoom.detach]
+      const old = window.zoomSessions[0]!
+      await old.open()
+      await old.dispose()
+      zoom.attach('#image')
+      const next = createZoomSession(zoom)
+      await next.open()
+      await old.close()
+      await old.open()
+      await old.dispose()
+      const result = {
+        fresh: next !== old,
+        current: zoom.getZoomedImage()?.id,
+        stable: commands.every(
+          // oxlint-disable-next-line typescript/unbound-method -- Identity comparison only.
+          (command, index) => command === [zoom.open, zoom.close, zoom.toggle, zoom.detach][index]
+        ),
+      }
+      await next.dispose()
+      return result
+    })
+  ).toEqual({ fresh: true, current: 'image', stable: true })
+})
+
+test('compat pointer activation survives repeated detach and reattach', async ({ page }) => {
+  await fixture(page)
+  await page.evaluate(async () => {
+    await Promise.all(window.zoomSessions.map(session => session.dispose()))
+    window.zoom.attach('#image').detach('#image').detach('#image').attach('#image')
+  })
+  await page.locator('#image').click()
+  await expect(page.locator('.medium-zoom-image--opened')).toHaveCount(1)
+  await page.evaluate(() => window.zoom.close())
+})

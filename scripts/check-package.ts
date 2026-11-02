@@ -7,6 +7,11 @@ import { runInNewContext } from 'node:vm'
 
 import { parse } from 'acorn'
 
+import {
+  candidateEntries,
+  candidateArtifacts,
+  extensionEntries,
+} from '../config/package.config.mts'
 import baseline from '../tests/experimental/bundle-baseline.json' with { type: 'json' }
 import { checkAnalyzers } from './check-package-analyzers.ts'
 import { checkConsumers } from './check-package-consumers.ts'
@@ -15,16 +20,9 @@ import { pack } from './pack.ts'
 import { bytes, table } from './size-report'
 
 const packageRows: string[][] = []
-const entryFunctions: Record<string, string> = {
-  core: 'createZoom',
-  loaders: 'loadHdImage',
-  viewport: 'containerBounds',
-  content: 'templateContent',
-  triggers: 'bindZoomTriggers',
-  renderers: 'dialog',
-  session: 'createZoomSession',
-  gallery: 'createGallery',
-}
+const entryFunctions = Object.fromEntries(
+  extensionEntries.map(entry => [entry.name, entry.primaryExport])
+)
 
 async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boolean) {
   try {
@@ -109,28 +107,7 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
     }
     const expectedScripts = releasedFiles.filter(path => path.endsWith('.js'))
     if (experimental) {
-      expectedScripts.push(
-        'compat/index.cjs',
-        'compat/index.mjs',
-        'compat/pure/index.cjs',
-        'compat/pure/index.mjs',
-        'core/index.cjs',
-        'core/index.mjs',
-        ...['loaders', 'viewport', 'content', 'triggers'].flatMap(name => [
-          `${name}/index.cjs`,
-          `${name}/index.mjs`,
-        ]),
-        'modern/index.cjs',
-        'modern/index.mjs',
-        'pure/index.cjs',
-        'pure/index.mjs',
-        'renderers/index.cjs',
-        'renderers/index.mjs',
-        'session/index.mjs',
-        'session/index.cjs',
-        'gallery/index.mjs',
-        'gallery/index.cjs'
-      )
+      expectedScripts.push(...candidateArtifacts.map(path => path.slice('dist/'.length)))
     }
     assert.deepEqual(
       files.filter(path => /\.(?:[mc])?js$/.test(path)).sort(),
@@ -140,8 +117,11 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
     for (const path of files.filter(path => /\.(?:[mc])?js$/.test(path))) {
       const code = readFileSync(join(artifact.root, 'dist', path), 'utf8')
       const esm = path.endsWith('.mjs') || path.endsWith('.esm.js') || path === 'pure/index.js'
-      const modern =
-        /^(core|loaders|viewport|content|triggers|modern|renderers|session|gallery)\//.test(path)
+      const modern = candidateEntries.some(
+        entry =>
+          entry.profile === 'modern' &&
+          (entry.esm === `dist/${path}` || entry.cjs === `dist/${path}`)
+      )
       parse(code, {
         ecmaVersion: modern ? 2_020 : esm ? 2_015 : 5,
         sourceType: esm ? 'module' : 'script',

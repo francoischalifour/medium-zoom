@@ -1,7 +1,7 @@
-import type { ZoomTarget, GalleryTransition } from '../targets/types'
+import type { GalleryTransition } from '../targets/types'
 import { prepareFrame, runGalleryTransition } from './transition'
 export type { GalleryTransition, GalleryTransitionContext } from '../targets/types'
-import type { ZoomRenderer, Zoom } from 'medium-zoom/core'
+import type { ZoomRenderer, ZoomContent } from 'medium-zoom/core'
 
 import type { RendererHooks } from '../engine/types'
 
@@ -11,28 +11,12 @@ export interface DialogOptions {
   /** Optional user-land strategy for already-fitted gallery frames. Default: instant. */
   transition?: GalleryTransition
   /** Mount application-owned content inside the modal; return its cleanup. */
-  content?: (view: {
-    readonly element: HTMLDialogElement
-    readonly zoom: Zoom
-    close: () => void
-  }) => void | (() => void)
+  content?: ZoomContent
 }
 
 /** A native modal host. Requires HTMLDialogElement.showModal; no polyfill is installed. */
 export function dialog({ label, content, transition }: DialogOptions = {}): ZoomRenderer {
   const renderer: RendererHooks = {
-    acceptsTrigger(event) {
-      const target = event.target as Element
-      return !(
-        event.defaultPrevented ||
-        /^(link|checkbox|radio|switch|menuitem)$/.test(target.getAttribute('role') || '') ||
-        (target.getAttribute('role') === 'button' &&
-          (target as ZoomTarget).__mz_triggerLabel === undefined) ||
-        target.parentElement?.closest(
-          'button,a[href],input,select,textarea,summary,label,[role="button"],[role="link"],[role="checkbox"],[role="radio"],[role="switch"],[role="menuitem"],[contenteditable]'
-        )
-      )
-    },
     mount({ frame, zoom, close, trigger = document.activeElement as HTMLElement }) {
       const element = document.createElement('dialog')
       if (typeof element.showModal !== 'function') {
@@ -72,8 +56,11 @@ export function dialog({ label, content, transition }: DialogOptions = {}): Zoom
         cleanup = content?.({ element, zoom, close })
         element.showModal()
       } catch (error) {
-        cleanup?.()
-        element.remove()
+        try {
+          cleanup?.()
+        } finally {
+          element.remove()
+        }
         throw error
       }
       return {
@@ -97,11 +84,14 @@ export function dialog({ label, content, transition }: DialogOptions = {}): Zoom
         },
         dispose() {
           disposed = true
-          cleanup?.()
-          element.close()
-          element.remove()
-          if (trigger?.isConnected) {
-            trigger.focus({ preventScroll: true })
+          try {
+            cleanup?.()
+          } finally {
+            element.close()
+            element.remove()
+            if (trigger?.isConnected) {
+              trigger.focus({ preventScroll: true })
+            }
           }
         },
       }

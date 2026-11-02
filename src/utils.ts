@@ -1,31 +1,32 @@
-import { getTargetAdapter } from './targets'
 import type { ZoomTarget } from './targets/types'
 import type { ZoomSelector } from './types'
 
-export const isSupported = (node: ZoomTarget): boolean => !!getTargetAdapter(node)
 export const isNode = (selector: unknown): selector is ZoomTarget =>
   !!selector && (selector as Node).nodeType === 1
 
-export const getImagesFromSelector = (selector: unknown): ZoomTarget[] => {
+export const getImagesFromSelector = (
+  selector: unknown,
+  supports: (target: ZoomTarget) => boolean
+): ZoomTarget[] => {
   try {
     if (Array.isArray(selector)) {
-      return selector.filter(isSupported)
+      return selector.filter(supports)
     }
 
     if (NodeList.prototype.isPrototypeOf(selector as object)) {
       // Do not use spread operator or Array.from() for IE support
-      return (Array.prototype.slice.call(selector) as ZoomTarget[]).filter(isSupported)
+      return (Array.prototype.slice.call(selector) as ZoomTarget[]).filter(supports)
     }
 
     if (isNode(selector)) {
-      return [selector].filter(isSupported)
+      return [selector].filter(supports)
     }
 
     if (typeof selector === 'string') {
       // Do not use spread operator or Array.from() for IE support
       return (
         Array.prototype.slice.call(document.querySelectorAll(selector)) as ZoomTarget[]
-      ).filter(isSupported)
+      ).filter(supports)
     }
 
     return []
@@ -38,10 +39,14 @@ export const getImagesFromSelector = (selector: unknown): ZoomTarget[] => {
   }
 }
 
-export const getImagesFromSelectors = (selectors: ArrayLike<ZoomSelector>): ZoomTarget[] =>
+export const getImagesFromSelectors = (
+  selectors: ArrayLike<ZoomSelector>,
+  supports: (target: ZoomTarget) => boolean
+): ZoomTarget[] =>
   Array.prototype.reduce.call(
     selectors,
-    (images, selector) => (images as ZoomTarget[]).concat(getImagesFromSelector(selector)),
+    (images, selector) =>
+      (images as ZoomTarget[]).concat(getImagesFromSelector(selector, supports)),
     []
   ) as ZoomTarget[]
 

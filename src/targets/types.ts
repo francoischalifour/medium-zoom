@@ -1,5 +1,5 @@
 import type { Bounds, FrameGeometry, TargetMeasurement } from '../engine/geometry'
-export type ZoomTarget = (HTMLElement | SVGElement) & { __mz_triggerLabel?: string | null }
+export type ZoomTarget = HTMLElement | SVGElement
 interface FrameSurface {
   readonly element: ZoomTarget
   readonly content: ZoomTarget
@@ -10,6 +10,8 @@ export interface PreparedFrame extends FrameSurface {
 export interface RenderedFrame extends FrameSurface {
   readonly geometry: FrameGeometry | null
   readonly label: string
+  measure(viewport: Bounds): TargetMeasurement
+  adopt(content: ZoomTarget): RenderedFrame
   apply(geometry: FrameGeometry): void
   setVisible(visible: boolean): void
   reset(): void
@@ -18,7 +20,6 @@ export interface RenderedFrame extends FrameSurface {
 export interface TargetAdapter<Target extends ZoomTarget = ZoomTarget, Source = unknown> {
   supports(target: ZoomTarget): target is Target
   resolveSource(target: Target): Source
-  measure(target: Target, source: Source, viewport: Bounds): TargetMeasurement
   createFrame(target: Target, source: Source, coordinates: 'document' | 'viewport'): RenderedFrame
 }
 export interface PreparedTransition {

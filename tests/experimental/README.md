@@ -66,21 +66,23 @@ has no attached images, and does not install bindings/controllers on the clone.
 | --------------- | --------------------------------------- | --------------------------------------------------------------------------------------- |
 | Loading         | `loader: loadHdImage`                   | Source work and a synchronous cancellation function                                     |
 | Viewport        | `viewport: containerBounds(target)`     | Positioning-time layout measurements                                                    |
-| Renderer        | `renderer: dialog({ content })`         | Modal host, activation policy, inertness, focus, content and transition presentation    |
+| Renderer        | `renderer: dialog({ content })`         | Modal host, inertness, focus, content and transition presentation                       |
 | Content helper  | `templateContent(template)`             | Cloning authored markup into the renderer slot and removing it on disposal              |
-| Trigger binding | `bindZoomTriggers(zoom)`                | Bare-image activation semantics, keyboard events and restoration                        |
+| Trigger binding | `bindZoomTriggers(zoom)`                | Bare-image activation semantics, pointer/keyboard events and restoration                |
 | Gallery         | `createGallery(zoom)`                   | Selection, attached-image order, bounds and subscriptions                               |
 | Session         | `createZoomSession(zoom)`               | Per-document ownership, queued requests and cancellation                                |
 | Gallery keys    | `bindGalleryKeyboard(element, gallery)` | Optional interaction on an application-owned surface                                    |
 | Engine          | shared internal engine                  | Sequencing, loading completion, interruption, frame cleanup and outgoing-frame disposal |
 
-A `ZoomLoader` receives the original target, a read-only frame surface, append operations,
-and `ready(frame?)`. It starts work, returns cleanup synchronously, and calls `ready` when
-content is prepared, including when no replacement is needed. The engine calls cleanup
-on completion/interruption and ignores repeated or obsolete readiness. Frame transfer
-through `appendFrame` gives disposal ownership to the engine; late transfers are disposed.
-Thrown loader/viewport errors reject the request and use normal close cleanup. The loader
-frame-transfer contract remains experimental along with the other candidate exports.
+A `ZoomLoader` receives `{ original, content }` and calls `ready(media?)` with detached
+media when loading finishes, or no argument to retain the existing content. It returns
+cancellation synchronously. It receives no frame, append, geometry or disposal operations.
+The engine adopts the first current result through its target frame, positions it and owns
+its cleanup. Repeated/obsolete completions are ignored; never return connected application
+DOM. The loader owns any detached resources until accepted. Set request attributes such as
+CORS and referrer policy before starting a request. Loader/viewport failures reject opening
+and use normal close cleanup. Content cleanup errors still release the modal before close
+rejects. These contracts remain private candidate APIs.
 
 A `ZoomViewport` receives viewport bounds and current core options, including margin.
 `containerBounds` captures a target but resolves/measures it when positioning runs. It does
@@ -94,17 +96,25 @@ close fade remains in the compatibility preset. Application motion belongs in ap
 content or a transition strategy.
 
 `bindZoomTriggers` returns an idempotent unbind function and does not replace instance
-methods. It follows generic attach/detach notifications, restores authored attributes and
-listeners, skips interactive wrappers/contenteditable surfaces and already-authored
+methods. It follows generic attach/detach notifications, removes its listeners and restores only attributes that still match its injected values, skips interactive wrappers/contenteditable surfaces and already-authored
 interactive images, and does not handle protected/repeated activation. Clone content keeps
 the authored accessible name and has no trigger-only role/tabindex/popup semantics.
-The binding requires a modal renderer. Native/framework buttons keep their own activation.
+The binding owns pointer and keyboard activation and requires a modal renderer. Unbinding
+removes both. Modern core installs no source activation. Native/framework buttons supply
+their own activation; compatibility presets retain automatic pointer zoom.
 
 Gallery and session remain independent controllers. `createGallery` exposes stable
 snapshots, subscription, previous/next/select, attachment and disposal; bounds stop at
 either end. Session installation routes pointer, binding and framework requests through
 the same coordinator. Calling either constructor again for the same instance returns the
-same controller. Both keyboard binding helpers return cleanup.
+same controller. A session coordinates commands through a stable internal request gate;
+public method identities never change. Await `session.dispose()` to close, detach and
+release ownership. The retained zoom can then be reattached and given a new session. A
+disposed session stays inert and cannot interfere with its replacement. Collection subscriptions observe both controller and direct `zoom.attach()`/`detach()`
+commands. Collection notifications coalesce in a microtask so they see the completed
+batch, including legacy detach timing. `getSnapshot()` reads current state synchronously.
+Gallery disposal releases subscriptions without disposing the zoom/session. Both keyboard binding
+helpers return cleanup.
 
 ## Frames and gallery transitions
 
@@ -112,7 +122,10 @@ Target adapters remain internal. The current image adapter owns detection, resol
 sources, intrinsic measurements and frame creation; existing picture sources, SVG files
 and SVG data URLs inside images retain regression coverage. Pure geometry consumes layout,
 painted content, intrinsic dimensions and optional clipping. Frames own content/root nodes,
-geometry application, clipping, visibility and idempotent disposal.
+measurement/adoption, geometry application, clipping, visibility and idempotent disposal.
+The engine measures a frame rather than looking up its content node as another target.
+An engine-local immutable adapter list is verified with a test-only adapter whose root and
+content differ; it does not register global mutable extensions.
 
 Object-fit/object-position measurement, inline SVG and SVG use references remain later
 increments. There is no adapter/geometry/frame-creation package export. Future adapters can
@@ -146,6 +159,7 @@ dialog support is an additional renderer requirement. No globals are patched.
 ## Verification and comparison
 
 ```fish
+bun run check:core
 bun run check:library
 bun run test:size
 bun scripts/check-size.ts --artifacts
@@ -168,31 +182,59 @@ changed; preset comparisons retain the same legacy behavior.
 Both raw core module formats and the rebundled ESM core consumer have enforced 3,800 B
 gzip ceilings. See the measured comparison below and the CLI for the complete matrix.
 
-Raw core is **3,638 B ESM** and **3,676 B CommonJS**, below the 3,800 B ceiling.
-Compared with `53e96a2`, raw core ESM decreases **116 B**. Gallery and session raw modules
-are unchanged. The stronger loading/cleanup contracts add **147 B** to the compat/default
-raw artifact (4,225 → 4,372 B); this cost is explicit in the report and budgets.
+Raw core is **3,766 B ESM and CommonJS**, below the 3,800 B ceiling. Compared with
+`53e96a2`, raw core ESM grows **12 B**; compared with the first explicit-strategy
+checkpoint `c947b20`, it grows 128 B. The additional ownership and cleanup contracts have
+measurable cost. Renderer ESM falls from 1,392 to 1,299 B, session grows from 788 to 910 B,
+and gallery grows from 814 to 880 B as it observes the shared collection. Compat/default
+raw ESM grows from 4,225 to 4,637 B. This experiment improves boundaries rather than
+claiming every composition gets smaller.
 
 | Selected consumer                  | Before JS | After JS | Change |
 | ---------------------------------- | --------: | -------: | -----: |
-| core                               |   3,729 B |  3,619 B | −110 B |
-| core + HD                          |   4,047 B |  3,927 B | −120 B |
-| core + container                   |   3,959 B |  3,824 B | −135 B |
-| core + dialog                      |   4,741 B |  4,690 B |  −51 B |
-| gallery + session                  |   5,665 B |  5,619 B |  −46 B |
-| accessible gallery                 |   6,220 B |  6,167 B |  −53 B |
-| Compatibility preset, CSS included |   4,172 B |  4,296 B | +124 B |
+| core                               |   3,729 B |  3,739 B |  +10 B |
+| core + HD                          |   4,047 B |  3,994 B |  −53 B |
+| core + container                   |   3,959 B |  3,938 B |  −21 B |
+| core + dialog                      |   4,741 B |  4,636 B | −105 B |
+| gallery + session                  |   5,665 B |  5,703 B |  +38 B |
+| accessible gallery                 |   6,220 B |  6,345 B | +125 B |
+| Compatibility preset, CSS included |   4,172 B |  4,560 B | +388 B |
 
-Composed rows above require the same additional 251 B CSS before and after. The
-new non-modal HD + container composition is 4,132 B JS plus 251 B CSS. Template-bearing
-compositions have intentionally changed lifetime/presentation and are not included in
-the savings table. The full modern gallery composition is measured separately by the CLI.
+Composed rows require the same additional 251 B CSS before and after. HD + container is
+4,191 B JS plus 251 B CSS. Template-bearing compositions changed lifetime/presentation
+and are excluded from equivalent before/after rows. The CLI prints the complete matrix.
 
-Actual package archives also grow because the private fixture replaces one feature
-barrel with four purpose-specific entries and matching declarations: 50 → 62 files,
-65,292 → 68,068 B tarball, 332,155 → 356,921 B unpacked. The public-manifest archive
-remains 13 files, 30,690 → 31,808 B tarball. These are install/download costs, not app
-runtime transfer; no new candidate path is added to the public manifest.
+The private package grows from 50 to 62 files as one feature barrel becomes four
+purpose-specific entries with declarations. This measurement snapshot is 65,292 →
+69,348 B tarball and 332,155 → 370,018 B unpacked. The public-manifest package stays at
+13 files (30,690 → 32,154 B tarball). Archive bytes are installation cost; only selected
+consumer code contributes to browser transfer. New candidate paths remain unpublished.
+
+## Architectural review after the boundary passes
+
+Keep the explicit APIs. Controllers, strategies, bindings and content helpers now have
+different lifetimes with explicit ownership. Do not add a universal installation API to
+make those shapes superficially uniform. The narrow engine contracts are the shared part.
+
+The important proofs are behavioral: a retained zoom survives session disposal without
+method replacement; loaded media has no engine mutation access; a frame with distinct
+root/content measures and adopts through its own implementation; content can clean up
+without leaving a modal behind; authored cancellation and attribute updates survive
+bindings; direct collection mutations notify gallery subscribers. Packed consumers prove
+the same entry contracts independently of the catalog. The build/report/type catalog and
+checkout diagnostics make changes easier for both maintainers and coding agents to verify.
+
+Keep the next increments concrete: add object-fit/position measurements through the frame
+measurement boundary, then SVG forms with explicit fixtures for each source/resource
+shape. Keep adapters and custom renderer construction internal until those implementations
+prove which contracts consumers actually need. User-land gallery transitions are already
+an explicit supported experiment. Avoid predicting a large public adapter framework.
+
+Before release, choose canonical subpaths and remove redundant experimental presets.
+Leave application controls and React in registry/application source. The core has only
+34 B of raw gzip headroom, so future capabilities should remain optional modules and
+must be measured through actual consumers. This is a constraint for the next feature,
+not a reason to add more abstractions now.
 
 Geometry equivalence, loading interruption, strategy failure/repeated readiness, template
 content lifetime, controller independence, binding cleanup, native/custom controls, focus,

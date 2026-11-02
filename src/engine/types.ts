@@ -23,13 +23,11 @@ export interface ContentContext {
   readonly original: ZoomTarget
   readonly frame: Pick<RenderedFrame, 'element' | 'content'>
   append(this: void, node: HTMLElement): void
-  /** Transfer a loader-created frame to the engine; dispose() must be idempotent. */
-  appendFrame(this: void, frame: RenderedFrame): void
 }
 
 // This internal capability is the only bridge the headless gallery needs.
 export interface GallerySource extends Zoom {
-  __mz_select?: (image: HTMLElement) => Promise<Zoom>
+  __mz$modal?: true
 }
 
 export interface Viewport {
@@ -39,18 +37,27 @@ export interface Viewport {
   top: number
 }
 
+/** A loader returns detached media. Adoption, presentation and disposal belong to the engine. */
+export interface ZoomLoadContext {
+  readonly original: ZoomTarget
+  readonly content: ZoomTarget
+}
 export type ZoomLoader = (
-  content: ContentContext,
-  ready: (frame?: RenderedFrame) => void
+  content: ZoomLoadContext,
+  ready: (content?: ZoomTarget) => void
 ) => Cleanup | void
 export type ZoomViewport = (viewport: Viewport, options: Readonly<CoreZoomOptions>) => Viewport
-// Optional internal adapters preserve the legacy preset's option/update/content behavior.
 export interface EngineStrategies {
   loader?: ZoomLoader
   viewport?: ZoomViewport
-  __mz_defaults?: Partial<ZoomOptions>
-  __mz_update?: (options: ZoomOptions, previous: ZoomOptions) => void
-  __mz_mount?: (content: ContentContext, options: ZoomOptions) => Cleanup | void
+}
+
+/** Closed compatibility adapter, not an extension/install API. */
+export interface LegacyAdapter {
+  activate: (zoom: Zoom) => void
+  defaults: Partial<ZoomOptions>
+  update: (options: ZoomOptions, previous: ZoomOptions) => void
+  content: (content: ContentContext, options: ZoomOptions) => Cleanup | void
 }
 
 export interface FrameTransition {
@@ -68,7 +75,6 @@ export interface RenderHost {
 }
 
 export interface RendererHooks {
-  acceptsTrigger?: (event: MouseEvent) => boolean
   mount: (context: {
     readonly frame: RenderedFrame
     readonly zoom: Zoom
