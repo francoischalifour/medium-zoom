@@ -1,7 +1,10 @@
-import { getScrollX, getScrollY } from '#platform'
+import { getScrollX, getScrollY, assign } from '#platform'
 
-import type { FrameGeometry } from '../engine/geometry'
+import type { Bounds, TargetMeasurement, FrameGeometry } from '../engine/geometry'
+import { removeNode } from '../utils'
 import type { RenderedFrame, TargetAdapter, ZoomTarget } from './types'
+
+export const isSvgSource = (source: string): boolean => /\.svg$/i.test(source)
 
 export const isImage = (target: ZoomTarget): target is HTMLImageElement => target.tagName === 'IMG'
 
@@ -9,61 +12,46 @@ export const isImage = (target: ZoomTarget): target is HTMLImageElement => targe
 export function createImageFrame(image: HTMLImageElement): RenderedFrame {
   image.classList.add('medium-zoom-image')
   let geometry: FrameGeometry | null = null
-  const initialClip = image.style.clipPath
+  const style = image.style
+  const initialClip = style.clipPath
   return {
-    element: image,
-    content: image,
-    get label() {
+    __mz_element: image,
+    __mz_content: image,
+    get __mz_label() {
       return image.alt.trim() || image.getAttribute('aria-label')?.trim() || ''
     },
-    get geometry() {
+    get __mz_geometry() {
       return geometry
     },
-    measure(viewport) {
-      const source = image.currentSrc || image.src
-      const layout = image.getBoundingClientRect()
-      // Retain v1's SVG-file sizing policy during extraction. Other SVG forms are separate work.
-      const vector = source.substr(-4).toLowerCase() === '.svg'
-      return {
-        layout,
-        painted: layout,
-        intrinsic: {
-          width: vector ? viewport.width : image.naturalWidth,
-          height: vector ? viewport.height : image.naturalHeight,
-        },
-      }
+    __mz_measure(viewport) {
+      return measureImage(image, viewport)
     },
-    adopt(content) {
+    __mz_adopt(content) {
       if (!isImage(content)) {
         throw new TypeError('Expected an image')
       }
-      const replacement = content
-      replacement.style.cssText = image.style.cssText
-      replacement.className = image.className
-      return createImageFrame(replacement)
+      return createImageFrame(adoptImage(image, content))
     },
-    apply(next) {
+    __mz_apply(next) {
       geometry = next
-      image.style.transform = `scale(${next.scale}) translate3d(${next.translateX}px, ${next.translateY}px, 0)`
+      transformImage(image, next)
       if (next.clip) {
-        image.style.clipPath = `inset(${next.clip.top}px ${next.clip.right}px ${next.clip.bottom}px ${next.clip.left}px)`
-      } else if (image.style.clipPath !== initialClip) {
-        image.style.clipPath = initialClip
+        style.clipPath = `inset(${next.clip.top}px ${next.clip.right}px ${next.clip.bottom}px ${next.clip.left}px)`
+      } else if (style.clipPath !== initialClip) {
+        style.clipPath = initialClip
       }
     },
-    setVisible(visible) {
-      image.style.visibility = visible ? '' : 'hidden'
+    __mz_setVisible(visible) {
+      style.visibility = visible ? '' : 'hidden'
     },
-    reset() {
-      image.style.transform = ''
-      if (image.style.clipPath !== initialClip) {
-        image.style.clipPath = initialClip
+    __mz_reset() {
+      style.transform = ''
+      if (style.clipPath !== initialClip) {
+        style.clipPath = initialClip
       }
     },
-    dispose() {
-      if (image.parentNode) {
-        image.parentNode.removeChild(image)
-      }
+    __mz_dispose() {
+      removeNode(image)
     },
   }
 }
@@ -74,18 +62,52 @@ export const imageAdapter: TargetAdapter<HTMLImageElement, string> = {
     return image.currentSrc || image.src
   },
   createFrame(image, source, coordinates) {
-    const { left, top, width, height } = image.getBoundingClientRect()
-    const clone = image.cloneNode() as HTMLImageElement
-    clone.removeAttribute('id')
-    clone.style.position = 'absolute'
-    clone.style.left = `${left + (coordinates === 'document' ? getScrollX() : 0)}px`
-    clone.style.top = `${top + (coordinates === 'document' ? getScrollY() : 0)}px`
-    clone.style.width = `${width}px`
-    clone.style.height = `${height}px`
-    clone.style.transform = ''
-    if (image.parentElement?.tagName === 'PICTURE' && image.currentSrc) {
-      clone.src = source
-    }
+    const clone = cloneImage(image, source, coordinates)
     return createImageFrame(clone)
   },
+}
+
+export function measureImage(image: HTMLImageElement, viewport: Bounds): TargetMeasurement {
+  const source = image.currentSrc || image.src
+  const layout = image.getBoundingClientRect()
+  // Retain v1's SVG-file sizing policy during extraction. Other SVG forms are separate work.
+  const vector = isSvgSource(source)
+  return {
+    layout,
+    painted: layout,
+    intrinsic: {
+      width: vector ? viewport.width : image.naturalWidth,
+      height: vector ? viewport.height : image.naturalHeight,
+    },
+  }
+}
+export function cloneImage(
+  image: HTMLImageElement,
+  source: string,
+  coordinates: 'document' | 'viewport'
+): HTMLImageElement {
+  const { left, top, width, height } = image.getBoundingClientRect()
+  const clone = image.cloneNode() as HTMLImageElement
+  clone.removeAttribute('id')
+  assign(clone.style, {
+    position: 'absolute',
+    left: `${left + (coordinates === 'document' ? getScrollX() : 0)}px`,
+    top: `${top + (coordinates === 'document' ? getScrollY() : 0)}px`,
+    width: `${width}px`,
+    height: `${height}px`,
+    transform: '',
+  })
+  if (image.parentElement?.tagName === 'PICTURE' && image.currentSrc) {
+    clone.src = source
+  }
+  clone.classList.add('medium-zoom-image')
+  return clone
+}
+export function adoptImage(image: HTMLImageElement, content: HTMLImageElement): HTMLImageElement {
+  content.style.cssText = image.style.cssText
+  content.className = image.className
+  return content
+}
+export function transformImage(image: HTMLElement | SVGElement, next: FrameGeometry): void {
+  image.style.transform = `scale(${next.scale}) translate3d(${next.translateX}px, ${next.translateY}px, 0)`
 }

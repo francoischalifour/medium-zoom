@@ -1,6 +1,7 @@
+import { frameGeometry, applyFrame, showFrame } from '../engine/frame-ops'
 import type { FrameGeometry } from '../engine/geometry'
 import type { FrameTransition } from '../engine/types'
-import type { GalleryTransition, PreparedFrame, RenderedFrame } from '../targets/types'
+import type { GalleryTransition, PreparedFrame, FrameSurface } from '../targets/types'
 
 /** Executes a consumer strategy; the engine retains frame disposal and completion ownership. */
 export function runGalleryTransition(
@@ -9,16 +10,20 @@ export function runGalleryTransition(
   done: (error?: unknown) => void
 ): () => void {
   // Narrow the runtime objects as well as their types before crossing into application code.
-  const prepare = (frames: readonly RenderedFrame[]): PreparedFrame[] =>
+  const prepare = (frames: readonly FrameSurface[]): PreparedFrame[] =>
     frames
-      .filter(frame => frame.geometry)
-      .map(frame => ({ element: frame.element, content: frame.content, geometry: frame.geometry! }))
+      .filter(frame => frameGeometry(frame))
+      .map(frame => ({
+        element: frame.__mz_element,
+        content: frame.__mz_content,
+        geometry: frameGeometry(frame)!,
+      }))
   const controller = new AbortController()
   const motion = matchMedia('(prefers-reduced-motion: reduce)')
   let settled = false
   const clearEffects = () =>
     [...frames.outgoing, ...frames.incoming].forEach(frame =>
-      frame.element.getAnimations?.({ subtree: true }).forEach(animation => animation.cancel())
+      frame.__mz_element.getAnimations?.({ subtree: true }).forEach(animation => animation.cancel())
     )
   const finish = (error?: unknown) => {
     if (settled) {
@@ -39,18 +44,24 @@ export function runGalleryTransition(
     queueMicrotask(() => finish())
   } else {
     motion.addEventListener('change', reduce)
-    try {
-      void Promise.resolve(
-        strategy({
-          outgoing: prepare(frames.outgoing),
-          incoming: prepare(frames.incoming),
-          direction: frames.direction,
-          signal: controller.signal,
-        })
-      ).then(() => finish(), finish)
-    } catch (error) {
-      queueMicrotask(() => finish(error))
-    }
+    // Install the cancellation lease before application code can synchronously navigate again.
+    queueMicrotask(() => {
+      if (settled) {
+        return
+      }
+      try {
+        void Promise.resolve(
+          strategy({
+            outgoing: prepare(frames.outgoing),
+            incoming: prepare(frames.incoming),
+            direction: frames.direction,
+            signal: controller.signal,
+          })
+        ).then(() => finish(), finish)
+      } catch (error) {
+        finish(error)
+      }
+    })
   }
   return () => {
     if (settled) {
@@ -65,22 +76,22 @@ export function runGalleryTransition(
 
 /** Modal replacement commits fitted geometry without replaying thumbnail motion. */
 export function prepareFrame(
-  frame: RenderedFrame,
+  frame: FrameSurface,
   geometry: FrameGeometry | null,
   outgoing = false
 ) {
   if (outgoing) {
-    frame.content.setAttribute('aria-hidden', 'true')
+    frame.__mz_content.setAttribute('aria-hidden', 'true')
   }
   if (!geometry) {
     return
   }
-  const element = frame.element
+  const element = frame.__mz_element
   const transition = element.style.getPropertyValue('transition')
   const priority = element.style.getPropertyPriority('transition')
   element.style.setProperty('transition', 'none', 'important')
-  frame.apply(geometry)
-  frame.setVisible(true)
+  applyFrame(frame, geometry)
+  showFrame(frame, true)
   element.getBoundingClientRect()
   if (transition) {
     element.style.setProperty('transition', transition, priority)

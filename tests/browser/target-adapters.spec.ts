@@ -127,14 +127,14 @@ test('a frame restores authored clipping when geometry drops its crop or resets'
         { layout: box, painted: box, intrinsic: { width: 800, height: 500 } },
         viewport
       )!
-      frame.apply(clipped)
+      frame.__mz_apply(clipped)
       const cropped = image.style.clipPath
-      frame.apply(plain)
+      frame.__mz_apply(plain)
       const restored = image.style.clipPath
-      frame.apply(clipped)
-      frame.reset()
-      frame.dispose()
-      frame.dispose()
+      frame.__mz_apply(clipped)
+      frame.__mz_reset()
+      frame.__mz_dispose()
+      frame.__mz_dispose()
       return { cropped, restored, reset: image.style.clipPath, connected: image.isConnected }
     })
   ).toEqual({
@@ -166,19 +166,19 @@ test('a constructor-local adapter owns separate frame roots, measurement and loa
         createFrame(target, _source, coordinates) {
           const inner = imageAdapter.createFrame(target.querySelector('img')!, '', coordinates)
           const root = document.createElement('section')
-          root.append(inner.element)
+          root.append(inner.__mz_element)
           return {
             ...inner,
-            element: root,
-            measure(viewport) {
+            __mz_element: root,
+            __mz_measure(viewport) {
               measured++
-              return inner.measure(viewport)
+              return inner.__mz_measure(viewport)
             },
-            adopt(media) {
+            __mz_adopt(media) {
               adopted++
-              return inner.adopt(media)
+              return inner.__mz_adopt(media)
             },
-            dispose() {
+            __mz_dispose() {
               disposed++
               root.remove()
             },
@@ -187,13 +187,14 @@ test('a constructor-local adapter owns separate frame roots, measurement and loa
       }
       const adapters = [custom]
       const zoom = createEngine(
-        { loader: (_context, ready) => ready() },
+        (_context, ready) => ready(),
+        undefined,
         undefined,
         undefined,
         adapters
       )(original)
       adapters.length = 0
-      const ordinary = createEngine({})('#custom,#plain')
+      const ordinary = createEngine()('#custom,#plain')
       await zoom.open()
       const root = document.querySelector('section')!
       const separate =
@@ -203,7 +204,8 @@ test('a constructor-local adapter owns separate frame roots, measurement and loa
       media.src = '/images/image-2.jpg'
       await media.decode()
       const loaded = createEngine(
-        { loader: (_context, ready) => ready(media) },
+        (_context, ready) => ready(media),
+        undefined,
         undefined,
         undefined,
         [custom]

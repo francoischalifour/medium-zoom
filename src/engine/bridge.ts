@@ -5,9 +5,14 @@ export type ZoomCommands<Options extends CoreZoomOptions = ZoomOptions> = Pick<
   'open' | 'close' | 'toggle' | 'detach'
 >
 
-/** Stable internal ABI across independent entries. __mz$ names are never property-mangled. */
+/** Engine owns command forwarding; the optional session owns installation and its lease. */
+export interface CommandGate<Options extends CoreZoomOptions = ZoomOptions> {
+  __mz_current: ZoomCommands<Options>
+  __mz_owner?: object
+}
+/** Private protocol keys are pinned across all entries by the build name cache. */
 export interface CoordinatedZoom<
   Options extends CoreZoomOptions = ZoomOptions,
 > extends Zoom<Options> {
-  __mz$coordinate(owner: (engine: ZoomCommands<Options>) => ZoomCommands<Options>): () => void
+  readonly __mz_gate: CommandGate<Options>
 }

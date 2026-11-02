@@ -440,3 +440,44 @@ for (const kind of ['connected', 'incompatible'] as const) {
     ).toEqual({ rejected: true, kept: true, closed: true, removed: true })
   })
 }
+
+test('HD cancellation removes native callbacks before a late load error', async ({ page }) => {
+  await preparePage(page, {
+    body: '<img id="image" src="/images/image-1.jpg" width="160" alt="Photo" onerror="document.documentElement.dataset.hdError=\'dispatched\'">',
+  })
+  let release!: () => void
+  const gate = new Promise<void>(resolve => {
+    release = resolve
+  })
+  const warnings: string[] = []
+  page.on('console', message => {
+    if (message.type() === 'warning') {
+      warnings.push(message.text())
+    }
+  })
+  await page.route('**/cancelled-hd.jpg', async route => {
+    await gate
+    await route.fulfill({ status: 404, body: '' })
+  })
+  await page.evaluate(async () => {
+    const { loadHdImage } = (await import(
+      String('/experimental/dist/loaders/index.mjs')
+    )) as typeof import('../../src/loaders')
+    const source = document.querySelector<HTMLImageElement>('#image')!
+    source.setAttribute('data-zoom-src', '/cancelled-hd.jpg')
+    const pending = window as Window & { cancelHd?: () => void }
+    document.documentElement.dataset.hdCompletions = '0'
+    pending.cancelHd =
+      loadHdImage({ original: source, content: source.cloneNode() as HTMLImageElement }, () => {
+        document.documentElement.dataset.hdCompletions = '1'
+      }) || undefined
+    pending.cancelHd?.()
+  })
+  release()
+  await expect(page.locator('html')).toHaveAttribute('data-hd-error', 'dispatched')
+  await expect(page.locator('html')).toHaveAttribute('data-hd-completions', '0')
+  expect(warnings).toEqual([])
+  await page.evaluate(() => {
+    delete (window as Window & { cancelHd?: () => void }).cancelHd
+  })
+})

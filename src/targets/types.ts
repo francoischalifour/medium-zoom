@@ -1,21 +1,23 @@
 import type { Bounds, FrameGeometry, TargetMeasurement } from '../engine/geometry'
 export type ZoomTarget = HTMLElement | SVGElement
-interface FrameSurface {
+export interface FrameSurface {
+  readonly __mz_element: ZoomTarget
+  readonly __mz_content: ZoomTarget
+}
+export interface PreparedFrame {
   readonly element: ZoomTarget
   readonly content: ZoomTarget
-}
-export interface PreparedFrame extends FrameSurface {
   readonly geometry: FrameGeometry
 }
 export interface RenderedFrame extends FrameSurface {
-  readonly geometry: FrameGeometry | null
-  readonly label: string
-  measure(viewport: Bounds): TargetMeasurement
-  adopt(content: ZoomTarget): RenderedFrame
-  apply(geometry: FrameGeometry): void
-  setVisible(visible: boolean): void
-  reset(): void
-  dispose(): void
+  readonly __mz_geometry: FrameGeometry | null
+  readonly __mz_label: string
+  __mz_measure(viewport: Bounds): TargetMeasurement
+  __mz_adopt(content: ZoomTarget): RenderedFrame
+  __mz_apply(__mz_geometry: FrameGeometry): void
+  __mz_setVisible(visible: boolean): void
+  __mz_reset(): void
+  __mz_dispose(): void
 }
 export interface TargetAdapter<Target extends ZoomTarget = ZoomTarget, Source = unknown> {
   supports(target: ZoomTarget): target is Target

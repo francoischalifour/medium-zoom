@@ -22,5 +22,5 @@ export function createZoom(
   images?: ZoomSelector,
   { renderer, loader, viewport, ...options }: CreateZoomOptions = {}
 ): Zoom {
-  return createEngine({ loader, viewport }, renderer as unknown as RendererHooks)(images, options)
+  return createEngine(loader, viewport, renderer as unknown as RendererHooks)(images, options)
 }

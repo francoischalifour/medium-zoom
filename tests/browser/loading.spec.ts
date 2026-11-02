@@ -309,3 +309,23 @@ test('continuous scrolling dismisses without waiting for scrolling to stop', asy
   expect(closedWhileScrolling).toBe(true)
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 })
+
+test('HD adoption restores the opened class after an authored load handler replaces it', async ({
+  page,
+}) => {
+  await loadZoomFixture(page)
+  await page.evaluate(async () => {
+    const image = document.querySelector<HTMLImageElement>('#image')!
+    image.setAttribute(
+      'onload',
+      "if(this.src.indexOf('hd-fixture')!==-1)this.className='photo-loaded'"
+    )
+    image.setAttribute('data-zoom-src', '/images/image-2.jpg?hd-fixture')
+    await window.zoom.open()
+  })
+  await expect(page.locator('.medium-zoom-image--opened')).toHaveCount(2)
+  await expect(page.locator('img[src*="hd-fixture"]')).toHaveClass(/photo-loaded/)
+  await page.evaluate(() => window.zoom.close())
+  await expect(page.locator('.medium-zoom-image--opened')).toHaveCount(0)
+  await expect(page.locator('img[src*="hd-fixture"]')).toHaveCount(0)
+})

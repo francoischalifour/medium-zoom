@@ -175,40 +175,58 @@ registry yet. The browser harness builds both real private and release package c
 gzip level 9 and the same installed build tools. The size command prints raw entries,
 selected-consumer JS/CSS transfer, named incremental comparisons and before/after rows.
 Raw module sizes are not additive consumer costs. App UI/CSS and React are excluded;
-explicit core CSS is 251 B and counted separately. The example custom transition includes
+explicit core CSS is 245 B and counted separately. The example custom transition includes
 its strategy code. Template-bearing before/after rows are omitted where ownership/fade
 changed; preset comparisons retain the same legacy behavior.
 
-Both raw core module formats and the rebundled ESM core consumer have enforced 3,800 B
-gzip ceilings. See the measured comparison below and the CLI for the complete matrix.
-
-Raw core is **3,766 B ESM and CommonJS**, below the 3,800 B ceiling. Compared with
-`53e96a2`, raw core ESM grows **12 B**; compared with the first explicit-strategy
-checkpoint `c947b20`, it grows 128 B. The additional ownership and cleanup contracts have
-measurable cost. Renderer ESM falls from 1,392 to 1,299 B, session grows from 788 to 910 B,
-and gallery grows from 814 to 880 B as it observes the shared collection. Compat/default
-raw ESM grows from 4,225 to 4,637 B. This experiment improves boundaries rather than
-claiming every composition gets smaller.
+The compatibility preset now has a strict **less than 3,800 B gzip** budget, including
+injected CSS: **3,697 B ESM, 3,694 B CommonJS and 3,787 B standalone UMD**. It retains
+v1 browser support, ES5 UMD syntax, Promise/CustomEvent fallbacks and all legacy options.
+Against the preceding boundary checkpoint `09086b0`, compatibility ESM falls from
+4,637 to 3,697 B (−940 B). Raw core falls from 3,766 to 3,552 B ESM; CJS is 3,554 B.
+Both core formats and its rebundled consumer retain 3,800 B JS ceilings.
 
 | Selected consumer                  | Before JS | After JS | Change |
 | ---------------------------------- | --------: | -------: | -----: |
-| core                               |   3,729 B |  3,739 B |  +10 B |
-| core + HD                          |   4,047 B |  3,994 B |  −53 B |
-| core + container                   |   3,959 B |  3,938 B |  −21 B |
-| core + dialog                      |   4,741 B |  4,636 B | −105 B |
-| gallery + session                  |   5,665 B |  5,703 B |  +38 B |
-| accessible gallery                 |   6,220 B |  6,345 B | +125 B |
-| Compatibility preset, CSS included |   4,172 B |  4,560 B | +388 B |
+| core                               |   3,729 B |  3,544 B | −185 B |
+| core + HD                          |   4,047 B |  3,775 B | −272 B |
+| core + container                   |   3,959 B |  3,744 B | −215 B |
+| core + dialog                      |   4,741 B |  4,484 B | −257 B |
+| gallery + session                  |   5,665 B |  5,580 B |  −85 B |
+| accessible gallery                 |   6,220 B |  6,230 B |  +10 B |
+| Compatibility preset, CSS included |   4,172 B |  3,696 B | −476 B |
 
-Composed rows require the same additional 251 B CSS before and after. HD + container is
-4,191 B JS plus 251 B CSS. Template-bearing compositions changed lifetime/presentation
-and are excluded from equivalent before/after rows. The CLI prints the complete matrix.
+These consumer comparisons use the reproducible `53e96a2` baseline, not `09086b0`.
+Composed rows additionally transfer 251 B CSS before and 245 B after. HD + container is
+3,976 B JS plus 245 B CSS. Raw module sizes are not additive; the CLI prints actual
+rebundled imports and their incremental costs.
 
-The private package grows from 50 to 62 files as one feature barrel becomes four
-purpose-specific entries with declarations. This measurement snapshot is 65,292 →
-69,348 B tarball and 332,155 → 370,018 B unpacked. The public-manifest package stays at
-13 files (30,690 → 32,154 B tarball). Archive bytes are installation cost; only selected
-consumer code contributes to browser transfer. New candidate paths remain unpublished.
+The private package stays at 62 files: 63,985 B tarball and 327,142 B unpacked. The public
+manifest stays at 13 files: 29,553 B tarball and 128,945 B unpacked. Against `53e96a2`,
+those tarballs shrink by 1,307 B and 1,137 B respectively. These are installation costs;
+only selected consumer code contributes to browser transfer. Candidate paths remain
+unpublished. Archive measurements exclude this experimental documentation.
+
+### Static frame implementations
+
+One engine owns sequencing, cancellation, events and disposal in every build. Its private
+`#engine-profile` binding selects frame operations at build time. Fixed image presets use
+a small image-only implementation; composed core retains measured frames and strategy
+hooks. Source tests also enable internal custom adapters and legacy options. These are
+build bindings, with no runtime profile switch or second lifecycle implementation.
+
+The fixed implementation accepts only the preset's private image loader. Arbitrary
+consumer loaders use composed core, whose frames adopt and normalize detached media.
+Pure geometry regressions compare both image positioning paths; `typecheck:frames`
+checks every implementation against the same engine call sites. Future painted-content
+or SVG support belongs in composed frames first, with explicit coverage before changing
+the compatibility implementation. This specialization buys size but adds a maintenance
+obligation: update both implementations when shared image behavior changes.
+
+The engine exposes a private command cell; session installs/releases its coordinator
+there while public instance methods remain stable. Controllers and rendering still own
+their separate lifetimes. Transition strategies start only after their cancellation lease
+is installed, including synchronous reentrant gallery navigation.
 
 ## Architectural review after the boundary passes
 
@@ -231,10 +249,9 @@ prove which contracts consumers actually need. User-land gallery transitions are
 an explicit supported experiment. Avoid predicting a large public adapter framework.
 
 Before release, choose canonical subpaths and remove redundant experimental presets.
-Leave application controls and React in registry/application source. The core has only
-34 B of raw gzip headroom, so future capabilities should remain optional modules and
-must be measured through actual consumers. This is a constraint for the next feature,
-not a reason to add more abstractions now.
+Leave application controls and React in registry/application source. The standalone compatibility build has only 13 B of gzip headroom. Future capabilities
+should remain optional modules and be measured through actual consumers; a size increase
+needs an explicit budget decision. Keep this constraint visible when changing the engine.
 
 Geometry equivalence, loading interruption, strategy failure/repeated readiness, template
 content lifetime, controller independence, binding cleanup, native/custom controls, focus,

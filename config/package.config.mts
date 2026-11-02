@@ -156,7 +156,7 @@ export const extensionEntries: CandidateEntry[] = [
   ),
 ]
 export const profileEntries: CandidateEntry[] = [
-  preset('compat', 'compat', true, [4_736, 4_736]),
+  preset('compat', 'compat', true, [3_799, 3_799]),
   preset('compat/pure', 'compat', false, [4_512, 4_512]),
   preset('modern', 'modern', true, [4_608, 4_608]),
   preset('pure', 'compat', false, [4_512, 4_512]),

@@ -9,46 +9,31 @@ export const getImagesFromSelector = (
   supports: (target: ZoomTarget) => boolean
 ): ZoomTarget[] => {
   try {
-    if (Array.isArray(selector)) {
-      return selector.filter(supports)
-    }
-
-    if (NodeList.prototype.isPrototypeOf(selector as object)) {
-      // Do not use spread operator or Array.from() for IE support
-      return (Array.prototype.slice.call(selector) as ZoomTarget[]).filter(supports)
-    }
-
-    if (isNode(selector)) {
-      return [selector].filter(supports)
-    }
-
     if (typeof selector === 'string') {
-      // Do not use spread operator or Array.from() for IE support
-      return (
-        Array.prototype.slice.call(document.querySelectorAll(selector)) as ZoomTarget[]
-      ).filter(supports)
+      selector = document.querySelectorAll(selector)
     }
-
-    return []
+    if (isNode(selector)) {
+      selector = [selector]
+    }
+    if (NodeList.prototype.isPrototypeOf(selector as object)) {
+      selector = Array.prototype.slice.call(selector)
+    }
+    return Array.isArray(selector) ? selector.filter(supports) : []
   } catch (err) {
-    throw new TypeError(
-      'The provided selector is invalid.\n' +
-        'Expects a CSS selector, a Node element, a NodeList or an array.\n' +
-        'See: https://github.com/francoischalifour/medium-zoom'
-    )
+    throw new TypeError('The provided selector is invalid.')
   }
 }
 
 export const getImagesFromSelectors = (
   selectors: ArrayLike<ZoomSelector>,
   supports: (target: ZoomTarget) => boolean
-): ZoomTarget[] =>
-  Array.prototype.reduce.call(
-    selectors,
-    (images, selector) =>
-      (images as ZoomTarget[]).concat(getImagesFromSelector(selector, supports)),
-    []
-  ) as ZoomTarget[]
+): ZoomTarget[] => {
+  let images: ZoomTarget[] = []
+  for (let index = 0, length = selectors.length; index < length; index++) {
+    images = images.concat(getImagesFromSelector(selectors[index], supports))
+  }
+  return images
+}
 
 export const createOverlay = (background: string | undefined): HTMLDivElement => {
   const overlay = document.createElement('div')
@@ -56,4 +41,11 @@ export const createOverlay = (background: string | undefined): HTMLDivElement =>
   overlay.style.background = background || ''
 
   return overlay
+}
+
+export function removeNode(node: Node): void {
+  const parent = node.parentNode
+  if (parent) {
+    parent.removeChild(node)
+  }
 }

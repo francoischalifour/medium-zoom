@@ -63,15 +63,15 @@ staging, resolution checks and size output derive candidate metadata from it. Th
 `package.json` fixture retains only historical aliases; it is not a second candidate list.
 Hand-authored packed consumer fixtures independently verify those generated declarations.
 Source aliases are checked against the catalog. `bun run check:core` logs its checkout/ref
-and verifies build, sizes, packed consumers and geometry without browser/dev servers.
+and verifies build, all frame implementation types, sizes, packed consumers and geometry without browser/dev servers.
 The broader browser and framework suites remain separate checks.
 
 ## Measure three separate costs
 
 - **npm download/install:** all physical distributions, declarations, CSS and docs in
   `files`. `bun run test:package` measures actual packed release/candidate archives.
-- **Raw entry gzip:** ESM/CJS/UMD artifact budgets. Enforce 3,800 B for both core formats;
-  explicit CSS remains separate.
+- **Raw entry gzip:** ESM/CJS/UMD artifact budgets. Enforce less than 3,800 B for compatibility ESM/CJS and standalone UMD, including
+  injected CSS. Both core formats retain 3,800 B JS ceilings; explicit CSS is separate.
 - **Selected browser transfer:** real imports rebundled/minified together, with required
   CSS counted once. `bun run test:size` prints capabilities, marginal costs and comparisons
   against `bundle-baseline.json` at `53e96a2`. The rebundled core also has a 3,800 B ceiling.
@@ -79,8 +79,9 @@ The broader browser and framework suites remain separate checks.
 Do not sum independent module gzip values. Injected CSS is already in JS; explicit CSS
 is a separate asset. App UI/styles and React are excluded; the custom-transition example
 includes its application strategy. Template-bearing rows whose ownership changed are not
-presented as equivalent before/after savings. The report also shows the legacy preset
-increase from stronger shared lifecycle guards instead of hiding that cost.
+presented as equivalent before/after savings. The report compares compatibility presets with the same legacy behavior and browser
+support. Static image frame bindings reduce preset cost without removing engine lifecycle
+guards; composed core retains the richer frame implementation.
 
 ## React / shadcn and release sequence
 

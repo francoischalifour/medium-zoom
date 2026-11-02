@@ -21,10 +21,14 @@ export function createZoomSession<Options extends CoreZoomOptions>(
     return existing
   }
   const source = zoom as CoordinatedZoom<Options>
-  if (!source.__mz$coordinate) {
+  if (!source.__mz_gate) {
     throw new Error('Medium Zoom session requires a compatible engine')
   }
-  let engine!: ZoomCommands<Options>
+  const gate = source.__mz_gate
+  if (gate.__mz_owner) {
+    throw new Error('Zoom already coordinated')
+  }
+  const engine = gate.__mz_current
   let released = false
   let disposal: Promise<void> | undefined
   const documents = new Set<Document>()
@@ -166,19 +170,23 @@ export function createZoomSession<Options extends CoreZoomOptions>(
       return disposal
     },
   }
-  const release = source.__mz$coordinate(physical => {
-    engine = physical
-    return {
-      open: options => session.open(options),
-      close: () => session.close(),
-      toggle: options =>
-        pending || zoom.getZoomedImage() ? session.close() : session.open(options),
-      detach(...selectors) {
-        void session.close()
-        return physical.detach(...selectors)
-      },
+  const requests: ZoomCommands<Options> = {
+    open: options => session.open(options),
+    close: () => session.close(),
+    toggle: options => (pending || zoom.getZoomedImage() ? session.close() : session.open(options)),
+    detach(...selectors) {
+      void session.close()
+      return engine.detach(...selectors)
+    },
+  }
+  gate.__mz_owner = session
+  gate.__mz_current = requests
+  const release = () => {
+    if (gate.__mz_owner === session) {
+      gate.__mz_current = engine
+      delete gate.__mz_owner
     }
-  })
+  }
   sessions.set(zoom, session)
   return session
 }

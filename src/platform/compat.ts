@@ -13,9 +13,7 @@ export const createCustomEvent = (
   type: string,
   detail: { zoom: Zoom }
 ): CustomEvent<{ zoom: Zoom }> => {
-  if (typeof window.CustomEvent === 'function') {
-    return new CustomEvent(type, { detail })
-  }
+  // One DOM event path works with and without a constructible CustomEvent (including IE10).
   const event = document.createEvent('CustomEvent')
   event.initCustomEvent(type, false, false, detail)
   return event

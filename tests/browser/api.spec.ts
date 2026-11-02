@@ -528,3 +528,16 @@ test('attachment validates selectors, supports variadic nodes, and ignores HTMLC
   expect(result.error).toContain('The provided selector is invalid.')
   expect(result).toMatchObject({ ignored: 0, attached: ['first', 'second'], remaining: 0 })
 })
+
+test('off removes a subscription from images attached later', async ({ page }) => {
+  expect(
+    await page.evaluate(() => {
+      const zoom = window.mediumZoom('#first')
+      let updates = 0
+      const listener = () => updates++
+      zoom.on('update', listener).off('update', listener)
+      zoom.attach('#second').update({ margin: 12 })
+      return updates
+    })
+  ).toBe(0)
+})

@@ -256,3 +256,105 @@ test('an asynchronously rejected strategy closes cleanly and allows a fresh open
     page.locator('dialog,.medium-zoom-image--opened,.medium-zoom-image--hidden')
   ).toHaveCount(0)
 })
+
+for (const abortNavigates of [false, true]) {
+  test(`synchronous strategy navigation releases its lease; abort navigation wins: ${abortNavigates}`, async ({
+    page,
+  }) => {
+    await preparePage(page, {
+      body: '<img id="first" src="/images/image-1.jpg" width="160" alt="First"><img id="second" src="/images/image-2.jpg" width="160" alt="Second"><img id="third" src="/images/image-1.jpg" width="160" alt="Third">',
+    })
+    await page.addStyleTag({ url: '/experimental/dist/modern/style.css' })
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
+    expect(
+      await page.evaluate(async abortNavigates => {
+        const { createZoom } = (await import(
+          String('/experimental/dist/core/index.mjs')
+        )) as typeof import('../../src/core')
+        const { dialog } = (await import(
+          String('/experimental/dist/renderers/index.mjs')
+        )) as typeof import('../../src/renderers')
+        const { createGallery } = (await import(
+          String('/experimental/dist/gallery/index.mjs')
+        )) as typeof import('../../src/gallery')
+        let gallery!: import('../../src/gallery').GalleryController
+        let interrupted: AbortSignal | undefined
+        let latest: Promise<unknown> | undefined
+        let fromAbort: Promise<unknown> | undefined
+        const zoom = createZoom('img', {
+          renderer: dialog({
+            transition: context => {
+              if ((context.incoming[0]!.content as HTMLImageElement).alt === 'Second') {
+                interrupted = context.signal
+                if (abortNavigates) {
+                  context.signal.addEventListener(
+                    'abort',
+                    () => {
+                      fromAbort = gallery.select(0)
+                    },
+                    { once: true }
+                  )
+                }
+                latest = gallery.next()
+                return new Promise<void>(() => {})
+              }
+            },
+          }),
+        })
+        gallery = createGallery(zoom)
+        await zoom.open()
+        await gallery.next()
+        await latest
+        await fromAbort
+        const result = {
+          current: zoom.getZoomedImage()?.id,
+          aborted: interrupted?.aborted,
+          dialogs: document.querySelectorAll('dialog').length,
+          frames: document.querySelectorAll('.medium-zoom-image--opened').length,
+        }
+        await zoom.close()
+        return result
+      }, abortNavigates)
+    ).toEqual({ current: abortNavigates ? 'first' : 'third', aborted: true, dialogs: 1, frames: 1 })
+  })
+}
+
+test('navigation from successive open events waits for each frame and retained host', async ({
+  page,
+}) => {
+  await preparePage(page, {
+    body: '<img id="first" src="/images/image-1.jpg" width="160" alt="First"><img id="second" src="/images/image-2.jpg" width="160" alt="Second"><img id="third" src="/images/image-1.jpg" width="160" alt="Third">',
+  })
+  await page.addStyleTag({ url: '/experimental/dist/modern/style.css' })
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  expect(
+    await page.evaluate(async () => {
+      const { createZoom } = (await import(
+        String('/experimental/dist/core/index.mjs')
+      )) as typeof import('../../src/core')
+      const { dialog } = (await import(
+        String('/experimental/dist/renderers/index.mjs')
+      )) as typeof import('../../src/renderers')
+      const { createGallery } = (await import(
+        String('/experimental/dist/gallery/index.mjs')
+      )) as typeof import('../../src/gallery')
+      const zoom = createZoom('img', { renderer: dialog() })
+      const gallery = createGallery(zoom)
+      const moves: Promise<unknown>[] = []
+      zoom.on('open', () => {
+        if (zoom.getZoomedImage()?.id !== 'third') {
+          moves.push(gallery.next())
+        }
+      })
+      await zoom.open()
+      await Promise.all(moves)
+      const result = {
+        current: zoom.getZoomedImage()?.id,
+        dialogs: document.querySelectorAll('dialog').length,
+        frames: document.querySelectorAll('.medium-zoom-image--opened').length,
+      }
+      await zoom.close()
+      return result
+    })
+  ).toEqual({ current: 'third', dialogs: 1, frames: 1 })
+})

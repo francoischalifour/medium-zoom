@@ -56,3 +56,26 @@ export function fitTarget(
       : undefined,
   }
 }
+
+/** Pure transform for fixed image presets with matching layout/painted bounds and no crop. */
+export function imageTransform(
+  layout: Bounds,
+  intrinsicWidth: number,
+  intrinsicHeight: number,
+  viewport: Bounds
+): string | null {
+  const { width, height } = layout
+  const { width: viewportWidth, height: viewportHeight } = viewport
+  if (!width || !height) {
+    return null
+  }
+  const scale = Math.min(
+    Math.max(1, (intrinsicWidth || viewportWidth) / width),
+    Math.max(1, (intrinsicHeight || viewportHeight) / height),
+    viewportWidth / width,
+    viewportHeight / height
+  )
+  const x = (viewport.left + viewportWidth / 2 - layout.left - width / 2) / scale
+  const y = (viewport.top + viewportHeight / 2 - layout.top - height / 2) / scale
+  return `scale(${scale}) translate3d(${x}px, ${y}px, 0)`
+}

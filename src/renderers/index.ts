@@ -1,3 +1,4 @@
+import { frameLabel } from '../engine/frame-ops'
 import type { GalleryTransition } from '../targets/types'
 import { prepareFrame, runGalleryTransition } from './transition'
 export type { GalleryTransition, GalleryTransitionContext } from '../targets/types'
@@ -23,7 +24,7 @@ export function dialog({ label, content, transition }: DialogOptions = {}): Zoom
         throw new Error('Medium Zoom dialog renderer requires HTMLDialogElement.showModal()')
       }
       element.className = 'medium-zoom-dialog'
-      element.setAttribute('aria-label', label?.trim() || frame.label || 'Zoomed image')
+      element.setAttribute('aria-label', label?.trim() || frameLabel(frame) || 'Zoomed image')
       // Viewport coordinates keep the top-layer host independent of document scroll.
       element.style.cssText =
         'position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;color:inherit;overflow:hidden;'
@@ -66,11 +67,20 @@ export function dialog({ label, content, transition }: DialogOptions = {}): Zoom
       return {
         element,
         prepare: prepareFrame,
-        update(next) {
-          for (const name of ['aria-hidden', 'role', 'tabindex', 'aria-haspopup']) {
-            next.content.removeAttribute(name)
+        update(next, previous) {
+          if (previous) {
+            previous.__mz_content.setAttribute('aria-hidden', 'true')
           }
-          element.setAttribute('aria-label', label?.trim() || next.label || 'Zoomed image')
+          for (const name of ['aria-hidden', 'role', 'tabindex', 'aria-haspopup']) {
+            next.__mz_content.removeAttribute(name)
+          }
+          element.setAttribute(
+            'aria-label',
+            label?.trim() ||
+              frameLabel(next) ||
+              (previous && frameLabel(previous)) ||
+              'Zoomed image'
+          )
         },
         ...(transition && {
           transition: (frames, done) => runGalleryTransition(transition, frames, done),

@@ -54,7 +54,7 @@ function stylesheet(profile: Profile): TsdownPlugin {
         fileName: profile === 'compat' ? 'style.css' : 'modern/style.css',
         source: css,
       })
-      return `if (typeof document !== 'undefined') {
+      return `if (typeof document === 'object') {
         var style = document.createElement('style');
         style.textContent = ${JSON.stringify(css)};
         document.head.appendChild(style);
@@ -99,6 +99,7 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
               targets: { ie: '10' },
               assumptions: {
                 iterableIsArray: true,
+                noDocumentAll: true,
                 ignoreFunctionLength: true,
                 ignoreToPrimitiveHint: true,
                 pureGetters: true,
@@ -119,7 +120,13 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
         ? (
             await minifyJavaScript(result.code, {
               ecma: profile === 'compat' ? 5 : 2_020,
-              compress: { passes: 3 },
+              compress: {
+                passes: profile === 'compat' ? 10 : 3,
+                // Separate statements gzip better than comma chains in the fixed preset.
+                sequences: profile !== 'compat',
+                // Fixed compatibility entries expose instances; their Boolean literals are internal flags or DOM arguments.
+                booleans_as_integers: profile === 'compat',
+              },
               module: options.format === 'es',
               // CJS bindings are module-local, just like ESM bindings.
               ...(options.format === 'cjs' && { toplevel: true }),
@@ -128,6 +135,19 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
               nameCache: {
                 props: {
                   props: {
+                    $__mz_gate: 'w',
+                    $__mz_current: 'u',
+                    $__mz_owner: 'y',
+                    $__mz_element: 'r',
+                    $__mz_content: 't',
+                    $__mz_measure: 'b',
+                    $__mz_adopt: 'd',
+                    $__mz_apply: 'e',
+                    $__mz_setVisible: 'g',
+                    $__mz_reset: 'i',
+                    $__mz_dispose: 'l',
+                    $__mz_label: 'm',
+                    $__mz_geometry: 'q',
                     $__mz_original: 'o',
                     $__mz_zoomed: 'z',
                     $__mz_nodes: 'n',
@@ -144,7 +164,7 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
                   },
                 },
               },
-              format: { comments: /^!/ },
+              format: { comments: /^!/, quote_style: 1 },
             })
           ).code
         : result.code
@@ -180,7 +200,8 @@ function browserBundle(
   fileName: string,
   format: 'esm' | 'umd' | 'cjs',
   minify = true,
-  profile: Profile = defaultProfile
+  profile: Profile = defaultProfile,
+  frames: 'composed' | 'preset' = 'preset'
 ): UserConfig {
   return {
     cwd: fileURLToPath(new URL('../', import.meta.url)),
@@ -190,6 +211,12 @@ function browserBundle(
     tsconfig: false,
     target: profile === 'compat' ? 'esnext' : 'es2020',
     alias: {
+      '#engine-profile': fileURLToPath(
+        new URL(
+          `../src/engine/profile${frames === 'composed' ? '-core' : '-preset'}.ts`,
+          import.meta.url
+        )
+      ),
       '#platform': fileURLToPath(new URL(`../src/platform/${profile}.ts`, import.meta.url)),
     },
     dts: false,
@@ -229,7 +256,8 @@ function entryBundle(entry: CandidateEntry, format: 'esm' | 'cjs'): UserConfig {
       `${name}/index.${format === 'esm' ? 'mjs' : 'cjs'}`,
       format,
       true,
-      profile
+      profile,
+      full ? 'preset' : 'composed'
     ),
     entry: { [`${name}/index`]: source },
     // Keep shared strategy/controller types on the core declaration entry.

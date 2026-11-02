@@ -33,7 +33,6 @@
 }
 
 .medium-zoom-image--opened {
-  position: relative;
   cursor: zoom-out;
   will-change: transform;
 }

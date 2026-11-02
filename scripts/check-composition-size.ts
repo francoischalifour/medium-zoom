@@ -310,7 +310,7 @@ try {
     'The custom-transition row includes its example strategy. No animation library is bundled.'
   )
   console.log(
-    'Legacy presets also pay for stronger loader sequencing, late-callback guards and strategy-failure cleanup; the increase is shown above.'
+    'Legacy presets retain loader sequencing, late-callback guards and strategy-failure cleanup; fixed image frame bindings reduce their implementation cost.'
   )
   console.log(
     'Historical template-bearing comparisons are omitted because template ownership and close animation changed: new templateContent uses the renderer slot; legacy presets retain body templates and their fade.'

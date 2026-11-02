@@ -1,48 +1,69 @@
+import { extendedFrames, legacyPolicy } from '#engine-profile'
+import {
+  targetResolver,
+  positionFrames,
+  adoptFrame,
+  frameGeometry,
+  showFrame,
+  resetFrame,
+  disposeFrame,
+} from '#engine-profile'
 import { getPromise, createCustomEvent, getScrollY, isEscape, assign } from '#platform'
 
-import { targetResolver } from '../targets'
-import type { RenderedFrame, ZoomTarget, TargetAdapter } from '../targets/types'
+import type { FrameSurface, ZoomTarget, TargetAdapter } from '../targets/types'
 import type { Zoom, ZoomFactory, ZoomOptions, ZoomSelector, ZoomOpenOptions } from '../types'
-import { createOverlay, getImagesFromSelectors } from '../utils'
-import type { CoordinatedZoom, ZoomCommands } from './bridge'
-import { fitTarget } from './geometry'
+import { createOverlay, getImagesFromSelectors, removeNode } from '../utils'
+import type { CoordinatedZoom, ZoomCommands, CommandGate } from './bridge'
 import { waitForTransition } from './transition'
 import type {
-  EngineStrategies,
+  ZoomLoader,
+  ZoomViewport,
   Scene,
-  ContentContext,
   GallerySource,
   RendererHooks,
   LegacyAdapter,
 } from './types'
 
 export const createEngine = (
-  strategies: EngineStrategies,
+  loader?: ZoomLoader,
+  measureViewport?: ZoomViewport,
   renderer?: RendererHooks,
   legacy?: LegacyAdapter,
   targets?: readonly TargetAdapter[]
 ): ZoomFactory => {
-  const getTargetAdapter = targetResolver(targets)
-  const supports = (target: ZoomTarget) => !!getTargetAdapter(target)
-  const { loader, viewport: measureViewport } = strategies
+  const registry = targetResolver(targets)
+  const supports = registry.supports
+  const compatibility = legacyPolicy && (!extendedFrames || legacy)
   const mediumZoom: ZoomFactory = (
     selector?: ZoomSelector | ZoomOptions,
     options: ZoomOptions = {}
   ) => {
     const Promise = getPromise()
 
-    const _close = () => {
-      void zoom.close()
+    const disposeFrames = (frames: readonly FrameSurface[]) => {
+      frames.forEach(frame => {
+        if (extendedFrames) {
+          frame.__mz_element.removeEventListener('click', _close)
+        }
+        disposeFrame(frame)
+      })
     }
 
-    const disposeFrames = (frames: readonly RenderedFrame[]) =>
-      frames.forEach(frame => {
-        frame.element.removeEventListener('click', _close)
-        frame.dispose()
-      })
-
-    const _dispatchEvent = (image: ZoomTarget, type: string) =>
+    const _dispatchEvent = (image: ZoomTarget, type: string) => {
       image.dispatchEvent(createCustomEvent(`medium-zoom:${type}`, { zoom }))
+    }
+
+    const sourceClick = (event: Event) => {
+      const target = event.target as HTMLElement
+      if (images.indexOf(target) !== -1) {
+        void zoom.toggle({ target })
+      } else if (
+        !extendedFrames &&
+        (target === overlay || active.__mz_frames?.some(frame => frame.__mz_element === target))
+      ) {
+        _close()
+      }
+    }
 
     const _handleScroll = () => {
       if (!active.__mz_original) {
@@ -62,7 +83,7 @@ export const createEngine = (
         return
       }
 
-      if (isAnimating) {
+      if (active.__mz_cancelOpen || active.__mz_closing) {
         return
       }
 
@@ -101,7 +122,9 @@ export const createEngine = (
         overlay.style.background = options.background
       }
 
-      legacy?.update(options, zoomOptions)
+      if (compatibility) {
+        legacy!.update(options, zoomOptions)
+      }
 
       zoomOptions = assign({}, zoomOptions, newOptions)
 
@@ -119,9 +142,15 @@ export const createEngine = (
         image => images.indexOf(image) === -1
       )
 
+      if (compatibility && !images.length && newImages.length) {
+        document.addEventListener('click', sourceClick)
+      }
       images = images.concat(newImages)
+      if (compatibility) {
+        newImages.forEach(image => image.classList.add('medium-zoom-image'))
+      }
 
-      eventListeners.forEach(({ type, listener, options }) => {
+      eventListeners.forEach(([type, listener, options]) => {
         newImages.forEach(image => {
           image.addEventListener(type, listener, options)
         })
@@ -132,7 +161,7 @@ export const createEngine = (
     }
 
     const detach: Zoom['detach'] = function () {
-      if (active.__mz_primary) {
+      if (active.__mz_original) {
         void close()
       }
 
@@ -140,41 +169,40 @@ export const createEngine = (
         arguments.length > 0 ? getImagesFromSelectors(arguments, supports) : images
 
       imagesToDetach.forEach(image => {
+        if (compatibility) {
+          image.classList.remove('medium-zoom-image')
+        }
         _dispatchEvent(image, 'detach')
       })
 
       images = images.filter(image => imagesToDetach.indexOf(image) === -1)
+      if (compatibility && !images.length) {
+        document.removeEventListener('click', sourceClick)
+      }
       return zoom
     }
 
-    const on: Zoom['on'] = (type, listener, options = {}) => {
-      const eventType = `medium-zoom:${type}`
-      images.forEach(image => {
-        image.addEventListener(eventType, listener, options)
-      })
-
-      eventListeners.push({ type: eventType, listener, options })
-
-      return zoom
-    }
-
-    const off: Zoom['off'] = (type, listener, options = {}) => {
-      const eventType = `medium-zoom:${type}`
-      images.forEach(image => {
-        image.removeEventListener(eventType, listener, options)
-      })
-
-      eventListeners = eventListeners.filter(
-        eventListener =>
-          !(
-            eventListener.type === eventType &&
-            // oxlint-disable-next-line typescript/no-base-to-string -- Preserve v1 listener matching.
-            eventListener.listener.toString() === listener.toString()
+    const bindEvents =
+      (add: boolean): Zoom['on'] =>
+      (type, listener, options = {}) => {
+        const eventType = `medium-zoom:${type}`
+        images.forEach(image =>
+          image[add ? 'addEventListener' : 'removeEventListener'](eventType, listener, options)
+        )
+        if (add) {
+          eventListeners.push([eventType, listener, options])
+        } else {
+          eventListeners = eventListeners.filter(
+            ([type, callback]) =>
+              !(
+                type === eventType &&
+                // oxlint-disable-next-line typescript/no-base-to-string -- Preserve v1 listener matching.
+                callback.toString() === listener.toString()
+              )
           )
-      )
-
-      return zoom
-    }
+        }
+        return zoom
+      }
 
     const _updateGlobalEvents = (enabled: boolean) => {
       const method = enabled ? 'addEventListener' : 'removeEventListener'
@@ -189,13 +217,23 @@ export const createEngine = (
       window[method]('resize', _close)
     }
 
-    const open = ({ target, trigger }: ZoomOpenOptions = {}) => {
+    const open = (options: ZoomOpenOptions = {}) => {
+      const target = options.target
+      // Re-entrant requests wait until the current renderer has returned its host.
+      if (
+        renderer &&
+        active.__mz_original &&
+        (!active.__mz_view || !active.__mz_frames) &&
+        !active.__mz_closing
+      ) {
+        return Promise.resolve().then(() => zoom.open(options))
+      }
       const current: Scene = {}
       const replacing =
         renderer && target && active.__mz_original && target !== active.__mz_original
           ? active
           : undefined
-      const _animate = (target = current.__mz_primary!) => {
+      const _animate = (target: FrameSurface) => {
         const margin = zoomOptions.margin!
         let viewport = {
           width: document.documentElement.clientWidth - margin * 2,
@@ -203,18 +241,15 @@ export const createEngine = (
           left: margin,
           top: margin,
         }
-        viewport = measureViewport?.(viewport, zoomOptions) || viewport
-        const measurement = target.measure(viewport)
-        const geometry = fitTarget(measurement, viewport)
-        if (geometry) {
-          current.__mz_frames!.forEach(frame => {
-            if (replacing) {
-              current.__mz_view!.prepare(frame, geometry)
-            } else {
-              frame.apply(geometry)
-            }
-          })
-        }
+        viewport = extendedFrames
+          ? measureViewport?.(viewport, zoomOptions) || viewport
+          : measureViewport!(viewport, zoomOptions)
+        positionFrames(
+          current.__mz_frames!,
+          target,
+          viewport,
+          replacing ? (frame, geometry) => current.__mz_view!.prepare(frame, geometry) : undefined
+        )
       }
 
       return new Promise<Zoom>((resolve, reject) => {
@@ -229,17 +264,18 @@ export const createEngine = (
         if (replacing) {
           current.__mz_view = replacing.__mz_view
           replacing.__mz_cancelOpen?.()
+          // Cancellation can synchronously issue a newer request or close this scene.
+          if (active !== replacing || replacing.__mz_closing) {
+            resolve(zoom)
+            return
+          }
           replacing.__mz_closeContent?.()
           clearTimeout(replacing.__mz_scrollTimer || undefined)
           replacing.__mz_original!.classList.remove('medium-zoom-image--hidden')
           current.__mz_outgoing = replacing
             .__mz_frames!.concat(replacing.__mz_outgoing || [])
-            .filter(frame => frame.element.isConnected)
-          replacing.__mz_nodes!.forEach(node => {
-            if (node !== overlay && node.parentNode) {
-              node.parentNode.removeChild(node)
-            }
-          })
+            .filter(frame => frame.__mz_element.isConnected)
+          replacing.__mz_closeContent?.(true)
         }
         active = current
 
@@ -260,7 +296,6 @@ export const createEngine = (
             void close()
           }
           window.cancelAnimationFrame(frame)
-          isAnimating = false
           resolve(zoom)
           if (opened) {
             document.body.classList.add('medium-zoom--opened')
@@ -275,36 +310,29 @@ export const createEngine = (
         }
         current.__mz_viewportScale = window.visualViewport ? window.visualViewport.scale : 1
         _updateGlobalEvents(true)
-        isAnimating = true
         _dispatchEvent(current.__mz_original!, 'open')
-        if (current.__mz_closing) {
+        if (!current.__mz_cancelOpen) {
           return
         }
 
         scrollTop = getScrollY()
-        const adapter = getTargetAdapter(current.__mz_original)!
-        current.__mz_primary = adapter.createFrame(
-          current.__mz_original,
-          adapter.resolveSource(current.__mz_original),
-          renderer ? 'viewport' : 'document'
-        )
-        current.__mz_frames = [current.__mz_primary]
+        const primary = registry.create(current.__mz_original, renderer ? 'viewport' : 'document')
+        current.__mz_frames = [primary]
         if (replacing) {
-          current.__mz_primary.setVisible(false)
+          showFrame(primary, false)
         }
-        current.__mz_nodes = [overlay]
 
         try {
           if (renderer) {
             current.__mz_view = replacing
               ? replacing.__mz_view
               : renderer.mount({
-                  frame: current.__mz_primary,
+                  frame: primary,
                   zoom,
                   close: _close,
-                  trigger,
+                  trigger: options.trigger,
                 })
-            current.__mz_view!.update(current.__mz_primary)
+            current.__mz_view!.update(primary)
             current.__mz_view!.setLoading(true)
           }
         } catch (error) {
@@ -316,74 +344,72 @@ export const createEngine = (
           _updateGlobalEvents(false)
           return
         }
-        if (current.__mz_closing) {
+        if (!current.__mz_cancelOpen) {
           return
         }
         // Keep the backdrop below outgoing frames while a gallery scene is loading.
-        const host = current.__mz_view ? current.__mz_view.element : document.body
+        const host = renderer ? current.__mz_view!.element : document.body
         if (!replacing) {
           host.appendChild(overlay)
         }
-        const content: ContentContext = {
-          original: current.__mz_original,
-          frame: { element: current.__mz_primary.element, content: current.__mz_primary.content },
-          append(node) {
-            if (active !== current || current.__mz_closing) {
-              return
-            }
-            host.appendChild(node)
-            current.__mz_nodes!.push(node)
-          },
-        }
-
         try {
-          current.__mz_closeContent = legacy?.content(content, zoomOptions)
+          if (compatibility) {
+            current.__mz_closeContent = legacy!.content(primary.__mz_element, host, zoomOptions)
+          }
         } catch (error) {
           reject(error)
           void close()
           return
         }
-        if (current.__mz_closing || active !== current) {
+        if (!current.__mz_cancelOpen) {
           return
         }
 
-        host.appendChild(current.__mz_primary.element)
-        current.__mz_primary.element.addEventListener('click', _close)
+        host.appendChild(primary.__mz_element)
+        if (extendedFrames) {
+          primary.__mz_element.addEventListener('click', _close)
+        }
 
         frame = window.requestAnimationFrame(() => {
           document.body.classList.add('medium-zoom--opened')
         })
 
         current.__mz_original.classList.add('medium-zoom-image--hidden')
-        current.__mz_primary.element.classList.add('medium-zoom-image--opened')
+        primary.__mz_element.classList.add('medium-zoom-image--opened')
 
         let prepared = false
         const animate = (media?: ZoomTarget) => {
-          if (prepared || !current.__mz_cancelOpen || current.__mz_closing || active !== current) {
+          if (prepared || !current.__mz_cancelOpen) {
             return
           }
           prepared = true
           try {
-            let target = current.__mz_primary!
+            let target = primary
             if (media) {
-              if (media.isConnected) {
+              if (extendedFrames && media.isConnected) {
                 throw new Error('Expected detached loader content')
               }
-              target = target.adopt(media)
-              host.appendChild(target.element)
-              target.element.addEventListener('click', _close)
+              target = adoptFrame(target, media)
+              host.appendChild(target.__mz_element)
+              if (extendedFrames) {
+                target.__mz_element.addEventListener('click', _close)
+              }
               current.__mz_frames!.push(target)
-              current.__mz_primary!.content.setAttribute('aria-hidden', 'true')
+              if (renderer) {
+                current.__mz_view!.update(target, primary)
+              }
             }
             const incoming = current.__mz_frames!
             _animate(target)
-            current.__mz_view?.setLoading(false)
+            if (renderer) {
+              current.__mz_view!.setLoading(false)
+            }
             if (replacing) {
               current.__mz_outgoing!.forEach(frame =>
-                current.__mz_view!.prepare(frame, frame.geometry, true)
+                current.__mz_view!.prepare(frame, frameGeometry(frame), true)
               )
               const complete = (error?: unknown) => {
-                if (!current.__mz_cancelOpen || active !== current) {
+                if (!current.__mz_cancelOpen) {
                   return
                 }
                 cancelTransition = undefined
@@ -396,9 +422,7 @@ export const createEngine = (
                   finishOpening(true)
                 }
               }
-              const transition = current.__mz_primary!.geometry
-                ? current.__mz_view?.transition
-                : undefined
+              const transition = frameGeometry(primary) ? current.__mz_view?.transition : undefined
               if (transition) {
                 const direction =
                   images.indexOf(current.__mz_original!) > images.indexOf(replacing.__mz_original!)
@@ -416,9 +440,7 @@ export const createEngine = (
                 complete()
               }
             } else {
-              cancelTransition = waitForTransition(current.__mz_primary!.element, () =>
-                finishOpening(true)
-              )
+              cancelTransition = waitForTransition(primary.__mz_element, () => finishOpening(true))
             }
           } catch (error) {
             reject(error)
@@ -427,9 +449,9 @@ export const createEngine = (
         }
 
         try {
-          if (loader) {
-            cancelImage = loader(
-              { original: current.__mz_original!, content: current.__mz_primary!.content },
+          if (!extendedFrames || loader) {
+            cancelImage = loader!(
+              { original: current.__mz_original!, content: primary.__mz_content },
               animate
             )
             if (!current.__mz_cancelOpen && cancelImage) {
@@ -452,6 +474,7 @@ export const createEngine = (
       }
       const promise = new Promise<Zoom>((resolve, reject) => {
         const current = active
+        const primary = current.__mz_frames?.[0]
         if (!current.__mz_original || current.__mz_closing) {
           resolve(zoom)
           return
@@ -462,22 +485,24 @@ export const createEngine = (
           current.__mz_cancelOpen()
         }
         clearTimeout(current.__mz_scrollTimer || undefined)
-        isAnimating = true
         const finishClosing = () => {
           current.__mz_original!.classList.remove('medium-zoom-image--hidden')
-          disposeFrames((current.__mz_frames || []).concat(current.__mz_outgoing || []))
-          ;(current.__mz_nodes || []).forEach(node => {
-            if (node.parentNode) {
-              node.parentNode.removeChild(node)
-            }
-          })
-          const view = current.__mz_view
+          disposeFrames(
+            renderer
+              ? (current.__mz_frames || []).concat(current.__mz_outgoing || [])
+              : current.__mz_frames || []
+          )
+          removeNode(overlay)
+          const view = renderer && current.__mz_view
           active = {}
           closing = undefined
-          isAnimating = false
           _updateGlobalEvents(false)
           try {
-            view?.dispose()
+            try {
+              current.__mz_closeContent?.(true)
+            } finally {
+              view?.dispose()
+            }
             resolve(zoom)
           } catch (error) {
             reject(error)
@@ -487,18 +512,18 @@ export const createEngine = (
         }
 
         // Install completion before dispatching events, whose listeners may interact again.
-        if (current.__mz_primary) {
-          waitForTransition(current.__mz_primary.element, finishClosing)
+        if (primary) {
+          waitForTransition(primary.__mz_element, finishClosing)
         }
         document.body.classList.remove('medium-zoom--opened')
-        current.__mz_frames?.forEach(frame => frame.reset())
+        current.__mz_frames?.forEach(frame => resetFrame(frame))
         try {
           current.__mz_closeContent?.()
         } catch (error) {
           reject(error)
         }
         _dispatchEvent(current.__mz_original!, 'close')
-        if (!current.__mz_primary) {
+        if (!primary) {
           finishClosing()
         }
       })
@@ -523,45 +548,38 @@ export const createEngine = (
     const getZoomedImage = () => active.__mz_original || null
 
     let images: ZoomTarget[] = []
-    let eventListeners: {
-      type: string
-      listener: EventListenerOrEventListenerObject
-      options: boolean | AddEventListenerOptions
-    }[] = []
-    let isAnimating = false
+    let eventListeners: [
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options: boolean | AddEventListenerOptions,
+    ][] = []
     let scrollTop = 0
     let zoomOptions: ZoomOptions = options
     let active: Scene = {}
 
     // Construct the public instance before attach() returns it.
     const direct: ZoomCommands = { open, close, toggle, detach }
-    let requests = direct
+    const gate: CommandGate = { __mz_current: direct }
     const zoom: CoordinatedZoom = {
-      open: options => requests.open(options),
-      close: () => requests.close(),
-      toggle: options => requests.toggle(options),
+      open: options => gate.__mz_current.open(options),
+      close: () => gate.__mz_current.close(),
+      toggle: options => gate.__mz_current.toggle(options),
       update,
       clone,
       attach,
-      detach: (...selectors) => requests.detach(...selectors),
-      __mz$coordinate(owner) {
-        if (requests !== direct) {
-          throw new Error('Zoom already coordinated')
-        }
-        const coordinated = owner(direct)
-        requests = coordinated
-        return () => {
-          if (requests === coordinated) {
-            requests = direct
-          }
-        }
-      },
-      on,
-      off,
+      detach: (...selectors) => gate.__mz_current.detach(...selectors),
+      __mz_gate: gate,
+      on: bindEvents(true),
+      off: bindEvents(false),
       getOptions,
       getImages: getImages as Zoom['getImages'],
       // Preserve the legacy declaration; a closed zoom returns null at runtime.
       getZoomedImage: getZoomedImage as Zoom['getZoomedImage'],
+    }
+
+    // DOM dismissal still routes through the optional session's command gate.
+    const _close = () => {
+      void zoom.close()
     }
 
     if (renderer) {
@@ -581,13 +599,14 @@ export const createEngine = (
     // Apply the default option values
     zoomOptions = assign(
       { margin: 0, background: '#fff', scrollOffset: 40 },
-      legacy?.defaults,
+      compatibility ? legacy!.defaults : undefined,
       zoomOptions
     )
 
     const overlay = createOverlay(zoomOptions.background)
-    overlay.addEventListener('click', _close)
-    legacy?.activate(zoom)
+    if (extendedFrames) {
+      overlay.addEventListener('click', _close)
+    }
 
     return zoom
   }

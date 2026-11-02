@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import { fitTarget } from '../src/engine/geometry.ts'
+import { fitTarget, imageTransform } from '../src/engine/geometry.ts'
 
 test('fit preserves the existing raster positioning across viewport, source, and intrinsic sizes', () => {
   for (const left of [-200, 0, 75]) {
@@ -84,4 +84,37 @@ test('zero-size layout or painted content has no geometry and missing intrinsic 
   )!
   assert.equal(fitted.scale, 5)
   assert(Number.isFinite(fitted.translateX) && Number.isFinite(fitted.translateY))
+})
+
+test('fixed image transforms match generic geometry, including fallback and fractional bounds', () => {
+  for (const size of [0, 80, 160.25, 800]) {
+    for (const natural of [0, 400, 1_200]) {
+      for (const width of [0, 300, 960]) {
+        const layout = { left: -75.125, top: 36.75, width: size, height: size / 1.6 }
+        const viewport = { left: 24, top: 36, width, height: 640 }
+        const fitted = fitTarget(
+          { layout, painted: layout, intrinsic: { width: natural, height: natural / 1.6 } },
+          viewport
+        )
+        const actual = imageTransform(layout, natural, natural / 1.6, viewport)
+        if (!fitted) {
+          assert.equal(actual, null)
+          continue
+        }
+        const match = actual!.match(/^scale\(([^)]+)\) translate3d\(([^p]+)px, ([^p]+)px, 0\)$/)!
+        assert(match)
+        const values = match.slice(1).map(Number)
+        for (const [index, expected] of [
+          fitted.scale,
+          fitted.translateX,
+          fitted.translateY,
+        ].entries()) {
+          assert(
+            Object.is(values[index], expected) ||
+              Math.abs(values[index]! - expected) < (1 + Math.abs(expected)) * 1e-9
+          )
+        }
+      }
+    }
+  }
 })

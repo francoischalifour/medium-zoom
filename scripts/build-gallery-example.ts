@@ -29,7 +29,10 @@ export async function buildGalleryExample() {
     minify: true,
     dts: false,
     logLevel: 'silent',
-    alias: { '#platform': resolve('src/platform/modern.ts') },
+    alias: {
+      '#platform': resolve('src/platform/modern.ts'),
+      '#engine-profile': resolve('src/engine/profile.ts'),
+    },
     outputOptions: { entryFileNames: 'frame-probe.mjs' },
   })
 }

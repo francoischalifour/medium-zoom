@@ -11,7 +11,7 @@ export const updateContainer = (options: ZoomOptions, previous: ZoomOptions): vo
   }
 }
 
-export const getContainerViewport = (options: ZoomOptions, viewport: Viewport): Viewport => {
+export const getContainerViewport = (viewport: Viewport, options: ZoomOptions): Viewport => {
   const target = options.container
   if (!target) {
     return viewport
@@ -48,5 +48,5 @@ export const getContainerViewport = (options: ZoomOptions, viewport: Viewport): 
 
 /** Measure the target at positioning time; bounds are strategy input, not zoom options. */
 export function containerBounds(target: string | HTMLElement | ZoomContainer | null): ZoomViewport {
-  return (viewport, options) => getContainerViewport({ ...options, container: target }, viewport)
+  return (viewport, options) => getContainerViewport(viewport, { ...options, container: target })
 }
