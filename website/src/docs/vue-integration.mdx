@@ -1,0 +1,95 @@
+import { InstallCommand } from '../install-command'
+import { JavaScriptPreview, RelatedPages } from './doc-components'
+
+medium-zoom works with Vue out of the box. Wrap it in a small component, then use it like an `<img>`.
+
+## Install the package
+
+<InstallCommand page="javascript" id="vue-installation" />
+
+The standard import includes zoom styles and TypeScript definitions.
+
+## Create the component
+
+Attach the zoom once the image is in the document, and detach it before the component unmounts:
+
+```vue
+<script setup lang="ts">
+import mediumZoom, { type Zoom, type ZoomOptions } from 'medium-zoom'
+import { onBeforeUnmount, onMounted, useTemplateRef } from 'vue'
+
+const props = defineProps<{ options?: ZoomOptions }>()
+const image = useTemplateRef('image')
+let zoom: Zoom | undefined
+
+onMounted(() => {
+  zoom = mediumZoom(image.value!, props.options)
+})
+
+onBeforeUnmount(() => {
+  zoom?.detach()
+})
+</script>
+
+<template>
+  <img ref="image" />
+</template>
+```
+
+Save it as `ZoomableImage.vue`. Vue passes attributes such as `src`, `alt`, `width`, and `height` to the image. `useTemplateRef()` requires Vue 3.5 or later.
+
+## Display an image
+
+Import the component and give it the image attributes:
+
+```vue
+<script setup lang="ts">
+import ZoomableImage from './ZoomableImage.vue'
+</script>
+
+<template>
+  <ZoomableImage
+    src="/assets/images/ocean-sunset.jpg"
+    alt="Ocean sunset"
+    width="1920"
+    height="1280"
+  />
+</template>
+```
+
+Click the image to enlarge it:
+
+<JavaScriptPreview />
+
+Click the enlarged image or its background, press <kbd aria-label="Escape">Esc</kbd>, or scroll to close the zoom.
+
+Width and height reserve space while the image loads. To keep the image responsive, follow the [image size step](/docs/javascript/#set-the-image-size) of the JavaScript quickstart.
+
+## Set options
+
+Pass [options](/docs/reference/javascript/options/) to change the margin, background, or scroll behavior:
+
+```vue
+<ZoomableImage
+  src="/assets/images/ocean-sunset.jpg"
+  alt="Ocean sunset"
+  :options="{ margin: 24, background: '#000000' }"
+/>
+```
+
+The component reads its options when it mounts.
+
+## Server rendering
+
+`onMounted()` runs only in the browser, so the component also works with Nuxt and other Vue server rendering. The server outputs the plain image, and the zoom attaches after hydration.
+
+## Next steps
+
+<RelatedPages
+  pages={[
+    '/docs/guides/hd-images/',
+    '/docs/guides/multiple-images/',
+    '/docs/guides/styling/',
+    '/docs/reference/javascript/options/',
+  ]}
+/>

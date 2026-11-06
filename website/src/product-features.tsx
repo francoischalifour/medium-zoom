@@ -28,7 +28,7 @@ export function ProductFeatures({ page }: { page: SitePage }) {
           {
             icon: <TypeScriptIcon />,
             title: 'Any framework. TypeScript ready.',
-            description: 'Use with React, Vue, Svelte, or plain HTML.',
+            description: 'Use with React, Vue, Svelte, Solid, or plain HTML.',
           },
         ]),
     {

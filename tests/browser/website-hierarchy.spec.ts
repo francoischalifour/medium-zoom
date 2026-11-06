@@ -14,6 +14,7 @@ test('overview separates quickstarts, task guides, and the two API references', 
     'Get started',
     'Guides',
     'React guides',
+    'Integrations',
     'JavaScript reference',
     'React reference',
   ])
