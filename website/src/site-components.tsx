@@ -1,6 +1,7 @@
 import * as React from 'react'
 
 import snippets from './highlighted-snippets.json'
+import { siteOrigin } from './site-url'
 
 const iconPaths = {
   feather: (
@@ -117,10 +118,9 @@ export function SiteLink({
   'aria-label': ariaLabel,
   ...props
 }: React.ComponentProps<'a'> & { externalIcon?: boolean }) {
-  const url = new URL(href || '', 'https://medium-zoom.francoischalifour.com')
+  const url = new URL(href || '', siteOrigin)
   const external =
-    (url.protocol === 'https:' || url.protocol === 'http:') &&
-    url.origin !== 'https://medium-zoom.francoischalifour.com'
+    (url.protocol === 'https:' || url.protocol === 'http:') && url.origin !== siteOrigin
   const linkTarget = target ?? (external ? '_blank' : undefined)
   const safeRel =
     linkTarget === '_blank'

@@ -1,4 +1,6 @@
-export const registryUrl = 'https://medium-zoom.francoischalifour.com/r/image-zoom.json'
+import { siteOrigin } from './site-url.ts'
+
+export const registryUrl = `${siteOrigin}/r/image-zoom.json`
 
 export const javascriptCommands = {
   npm: 'npm install medium-zoom',

@@ -15,6 +15,7 @@ import { siteHighlights } from '../website/build/site-highlights.ts'
 import { sitePreferences } from '../website/build/site-preferences.ts'
 import { siteRedirects } from '../website/build/site-redirects.ts'
 import { siteStyles } from '../website/build/site-styles.ts'
+import { siteOrigin } from '../website/src/site-url.ts'
 import { libraryConfig } from './vite.shared.config.mts'
 
 export default defineConfig(({ command }) =>
@@ -30,7 +31,9 @@ export default defineConfig(({ command }) =>
       {
         name: 'medium-zoom-package-metadata',
         transformIndexHtml(html) {
-          return html.replaceAll('__MEDIUM_ZOOM_VERSION__', packageJson.version)
+          return html
+            .replaceAll('__MEDIUM_ZOOM_VERSION__', packageJson.version)
+            .replaceAll('__SITE_ORIGIN__', siteOrigin)
         },
       },
       siteRedirects(),

@@ -7,6 +7,7 @@ import type { Plugin } from 'vite'
 
 import type { SearchEntry } from '../src/docs-search.ts'
 import { docsPages, docsPublishedOn, headingId } from '../src/docs/pages.ts'
+import { siteOrigin } from '../src/site-url.ts'
 import { docsOgImagePath } from './docs-sharing.ts'
 
 function getOutline(source: string) {
@@ -118,14 +119,14 @@ export function docsPlugin(): Plugin {
             })[character]!
         )
       for (const page of docsPages) {
-        const url = `https://medium-zoom.francoischalifour.com${page.path}`
+        const url = siteOrigin + page.path
         const schema = {
           '@context': 'https://schema.org',
           '@type': 'TechArticle',
           headline: page.title,
           description: page.description,
           url,
-          image: `https://medium-zoom.francoischalifour.com${docsOgImagePath(page.path)}`,
+          image: siteOrigin + docsOgImagePath(page.path),
           author: {
             '@type': 'Person',
             name: 'François Chalifour',
@@ -139,13 +140,13 @@ export function docsPlugin(): Plugin {
             breadcrumb: {
               '@type': 'BreadcrumbList',
               itemListElement: [
-                { name: 'Home', item: 'https://medium-zoom.francoischalifour.com/' },
+                { name: 'Home', item: `${siteOrigin}/` },
                 ...(page.path === '/docs/'
                   ? []
                   : [
                       {
                         name: 'Documentation',
-                        item: 'https://medium-zoom.francoischalifour.com/docs/',
+                        item: `${siteOrigin}/docs/`,
                       },
                     ]),
                 { name: page.path === '/docs/' ? 'Documentation' : page.title, item: url },
@@ -155,14 +156,14 @@ export function docsPlugin(): Plugin {
           isPartOf: {
             '@type': 'WebSite',
             name: 'medium-zoom',
-            url: 'https://medium-zoom.francoischalifour.com/',
+            url: `${siteOrigin}/`,
           },
         }
         const html = template
           .replaceAll('__DOC_TITLE__', escapeHtml(page.documentTitle))
           .replaceAll('__DOC_DESCRIPTION__', escapeHtml(page.description))
           .replaceAll('__DOC_URL__', escapeHtml(url))
-          .replaceAll('__DOC_IMAGE__', docsOgImagePath(page.path))
+          .replaceAll('__DOC_IMAGE__', siteOrigin + docsOgImagePath(page.path))
           .replace('"__DOC_SCHEMA__"', JSON.stringify(schema).replaceAll('<', '\\u003c'))
         const file = fileURLToPath(new URL(`..${page.path}index.html`, import.meta.url))
         mkdirSync(dirname(file), { recursive: true })

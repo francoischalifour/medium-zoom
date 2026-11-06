@@ -2,6 +2,8 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
 import packageJson from '../package.json' with { type: 'json' }
+import registry from '../registry.json' with { type: 'json' }
+import { siteOrigin } from '../website/src/site-url.ts'
 import worker from '../website/worker.ts'
 
 const origin = 'https://medium-zoom.francoischalifour.com'
@@ -32,6 +34,10 @@ function serve(
     }),
   }
 }
+
+test('the shadcn registry advertises the site origin', () => {
+  assert.equal(registry.homepage, siteOrigin)
+})
 
 test('serves the original JSON while analytics is pending and sends only download metadata', async t => {
   let finishDelivery!: (response: Response) => void
