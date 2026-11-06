@@ -2,13 +2,14 @@ import { altertable, type Altertable, type EventProperties } from '@altertable/a
 
 import { getPackageManager } from './package-manager'
 import { getSitePage } from './site-data'
+import { siteOrigin } from './site-url'
 
 const apiKey = import.meta.env.VITE_ALTERTABLE_API_KEY
 const enabled =
   import.meta.env.PROD &&
   !!apiKey &&
   typeof window !== 'undefined' &&
-  window.location.origin === 'https://medium-zoom.francoischalifour.com'
+  window.location.origin === siteOrigin
 let initialized = false
 let client: Altertable | null | undefined
 

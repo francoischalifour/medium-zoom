@@ -5,6 +5,7 @@ import { chromium } from '@playwright/test'
 
 import { docsOgImagePath } from '../website/build/docs-sharing.ts'
 import { docsPages } from '../website/src/docs/pages.ts'
+import { siteOrigin } from '../website/src/site-url.ts'
 
 // Run after editing share-card copy or docs titles/descriptions.
 // Commit the cards so production builds need no browser.
@@ -45,7 +46,7 @@ ${sharedStyles}
   </style></head><body>
     ${brandHeader}
     <main><div class="group"></div><h1></h1><p class="description"></p></main>
-    <footer><span>Documentation</span><span>medium-zoom.francoischalifour.com</span></footer>
+    <footer><span>Documentation</span><span>${new URL(siteOrigin).host}</span></footer>
   </body></html>`)
   await page.evaluate(() => document.fonts.ready)
   for (const doc of docsPages) {

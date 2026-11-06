@@ -8,13 +8,17 @@ import { defineConfig, mergeConfig } from 'vite'
 
 import { galleryAssets } from '../examples/shadcn/gallery-assets.ts'
 import packageJson from '../package.json' with { type: 'json' }
+import { docsMarkdownFiles } from '../website/build/docs-markdown.ts'
 import { docsPlugin } from '../website/build/docs-plugin.ts'
+import { generatedFiles } from '../website/build/generated-files.ts'
 import { siteFonts } from '../website/build/site-fonts.ts'
 import { siteHeaders } from '../website/build/site-headers.ts'
 import { siteHighlights } from '../website/build/site-highlights.ts'
+import { siteIndexingFiles } from '../website/build/site-indexing.ts'
 import { sitePreferences } from '../website/build/site-preferences.ts'
 import { siteRedirects } from '../website/build/site-redirects.ts'
 import { siteStyles } from '../website/build/site-styles.ts'
+import { siteOrigin } from '../website/src/site-url.ts'
 import { libraryConfig } from './vite.shared.config.mts'
 
 export default defineConfig(({ command }) =>
@@ -30,11 +34,15 @@ export default defineConfig(({ command }) =>
       {
         name: 'medium-zoom-package-metadata',
         transformIndexHtml(html) {
-          return html.replaceAll('__MEDIUM_ZOOM_VERSION__', packageJson.version)
+          return html
+            .replaceAll('__MEDIUM_ZOOM_VERSION__', packageJson.version)
+            .replaceAll('__SITE_ORIGIN__', siteOrigin)
         },
       },
       siteRedirects(),
       docsPlugin(),
+      generatedFiles('docs-markdown', docsMarkdownFiles),
+      generatedFiles('site-indexing', siteIndexingFiles),
       { ...mdx(), enforce: 'pre' },
       react({ include: /\.(jsx|tsx|mdx)$/ }),
       galleryAssets(),

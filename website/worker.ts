@@ -1,5 +1,6 @@
 import packageJson from '../package.json' with { type: 'json' }
 import registry from '../registry.json' with { type: 'json' }
+import { siteOrigin } from './src/site-url.ts'
 
 const componentPaths = new Map(registry.items.map(item => [`/r/${item.name}.json`, item.name]))
 
@@ -41,7 +42,7 @@ export default {
     const component = componentPaths.get(url.pathname)
     if (
       request.method === 'GET' &&
-      url.origin === registry.homepage &&
+      url.origin === siteOrigin &&
       component &&
       response.status === 200 &&
       env.ALTERTABLE_API_KEY

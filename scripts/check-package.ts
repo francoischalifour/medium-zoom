@@ -5,6 +5,7 @@ import { runInNewContext } from 'node:vm'
 
 import { parse } from 'acorn'
 
+import { siteOrigin } from '../website/src/site-url.ts'
 import { checkAnalyzers } from './check-package-analyzers.ts'
 import { checkConsumers } from './check-package-consumers.ts'
 import { pack } from './pack.ts'
@@ -12,7 +13,7 @@ import { pack } from './pack.ts'
 const artifact = pack()
 try {
   const metadata = JSON.parse(readFileSync(join(artifact.root, 'package.json'), 'utf8'))
-  assert.equal(metadata.homepage, 'https://medium-zoom.francoischalifour.com')
+  assert.equal(metadata.homepage, siteOrigin)
   assert.match(metadata.description, /lightweight.*image zoom.*React.*shadcn/i)
   assert(metadata.keywords.includes('react'))
   assert(metadata.keywords.includes('shadcn'))

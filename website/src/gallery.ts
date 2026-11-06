@@ -1,3 +1,5 @@
+import { siteOrigin } from './site-url.ts'
+
 export const galleryAssetBase = '/assets/'
 
 export type ExampleImage = {
@@ -129,7 +131,7 @@ export const galleryImages: ExampleImage[] = [
 export function usageCode(image: ExampleImage, kind: 'react' | 'javascript' = 'react') {
   if (kind === 'javascript') {
     return `<img
-  src="https://medium-zoom.francoischalifour.com/assets/${image.src}"
+  src="${siteOrigin}/assets/${image.src}"
   alt="${image.alt}"
   width="${image.width}"
   height="${image.height}"
@@ -141,7 +143,7 @@ export function usageCode(image: ExampleImage, kind: 'react' | 'javascript' = 'r
 export function Photo() {
   return (
     <ImageZoom
-      src="https://medium-zoom.francoischalifour.com/assets/${image.src}"
+      src="${siteOrigin}/assets/${image.src}"
       alt="${image.alt}"
       width={${image.width}}
       height={${image.height}}

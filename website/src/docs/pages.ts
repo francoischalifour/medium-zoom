@@ -225,6 +225,11 @@ export const docsPages = [
   },
 ] as const
 
+// Each page's Markdown sits beside its route: /docs/guides/hd-images/ → /docs/guides/hd-images.md
+export function markdownPath(path: string) {
+  return path.replace(/\/$/, '.md')
+}
+
 export function headingId(text: string) {
   return text
     .toLowerCase()

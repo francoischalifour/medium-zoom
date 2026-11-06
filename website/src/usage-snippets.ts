@@ -1,7 +1,8 @@
 import { photos, usageCode } from './gallery.ts'
+import { siteOrigin } from './site-url.ts'
 
 const imageImport = 'import { ImageZoom } from "@/components/ui/image-zoom"'
-const assets = 'https://medium-zoom.francoischalifour.com/assets/images/'
+const assets = `${siteOrigin}/assets/images/`
 
 export const usageExamples = [
   {

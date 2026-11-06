@@ -1,17 +1,20 @@
+import {
+  EntryPoint,
+  EntryPoints,
+  ReferenceGroup,
+  ReferenceLinks,
+} from './doc-components'
+
 medium-zoom enlarges images in place. Choose your setup to make your first image zoomable.
 
-<nav className="docs-entry-points" aria-label="Choose your setup">
-  <a href="/docs/javascript/">
-    <strong>JavaScript quickstart</strong>
-    <span>{'Use the library with plain HTML or any framework.'}</span>
-  </a>
-  <a href="/docs/react/">
-    <strong>React quickstart</strong>
-    <span>
-      {'Add an image component with a button and keyboard support.'}
-    </span>
-  </a>
-</nav>
+<EntryPoints>
+  <EntryPoint path="/docs/javascript/">
+    {'Use the library with plain HTML or any framework.'}
+  </EntryPoint>
+  <EntryPoint path="/docs/react/">
+    {'Add an image component with a button and keyboard support.'}
+  </EntryPoint>
+</EntryPoints>
 
 ## Guides
 
@@ -35,17 +38,15 @@ medium-zoom enlarges images in place. Choose your setup to make your first image
 
 ## Reference
 
-<div className="docs-reference-links">
-  <div>
-    <h3>JavaScript</h3>
+<ReferenceLinks>
+  <ReferenceGroup title="JavaScript">
     <a href="/docs/reference/javascript/medium-zoom/">mediumZoom()</a>
     <a href="/docs/reference/javascript/options/">Options</a>
     <a href="/docs/reference/javascript/methods/">Methods</a>
     <a href="/docs/reference/javascript/events/">Events</a>
-  </div>
-  <div>
-    <h3>React</h3>
+  </ReferenceGroup>
+  <ReferenceGroup title="React">
     <a href="/docs/reference/react/image-zoom/">{'<ImageZoom>'}</a>
     <a href="/docs/reference/react/composition/">Composition</a>
-  </div>
-</div>
+  </ReferenceGroup>
+</ReferenceLinks>

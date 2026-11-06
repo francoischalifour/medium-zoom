@@ -1,4 +1,5 @@
-import { readFileSync, writeFileSync, readdirSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 
 import { codeToHtml } from '@pierre/highlights'
 import { githubLightDefault, githubDarkDefault } from '@pierre/highlights/themes'
@@ -25,9 +26,14 @@ function highlight(code: string, lang: HighlightLanguage) {
   return match[1]
 }
 
-// Generate trusted, escaped token markup for both the static page and React hydration.
-// Keeping this output in source also lets type checks and standalone SSR run before a build.
-export function siteHighlights(): Plugin {
+const moduleId = 'virtual:highlighted-snippets'
+const docs = new URL('../src/docs/', import.meta.url)
+const examples = new URL('examples/', docs)
+
+// Trusted, escaped token markup for every code sample on the site, keyed by its source.
+// Served as a virtual module so the static page and React hydration share it without a
+// generated file in the repository.
+function highlightSnippets(watch: (file: string) => void) {
   const snippets: Record<string, string> = {
     [javascriptUsageCode]: highlight(javascriptUsageCode, 'js'),
   }
@@ -46,12 +52,10 @@ export function siteHighlights(): Plugin {
       snippets[code] = highlight(code, kind === 'react' ? 'tsx' : 'html')
     }
   }
-  const docs = new URL('../src/docs/', import.meta.url)
-  for (const file of readdirSync(docs)
-    .filter(file => file.endsWith('.mdx'))
-    .sort()) {
-    const source = readFileSync(new URL(file, docs), 'utf8')
-    for (const [, lang, code] of source.matchAll(
+  for (const file of readdirSync(docs).filter(file => file.endsWith('.mdx'))) {
+    const path = new URL(file, docs)
+    watch(fileURLToPath(path))
+    for (const [, lang, code] of readFileSync(path, 'utf8').matchAll(
       /^```(js|tsx|solid|vue|svelte|html|bash|css)\n([\s\S]*?)^```/gm
     )) {
       // Solid components are TSX; the fence name only labels the code block.
@@ -59,24 +63,30 @@ export function siteHighlights(): Plugin {
       snippets[code.trim()] = highlight(code.trim(), language as HighlightLanguage)
     }
   }
-  for (const file of readdirSync(new URL('examples/', docs)).sort()) {
-    const code = readFileSync(new URL(`examples/${file}`, docs), 'utf8').trim()
+  for (const file of readdirSync(examples)) {
+    const path = new URL(file, examples)
+    watch(fileURLToPath(path))
+    const code = readFileSync(path, 'utf8').trim()
     snippets[code] = highlight(
       code,
       file.endsWith('.tsx') ? 'tsx' : file.endsWith('.css') ? 'css' : 'js'
     )
   }
+  return snippets
+}
+
+export function siteHighlights(): Plugin {
   return {
     name: 'medium-zoom-site-highlights',
-    buildStart() {
-      const path = new URL('../src/highlighted-snippets.json', import.meta.url)
-      const output = `${JSON.stringify(snippets, null, 2)}\n`
-      let previous = ''
-      try {
-        previous = readFileSync(path, 'utf8')
-      } catch {}
-      if (previous !== output) {
-        writeFileSync(path, output)
+    resolveId(id) {
+      if (id === moduleId) {
+        return `\0${moduleId}`
+      }
+    },
+    load(id) {
+      if (id === `\0${moduleId}`) {
+        const snippets = highlightSnippets(file => this.addWatchFile(file))
+        return `export default ${JSON.stringify(snippets)}`
       }
     },
   }
