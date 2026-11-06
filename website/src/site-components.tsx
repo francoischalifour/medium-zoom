@@ -1,6 +1,6 @@
 import * as React from 'react'
+import snippets from 'virtual:highlighted-snippets'
 
-import snippets from './highlighted-snippets.json'
 import { siteOrigin } from './site-url'
 
 const iconPaths = {
@@ -189,7 +189,7 @@ export function CopyButton({
 }
 
 export function CodeTokens({ code }: { code: string }) {
-  const html = (snippets as Record<string, string>)[code]
+  const html = snippets[code]
   return (
     <span dangerouslySetInnerHTML={html ? { __html: html } : undefined}>
       {html ? undefined : code}

@@ -34,11 +34,10 @@ Documentation search uses MiniSearch, loaded when the command palette opens. The
 
 ## Generated files
 
-`bun run build:website` builds the library and regenerates documentation entries, highlighted snippets, the React registry, and the complete site. Edit the source rather than generated output:
+`bun run build:website` builds the library and regenerates documentation entries, the React registry, and the complete site. Highlighted code snippets, `sitemap.xml`, and `robots.txt` are generated from the site's sources during development and builds, with no checked-in copy. Edit the source rather than generated output:
 
 - `website/docs/` contains generated documentation entry pages and is ignored by Git.
 - `website/dist/` contains the built site and is ignored by Git.
-- `website/src/highlighted-snippets.json` contains generated syntax highlighting for product-page and documentation code samples.
 - `website/public/r/` contains the generated React registry.
 
 Run `bun run update:downloads` to refresh the committed npm download snapshot. The browser adds newer reported days on page load and keeps the snapshot if npm is unavailable.

@@ -9,9 +9,11 @@ import { defineConfig, mergeConfig } from 'vite'
 import { galleryAssets } from '../examples/shadcn/gallery-assets.ts'
 import packageJson from '../package.json' with { type: 'json' }
 import { docsPlugin } from '../website/build/docs-plugin.ts'
+import { generatedFiles } from '../website/build/generated-files.ts'
 import { siteFonts } from '../website/build/site-fonts.ts'
 import { siteHeaders } from '../website/build/site-headers.ts'
 import { siteHighlights } from '../website/build/site-highlights.ts'
+import { siteIndexingFiles } from '../website/build/site-indexing.ts'
 import { sitePreferences } from '../website/build/site-preferences.ts'
 import { siteRedirects } from '../website/build/site-redirects.ts'
 import { siteStyles } from '../website/build/site-styles.ts'
@@ -38,6 +40,7 @@ export default defineConfig(({ command }) =>
       },
       siteRedirects(),
       docsPlugin(),
+      generatedFiles('site-indexing', siteIndexingFiles),
       { ...mdx(), enforce: 'pre' },
       react({ include: /\.(jsx|tsx|mdx)$/ }),
       galleryAssets(),
