@@ -477,10 +477,18 @@ test('section links and sticky navigation clear the header', async ({ page }) =>
       const navigation = page.locator(selector)
       if (await navigation.isVisible()) {
         const bounds = await navigation.boundingBox()
-        const firstEntry = await navigation.locator('nav > *').first().boundingBox()
-        // The header's bottom border overlaps the sticky column by a pixel.
+        // The column starts at the header (its bottom border overlaps by a pixel) and its
+        // scrolled-to-top content clears it, whichever entry the column has revealed.
+        const contentTop = await navigation.locator('.scroll-area-viewport').evaluate(viewport => {
+          const firstEntry = viewport.querySelector('nav > *')!
+          return (
+            firstEntry.getBoundingClientRect().top -
+            viewport.getBoundingClientRect().top +
+            viewport.scrollTop
+          )
+        })
         expect(bounds!.y).toBeCloseTo(header!.y + header!.height, -0.5)
-        expect(firstEntry!.y - (header!.y + header!.height)).toBeGreaterThanOrEqual(24)
+        expect(contentTop).toBeGreaterThanOrEqual(24)
       }
     }
     await page.goto('/docs/guides/hd-images/#data-zoom-src')
