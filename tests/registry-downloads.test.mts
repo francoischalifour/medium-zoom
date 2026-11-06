@@ -56,11 +56,9 @@ test('serves the original JSON while analytics is pending and sends only downloa
   assert.equal(typeof init.body, 'string')
   const body = init.body as string
   const [event] = JSON.parse(body)
+  assert.deepEqual(Object.keys(event).sort(), ['event', 'mode', 'properties', 'timestamp'])
+  assert.equal(event.mode, 'audience')
   assert.equal(event.event, 'Registry Component Downloaded')
-  assert.equal(event.distinct_id, 'medium-zoom-registry')
-  assert.equal(event.device_id, 'device-medium-zoom-registry')
-  assert.equal(event.session_id, 'session-medium-zoom-registry')
-  assert.equal(event.anonymous_id, null)
   assert.ok(!Number.isNaN(Date.parse(event.timestamp)))
   assert.deepEqual(event.properties, {
     site: 'medium-zoom',

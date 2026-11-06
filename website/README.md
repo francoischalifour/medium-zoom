@@ -64,7 +64,7 @@ Set `VITE_ALTERTABLE_API_KEY` in the root `.env.local` or build environment to a
 
 Tracking runs only on the production domain and uses Altertable's audience mode, which stores nothing in the browser and sends no visitor identifiers. It records pageviews, searches, successful command and code copies, opened images, and outbound links. The library and installable component contain no tracking. Analytics tests intercept ingestion requests.
 
-The Cloudflare Worker records `Registry Component Downloaded` for successful production component downloads. Set its `ALTERTABLE_API_KEY` secret to an ingestion key for the same Altertable environment:
+The Cloudflare Worker records `Registry Component Downloaded` in audience mode for successful production component downloads. Set its `ALTERTABLE_API_KEY` secret to an ingestion key for the same Altertable environment:
 
 ```sh
 bunx wrangler secret put ALTERTABLE_API_KEY --config config/wrangler.jsonc
