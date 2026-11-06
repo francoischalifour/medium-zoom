@@ -11,13 +11,10 @@ async function trackDownload(apiKey: string, component: string, path: string) {
       signal: AbortSignal.timeout(2_000),
       body: JSON.stringify([
         {
+          // Audience events count downloads without identifying a developer, device, or project.
+          mode: 'audience',
           event: 'Registry Component Downloaded',
           timestamp: new Date().toISOString(),
-          // This identifies the source, never a developer, device, or project.
-          distinct_id: 'medium-zoom-registry',
-          device_id: 'device-medium-zoom-registry',
-          session_id: 'session-medium-zoom-registry',
-          anonymous_id: null,
           properties: {
             site: 'medium-zoom',
             component,

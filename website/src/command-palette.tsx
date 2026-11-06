@@ -3,7 +3,7 @@ import * as React from 'react'
 import { getCommandGroups, commandVerbs, type CommandItem } from './command-items'
 import { getSearchTerms, type DocsSearch } from './docs-search'
 import { usePackageManager } from './package-manager'
-import { trackInstallCopied } from './site-analytics'
+import { trackInstallCopied, trackSiteEvent } from './site-analytics'
 import { Icon } from './site-components'
 import type { SitePage } from './site-data'
 import { getTheme, getServerTheme, setTheme, subscribeTheme } from './site-theme'
@@ -126,6 +126,7 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
   const dialog = React.useRef<HTMLDialogElement>(null)
   const input = React.useRef<HTMLInputElement>(null)
   const returnFocus = React.useRef<HTMLElement | null>(null)
+  const settledQuery = React.useRef('')
   const [open, setOpen] = React.useState(false)
   const [query, setQuery] = React.useState('')
   const [activeIndex, setActiveIndex] = React.useState(0)
@@ -151,6 +152,18 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
   }
   function close() {
     dialog.current?.close()
+  }
+  // Settled queries update the URL and count as searches, including ones opened from a `?q=` link.
+  function settleSearch(value: string) {
+    const searchTerm = value.trim()
+    replaceSearchQuery(searchTerm)
+    if (searchTerm === settledQuery.current) {
+      return
+    }
+    settledQuery.current = searchTerm
+    if (searchTerm) {
+      trackSiteEvent('Searched', { search_term: searchTerm })
+    }
   }
   React.useEffect(() => {
     setMac(/Mac|iPhone|iPad/.test(navigator.platform))
@@ -202,7 +215,7 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
     if (!open) {
       return
     }
-    const timer = window.setTimeout(() => replaceSearchQuery(query), 300)
+    const timer = window.setTimeout(() => settleSearch(query), 300)
     return () => window.clearTimeout(timer)
   }, [open, query])
   React.useEffect(() => {
@@ -249,7 +262,7 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
     switch (command.kind) {
       case 'navigate':
         // Preserve the previous search when following the native link, including Back navigation.
-        replaceSearchQuery(query)
+        settleSearch(query)
         break
       case 'theme':
         setTheme(command.dark)
@@ -329,7 +342,7 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
         aria-label="Search documentation"
         onClose={() => {
           setOpen(false)
-          replaceSearchQuery('')
+          settleSearch('')
           returnFocus.current?.focus()
         }}
         onClick={event => {

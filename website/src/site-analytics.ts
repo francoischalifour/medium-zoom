@@ -18,8 +18,9 @@ function getClient() {
   }
   try {
     let lastPage: string | undefined
-    let lastSearch = ''
     altertable.init(apiKey, {
+      // Aggregate measurement without cookies, storage, or visitor identifiers.
+      mode: 'audience',
       trackingConsent: 'granted',
       transformEvent(event) {
         const url = event.properties?.$url
@@ -29,13 +30,11 @@ function getClient() {
           return null
         }
         if (event.event === '$pageview') {
-          const query = typeof event.properties?.q === 'string' ? event.properties.q : ''
-          // Query changes are searches; clearing search and following anchors are not pageviews.
-          if (lastPage === path && (!query || lastSearch === query)) {
+          // Search and anchor changes keep the path; searches are tracked explicitly.
+          if (lastPage === path) {
             return null
           }
           lastPage = path
-          lastSearch = query
         }
         return {
           ...event,
@@ -56,7 +55,12 @@ function getClient() {
   return client
 }
 
-type SiteEvent = 'Install Command Copied' | 'Code Copied' | 'Image Zoomed' | 'Outbound Click'
+type SiteEvent =
+  | 'Install Command Copied'
+  | 'Code Copied'
+  | 'Image Zoomed'
+  | 'Outbound Click'
+  | 'Searched'
 export function trackSiteEvent(event: SiteEvent, properties: EventProperties = {}) {
   if (!enabled) {
     return
