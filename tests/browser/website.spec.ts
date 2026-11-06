@@ -44,8 +44,9 @@ test('shared navigation preserves theme and typography across both pages and bac
   const header = await page.locator('.navigation').boundingBox()
   const fonts = await page.evaluate(async () => {
     const sans = await document.fonts.load('500 14px "Geist Variable"')
-    const mono = await document.fonts.load('400 13px "Geist Mono Variable"')
-    return [sans.length, mono.length]
+    const mono = await document.fonts.load('400 13px "IBM Plex Mono"')
+    const mediumMono = await document.fonts.load('500 13px "IBM Plex Mono"')
+    return [sans.length, mono.length, mediumMono.length]
   })
   expect(fonts.every(count => count > 0)).toBe(true)
   await page.getByRole('button', { name: 'Switch to dark theme' }).click()
@@ -203,12 +204,12 @@ test('both pages preload the same font resources across navigation', async ({ pa
   const homeFonts = await page
     .locator('link[rel="preload"][as="font"]')
     .evaluateAll(links => links.map(link => (link as HTMLLinkElement).href).sort())
-  expect(homeFonts).toHaveLength(2)
+  expect(homeFonts).toHaveLength(3)
   await page
     .getByRole('navigation', { name: /^(Main navigation|Product navigation)$/ })
     .getByRole('link', { name: 'React', exact: true })
     .click()
-  await expect(page.locator('link[rel="preload"][as="font"]')).toHaveCount(2)
+  await expect(page.locator('link[rel="preload"][as="font"]')).toHaveCount(3)
   const componentFonts = await page
     .locator('link[rel="preload"][as="font"]')
     .evaluateAll(links => links.map(link => (link as HTMLLinkElement).href).sort())

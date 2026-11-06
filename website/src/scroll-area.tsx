@@ -48,3 +48,26 @@ export function ScrollArea({
     </div>
   )
 }
+
+// Scrolls only the closest scroll area, never the page, just enough to show `element` outside
+// the viewport's scroll padding, like `scrollIntoView({ block: 'nearest' })`. When `element`
+// does not fit, `anchor` is shown instead.
+export function revealInScrollArea(element: Element, anchor?: Element) {
+  const viewport = element.closest<HTMLElement>('.scroll-area-viewport')
+  if (!viewport) {
+    return
+  }
+  const style = getComputedStyle(viewport)
+  const bounds = viewport.getBoundingClientRect()
+  const visibleTop = bounds.top + (Number.parseFloat(style.scrollPaddingTop) || 0)
+  const visibleBottom = bounds.bottom - (Number.parseFloat(style.scrollPaddingBottom) || 0)
+  let target = element.getBoundingClientRect()
+  if (anchor && target.height > visibleBottom - visibleTop) {
+    target = anchor.getBoundingClientRect()
+  }
+  if (target.top < visibleTop || target.height > visibleBottom - visibleTop) {
+    viewport.scrollTop += target.top - visibleTop
+  } else if (target.bottom > visibleBottom) {
+    viewport.scrollTop += target.bottom - visibleBottom
+  }
+}

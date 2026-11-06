@@ -9,25 +9,32 @@ html:has(.docs-shell) {
   --docs-anchor-highlight: rgb(167 139 250 / 18%);
 }
 .docs-layout {
+  /* Each column owns this top spacing so the sticky sidebars can start at the header. */
+  --docs-content-top: 56px;
   display: grid;
   grid-template-columns: 180px minmax(0, 1fr) 160px;
   gap: 48px;
   max-width: var(--site-width);
   margin: 0 auto;
-  padding: 56px var(--site-gutter) 96px;
+  padding: 0 var(--site-gutter) 96px;
   align-items: start;
 }
 .docs-sidebar,
 .docs-outline {
   position: sticky;
-  top: calc(var(--site-header-height) + 32px);
-  --scroll-area-max-height: calc(100dvh - var(--site-header-height) - 64px);
+  top: var(--site-header-height);
+  --scroll-area-max-height: calc(100dvh - var(--site-header-height));
   margin-left: -10px;
   font-size: 13px;
 }
 .docs-sidebar .scroll-area-viewport,
 .docs-outline .scroll-area-viewport {
-  padding: 4px 10px 12px;
+  padding: calc(var(--docs-content-top) + 4px) 10px 32px;
+}
+/* Keep a few neighbors of the current section visible when the outline follows reading. */
+.docs-outline .scroll-area-viewport,
+.docs-outline-menu-panel .scroll-area-viewport {
+  scroll-padding-block: 48px;
 }
 .docs-sidebar a:focus-visible,
 .docs-outline a:focus-visible,
@@ -36,6 +43,7 @@ html:has(.docs-shell) {
 }
 .docs-sidebar nav,
 .docs-outline nav,
+.docs-outline-menu nav,
 .docs-mobile-navigation nav {
   display: grid;
   gap: 8px;
@@ -60,21 +68,18 @@ html:has(.docs-shell) {
   color: var(--foreground);
   background: var(--selected);
 }
-.docs-outline a,
-.docs-mobile-navigation nav[aria-label='On this page'] a {
+.docs-contents a {
   padding: 6px 10px;
   margin-left: -10px;
   border-radius: 6px;
   color: var(--muted-foreground);
   line-height: 1.5;
+  position: relative;
 }
 .docs-outline .docs-contents {
   position: relative;
   border-left: 1px solid var(--border);
   padding-left: 12px;
-}
-.docs-contents a {
-  position: relative;
 }
 .docs-contents a[aria-current='location'] {
   color: var(--foreground);
@@ -83,6 +88,7 @@ html:has(.docs-shell) {
 
 .docs-main {
   min-width: 0;
+  padding-top: var(--docs-content-top);
 }
 .docs-article {
   font-size: 15px;
@@ -92,10 +98,90 @@ html:has(.docs-shell) {
 .docs-heading {
   margin-bottom: 24px;
 }
-.docs-heading > p {
+.docs-breadcrumb {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 28px;
   margin: 0 0 8px;
   font-size: 13px;
   color: var(--muted-foreground);
+}
+.docs-breadcrumb nav {
+  min-width: 0;
+}
+.docs-breadcrumb ol {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.docs-breadcrumb li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  min-width: 0;
+  white-space: nowrap;
+}
+.docs-breadcrumb li[aria-current] {
+  flex-shrink: 1;
+}
+.docs-breadcrumb li span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.docs-breadcrumb li svg {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+.docs-article .docs-breadcrumb a {
+  color: inherit;
+  border-radius: 4px;
+  text-decoration: none;
+}
+.docs-outline-menu {
+  display: none;
+  flex-shrink: 0;
+}
+.docs-outline-menu .icon-button {
+  width: 28px;
+  height: 28px;
+}
+.docs-outline-menu .icon-button[aria-expanded='true'] {
+  color: var(--foreground);
+  background: var(--hover);
+}
+.docs-outline-menu-panel {
+  --scroll-area-max-height: min(60dvh, 448px);
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  width: min(288px, 100%);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  overflow: clip;
+  background: var(--background);
+  box-shadow:
+    0 12px 32px -12px rgb(0 0 0 / 20%),
+    var(--shadow-xs);
+}
+.docs-outline-menu-panel .scroll-area-viewport {
+  padding: 8px 12px 8px 22px;
+}
+.docs-outline-menu .docs-contents {
+  gap: 2px;
+  font-size: 13px;
+}
+.docs-outline-menu .docs-contents-title {
+  margin: 4px 0;
+  font-size: 12px;
+  font-weight: 500;
 }
 .docs-heading h1 {
   font-size: 34px;
@@ -286,14 +372,13 @@ html:has(.docs-shell) {
     text-decoration-color: var(--foreground);
   }
   .docs-nav-group a:hover,
-  .docs-outline a:not([aria-current]):hover,
-  .docs-mobile-navigation nav[aria-label='On this page'] a:not([aria-current]):hover {
+  .docs-contents a:not([aria-current]):hover,
+  .docs-breadcrumb a:hover {
     color: var(--foreground);
     text-decoration: none;
   }
   .docs-nav-group a:not([aria-current='page']):hover,
-  .docs-outline a:not([aria-current]):hover,
-  .docs-mobile-navigation nav[aria-label='On this page'] a:not([aria-current]):hover {
+  .docs-contents a:not([aria-current]):hover {
     background: color-mix(in srgb, var(--foreground) 2%, transparent);
   }
 }
@@ -306,21 +391,14 @@ html:has(.docs-shell) {
   .docs-outline {
     display: none;
   }
-  .docs-mobile-navigation {
+  .docs-outline-menu {
     display: block;
-    margin-bottom: 28px;
-  }
-  .docs-mobile-navigation > details:first-of-type {
-    display: none;
   }
   .docs-mobile-navigation details {
     border: 1px solid var(--border);
     border-radius: 9px;
     padding: 4px;
     background: var(--surface);
-  }
-  .docs-mobile-navigation details + details {
-    margin-top: 8px;
   }
   .docs-mobile-navigation .scroll-area {
     --scroll-area-background: var(--surface);
@@ -340,33 +418,18 @@ html:has(.docs-shell) {
   .docs-mobile-navigation .docs-nav-group:last-child {
     margin-bottom: 0;
   }
-  .docs-mobile-navigation .docs-contents-title {
-    display: none;
-  }
-  .docs-mobile-navigation .docs-contents {
-    gap: 2px;
-  }
-  .docs-mobile-navigation .docs-contents a {
-    min-height: 36px;
-    display: flex;
-    align-items: center;
-  }
-}
-@media (min-width: 761px) {
-  .docs-overview .docs-mobile-navigation {
-    display: none;
-  }
 }
 @media (max-width: 760px) {
   .docs-layout {
+    --docs-content-top: 32px;
     display: block;
-    padding-top: 32px;
   }
   .docs-sidebar {
     display: none;
   }
-  .docs-mobile-navigation > details:first-of-type {
+  .docs-mobile-navigation {
     display: block;
+    margin-bottom: 28px;
   }
   .docs-heading h1 {
     font-size: 30px;

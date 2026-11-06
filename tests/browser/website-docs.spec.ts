@@ -35,26 +35,41 @@ test('collapsed docs navigation stays inside the article column on phones and ta
   page,
 }) => {
   await page.goto('/docs/javascript/')
+  const outlineButton = page.getByRole('button', { name: 'On this page', exact: true })
   for (const width of [390, 1_024]) {
     await page.setViewportSize({ width, height: 900 })
     const main = page.locator('.docs-main')
     const menus = main.locator('.docs-mobile-navigation')
-    await expect(menus).toBeVisible()
-    const mainBounds = (await main.boundingBox())!
-    const menuBounds = (await menus.boundingBox())!
-    expect(menuBounds.x).toBe(mainBounds.x)
-    expect(menuBounds.width).toBe(mainBounds.width)
-    const documentation = menus.getByText('Documentation', { exact: true }).first()
     if (width === 390) {
-      await expect(documentation).toBeVisible()
+      await expect(menus).toBeVisible()
+      const mainBounds = (await main.boundingBox())!
+      const menuBounds = (await menus.boundingBox())!
+      expect(menuBounds.x).toBe(mainBounds.x)
+      expect(menuBounds.width).toBe(mainBounds.width)
     } else {
-      await expect(documentation).toBeHidden()
+      await expect(menus).toBeHidden()
     }
-    await expect(menus.locator('summary').last()).toHaveText('On this page')
+    await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toHaveText(
+      'DocsGet startedJavaScript quickstart'
+    )
+    await expect(outlineButton).toBeVisible()
   }
+  await page.setViewportSize({ width: 1_440, height: 900 })
+  await expect(outlineButton).toBeHidden()
   await page.setViewportSize({ width: 1_024, height: 900 })
   await page.goto('/docs/')
-  await expect(page.locator('.docs-mobile-navigation')).toBeHidden()
+  await expect(outlineButton).toHaveCount(0)
+})
+
+test('the sidebar and outline keep their active entries in view', async ({ page }) => {
+  await page.setViewportSize({ width: 1_440, height: 600 })
+  await page.goto('/docs/reference/react/composition/')
+  await expect(page.locator('.docs-sidebar [aria-current="page"]')).toBeInViewport({ ratio: 1 })
+  await page.goto('/docs/reference/javascript/methods/')
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+  const active = page.locator('.docs-outline [aria-current="location"]')
+  await expect(active).toHaveText('getZoomedImage()')
+  await expect(active).toBeInViewport({ ratio: 1 })
 })
 
 test('the active outline section uses text without a rail marker, fill, or underline', async ({
@@ -98,10 +113,10 @@ for (const theme of ['light', 'dark'] as const) {
     await menu.locator('summary').click()
     await menu.locator('summary').click()
     await expect(area).toHaveAttribute('data-scroll-above', '')
-    const contents = page.locator('.docs-mobile-navigation details').last()
-    await contents.locator('summary').click()
-    await expect(contents.locator('.scroll-area')).not.toHaveAttribute('data-scroll-above')
-    await expect(contents.locator('.scroll-area')).not.toHaveAttribute('data-scroll-below')
+    await page.getByRole('button', { name: 'On this page', exact: true }).click()
+    const contents = page.locator('.docs-outline-menu .scroll-area')
+    await expect(contents).not.toHaveAttribute('data-scroll-above')
+    await expect(contents).not.toHaveAttribute('data-scroll-below')
     await page.setViewportSize({ width: 1_440, height: 600 })
     await expect(page.locator('.docs-sidebar')).toHaveAttribute('data-scroll-below', '')
     await page.setViewportSize({ width: 1_440, height: 1_500 })
@@ -132,19 +147,25 @@ test('anchor arrival waits for scrolling, fades away, and repeats for the same d
   await expect(heading).toHaveAttribute('data-anchor-arrival', '')
 })
 
-test('mobile contents menus close before landing and transfer keyboard focus', async ({ page }) => {
+test('the breadcrumb outline menu closes before landing and transfers keyboard focus', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/docs/guides/custom-react-triggers/')
-  const menu = page.locator('.docs-mobile-navigation details').last()
-  await expect(menu.locator('.scroll-area')).toHaveAttribute('data-scroll-ready', '')
-  await menu.locator('summary').focus()
+  const button = page.getByRole('button', { name: 'On this page', exact: true })
+  const menu = page.getByRole('navigation', { name: 'On this page' })
+  await button.focus()
   await page.keyboard.press('Enter')
-  await expect(menu).toHaveAttribute('open', '')
-  await expect(menu.locator('.docs-contents-title')).toBeHidden()
+  await expect(button).toHaveAttribute('aria-expanded', 'true')
+  await expect(menu.getByRole('link').first()).toBeFocused()
+  await page.keyboard.press('Escape')
+  await expect(menu).toBeHidden()
+  await expect(button).toBeFocused()
+  await page.keyboard.press('Enter')
   const link = menu.getByRole('link', { name: 'Style the trigger', exact: true })
   await link.focus()
   await page.keyboard.press('Enter')
-  await expect(menu).not.toHaveAttribute('open', '')
+  await expect(button).toHaveAttribute('aria-expanded', 'false')
   const heading = page.locator('#style-the-trigger')
   await expect(heading).toHaveAttribute('data-anchor-arrival', '')
   await expect(heading).toBeFocused()
@@ -411,9 +432,11 @@ test('mobile navigation and outline work without horizontal page overflow', asyn
   await page.keyboard.press('Enter')
   await menu.getByRole('link', { name: 'Controlled state', exact: true }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Controlled state')
-  const outline = page.locator('.docs-mobile-navigation details').last()
-  await outline.locator('summary').click()
-  await outline.getByRole('link', { name: 'Control the zoom', exact: true }).click()
+  await page.getByRole('button', { name: 'On this page', exact: true }).click()
+  await page
+    .getByRole('navigation', { name: 'On this page' })
+    .getByRole('link', { name: 'Control the zoom', exact: true })
+    .click()
   await expect(page).toHaveURL(/#control-the-zoom$/)
   await expect(page.locator('#control-the-zoom')).toBeInViewport()
   for (const [path] of pages) {
@@ -457,7 +480,18 @@ test('section links and sticky navigation clear the header', async ({ page }) =>
       const navigation = page.locator(selector)
       if (await navigation.isVisible()) {
         const bounds = await navigation.boundingBox()
-        expect(bounds!.y - (header!.y + header!.height)).toBeGreaterThanOrEqual(24)
+        // The column starts at the header (its bottom border overlaps by a pixel) and its
+        // scrolled-to-top content clears it, whichever entry the column has revealed.
+        const contentTop = await navigation.locator('.scroll-area-viewport').evaluate(viewport => {
+          const firstEntry = viewport.querySelector('nav > *')!
+          return (
+            firstEntry.getBoundingClientRect().top -
+            viewport.getBoundingClientRect().top +
+            viewport.scrollTop
+          )
+        })
+        expect(bounds!.y).toBeCloseTo(header!.y + header!.height, -0.5)
+        expect(contentTop).toBeGreaterThanOrEqual(24)
       }
     }
     await page.goto('/docs/guides/hd-images/#data-zoom-src')
