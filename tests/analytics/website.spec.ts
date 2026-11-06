@@ -284,6 +284,18 @@ test('settled searches record search events without typing, dismissal, or anchor
   }
 })
 
+test('a search opened from a shared link is recorded once', async ({ page }) => {
+  const events = await intercept(page)
+  const searches = () => events.filter(event => event.event === 'Searched')
+  await page.goto(`${origin}/docs/?q=margin`)
+  await expect.poll(() => searches().length).toBe(1)
+  await page.getByRole('combobox').fill('margin ')
+  await page.getByRole('combobox').fill('galleries')
+  await expect.poll(() => searches().length).toBe(2)
+  expect(searches().map(event => event.properties.search_term)).toEqual(['margin', 'galleries'])
+  expect(events.filter(event => event.event === '$pageview')).toHaveLength(1)
+})
+
 test('chat handoffs use the same outbound tracking as other external links', async ({
   page,
   context,
