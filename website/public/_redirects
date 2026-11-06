@@ -6,6 +6,12 @@
 /docs/javascript/index.html /docs/javascript/ 301
 /docs/react /docs/react/ 301
 /docs/react/index.html /docs/react/ 301
+/docs/integrations/vue /docs/integrations/vue/ 301
+/docs/integrations/vue/index.html /docs/integrations/vue/ 301
+/docs/integrations/svelte /docs/integrations/svelte/ 301
+/docs/integrations/svelte/index.html /docs/integrations/svelte/ 301
+/docs/integrations/solid /docs/integrations/solid/ 301
+/docs/integrations/solid/index.html /docs/integrations/solid/ 301
 /docs/guides/hd-images /docs/guides/hd-images/ 301
 /docs/guides/hd-images/index.html /docs/guides/hd-images/ 301
 /docs/guides/multiple-images /docs/guides/multiple-images/ 301
