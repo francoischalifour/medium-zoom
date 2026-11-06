@@ -4,6 +4,7 @@ import * as React from 'react'
 import { CopyButton, HighlightedCode, Icon, ZoomControls } from '../site-components'
 import { TabList } from '../site-tabs'
 import { docsPages } from './pages'
+import { supportedBrowsers } from './supported-browsers'
 
 export function DocCode({ code, title = 'Example' }: { code: string; title?: string }) {
   const snippet = code.trim()
@@ -140,7 +141,20 @@ export function Prop({
   )
 }
 
-export function JavaScriptPreview() {
+// The quickstart's live result; the props match the image markup the page shows.
+export function JavaScriptPreview({
+  src,
+  alt,
+  width,
+  height,
+  label,
+}: {
+  src: string
+  alt: string
+  width: number
+  height: number
+  label: string
+}) {
   const imageRef = React.useRef<HTMLImageElement>(null)
   const zoomRef = React.useRef<Zoom | null>(null)
   React.useEffect(() => {
@@ -160,7 +174,7 @@ export function JavaScriptPreview() {
     <Preview>
       <button
         type="button"
-        aria-label="Enlarge ocean sunset"
+        aria-label={label}
         onClick={event => {
           // Image clicks already reach medium-zoom's delegated listener.
           if (event.target === event.currentTarget) {
@@ -168,13 +182,7 @@ export function JavaScriptPreview() {
           }
         }}
       >
-        <img
-          ref={imageRef}
-          src="/assets/images/ocean-sunset.jpg"
-          alt="Ocean sunset"
-          width={1_920}
-          height={1_280}
-        />
+        <img ref={imageRef} src={src} alt={alt} width={width} height={height} />
       </button>
     </Preview>
   )
@@ -226,13 +234,37 @@ export function RelatedPages({ pages }: { pages: readonly DocsPath[] }) {
   )
 }
 
-const supportedBrowsers = [
-  { name: 'Chrome', version: 36 },
-  { name: 'Firefox', version: 34 },
-  { name: 'Safari', version: 9 },
-  { name: 'Edge', version: 12 },
-  { name: 'Internet Explorer', version: 10 },
-]
+// Cards linking to the quickstarts; each card's children describe when to choose it.
+export function EntryPoints({ children }: { children: React.ReactNode }) {
+  return (
+    <nav className="docs-entry-points" aria-label="Choose your setup">
+      {children}
+    </nav>
+  )
+}
+
+export function EntryPoint({ path, children }: { path: DocsPath; children: React.ReactNode }) {
+  return (
+    <a href={path}>
+      <strong>{docsPages.find(page => page.path === path)!.title}</strong>
+      <span>{children}</span>
+    </a>
+  )
+}
+
+// Columns of reference links; each group's children are its links.
+export function ReferenceLinks({ children }: { children: React.ReactNode }) {
+  return <div className="docs-reference-links">{children}</div>
+}
+
+export function ReferenceGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <h3>{title}</h3>
+      {children}
+    </div>
+  )
+}
 
 export function BrowserSupport() {
   return (

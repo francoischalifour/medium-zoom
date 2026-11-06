@@ -6,7 +6,7 @@ import { parseExpressionAt } from 'acorn'
 import type { Plugin } from 'vite'
 
 import type { SearchEntry } from '../src/docs-search.ts'
-import { docsPages, docsPublishedOn, headingId } from '../src/docs/pages.ts'
+import { docsPages, docsPublishedOn, headingId, markdownPath } from '../src/docs/pages.ts'
 import { siteOrigin } from '../src/site-url.ts'
 import { docsOgImagePath } from './docs-sharing.ts'
 
@@ -163,6 +163,7 @@ export function docsPlugin(): Plugin {
           .replaceAll('__DOC_TITLE__', escapeHtml(page.documentTitle))
           .replaceAll('__DOC_DESCRIPTION__', escapeHtml(page.description))
           .replaceAll('__DOC_URL__', escapeHtml(url))
+          .replaceAll('__DOC_MARKDOWN__', markdownPath(page.path))
           .replaceAll('__DOC_IMAGE__', siteOrigin + docsOgImagePath(page.path))
           .replace('"__DOC_SCHEMA__"', JSON.stringify(schema).replaceAll('<', '\\u003c'))
         const file = fileURLToPath(new URL(`..${page.path}index.html`, import.meta.url))

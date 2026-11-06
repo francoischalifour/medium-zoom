@@ -8,6 +8,7 @@ import { defineConfig, mergeConfig } from 'vite'
 
 import { galleryAssets } from '../examples/shadcn/gallery-assets.ts'
 import packageJson from '../package.json' with { type: 'json' }
+import { docsMarkdownFiles } from '../website/build/docs-markdown.ts'
 import { docsPlugin } from '../website/build/docs-plugin.ts'
 import { generatedFiles } from '../website/build/generated-files.ts'
 import { siteFonts } from '../website/build/site-fonts.ts'
@@ -40,6 +41,7 @@ export default defineConfig(({ command }) =>
       },
       siteRedirects(),
       docsPlugin(),
+      generatedFiles('docs-markdown', docsMarkdownFiles),
       generatedFiles('site-indexing', siteIndexingFiles),
       { ...mdx(), enforce: 'pre' },
       react({ include: /\.(jsx|tsx|mdx)$/ }),
