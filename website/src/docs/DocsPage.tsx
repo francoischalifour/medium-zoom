@@ -1,9 +1,10 @@
-import { Children, isValidElement, type ReactNode } from 'react'
+import { Children, isValidElement, useEffect, type ReactNode } from 'react'
 
-import { ScrollArea } from '../scroll-area'
-import { SiteLink } from '../site-components'
+import { ScrollArea, revealInScrollArea } from '../scroll-area'
+import { Icon, SiteLink } from '../site-components'
 import { SiteHeader, SiteFooter, SectionLinks } from '../site-shell'
 import { CodeFence, PageNavigationCards } from './doc-components'
+import { DocsOutline, DocsOutlineMenu } from './docs-outline'
 import { docsPages, headingId } from './pages'
 import { useDocsNavigation } from './use-docs-navigation'
 
@@ -38,8 +39,44 @@ function ArticleHeading({ children }: { children: ReactNode }) {
   )
 }
 
+function DocsBreadcrumb({
+  page,
+  children,
+}: {
+  page: (typeof docsPages)[number]
+  children?: ReactNode
+}) {
+  return (
+    <div className="docs-breadcrumb">
+      <nav aria-label="Breadcrumb">
+        <ol>
+          <li>
+            <a href="/docs/">Docs</a>
+          </li>
+          <li>
+            <Icon name="chevron" width={12} height={12} />
+            {page.group}
+          </li>
+          <li aria-current="page">
+            <Icon name="chevron" width={12} height={12} />
+            <span>{page.title}</span>
+          </li>
+        </ol>
+      </nav>
+      {children}
+    </div>
+  )
+}
+
 export function DocsPage({ path }: { path: string }) {
   const { articleRef, activeHeadingId } = useDocsNavigation(path)
+  // Keep the current page visible in a long sidebar, with its group as context when it fits.
+  useEffect(() => {
+    const active = document.querySelector('.docs-sidebar [aria-current="page"]')
+    if (active) {
+      revealInScrollArea(active.closest('.docs-nav-group') ?? active, active)
+    }
+  }, [path])
   const page = docsPages.find(page => page.path === path)
   if (!page) {
     throw new Error(`Unknown documentation page: ${path}`)
@@ -69,20 +106,6 @@ export function DocsPage({ path }: { path: string }) {
       ))}
     </nav>
   )
-  const contents = (
-    <nav className="docs-contents" aria-label="On this page">
-      <p className="docs-contents-title">On this page</p>
-      {outline.map(item => (
-        <a
-          key={item.id}
-          href={`#${item.id}`}
-          aria-current={activeHeadingId === item.id ? 'location' : undefined}
-        >
-          {item.title}
-        </a>
-      ))}
-    </nav>
-  )
   return (
     <div className={`site-shell docs-shell${isOverview ? ' docs-overview' : ''}`}>
       <SiteHeader
@@ -109,16 +132,12 @@ export function DocsPage({ path }: { path: string }) {
               <summary>Documentation</summary>
               <ScrollArea>{navigation}</ScrollArea>
             </details>
-            {!isOverview && (
-              <details>
-                <summary>On this page</summary>
-                <ScrollArea>{contents}</ScrollArea>
-              </details>
-            )}
           </div>
           <article ref={articleRef} className="docs-article">
             <header className="docs-heading">
-              <p>{page.group}</p>
+              <DocsBreadcrumb page={page}>
+                {!isOverview && <DocsOutlineMenu outline={outline} activeId={activeHeadingId} />}
+              </DocsBreadcrumb>
               <h1>{page.title}</h1>
             </header>
             <Content components={{ h2: ArticleHeading, pre: CodeFence, a: SiteLink }} />
@@ -134,7 +153,11 @@ export function DocsPage({ path }: { path: string }) {
             </nav>
           )}
         </main>
-        {!isOverview && <ScrollArea className="docs-outline">{contents}</ScrollArea>}
+        {!isOverview && (
+          <ScrollArea className="docs-outline">
+            <DocsOutline outline={outline} activeId={activeHeadingId} />
+          </ScrollArea>
+        )}
       </div>
       <SiteFooter page="docs" />
     </div>
