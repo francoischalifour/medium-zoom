@@ -5,9 +5,12 @@ import { testUrl } from '../server-urls.ts'
 const origin = 'https://medium-zoom.francoischalifour.com'
 type Event = {
   event: string
-  distinct_id: string
-  anonymous_id: string | null
   properties: Record<string, unknown>
+}
+
+function expectAudienceEvent(event: Event) {
+  expect(Object.keys(event).sort()).toEqual(['event', 'mode', 'properties', 'timestamp'])
+  expect(event).toMatchObject({ mode: 'audience' })
 }
 
 async function intercept(page: Page) {
@@ -65,9 +68,7 @@ for (const path of ['/', '/react']) {
     const events = await intercept(page)
     await page.goto(`${origin}${path}`)
     await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(1)
-    const first = events[0]
-    expect(first.distinct_id).toBeTruthy()
-    expect(first.anonymous_id).toBeNull()
+    expect(await page.context().cookies()).toEqual([])
     await clipboardPermission(context, page, 'granted')
     await page
       .locator('.hero-install')
@@ -141,8 +142,15 @@ for (const path of ['/', '/react']) {
         page: path === '/' ? 'javascript' : 'react',
         path,
       })
-      expect(event.distinct_id).toBe(first.distinct_id)
+      expectAudienceEvent(event)
     }
+    expect(
+      await page.evaluate(() =>
+        [...Object.keys(localStorage), ...Object.keys(sessionStorage)].filter(key =>
+          key.startsWith('atbl')
+        )
+      )
+    ).toEqual([])
     expect(errors).toEqual([])
   })
 }
@@ -236,18 +244,19 @@ test('documentation pageviews retain the shared website context', async ({ page 
   })
 })
 
-test('settled searches record query parameters without typing or dismissal pageviews', async ({
+test('settled searches record search events without typing, dismissal, or anchor pageviews', async ({
   page,
 }) => {
   const events = await intercept(page)
+  const searches = () => events.filter(event => event.event === 'Searched')
   await page.goto(`${origin}/docs/javascript/`)
   await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(1)
   await page.getByRole('button', { name: /Search docs/ }).click()
   const search = page.getByRole('combobox')
   await search.pressSequentially('margin', { delay: 30 })
-  await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(2)
+  await expect.poll(() => searches().length).toBe(1)
   await search.fill('galleries')
-  await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(3)
+  await expect.poll(() => searches().length).toBe(2)
   await page.keyboard.press('Escape')
   await expect.poll(() => new URL(page.url()).searchParams.has('q')).toBe(false)
   await page.evaluate(() => {
@@ -255,21 +264,23 @@ test('settled searches record query parameters without typing or dismissal pagev
   })
   await page.getByRole('button', { name: /Search docs/ }).click()
   await search.fill('margin')
-  await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(4)
-  const pageviews = events.filter(event => event.event === '$pageview')
-  expect(pageviews.map(event => event.properties.q)).toEqual([
-    undefined,
+  await expect.poll(() => searches().length).toBe(3)
+  expect(searches().map(event => event.properties.search_term)).toEqual([
     'margin',
     'galleries',
     'margin',
   ])
-  for (const event of pageviews) {
+  const pageviews = events.filter(event => event.event === '$pageview')
+  expect(pageviews).toHaveLength(1)
+  for (const event of [...pageviews, ...searches()]) {
     expect(event.properties).toMatchObject({
       site: 'medium-zoom',
       page: 'docs',
       path: '/docs/javascript/',
+      $url: `${origin}/docs/javascript/`,
     })
-    expect(event.distinct_id).toBe(pageviews[0].distinct_id)
+    expect(event.properties).not.toHaveProperty('q')
+    expectAudienceEvent(event)
   }
 })
 

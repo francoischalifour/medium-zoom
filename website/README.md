@@ -62,7 +62,7 @@ The documentation checks compile authored JavaScript and TSX snippets against th
 
 Set `VITE_ALTERTABLE_API_KEY` in the root `.env.local` or build environment to a public Altertable browser ingestion key. Vite embeds this value in browser code, so never use an admin credential.
 
-Anonymous tracking runs only on the production domain. It records pageviews, successful command and code copies, opened images, and outbound links. The library and installable component contain no tracking. Analytics tests intercept ingestion requests.
+Tracking runs only on the production domain and uses Altertable's audience mode, which stores nothing in the browser and sends no visitor identifiers. It records pageviews, searches, successful command and code copies, opened images, and outbound links. The library and installable component contain no tracking. Analytics tests intercept ingestion requests.
 
 The Cloudflare Worker records `Registry Component Downloaded` for successful production component downloads. Set its `ALTERTABLE_API_KEY` secret to an ingestion key for the same Altertable environment:
 

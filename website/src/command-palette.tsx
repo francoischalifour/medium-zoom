@@ -3,7 +3,7 @@ import * as React from 'react'
 import { getCommandGroups, commandVerbs, type CommandItem } from './command-items'
 import { getSearchTerms, type DocsSearch } from './docs-search'
 import { usePackageManager } from './package-manager'
-import { trackInstallCopied } from './site-analytics'
+import { trackInstallCopied, trackSiteEvent } from './site-analytics'
 import { Icon } from './site-components'
 import type { SitePage } from './site-data'
 import { getTheme, getServerTheme, setTheme, subscribeTheme } from './site-theme'
@@ -118,6 +118,9 @@ function replaceSearchQuery(query: string) {
   }
   if (url.href !== window.location.href) {
     window.history.replaceState(window.history.state, '', url)
+    if (value) {
+      trackSiteEvent('Searched', { search_term: value })
+    }
   }
 }
 
