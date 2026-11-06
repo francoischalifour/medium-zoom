@@ -9,7 +9,7 @@ import { photos, usageCode, javascriptUsageCode } from '../src/gallery.ts'
 import { javascriptCommands, componentCommands } from '../src/install-commands.ts'
 import { usageExamples } from '../src/usage-snippets.ts'
 
-type HighlightLanguage = 'html' | 'tsx' | 'js' | 'bash' | 'css'
+type HighlightLanguage = 'html' | 'tsx' | 'js' | 'vue' | 'svelte' | 'bash' | 'css'
 
 function highlight(code: string, lang: HighlightLanguage) {
   const html = new TextDecoder().decode(
@@ -56,9 +56,11 @@ function highlightSnippets(watch: (file: string) => void) {
     const path = new URL(file, docs)
     watch(fileURLToPath(path))
     for (const [, lang, code] of readFileSync(path, 'utf8').matchAll(
-      /^```(js|tsx|html|bash|css)\n([\s\S]*?)^```/gm
+      /^```(js|tsx|solid|vue|svelte|html|bash|css)\n([\s\S]*?)^```/gm
     )) {
-      snippets[code.trim()] = highlight(code.trim(), lang as HighlightLanguage)
+      // Solid components are TSX; the fence name only labels the code block.
+      const language = lang === 'solid' ? 'tsx' : lang
+      snippets[code.trim()] = highlight(code.trim(), language as HighlightLanguage)
     }
   }
   for (const file of readdirSync(examples)) {

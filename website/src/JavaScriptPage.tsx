@@ -67,28 +67,28 @@ export function JavaScriptPage() {
           </div>
         </a>
         <div className="integration-grid">
-          <a className="integration-card" href="/examples/react/">
-            <span className="stack-name">React</span>
-            <span>Attach zoom with a component.</span>
-            <span className="card-arrow" aria-hidden="true">
-              →
-            </span>
-          </a>
-          <a className="integration-card" href="/examples/vue/">
+          <a className="integration-card" href="/docs/integrations/vue/">
             <span className="stack-name">Vue</span>
-            <span>Wrap an image in a component.</span>
+            <span>A component for Vue and Nuxt.</span>
             <span className="card-arrow" aria-hidden="true">
               →
             </span>
           </a>
-          <a className="integration-card" href="/examples/svelte/">
+          <a className="integration-card" href="/docs/integrations/svelte/">
             <span className="stack-name">Svelte</span>
-            <span>Wrap an image in a component.</span>
+            <span>A component for Svelte and SvelteKit.</span>
             <span className="card-arrow" aria-hidden="true">
               →
             </span>
           </a>
-          <a className="integration-card" href="/examples/vanilla/">
+          <a className="integration-card" href="/docs/integrations/solid/">
+            <span className="stack-name">Solid</span>
+            <span>A component for Solid and SolidStart.</span>
+            <span className="card-arrow" aria-hidden="true">
+              →
+            </span>
+          </a>
+          <a className="integration-card" href="/docs/javascript/">
             <span className="stack-name">JavaScript</span>
             <span>Attach zoom with a selector.</span>
             <span className="card-arrow" aria-hidden="true">
