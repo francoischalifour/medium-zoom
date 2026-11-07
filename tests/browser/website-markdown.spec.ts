@@ -42,6 +42,21 @@ test('each page links to a Markdown version of its content', async ({ page, requ
   }
 })
 
+test('Markdown copies point search engines to their HTML page', async ({ request }) => {
+  for (const path of await readPagePaths(request)) {
+    const response = await request.get(markdownPath(path))
+    expect(response.headers().link, path).toBe(`<${origin}${path}>; rel="canonical"`)
+    expect(response.headers()['x-robots-tag'], path).toBeUndefined()
+  }
+  for (const path of ['/llms.txt', '/llms-full.txt']) {
+    const response = await request.get(path)
+    expect(response.headers()['x-robots-tag'], path).toBe('noindex, follow')
+  }
+  const page = await request.get('/react')
+  expect(page.headers().link).toBeUndefined()
+  expect(page.headers()['x-robots-tag']).toBeUndefined()
+})
+
 test('Markdown pages replace interactive examples with their source', async ({ request }) => {
   const guide = await getText(request, '/docs/guides/hd-images.md', 'text/markdown')
   expect(guide).toContain('```tsx title="hd-photo.tsx"\n')
