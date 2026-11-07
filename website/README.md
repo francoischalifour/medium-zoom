@@ -27,6 +27,7 @@ bunx vite preview --config config/vite.website.config.mts --host 127.0.0.1 --por
 - `src/docs/` contains MDX guides, API references, and live examples. `pages.ts` defines their routes and metadata.
 - `build/` handles prerendering, syntax highlighting, and shared HTML templates.
 - `public/_redirects` preserves moved website URLs in production, local development, and preview.
+- `build/site-headers.ts` generates `_headers`: each Markdown copy names its HTML page as canonical, and `llms.txt`, examples, and Storybook stay out of search indexes.
 
 The installable React component lives in `examples/shadcn/`. The root `registry.json` defines its registry entry. See the [component development guide](../examples/shadcn/README.md) for its build and verification commands.
 

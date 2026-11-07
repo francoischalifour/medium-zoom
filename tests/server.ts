@@ -3,6 +3,7 @@ import { createServer } from 'node:http'
 import { resolve, extname, sep } from 'node:path'
 
 import { pack } from '../scripts/pack.ts'
+import { readExactHeaders } from '../website/build/site-headers.ts'
 import { readExactRedirects } from '../website/build/site-redirects.ts'
 import { testPort } from './server-urls.ts'
 
@@ -15,6 +16,7 @@ const roots: Record<string, string> = {
   analytics: resolve('.cache/analytics-site'),
 }
 const pageRedirects = readExactRedirects(resolve(roots.site, '_redirects'))
+const pageHeaders = readExactHeaders(resolve(roots.site, '_headers'))
 const contentTypes: Record<string, string> = {
   '.js': 'text/javascript',
   '.css': 'text/css',
@@ -77,6 +79,7 @@ const server = createServer((request, response) => {
       return
     }
     response.writeHead(200, {
+      ...pageHeaders.get(url.pathname),
       'Content-Type': contentType,
       'Content-Length': contents.length,
       'Accept-Ranges': 'bytes',

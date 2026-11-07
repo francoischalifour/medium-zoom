@@ -57,6 +57,17 @@ export function siteMarkdownFiles(): Map<string, string> {
   ])
 }
 
+// Search engines should index each page's HTML, so every Markdown copy names it as canonical.
+// The llms.txt files have no HTML page and stay out of the index. Rules use _headers syntax.
+export function siteMarkdownHeaders(): string[] {
+  return [
+    ...markdownPages.map(
+      page => `${markdownPath(page.path)}\n  Link: <${siteOrigin}${page.path}>; rel="canonical"`
+    ),
+    ...['/llms.txt', '/llms-full.txt'].map(path => `${path}\n  X-Robots-Tag: noindex, follow`),
+  ]
+}
+
 function pageMarkdown(page: MarkdownPage): RootContent[] {
   const url = siteOrigin + page.path
   return [
