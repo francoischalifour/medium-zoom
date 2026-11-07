@@ -1,8 +1,8 @@
-import { Children, isValidElement, useEffect, type ReactNode } from 'react'
+import { Children, isValidElement, useEffect, useRef, type ReactNode } from 'react'
 
 import { ScrollArea, revealInScrollArea } from '../scroll-area'
 import { Icon, SiteLink } from '../site-components'
-import { SiteHeader, SiteFooter } from '../site-shell'
+import { BrandLink, SiteHeader, SiteFooter } from '../site-shell'
 import { CodeFence } from './doc-components'
 import { DocsOutline, DocsOutlineMenu } from './docs-outline'
 import { docsPages, headingId } from './pages'
@@ -39,15 +39,62 @@ function ArticleHeading({ children }: { children: ReactNode }) {
   )
 }
 
+// The sidebar only fits wider screens, so phones open it as a sheet from the breadcrumb.
+function DocsNavigationSheet({ children }: { children: ReactNode }) {
+  const dialog = useRef<HTMLDialogElement>(null)
+  return (
+    <>
+      <button
+        type="button"
+        className="icon-button docs-sheet-trigger"
+        aria-label="Open documentation navigation"
+        aria-haspopup="dialog"
+        aria-controls="docs-navigation-sheet"
+        onClick={() => dialog.current?.showModal()}
+      >
+        <Icon name="sidebar" />
+      </button>
+      <dialog
+        ref={dialog}
+        id="docs-navigation-sheet"
+        className="docs-sheet"
+        aria-label="Documentation"
+        onClick={event => {
+          // Close on backdrop clicks and on links that load another page.
+          if (event.target === event.currentTarget || (event.target as Element).closest('a')) {
+            dialog.current?.close()
+          }
+        }}
+      >
+        <div className="docs-sheet-header">
+          <BrandLink />
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Close documentation navigation"
+            onClick={() => dialog.current?.close()}
+          >
+            <Icon name="close" />
+          </button>
+        </div>
+        <ScrollArea className="docs-sheet-body">{children}</ScrollArea>
+      </dialog>
+    </>
+  )
+}
+
 function DocsBreadcrumb({
   page,
+  navigation,
   children,
 }: {
   page: (typeof docsPages)[number]
+  navigation: ReactNode
   children?: ReactNode
 }) {
   return (
     <div className="docs-breadcrumb">
+      <DocsNavigationSheet>{navigation}</DocsNavigationSheet>
       <nav aria-label="Breadcrumb">
         <ol>
           <li>{page.group}</li>
@@ -146,15 +193,9 @@ export function DocsPage({ path }: { path: string }) {
       <div className="docs-layout">
         <ScrollArea className="docs-sidebar">{navigation}</ScrollArea>
         <main id="main" className="docs-main">
-          <div className="docs-mobile-navigation">
-            <details>
-              <summary>Documentation</summary>
-              <ScrollArea>{navigation}</ScrollArea>
-            </details>
-          </div>
           <article ref={articleRef} className="docs-article">
             <header className="docs-heading">
-              <DocsBreadcrumb page={page}>
+              <DocsBreadcrumb page={page} navigation={navigation}>
                 {!isOverview && <DocsOutlineMenu outline={outline} activeId={activeHeadingId} />}
               </DocsBreadcrumb>
               <h1>{page.title}</h1>

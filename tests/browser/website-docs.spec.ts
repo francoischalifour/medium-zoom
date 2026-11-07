@@ -40,16 +40,11 @@ test('collapsed docs navigation stays inside the article column on phones and ta
   const outlineButton = page.getByRole('button', { name: 'On this page', exact: true })
   for (const width of [390, 1_024]) {
     await page.setViewportSize({ width, height: 900 })
-    const main = page.locator('.docs-main')
-    const menus = main.locator('.docs-mobile-navigation')
+    const sheetButton = page.getByRole('button', { name: 'Open documentation navigation' })
     if (width === 390) {
-      await expect(menus).toBeVisible()
-      const mainBounds = (await main.boundingBox())!
-      const menuBounds = (await menus.boundingBox())!
-      expect(menuBounds.x).toBe(mainBounds.x)
-      expect(menuBounds.width).toBe(mainBounds.width)
+      await expect(sheetButton).toBeVisible()
     } else {
-      await expect(menus).toBeHidden()
+      await expect(sheetButton).toBeHidden()
     }
     const breadcrumb = page.getByRole('navigation', { name: 'Breadcrumb' })
     await expect(breadcrumb.getByRole('listitem')).toHaveText([
@@ -99,9 +94,9 @@ for (const theme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: theme })
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/docs/guides/hd-images/')
-    const menu = page.locator('.docs-mobile-navigation details').first()
-    await menu.locator('summary').click()
-    const area = menu.locator('.scroll-area')
+    const trigger = page.getByRole('button', { name: 'Open documentation navigation' })
+    await trigger.click()
+    const area = page.getByRole('dialog', { name: 'Documentation' }).locator('.scroll-area')
     const viewport = area.locator('.scroll-area-viewport')
     await expect(area).not.toHaveAttribute('data-scroll-above')
     await expect(area).toHaveAttribute('data-scroll-below', '')
@@ -115,9 +110,10 @@ for (const theme of ['light', 'dark'] as const) {
     await expect(area).toHaveAttribute('data-scroll-above', '')
     await expect(area).not.toHaveAttribute('data-scroll-below')
     expect(await area.evaluate(element => getComputedStyle(element, '::after').opacity)).toBe('0')
-    await menu.locator('summary').click()
-    await menu.locator('summary').click()
+    await page.keyboard.press('Escape')
+    await trigger.click()
     await expect(area).toHaveAttribute('data-scroll-above', '')
+    await page.keyboard.press('Escape')
     await page.getByRole('button', { name: 'On this page', exact: true }).click()
     const contents = page.locator('.docs-outline-menu .scroll-area')
     await expect(contents).not.toHaveAttribute('data-scroll-above')
@@ -435,10 +431,11 @@ test('code copy uses the displayed TypeScript example', async ({ page, context, 
 test('mobile navigation and outline work without horizontal page overflow', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/docs/')
-  const menu = page.locator('.docs-mobile-navigation details').first()
-  await menu.locator('summary').focus()
+  await page.getByRole('button', { name: 'Open documentation navigation' }).focus()
   await page.keyboard.press('Enter')
-  await menu.getByRole('link', { name: 'Controlled state', exact: true }).click()
+  const sheet = page.getByRole('dialog', { name: 'Documentation' })
+  await expect(sheet).toBeVisible()
+  await sheet.getByRole('link', { name: 'Controlled state', exact: true }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Controlled state')
   await page.getByRole('button', { name: 'On this page', exact: true }).click()
   await page
@@ -464,7 +461,8 @@ for (const theme of ['light', 'dark'] as const) {
       for (const width of [1_440, 390]) {
         await page.setViewportSize({ width, height: 900 })
         if (width === 390) {
-          await page.locator('.docs-mobile-navigation details').first().locator('summary').click()
+          await page.getByRole('button', { name: 'Open documentation navigation' }).click()
+          await expect(page.getByRole('dialog', { name: 'Documentation' })).toBeVisible()
         }
         const result = await new AxeBuilder({ page })
           .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
@@ -575,9 +573,10 @@ test('sidebar and reference links use distinct hover treatments', async ({ page 
   await articleLink.hover()
   await expect(articleLink).toHaveCSS('text-decoration-line', 'underline')
   await page.setViewportSize({ width: 390, height: 844 })
-  const menu = page.locator('.docs-mobile-navigation details').first()
-  await menu.locator('summary').click()
-  const mobileLink = menu.locator('a[href="/docs/javascript/"]')
+  await page.getByRole('button', { name: 'Open documentation navigation' }).click()
+  const mobileLink = page
+    .getByRole('dialog', { name: 'Documentation' })
+    .locator('a[href="/docs/javascript/"]')
   await mobileLink.hover()
   await expect(mobileLink).toHaveCSS('text-decoration-line', 'none')
   await expect(mobileLink).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')

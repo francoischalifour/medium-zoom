@@ -1092,7 +1092,7 @@ td code {
   .navigation > .brand {
     margin-right: -4px;
   }
-  .brand-name {
+  .navigation .brand-name {
     display: none;
   }
   .section-select {

@@ -70,6 +70,15 @@ function SectionSelect({ current }: { current: SiteSection }) {
   )
 }
 
+export function BrandLink() {
+  return (
+    <SiteLink className="brand" href="/" aria-label="medium-zoom home">
+      <img className="brand-mark" src="/brand/mark.svg" alt="" width="24" height="24" />
+      <span className="brand-name">medium-zoom</span>
+    </SiteLink>
+  )
+}
+
 export function SiteHeader({
   page,
   searchFramework = page === 'react' ? 'react' : 'javascript',
@@ -86,10 +95,7 @@ export function SiteHeader({
       </SiteLink>
       <header className="site-header">
         <nav className="navigation" aria-label="Main navigation">
-          <SiteLink className="brand" href="/" aria-label="medium-zoom home">
-            <img className="brand-mark" src="/brand/mark.svg" alt="" width="24" height="24" />
-            <span className="brand-name">medium-zoom</span>
-          </SiteLink>
+          <BrandLink />
           {currentSection && <SectionSelect current={currentSection} />}
           <SectionLinks page={page} />
           <div className="nav-links">

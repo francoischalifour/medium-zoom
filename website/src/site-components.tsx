@@ -66,6 +66,13 @@ const iconPaths = {
     </>
   ),
   check: <path d="m5 12 4 4L19 6" />,
+  close: <path d="M6 6l12 12M18 6 6 18" />,
+  sidebar: (
+    <>
+      <rect x="3" y="4" width="18" height="16" rx="3" />
+      <path d="M9 4v16" />
+    </>
+  ),
   code: (
     <>
       <path d="m7 7-5 5 5 5m10-10 5 5-5 5m-4-14-2 18" />
