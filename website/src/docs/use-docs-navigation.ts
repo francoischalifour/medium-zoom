@@ -155,10 +155,6 @@ export function useDocsNavigation(path: string) {
       ) {
         return
       }
-      const menu = link.closest<HTMLDetailsElement>('.docs-mobile-navigation details')
-      if (menu) {
-        menu.open = false
-      }
       scheduleArrival(url.hash, true)
     }
     const onLoad = () => scheduleArrival(window.location.hash)
