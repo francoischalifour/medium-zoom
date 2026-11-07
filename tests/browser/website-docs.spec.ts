@@ -296,10 +296,13 @@ test('documentation navigation preserves package manager and theme preferences',
     .getByRole('navigation', { name: 'Choose your setup' })
     .getByRole('link', { name: /JavaScript quickstart/ })
     .click()
-  await page
+  // A click before hydration is replayed once React loads, so wait for the choice instead of
+  // asserting it immediately.
+  const bun = page
     .locator('#javascript-installation')
     .getByRole('radio', { name: 'bun', exact: true })
-    .check()
+  await bun.click()
+  await expect(bun).toBeChecked()
   await expect(page.locator('#javascript-installation')).toContainText('bun add medium-zoom')
   await page
     .getByRole('navigation', { name: 'Main navigation', exact: true })
