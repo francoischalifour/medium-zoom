@@ -3,7 +3,7 @@ import { Children, isValidElement, useEffect, type ReactNode } from 'react'
 import { ScrollArea, revealInScrollArea } from '../scroll-area'
 import { Icon, SiteLink } from '../site-components'
 import { SiteHeader, SiteFooter, SectionLinks } from '../site-shell'
-import { CodeFence, PageNavigationCards } from './doc-components'
+import { CodeFence } from './doc-components'
 import { DocsOutline, DocsOutlineMenu } from './docs-outline'
 import { docsPages, headingId } from './pages'
 import { useDocsNavigation } from './use-docs-navigation'
@@ -50,13 +50,7 @@ function DocsBreadcrumb({
     <div className="docs-breadcrumb">
       <nav aria-label="Breadcrumb">
         <ol>
-          <li>
-            <a href="/docs/">Docs</a>
-          </li>
-          <li>
-            <Icon name="chevron" width={12} height={12} />
-            {page.group}
-          </li>
+          <li>{page.group}</li>
           <li aria-current="page">
             <Icon name="chevron" width={12} height={12} />
             <span>{page.title}</span>
@@ -65,6 +59,34 @@ function DocsBreadcrumb({
       </nav>
       {children}
     </div>
+  )
+}
+
+type DocsPageEntry = (typeof docsPages)[number]
+
+const paginationLabels = { prev: 'Previous', next: 'Next' } as const
+
+function DocsPaginationLink({ rel, page }: { rel: 'prev' | 'next'; page: DocsPageEntry }) {
+  return (
+    <a href={page.path} rel={rel}>
+      <span>
+        <Icon name="arrow" width={14} height={14} />
+        {paginationLabels[rel]}
+      </span>
+      <strong>{page.title}</strong>
+    </a>
+  )
+}
+
+function DocsPagination({ previous, next }: { previous?: DocsPageEntry; next?: DocsPageEntry }) {
+  if (!previous && !next) {
+    return null
+  }
+  return (
+    <nav className="docs-pagination" aria-label="Documentation pages">
+      {previous && <DocsPaginationLink rel="prev" page={previous} />}
+      {next && <DocsPaginationLink rel="next" page={next} />}
+    </nav>
   )
 }
 
@@ -142,24 +164,15 @@ export function DocsPage({ path }: { path: string }) {
             </header>
             <Content components={{ h2: ArticleHeading, pre: CodeFence, a: SiteLink }} />
           </article>
-          {(previous || next) && (
-            <nav className="docs-pagination" aria-label="Documentation pages">
-              <PageNavigationCards
-                pages={[
-                  ...(previous ? [{ path: previous.path, direction: 'prev' as const }] : []),
-                  ...(next ? [{ path: next.path, direction: 'next' as const }] : []),
-                ]}
-              />
-            </nav>
-          )}
+          <DocsPagination previous={previous} next={next} />
         </main>
         {!isOverview && (
           <ScrollArea className="docs-outline">
             <DocsOutline outline={outline} activeId={activeHeadingId} />
           </ScrollArea>
         )}
+        <SiteFooter page="docs" />
       </div>
-      <SiteFooter page="docs" />
     </div>
   )
 }

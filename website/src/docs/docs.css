@@ -10,14 +10,29 @@ html:has(.docs-shell) {
 }
 .docs-layout {
   /* Each column owns this top spacing so the sticky sidebars can start at the header. */
-  --docs-content-top: 56px;
+  --docs-content-top: 32px;
   display: grid;
   grid-template-columns: 180px minmax(0, 1fr) 160px;
   gap: 48px;
   max-width: var(--site-width);
   margin: 0 auto;
-  padding: 0 var(--site-gutter) 96px;
+  padding: 0 var(--site-gutter);
   align-items: start;
+}
+/* The sidebar runs the full height while the footer sits under the article and outline. */
+.docs-sidebar {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+.docs-layout > .site-footer {
+  grid-column: 2 / -1;
+  max-width: none;
+  margin: 48px 0 0;
+  padding-inline: 0;
+}
+.docs-layout > .site-footer::before {
+  left: 0;
+  right: 0;
 }
 .docs-sidebar,
 .docs-outline {
@@ -120,12 +135,13 @@ html:has(.docs-shell) {
   padding: 0;
   list-style: none;
 }
-.docs-breadcrumb li {
+.docs-article .docs-breadcrumb li {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
   min-width: 0;
+  margin: 0;
   white-space: nowrap;
 }
 .docs-breadcrumb li[aria-current] {
@@ -138,11 +154,6 @@ html:has(.docs-shell) {
 .docs-breadcrumb li svg {
   flex-shrink: 0;
   opacity: 0.7;
-}
-.docs-article .docs-breadcrumb a {
-  color: inherit;
-  border-radius: 4px;
-  text-decoration: none;
 }
 .docs-outline-menu {
   display: none;
@@ -372,8 +383,7 @@ html:has(.docs-shell) {
     text-decoration-color: var(--foreground);
   }
   .docs-nav-group a:hover,
-  .docs-contents a:not([aria-current]):hover,
-  .docs-breadcrumb a:hover {
+  .docs-contents a:not([aria-current]):hover {
     color: var(--foreground);
     text-decoration: none;
   }
@@ -421,7 +431,7 @@ html:has(.docs-shell) {
 }
 @media (max-width: 760px) {
   .docs-layout {
-    --docs-content-top: 32px;
+    --docs-content-top: 24px;
     display: block;
   }
   .docs-sidebar {
@@ -458,6 +468,9 @@ html:has(.docs-shell) {
   padding: 16px;
   border: 1px solid var(--border);
   border-radius: 9px;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
 }
 .docs-entry-points strong {
   font-size: 15px;
@@ -484,6 +497,7 @@ html:has(.docs-shell) {
 @media (hover: hover) and (pointer: fine) {
   .docs-entry-points a:hover {
     background: var(--surface);
+    border-color: var(--border-strong);
     text-decoration: none;
   }
 }
@@ -697,49 +711,6 @@ html:has(.docs-shell) {
   font-weight: 550;
   font-variant-numeric: tabular-nums;
 }
-.docs-page-cards {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin: 20px 0 0;
-  padding: 0;
-  list-style: none;
-}
-.docs-page-cards li {
-  margin: 0;
-}
-.docs-page-cards a {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 6px 12px;
-  height: 100%;
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  text-decoration: none;
-}
-.docs-page-cards strong {
-  font-size: 15px;
-  font-weight: 550;
-}
-.docs-page-cards span {
-  grid-column: 1;
-  color: var(--muted-foreground);
-  font-size: 13px;
-  line-height: 1.6;
-}
-.docs-page-cards svg {
-  grid-column: 2;
-  grid-row: 1;
-  align-self: center;
-  color: var(--muted-foreground);
-}
-@media (hover: hover) and (pointer: fine) {
-  .docs-page-cards a:hover {
-    background: var(--surface);
-    text-decoration: none;
-  }
-}
 @media (max-width: 600px) {
   .docs-browser-support {
     grid-template-columns: 1fr;
@@ -762,42 +733,64 @@ html:has(.docs-shell) {
     margin: 0;
     font-size: 15px;
   }
-  .docs-page-cards {
-    grid-template-columns: 1fr;
-  }
 }
 
 .docs-pagination {
-  margin-top: 32px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 48px;
 }
-.docs-pagination .docs-page-cards {
-  margin: 0;
+.docs-pagination a {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  text-decoration: none;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
 }
-.docs-page-card--next {
-  grid-column: 2;
+.docs-pagination a > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
 }
-.docs-page-cards .docs-page-direction {
-  font-size: 11px;
+.docs-pagination strong {
+  color: var(--foreground);
+  font-size: 15px;
+  font-weight: 550;
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
-.docs-page-cards [data-direction] strong,
-.docs-page-cards [data-direction] svg {
-  grid-row: 2;
-}
-.docs-page-cards [data-direction='prev'] {
-  grid-template-columns: auto minmax(0, 1fr);
-}
-.docs-page-cards [data-direction='prev'] > :not(svg) {
-  grid-column: 2;
-}
-.docs-page-cards [data-direction='prev'] svg {
-  grid-column: 1;
+.docs-pagination [rel='prev'] svg {
   transform: rotate(180deg);
 }
+.docs-pagination [rel='next'] {
+  grid-column: 2;
+  align-items: flex-end;
+  text-align: right;
+}
+.docs-pagination [rel='next'] svg {
+  order: 1;
+}
+@media (hover: hover) and (pointer: fine) {
+  .docs-pagination a:hover {
+    background: var(--surface);
+    border-color: var(--border-strong);
+  }
+}
 @media (max-width: 600px) {
-  .docs-page-card--next {
+  .docs-pagination {
+    grid-template-columns: 1fr;
+  }
+  .docs-pagination [rel='next'] {
     grid-column: auto;
   }
 }

@@ -31,6 +31,7 @@
   --hover: #f4f4f5;
   --selected: #f4f4f5;
   --border: #e4e4e7;
+  --border-strong: #d4d4d8;
   --ring: #8a8a96;
   --font-sans:
     'Geist Variable', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -38,7 +39,7 @@
   --site-width: 1152px;
   --site-header-height: 56px;
   --site-gutter: 32px;
-  --shadow-xs: 0 1px 2px rgb(0 0 0 / 4%), 0 0 0 1px rgb(0 0 0 / 1%);
+  --shadow-xs: 0 1px 0 rgb(0 0 0 / 3%), 0 1px 2px -1px rgb(0 0 0 / 8%);
   --shadow-image: 0 1px 3px rgb(0 0 0 / 6%), 0 12px 28px -14px rgb(0 0 0 / 25%);
   font-family: var(--font-sans);
   font-size: 14px;
@@ -58,6 +59,7 @@
   --hover: #252529;
   --selected: #252529;
   --border: #2d2d33;
+  --border-strong: #3f3f46;
   --ring: var(--muted-foreground);
 }
 
@@ -719,7 +721,7 @@ kbd {
 @media (hover: hover) and (pointer: fine) {
   .integration-card:hover {
     background: var(--surface);
-    border-color: var(--ring);
+    border-color: var(--border-strong);
   }
 }
 .guide-section {
