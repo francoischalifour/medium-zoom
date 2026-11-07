@@ -17,6 +17,8 @@ type HighlightLanguage =
   | 'svelte'
   | 'angular-ts'
   | 'astro'
+  | 'ts'
+  | 'md'
   | 'bash'
   | 'css'
 
@@ -68,7 +70,7 @@ function highlightSnippets(watch: (file: string) => void) {
     const path = new URL(file, docs)
     watch(fileURLToPath(path))
     for (const [, lang, code] of readFileSync(path, 'utf8').matchAll(
-      /^```(js|tsx|solid|vue|svelte|angular|astro|html|bash|css)\n([\s\S]*?)^```/gm
+      /^```(js|ts|tsx|solid|vue|svelte|angular|astro|md|html|bash|css)\n([\s\S]*?)^```/gm
     )) {
       const language = fenceGrammars[lang] ?? (lang as HighlightLanguage)
       snippets[code.trim()] = highlight(code.trim(), language)

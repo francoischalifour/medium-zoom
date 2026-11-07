@@ -14,6 +14,7 @@ const aliases: Record<string, string> = {
   '/docs/integrations/svelte/': 'sveltekit',
   '/docs/integrations/solid/': 'solidjs solidstart',
   '/docs/integrations/astro/': 'astrojs assets view transitions client router',
+  '/docs/integrations/vitepress/': 'vuepress markdown docs theme',
 }
 
 // Preserve complete API identifiers and also make their individual words searchable.

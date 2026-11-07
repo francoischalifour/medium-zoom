@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join, relative, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-import { build } from 'vite'
+import { build, mergeConfig, type UserConfig } from 'vite'
 
 import { localExampleConfig } from '../config/vite.examples.config.mts'
 import { exampleNames } from './example-names.ts'
@@ -22,6 +22,7 @@ interface FrameworkBuildOptions {
 const frameworkBuilds: Record<string, (options: FrameworkBuildOptions) => Promise<string>> = {
   angular: buildAngular,
   astro: buildAstro,
+  vitepress: buildVitePress,
 }
 
 for (const name of exampleNames) {
@@ -83,6 +84,24 @@ async function buildAstro({ root, base }: FrameworkBuildOptions) {
     outDir,
     logLevel: 'warn',
     vite: { resolve: { alias: { 'medium-zoom': localPackage } } },
+  })
+  return outDir
+}
+
+// VitePress reads Vite options from the site config, so the alias joins it once it resolves.
+async function buildVitePress({ root, base, workDirectory }: FrameworkBuildOptions) {
+  const vitepress = await import(
+    import.meta.resolve('vitepress', pathToFileURL(join(root, 'package.json')).href)
+  )
+  const outDir = join(workDirectory, 'dist')
+  await vitepress.build(join(root, 'docs'), {
+    base,
+    outDir,
+    onAfterConfigResolve(siteConfig: { vite?: UserConfig }) {
+      siteConfig.vite = mergeConfig(siteConfig.vite ?? {}, {
+        resolve: { alias: { 'medium-zoom': localPackage } },
+      })
+    },
   })
   return outDir
 }

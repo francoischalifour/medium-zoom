@@ -1,0 +1,5 @@
+/* Show the zoom above the VitePress navigation and sidebar. */
+.medium-zoom-overlay,
+.medium-zoom-image--opened {
+  z-index: 100;
+}
