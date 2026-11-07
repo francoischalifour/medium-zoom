@@ -1,6 +1,4 @@
-import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { gzipSync } from 'node:zlib'
 
 import mdx from '@mdx-js/rollup'
 import react from '@vitejs/plugin-react'
@@ -8,13 +6,14 @@ import { defineConfig, mergeConfig } from 'vite'
 
 import { galleryAssets } from '../examples/shadcn/gallery-assets.ts'
 import packageJson from '../package.json' with { type: 'json' }
-import { docsMarkdownFiles } from '../website/build/docs-markdown.ts'
 import { docsPlugin } from '../website/build/docs-plugin.ts'
 import { generatedFiles } from '../website/build/generated-files.ts'
+import { libraryGzipBytes } from '../website/build/library-size.ts'
 import { siteFonts } from '../website/build/site-fonts.ts'
 import { siteHeaders } from '../website/build/site-headers.ts'
 import { siteHighlights } from '../website/build/site-highlights.ts'
 import { siteIndexingFiles } from '../website/build/site-indexing.ts'
+import { siteMarkdownFiles } from '../website/build/site-markdown.ts'
 import { sitePreferences } from '../website/build/site-preferences.ts'
 import { siteRedirects } from '../website/build/site-redirects.ts'
 import { siteStyles } from '../website/build/site-styles.ts'
@@ -25,10 +24,7 @@ export default defineConfig(({ command }) =>
   mergeConfig(libraryConfig, {
     define: {
       __MEDIUM_ZOOM_VERSION__: JSON.stringify(packageJson.version),
-      __MEDIUM_ZOOM_GZIP_BYTES__: gzipSync(
-        readFileSync(new URL('../dist/medium-zoom.min.js', import.meta.url)),
-        { level: 9 }
-      ).length,
+      __MEDIUM_ZOOM_GZIP_BYTES__: libraryGzipBytes(),
     },
     plugins: [
       {
@@ -41,7 +37,7 @@ export default defineConfig(({ command }) =>
       },
       siteRedirects(),
       docsPlugin(),
-      generatedFiles('docs-markdown', docsMarkdownFiles),
+      generatedFiles('site-markdown', siteMarkdownFiles),
       generatedFiles('site-indexing', siteIndexingFiles),
       { ...mdx(), enforce: 'pre' },
       react({ include: /\.(jsx|tsx|mdx)$/ }),
