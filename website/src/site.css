@@ -1565,15 +1565,28 @@ td code {
   }
 }
 
+/* A footnote to the install snippet, aligned with its right edge. */
 .hero .monthly-downloads {
-  margin: 16px auto 0;
-  font-size: 14px;
+  max-width: 760px;
+  margin: 10px auto 0;
+  padding-inline: 4px;
+  font-size: 12px;
   line-height: 1.5;
   letter-spacing: normal;
+  text-align: right;
+  /* Reserve the line while the count loads so nothing below moves. */
+  min-height: 1.5em;
+}
+.monthly-downloads a {
+  animation: monthly-downloads-in 400ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+@keyframes monthly-downloads-in {
+  from {
+    opacity: 0;
+  }
 }
 .monthly-downloads strong {
   color: var(--foreground);
-  font-size: 15px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
