@@ -94,6 +94,16 @@ const iconPaths = {
   ),
 }
 
+/** Frames the hero headline and lede with zoom-crop marks sized to the text. */
+export function HeroCrop({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="hero-crop">
+      <span className="hero-frame" aria-hidden="true" />
+      {children}
+    </div>
+  )
+}
+
 export function Icon({
   name,
   ...props

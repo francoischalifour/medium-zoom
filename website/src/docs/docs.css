@@ -3,10 +3,10 @@ html:has(.docs-shell) {
   scroll-padding-top: calc(var(--site-header-height) + 32px);
 }
 .docs-shell {
-  --docs-anchor-highlight: rgb(139 92 246 / 12%);
+  --docs-anchor-highlight: color-mix(in srgb, var(--primary) 12%, transparent);
 }
 .dark .docs-shell {
-  --docs-anchor-highlight: rgb(167 139 250 / 18%);
+  --docs-anchor-highlight: color-mix(in srgb, var(--primary) 16%, transparent);
 }
 .docs-layout {
   /* Each column owns this top spacing so the sticky sidebars can start at the header. */
@@ -25,7 +25,7 @@ html:has(.docs-shell) {
   top: var(--site-header-height);
   --scroll-area-max-height: calc(100dvh - var(--site-header-height));
   margin-left: -10px;
-  font-size: 13px;
+  font-size: var(--text-md);
 }
 .docs-sidebar .scroll-area-viewport,
 .docs-outline .scroll-area-viewport {
@@ -91,7 +91,7 @@ html:has(.docs-shell) {
   padding-top: var(--docs-content-top);
 }
 .docs-article {
-  font-size: 15px;
+  font-size: var(--text-lg);
   line-height: 1.8;
   overflow-wrap: break-word;
 }
@@ -106,7 +106,7 @@ html:has(.docs-shell) {
   min-width: 0;
   min-height: 28px;
   margin: 0 0 8px;
-  font-size: 13px;
+  font-size: var(--text-md);
   color: var(--muted-foreground);
 }
 .docs-breadcrumb nav {
@@ -176,17 +176,17 @@ html:has(.docs-shell) {
 }
 .docs-outline-menu .docs-contents {
   gap: 2px;
-  font-size: 13px;
+  font-size: var(--text-md);
 }
 .docs-outline-menu .docs-contents-title {
   margin: 4px 0;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 500;
 }
 .docs-heading h1 {
-  font-size: 34px;
+  font-size: var(--text-4xl);
   line-height: 1.2;
-  letter-spacing: -1.1px;
+  letter-spacing: -0.032em;
   font-weight: 550;
   margin: 0;
 }
@@ -194,10 +194,10 @@ html:has(.docs-shell) {
   margin: 18px 0;
 }
 .docs-article h2 {
-  font-size: 21px;
+  font-size: var(--text-2xl);
   font-weight: 550;
   line-height: 1.4;
-  letter-spacing: -0.4px;
+  letter-spacing: -0.02em;
   margin: 44px 0 16px;
 }
 .docs-article [data-anchor-arrival] {
@@ -210,7 +210,7 @@ html:has(.docs-shell) {
   z-index: -1;
   inset: -8px -12px;
   border-radius: 6px;
-  background: linear-gradient(90deg, var(--docs-anchor-highlight) 40%, transparent);
+  background: var(--docs-anchor-highlight);
   pointer-events: none;
   animation: docs-anchor-arrival 1800ms ease-out both;
 }
@@ -255,7 +255,7 @@ html:has(.docs-shell) {
   text-decoration-color: var(--foreground);
 }
 .docs-article :not(pre) > code {
-  font: 0.88em var(--font-mono);
+  font: 0.875em var(--font-mono);
   padding: 2px 4px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -283,7 +283,6 @@ html:has(.docs-shell) {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   max-width: 100%;
-  font-size: 12px;
   line-height: 1.75;
 }
 .docs-preview {
@@ -317,7 +316,7 @@ html:has(.docs-shell) {
   border: 0;
 }
 .docs-preview p {
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--muted-foreground);
   margin: 16px 0 0;
 }
@@ -379,7 +378,7 @@ html:has(.docs-shell) {
   }
   .docs-nav-group a:not([aria-current='page']):hover,
   .docs-contents a:not([aria-current]):hover {
-    background: color-mix(in srgb, var(--foreground) 2%, transparent);
+    background: color-mix(in srgb, var(--foreground) 3%, transparent);
   }
 }
 @media (max-width: 1199px) {
@@ -409,11 +408,11 @@ html:has(.docs-shell) {
     padding: 4px 12px 12px;
   }
   .docs-mobile-navigation summary {
-    font-size: 13px;
+    font-size: var(--text-md);
   }
   .docs-mobile-navigation nav {
     margin: 0;
-    font-size: 13px;
+    font-size: var(--text-md);
   }
   .docs-mobile-navigation .docs-nav-group:last-child {
     margin-bottom: 0;
@@ -431,14 +430,8 @@ html:has(.docs-shell) {
     display: block;
     margin-bottom: 28px;
   }
-  .docs-heading h1 {
-    font-size: 30px;
-  }
   .docs-preview {
     padding: 20px;
-  }
-  .docs-article {
-    font-size: 15px;
   }
   .docs-nav-group {
     margin-bottom: 12px;
@@ -460,11 +453,11 @@ html:has(.docs-shell) {
   border-radius: 9px;
 }
 .docs-entry-points strong {
-  font-size: 15px;
+  font-size: var(--text-lg);
   font-weight: 550;
 }
 .docs-entry-points span {
-  font-size: 13px;
+  font-size: var(--text-md);
   line-height: 1.6;
   color: var(--muted-foreground);
 }
@@ -472,7 +465,7 @@ html:has(.docs-shell) {
   min-width: 0;
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: var(--text-base);
 }
 .docs-article th,
 .docs-article td {
@@ -503,7 +496,7 @@ html:has(.docs-shell) {
     width: max-content;
     max-width: 100%;
     margin: 0 auto 16px;
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
   .docs-mobile-navigation > .section-links a {
     padding: 0 6px;
@@ -537,12 +530,12 @@ html:has(.docs-shell) {
 .docs-property-meta dt {
   margin-bottom: 2px;
   color: var(--muted-foreground);
-  font-size: 11px;
+  font-size: var(--text-xs);
   line-height: 1.5;
 }
 .docs-property-meta dd {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-md);
   line-height: 1.6;
 }
 .docs-property-meta dd code {
@@ -566,7 +559,7 @@ html:has(.docs-shell) {
 }
 .docs-prop-heading h3 {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 550;
   line-height: 1.5;
 }
@@ -581,10 +574,10 @@ html:has(.docs-shell) {
   border-radius: 4px;
   background: var(--selected);
   color: var(--foreground);
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 .docs-prop-description {
-  font-size: 14px;
+  font-size: var(--text-base);
   line-height: 1.7;
   margin-top: 8px;
 }
@@ -613,14 +606,14 @@ html:has(.docs-shell) {
   gap: 4px;
 }
 .docs-reference-links h3 {
-  font-size: 15px;
+  font-size: var(--text-lg);
   font-weight: 550;
   margin: 0 0 8px;
 }
 .docs-reference-links a {
   justify-self: start;
   padding: 6px 0;
-  font-size: 13px;
+  font-size: var(--text-md);
 }
 .docs-installation-option {
   border-bottom: 1px solid var(--border);
@@ -666,7 +659,7 @@ html:has(.docs-shell) {
 
 .docs-article kbd {
   padding: 2px 5px;
-  font-size: 0.8em;
+  font-size: var(--text-xs);
   line-height: inherit;
   background: var(--surface);
   white-space: nowrap;
@@ -687,13 +680,13 @@ html:has(.docs-shell) {
 }
 .docs-browser-support dt {
   min-height: 3em;
-  font-size: 12px;
+  font-size: var(--text-sm);
   line-height: 1.5;
   color: var(--muted-foreground);
 }
 .docs-browser-support dd {
   margin: 6px 0 0;
-  font-size: 18px;
+  font-size: var(--text-xl);
   font-weight: 550;
   font-variant-numeric: tabular-nums;
 }
@@ -719,13 +712,13 @@ html:has(.docs-shell) {
   text-decoration: none;
 }
 .docs-page-cards strong {
-  font-size: 15px;
+  font-size: var(--text-lg);
   font-weight: 550;
 }
 .docs-page-cards span {
   grid-column: 1;
   color: var(--muted-foreground);
-  font-size: 13px;
+  font-size: var(--text-md);
   line-height: 1.6;
 }
 .docs-page-cards svg {
@@ -760,7 +753,7 @@ html:has(.docs-shell) {
   }
   .docs-browser-support dd {
     margin: 0;
-    font-size: 15px;
+    font-size: var(--text-lg);
   }
   .docs-page-cards {
     grid-template-columns: 1fr;
@@ -779,7 +772,7 @@ html:has(.docs-shell) {
   grid-column: 2;
 }
 .docs-page-cards .docs-page-direction {
-  font-size: 11px;
+  font-size: var(--text-xs);
   line-height: 1.5;
 }
 .docs-page-cards [data-direction] strong,
@@ -811,12 +804,12 @@ html:has(.docs-shell) {
   display: grid;
   grid-template-columns: 140px minmax(0, 1fr);
   gap: 4px 16px;
-  font-size: 14px;
+  font-size: var(--text-base);
   line-height: 1.6;
 }
 .docs-related-pages span {
   color: var(--muted-foreground);
-  font-size: 13px;
+  font-size: var(--text-md);
 }
 @media (max-width: 600px) {
   .docs-related-pages li {

@@ -1,7 +1,7 @@
 import { InstallCommand } from './install-command'
 import { registryUrl } from './install-commands'
 import { MonthlyDownloads } from './monthly-downloads'
-import { Icon, SiteLink } from './site-components'
+import { HeroCrop, Icon, SiteLink } from './site-components'
 import type { SitePage } from './site-data'
 import { SectionLinks } from './site-shell'
 import { JavaScriptIcon, ReactIcon } from './technology-icons'
@@ -17,23 +17,25 @@ export function Hero({ page }: { page: SitePage }) {
         {isReact && <span className="shadcn-mark" aria-hidden="true" />}
         {isReact ? 'Install with shadcn/ui' : 'Image zoom for the web. Since 2016.'}
       </span>
-      <h1 id="page-title">
-        Bring images closer{' '}
-        <span className="hero-technology">
-          with{' '}
-          <span className="hero-technology-name">
-            {isReact ? <ReactIcon className="hero-react-mark" /> : <JavaScriptIcon />}
-            {isReact ? 'React' : 'JavaScript'}
+      <HeroCrop>
+        <h1 id="page-title">
+          Bring images closer{' '}
+          <span className="hero-technology">
+            with{' '}
+            <span className="hero-technology-name">
+              {isReact ? <ReactIcon className="hero-react-mark" /> : <JavaScriptIcon />}
+              {isReact ? 'React' : 'JavaScript'}
+            </span>
           </span>
-        </span>
-      </h1>
-      <p>
-        {isReact ? 'Lightweight image zoom for React.' : 'Lightweight image zoom for the web.'}{' '}
-        <br />
-        {isReact
-          ? 'Keep the source. Make it yours.'
-          : 'Zero dependencies, any framework, React via shadcn.'}
-      </p>
+        </h1>
+        <p>
+          {isReact ? 'Lightweight image zoom for React.' : 'Lightweight image zoom for the web.'}{' '}
+          <br />
+          {isReact
+            ? 'Keep the source. Make it yours.'
+            : 'Zero dependencies, any framework, React via shadcn.'}
+        </p>
+      </HeroCrop>
       <div className="hero-actions">
         <SiteLink className="button button-primary" href="#usage-title">
           Start building
