@@ -182,8 +182,52 @@ pre:focus-visible,
   background: transparent;
   color: var(--muted-foreground);
 }
-.mobile-section-links {
+.section-select {
+  position: relative;
   display: none;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  height: 32px;
+  padding: 0 6px;
+  border-radius: 8px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  transition: background 140ms ease-out;
+}
+.section-select-label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.section-select-brand {
+  font-size: var(--text-base);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+.section-select-indicator {
+  width: 14px;
+  height: 14px;
+  color: var(--muted-foreground);
+}
+/* 16px keeps iOS from zooming the page when the picker opens. */
+.section-select select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  font-size: 16px;
+  cursor: pointer;
+}
+.section-select:has(select:focus-visible) {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.section-select:active {
+  background: var(--hover);
 }
 .section-links {
   font-size: var(--text-md);
@@ -1045,23 +1089,14 @@ td code {
   .navigation > .section-links {
     display: none;
   }
-  .hero .mobile-section-links {
-    display: flex;
-    width: max-content;
-    max-width: 100%;
-    margin: 0 auto 24px;
+  .navigation > .brand {
+    margin-right: -4px;
   }
-  .section-links {
-    gap: 4px;
-    font-size: var(--text-sm);
+  .brand-name {
+    display: none;
   }
-  .section-links a {
-    padding: 0 6px;
-    gap: 5px;
-  }
-  .section-links .documentation-mark {
-    width: 12px;
-    height: 12px;
+  .section-select {
+    display: inline-flex;
   }
   .nav-links > a:not(.github-link) {
     display: none;
@@ -1188,6 +1223,17 @@ td code {
   }
   .footer-brand {
     min-height: 44px;
+  }
+}
+/* Phones give the bar's room to the branded section select; GitHub stays in the footer. */
+@media (max-width: 460px) {
+  .nav-links > .github-link {
+    display: none;
+  }
+}
+@media (max-width: 374px) {
+  .section-select-brand {
+    display: none;
   }
 }
 @media (prefers-reduced-motion: no-preference) {

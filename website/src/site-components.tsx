@@ -73,6 +73,7 @@ const iconPaths = {
   ),
   arrow: <path d="M5 12h14m-5-5 5 5-5 5" />,
   chevron: <path d="m9 6 6 6-6 6" />,
+  selector: <path d="m8 9 4-4 4 4m-8 6 4 4 4-4" />,
   ellipsis: (
     <>
       <circle cx="5" cy="12" r="1" fill="currentColor" />

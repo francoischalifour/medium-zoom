@@ -685,22 +685,24 @@ test('Documentation shares the section navigation across desktop and mobile', as
       ['/docs/', 'Docs'],
     ]) {
       await page.goto(path)
-      const sections =
-        width <= 680
-          ? page.getByRole('navigation', { name: 'Product navigation', exact: true })
-          : page
-              .getByRole('navigation', { name: 'Main navigation', exact: true })
-              .locator('.section-links')
-      for (const label of ['JavaScript', 'React', 'Docs']) {
-        await expect(sections.getByRole('link', { name: label, exact: true })).toBeVisible()
-        await expect(sections.getByRole('link', { name: label, exact: true })).toBeInViewport({
-          ratio: 1,
-        })
+      const bar = page.getByRole('navigation', { name: 'Main navigation', exact: true })
+      if (width <= 680) {
+        const section = bar.getByRole('combobox', { name: 'Section', exact: true })
+        await expect(section).toBeInViewport({ ratio: 1 })
+        await expect(section.getByRole('option')).toHaveText(['JavaScript', 'React', 'Docs'])
+        await expect(section.locator('option:checked')).toHaveText(current)
+      } else {
+        const sections = bar.locator('.section-links')
+        for (const label of ['JavaScript', 'React', 'Docs']) {
+          await expect(sections.getByRole('link', { name: label, exact: true })).toBeInViewport({
+            ratio: 1,
+          })
+        }
+        await expect(sections.getByRole('link', { name: current, exact: true })).toHaveAttribute(
+          'aria-current',
+          'page'
+        )
       }
-      await expect(sections.getByRole('link', { name: current, exact: true })).toHaveAttribute(
-        'aria-current',
-        'page'
-      )
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true
       )
