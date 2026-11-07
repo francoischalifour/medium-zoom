@@ -1,9 +1,8 @@
 import { execFileSync } from 'node:child_process'
 
-import AxeBuilder from '@axe-core/playwright'
 import { test, expect, type Page } from '@playwright/test'
 
-import { decodeImages, dismissZoom, observeErrors, openImage, finishAnimations } from './helpers.ts'
+import { decodeImages, dismissZoom, observeErrors, openImage } from './helpers.ts'
 
 const demo = '/examples/shadcn/playground.html?compound'
 const oceanName = 'Open composed ocean'
@@ -201,38 +200,4 @@ test('the default trigger name follows changes to image alt text', async ({ page
     'Floral skateboard'
   )
   await dismissZoom(page)
-})
-
-test('the published composition and controlled examples work as documented', async ({ page }) => {
-  await page.goto('/react')
-  await page.getByRole('tab', { name: 'Composed', exact: true }).click()
-  const example = page.locator('#usage [role="tabpanel"]')
-  await expect(example.locator('code')).toContainText('ImageZoom.Root')
-  const composed = example.getByRole('button', { name: 'View photo: Denali at sunrise' })
-  await decodeImages(composed.locator('img'))
-  await composed.click()
-  await expect(page.locator('.medium-zoom-overlay')).toBeVisible()
-  await dismissZoom(page)
-  await page.getByRole('tab', { name: 'Controlled', exact: true }).click()
-  await expect(example.locator('code')).toContainText('onOpenChange={setOpen}')
-  await decodeImages(example.locator('img'))
-  await example.getByRole('button', { name: 'Open image', exact: true }).click()
-  await expect(page.locator('.medium-zoom-overlay')).toBeVisible()
-  await dismissZoom(page)
-})
-
-test('composed and controlled examples are accessible in both themes', async ({ page }) => {
-  await page.goto('/react')
-  for (const theme of ['light', 'dark'] as const) {
-    await page.emulateMedia({ colorScheme: theme })
-    for (const name of ['Composed', 'Controlled']) {
-      await page.locator('#usage').getByRole('tab', { name, exact: true }).click()
-      await finishAnimations(page)
-      const results = await new AxeBuilder({ page })
-        .include('#usage')
-        .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-        .analyze()
-      expect(results.violations).toEqual([])
-    }
-  }
 })

@@ -1,7 +1,3 @@
-.not-found-hero {
-  /* The outer crop ends at 420 / 600 of the illustration height. */
-  min-height: calc(var(--hero-frame-height) * 0.7 + 12px);
-}
 .not-found-recovery {
   max-width: 760px;
   margin: auto;
@@ -17,7 +13,7 @@
   align-items: center;
   gap: 10px;
   margin: 0;
-  font-size: 16px;
+  font-size: var(--text-lg);
   font-weight: 500;
   letter-spacing: -0.02em;
 }
@@ -28,12 +24,12 @@
 .not-found-quickstarts p {
   margin: 4px 0 12px;
   color: var(--muted-foreground);
-  font-size: 13px;
+  font-size: var(--text-md);
   line-height: 1.7;
 }
 .not-found-quickstarts a > span {
   margin-top: auto;
-  font-size: 13px;
+  font-size: var(--text-md);
   font-weight: 500;
 }
 @media (max-width: 520px) {

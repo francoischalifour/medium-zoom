@@ -4,7 +4,7 @@ import { InstallCommand } from './install-command'
 import { registryUrl } from './install-commands'
 import { MonthlyDownloads } from './monthly-downloads'
 import { headline, productPages } from './product-pages'
-import { Icon, SiteLink } from './site-components'
+import { HeroCrop, Icon, SiteLink } from './site-components'
 import type { SitePage } from './site-data'
 import { SectionLinks } from './site-shell'
 import { JavaScriptIcon, ReactIcon } from './technology-icons'
@@ -21,20 +21,22 @@ export function Hero({ page }: { page: SitePage }) {
         {eyebrowMark}
         {copy.eyebrow}
       </span>
-      <h1 id="page-title">
-        {headline}{' '}
-        <span className="hero-technology">
-          with{' '}
-          <span className="hero-technology-name">
-            {technologyIcon}
-            {copy.technology}
+      <HeroCrop>
+        <h1 id="page-title">
+          {headline}{' '}
+          <span className="hero-technology">
+            with{' '}
+            <span className="hero-technology-name">
+              {technologyIcon}
+              {copy.technology}
+            </span>
           </span>
-        </span>
-      </h1>
-      <p>
-        {copy.tagline[0]} <br />
-        {copy.tagline[1]}
-      </p>
+        </h1>
+        <p>
+          {copy.tagline[0]} <br />
+          {copy.tagline[1]}
+        </p>
+      </HeroCrop>
       <div className="hero-actions">
         <SiteLink className="button button-primary" href="#usage-title">
           Start building

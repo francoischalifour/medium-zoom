@@ -11,7 +11,7 @@ bunx playwright install chromium firefox webkit
 
 ## Develop
 
-Run commands from the repository root:
+Run commands from the repository root. Development servers move to the next free port when theirs is taken, so open the URL each command prints when running several worktrees at once.
 
 - `bun run dev`: watch the library build.
 - `bun run dev:example vanilla`: serve an example against the local library build. Run the build watcher in another terminal to pick up library changes.
@@ -49,7 +49,7 @@ For a focused check, use the commands below:
 - `bun run test:size`: check gzip budgets.
 - `bun run test:browser`: exercise the packed library, website, examples, and stories in Chromium, Firefox, and WebKit. Package rendering is compared with the published package.
 
-Before individual package checks, run `bun run build`. Before browser checks, run `bun run build:website && bun run test:examples`. Browser fixtures use port 4175. To select browsers, append `--project=chromium --project=webkit` to the browser test command.
+Before individual package checks, run `bun run build`. Before browser checks, run `bun run build:website && bun run test:examples`. Browser checks reserve the first free block of four ports from 4175 (4175, 4185, …), so worktrees can run them at the same time; set `MEDIUM_ZOOM_TEST_PORT` to choose the block. To select browsers, append `--project=chromium --project=webkit` to the browser test command.
 
 For documentation changes, the [website guide](website/README.md#verify-changes) lists the checks for snippets, navigation, and metadata.
 

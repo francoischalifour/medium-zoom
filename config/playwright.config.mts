@@ -2,9 +2,10 @@ import { fileURLToPath } from 'node:url'
 
 import { defineConfig, devices } from '@playwright/test'
 
-import { testPort, testUrl, svelteDevUrl, shadcnDevUrl } from '../tests/server-urls.ts'
+import { reserveTestPorts } from './test-ports.mts'
 
 const repositoryRoot = fileURLToPath(new URL('../', import.meta.url))
+const { testUrl, sveltePort, svelteDevUrl, shadcnPort, shadcnDevUrl } = await reserveTestPorts()
 
 export default defineConfig({
   testDir: '../tests/browser',
@@ -32,14 +33,14 @@ export default defineConfig({
     },
     {
       cwd: repositoryRoot,
-      command: `bun run dev:example svelte --port ${testPort + 1}`,
+      command: `bun run dev:example svelte --port ${sveltePort}`,
       url: svelteDevUrl,
       reuseExistingServer: false,
       timeout: 30_000,
     },
     {
       cwd: repositoryRoot,
-      command: `bun run dev:example shadcn --port ${testPort + 2}`,
+      command: `bun run dev:example shadcn --port ${shadcnPort}`,
       url: shadcnDevUrl,
       reuseExistingServer: false,
       timeout: 30_000,

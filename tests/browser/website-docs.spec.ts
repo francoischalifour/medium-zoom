@@ -51,9 +51,12 @@ test('collapsed docs navigation stays inside the article column on phones and ta
     } else {
       await expect(menus).toBeHidden()
     }
-    await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toHaveText(
-      'DocsGet startedJavaScript quickstart'
-    )
+    const breadcrumb = page.getByRole('navigation', { name: 'Breadcrumb' })
+    await expect(breadcrumb.getByRole('listitem')).toHaveText([
+      'Get started',
+      'JavaScript quickstart',
+    ])
+    await expect(breadcrumb.locator('[aria-current="page"]')).toHaveText('JavaScript quickstart')
     await expect(outlineButton).toBeVisible()
   }
   await page.setViewportSize({ width: 1_440, height: 900 })
@@ -971,7 +974,7 @@ test('related topics use compact links separate from directional navigation', as
   const gallery = related.getByRole('link', { name: /^Multiple images/ })
   await expect(gallery).toHaveText('Multiple images')
   await expect(gallery.locator('..')).toContainText('Attach zoom behavior to several images')
-  await expect(related.locator('svg, .docs-page-cards')).toHaveCount(0)
+  await expect(related.locator('svg, .docs-pagination')).toHaveCount(0)
   await expect(page.locator('.docs-pagination svg')).toHaveCount(2)
   await gallery.click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Multiple images')
