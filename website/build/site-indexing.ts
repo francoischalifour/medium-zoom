@@ -1,8 +1,12 @@
 import { docsPages } from '../src/docs/pages.ts'
+import { productPages } from '../src/product-pages.ts'
 import { siteOrigin } from '../src/site-url.ts'
 
 // Every indexable page, in the order search engines should discover them.
-const pagePaths = ['/', '/react', ...docsPages.map(page => page.path)]
+const pagePaths = [
+  ...Object.values(productPages).map(page => page.path),
+  ...docsPages.map(page => page.path),
+]
 
 // sitemap.xml and robots.txt, keyed by public path.
 export function siteIndexingFiles(): Map<string, string> {
