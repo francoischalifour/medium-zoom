@@ -1,0 +1,102 @@
+import { InstallCommand } from '../install-command'
+import { JavaScriptPreview, RelatedPages } from './doc-components'
+
+medium-zoom works with VitePress out of the box. Extend the default theme once, and every image in your Markdown pages zooms.
+
+## Install the package
+
+<InstallCommand page="javascript" id="vitepress-installation" />
+
+The standard import includes zoom styles and TypeScript definitions.
+
+## Extend the theme
+
+Attach the zoom to the page images after each page renders:
+
+```ts
+import mediumZoom, { type Zoom } from 'medium-zoom'
+import { onContentUpdated, type Theme } from 'vitepress'
+import DefaultTheme from 'vitepress/theme'
+
+import './style.css'
+
+export default {
+  extends: DefaultTheme,
+  setup() {
+    let zoom: Zoom | undefined
+
+    onContentUpdated(() => {
+      zoom ??= mediumZoom({ background: 'var(--vp-c-bg)' })
+      zoom.detach().attach('.vp-doc :not(a) > img')
+    })
+  },
+} satisfies Theme
+```
+
+Save it as `.vitepress/theme/index.ts`. VitePress calls `onContentUpdated()` in the browser whenever the page content renders, including after client-side navigation. The theme keeps a single zoom and swaps its images, so nothing leaks between pages. The selector skips images inside links, which keep opening their link.
+
+The `var(--vp-c-bg)` background follows the light and dark appearance.
+
+## Place the zoom above the navigation
+
+The library leaves `z-index` unset, and the VitePress navigation and sidebar are fixed above the page. Raise the zoom above them in `.vitepress/theme/style.css`:
+
+```css
+.medium-zoom-overlay,
+.medium-zoom-image--opened {
+  z-index: 100;
+}
+```
+
+## Display an image
+
+Write images in Markdown as usual:
+
+```md
+![Ocean sunset](./ocean-sunset.jpg)
+```
+
+Click the image to enlarge it:
+
+<JavaScriptPreview
+  src="/assets/images/ocean-sunset.jpg"
+  alt="Ocean sunset"
+  width={1_920}
+  height={1_280}
+  label="Enlarge ocean sunset"
+/>
+
+Click the enlarged image or its background, press <kbd aria-label="Escape">Esc</kbd>, or scroll to close the zoom.
+
+## Choose which images zoom
+
+To zoom only some images, mark them with an attribute, which VitePress Markdown supports after an image:
+
+```md
+![Ocean sunset](./ocean-sunset.jpg){data-zoomable}
+```
+
+Then attach the images with that attribute instead:
+
+```ts
+zoom.detach().attach('.vp-doc img[data-zoomable]')
+```
+
+## Set options
+
+Pass [options](/docs/reference/javascript/options/) to change the margin, background, or scroll behavior:
+
+```ts
+zoom ??= mediumZoom({ margin: 24, background: 'var(--vp-c-bg)' })
+```
+
+## Next steps
+
+<RelatedPages
+  pages={[
+    '/docs/guides/hd-images/',
+    '/docs/guides/multiple-images/',
+    '/docs/guides/styling/',
+    '/docs/reference/javascript/options/',
+  ]}
+/>

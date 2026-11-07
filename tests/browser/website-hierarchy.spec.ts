@@ -123,10 +123,10 @@ test('previous and next cards preserve direction and stop only at the sidebar en
   const reference = page.getByRole('navigation', { name: 'Documentation pages', exact: true })
   await expect(reference.locator('a[rel="prev"]')).toHaveCount(0)
   await expect(reference.locator('a[rel="next"]')).toHaveAttribute('href', '/docs/javascript/')
-  await page.goto('/docs/integrations/astro/')
+  await page.goto('/docs/integrations/vitepress/')
   await expect(reference.locator('a[rel="next"]')).toHaveCount(0)
   await expect(reference.locator('a[rel="prev"]')).toHaveAttribute(
     'href',
-    '/docs/integrations/solid/'
+    '/docs/integrations/astro/'
   )
 })

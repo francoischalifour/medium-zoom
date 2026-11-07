@@ -31,6 +31,7 @@ const pages = [
   ['/docs/integrations/svelte/', 'Svelte', 'Svelte image zoom • medium-zoom'],
   ['/docs/integrations/solid/', 'Solid', 'Solid image zoom • medium-zoom'],
   ['/docs/integrations/astro/', 'Astro', 'Astro image zoom • medium-zoom'],
+  ['/docs/integrations/vitepress/', 'VitePress', 'VitePress image zoom • medium-zoom'],
 ] as const
 
 test('collapsed docs navigation stays inside the article column on phones and tablets', async ({
@@ -63,7 +64,7 @@ test('collapsed docs navigation stays inside the article column on phones and ta
 
 test('the sidebar and outline keep their active entries in view', async ({ page }) => {
   await page.setViewportSize({ width: 1_440, height: 600 })
-  await page.goto('/docs/integrations/astro/')
+  await page.goto('/docs/integrations/vitepress/')
   await expect(page.locator('.docs-sidebar [aria-current="page"]')).toBeInViewport({ ratio: 1 })
   await page.goto('/docs/reference/javascript/methods/')
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
@@ -106,7 +107,7 @@ for (const theme of ['light', 'dark'] as const) {
     })
     await expect(area).toHaveAttribute('data-scroll-above', '')
     await expect(area).toHaveAttribute('data-scroll-below', '')
-    await area.getByRole('link', { name: 'Astro', exact: true }).focus()
+    await area.getByRole('link', { name: 'VitePress', exact: true }).focus()
     await expect(area).toHaveAttribute('data-scroll-above', '')
     await expect(area).not.toHaveAttribute('data-scroll-below')
     expect(await area.evaluate(element => getComputedStyle(element, '::after').opacity)).toBe('0')

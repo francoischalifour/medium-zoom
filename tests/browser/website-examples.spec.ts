@@ -58,3 +58,32 @@ test('standalone shadcn component fixtures keep assets local to a subpath', asyn
   await openImage(page, fixture, { trigger: fixture.locator('..') })
   await dismissZoom(page)
 })
+
+test('vitepress example zooms page images above the navigation after client-side navigation', async ({
+  page,
+}) => {
+  const errors = observeErrors(page)
+  await page.goto('/examples/vitepress/')
+  const content = page.locator('.vp-doc')
+  await expect(content.locator('a img')).not.toHaveClass(/medium-zoom-image/)
+  const image = content.locator('.medium-zoom-image').first()
+  await decodeImages(image)
+  await openImage(page, image)
+  // The zoom covers the fixed navigation bar instead of sliding under it.
+  const nav = await page.locator('.VPNav').boundingBox()
+  const covering = await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.className, {
+    x: nav!.x + nav!.width / 2,
+    y: nav!.y + nav!.height / 2,
+  })
+  expect(covering).toMatch(/medium-zoom-(overlay|image--opened)/)
+  await dismissZoom(page)
+
+  await page.locator('.VPSidebar').getByRole('link', { name: 'Gallery' }).click()
+  await expect(page.locator('h1')).toHaveText('Gallery')
+  const zoomable = content.locator('.medium-zoom-image')
+  await expect(zoomable).toHaveCount(2)
+  await decodeImages(zoomable.first())
+  await openImage(page, zoomable.first())
+  await dismissZoom(page)
+  expect(errors).toEqual([])
+})

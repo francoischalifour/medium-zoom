@@ -12,7 +12,7 @@ export const docsPages = [
     documentTitle: 'Documentation • medium-zoom',
     group: 'Get started',
     description:
-      'Choose a JavaScript or React quickstart, follow task guides, look up the medium-zoom API, and integrate with Angular, Vue, Svelte, Solid, or Astro.',
+      'Choose a JavaScript or React quickstart, follow task guides, look up the medium-zoom API, and integrate with Angular, Vue, Svelte, Solid, Astro, or VitePress.',
   },
   {
     path: '/docs/javascript/',
@@ -244,6 +244,17 @@ export const docsPages = [
     group: 'Integrations',
     description:
       'Add image zoom to Astro with a component that renders an optimized image and attaches medium-zoom from a custom element.',
+  },
+  {
+    path: '/docs/integrations/vitepress/',
+    source: 'vitepress-integration.mdx',
+    summary: 'Zoom Markdown images from the VitePress theme.',
+    updatedOn: '2026-11-07',
+    title: 'VitePress',
+    documentTitle: 'VitePress image zoom • medium-zoom',
+    group: 'Integrations',
+    description:
+      'Add image zoom to VitePress by extending the default theme so medium-zoom attaches to Markdown images after every page render.',
   },
 ] as const
 

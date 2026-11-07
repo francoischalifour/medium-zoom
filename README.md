@@ -75,7 +75,7 @@ Follow the [React quickstart](https://medium-zoom.francoischalifour.com/docs/rea
 
 The [documentation](https://medium-zoom.francoischalifour.com/docs/) covers HD images, galleries, styling, and the JavaScript and React APIs.
 
-Runnable [examples](examples/) include [plain JavaScript](examples/vanilla), [React](examples/react), [Angular](examples/angular), [Vue](examples/vue), [Svelte](examples/svelte), and [Astro](examples/astro). The React example demonstrates using the library directly; [shadcn/ui](examples/shadcn) demonstrates the installable component.
+Runnable [examples](examples/) include [plain JavaScript](examples/vanilla), [React](examples/react), [Angular](examples/angular), [Vue](examples/vue), [Svelte](examples/svelte), [Astro](examples/astro), and [VitePress](examples/vitepress). The React example demonstrates using the library directly; [shadcn/ui](examples/shadcn) demonstrates the installable component.
 
 ## Contributing
 

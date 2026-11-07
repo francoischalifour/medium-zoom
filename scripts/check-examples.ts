@@ -9,6 +9,7 @@ import { exampleNames } from './example-names.ts'
 const subpathBuildArgs: Record<string, string[]> = {
   angular: ['--base-href=/standalone-examples/angular/'],
   astro: ['--base=/standalone-examples/astro/'],
+  vitepress: ['--base=/standalone-examples/vitepress/'],
 }
 
 const directory = mkdtempSync(join(tmpdir(), 'medium-zoom-examples-'))
