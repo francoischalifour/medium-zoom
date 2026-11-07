@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright'
 import { test, expect } from '@playwright/test'
 
-import { finishAnimations } from './helpers'
+import { decodeImages, dismissZoom, finishAnimations } from './helpers'
 
 test('React usage examples compose and zoom through their tabs', async ({ page }) => {
   await page.goto('/react')
@@ -149,4 +149,38 @@ test('example tabs share hover and keyboard behavior, with code before the previ
   await expect(code).toContainText('Works with SSR and React Server Components.')
   await page.setViewportSize({ width: 390, height: 844 })
   expect((await code.boundingBox())!.y).toBeLessThan((await preview.boundingBox())!.y)
+})
+
+test('the published composition and controlled examples work as documented', async ({ page }) => {
+  await page.goto('/react')
+  await page.getByRole('tab', { name: 'Composed', exact: true }).click()
+  const example = page.locator('#usage [role="tabpanel"]')
+  await expect(example.locator('code')).toContainText('ImageZoom.Root')
+  const composed = example.getByRole('button', { name: 'View photo: Denali at sunrise' })
+  await decodeImages(composed.locator('img'))
+  await composed.click()
+  await expect(page.locator('.medium-zoom-overlay')).toBeVisible()
+  await dismissZoom(page)
+  await page.getByRole('tab', { name: 'Controlled', exact: true }).click()
+  await expect(example.locator('code')).toContainText('onOpenChange={setOpen}')
+  await decodeImages(example.locator('img'))
+  await example.getByRole('button', { name: 'Open image', exact: true }).click()
+  await expect(page.locator('.medium-zoom-overlay')).toBeVisible()
+  await dismissZoom(page)
+})
+
+test('composed and controlled examples are accessible in both themes', async ({ page }) => {
+  await page.goto('/react')
+  for (const theme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: theme })
+    for (const name of ['Composed', 'Controlled']) {
+      await page.locator('#usage').getByRole('tab', { name, exact: true }).click()
+      await finishAnimations(page)
+      const results = await new AxeBuilder({ page })
+        .include('#usage')
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+        .analyze()
+      expect(results.violations).toEqual([])
+    }
+  }
 })

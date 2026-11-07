@@ -11,7 +11,51 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      scope: ${{ steps.scope.outputs.scope }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
+          # The PR merge commit and its base parent, to list the files the PR changes.
+          fetch-depth: 2
+      - name: Scope checks to the changed files
+        id: scope
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" = pull_request ]; then
+            scope=$(git diff --name-only HEAD^1 HEAD | bash scripts/ci-scope.sh)
+          else
+            scope=library
+          fi
+          echo "scope=$scope" | tee -a "$GITHUB_OUTPUT"
+
+  # Markdown and agent config feed no build, so formatting is their only check.
+  format:
+    needs: changes
+    if: ${{ needs.changes.outputs.scope == 'format' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+      - name: Install only the formatter
+        run: npm install --global --no-audit --no-fund "oxfmt@$(jq -r .devDependencies.oxfmt package.json)"
+      - run: bun run format:check
+
   build:
+    needs: changes
+    if: ${{ needs.changes.outputs.scope != 'format' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
@@ -27,6 +71,7 @@ jobs:
           cache: npm
           cache-dependency-path: bun.lock
       - name: Test release automation
+        if: ${{ needs.changes.outputs.scope == 'library' }}
         working-directory: .github/release-please
         run: |
           npm ci --ignore-scripts --no-audit --no-fund
@@ -38,9 +83,13 @@ jobs:
       - name: Resolve matching browser image
         id: playwright
         run: bun scripts/playwright-image.ts >> "$GITHUB_OUTPUT"
-      - run: bun run check:library
+      - run: bun run check:source
+      - name: Check package
+        if: ${{ needs.changes.outputs.scope == 'library' }}
+        run: bun run test:size && bun run test:package
       - run: bun run test:registry
       - run: bun run build:demo
+      # Also builds the standalone examples that the website suite opens.
       - run: bun run test:examples
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -53,8 +102,8 @@ jobs:
           retention-days: 7
 
   browser:
-    name: ${{ matrix.browser }} (${{ matrix.suite.name }})
-    needs: build
+    name: ${{ matrix.browser }} (${{ matrix.suite }})
+    needs: [changes, build]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     container:
@@ -66,11 +115,7 @@ jobs:
         browser: [chromium, firefox, webkit]
         # Keep the screenshot-heavy stories separate so test-count sharding cannot
         # put all of them on one runner alongside the API and example tests.
-        suite:
-          - name: api-and-examples
-            args: --grep-invert="API stories"
-          - name: stories
-            args: --grep="API stories"
+        suite: ${{ fromJSON('{"website":["website"],"library":["api-and-examples","stories"]}')[needs.changes.outputs.scope] }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -85,25 +130,25 @@ jobs:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: browser-build
-      - name: Test ${{ matrix.suite.name }}
+      - name: Test ${{ matrix.suite }}
         env:
           # GitHub's /github/home belongs to the host runner, not the container's root user.
           HOME: /root
-        run: bun run test:browser --project="*${{ matrix.browser }}" ${{ matrix.suite.args }}
+        run: bun run test:browser:${{ matrix.suite }} --project="*${{ matrix.browser }}"
       - name: Test React Server Components
-        if: ${{ matrix.browser == 'chromium' && matrix.suite.name == 'api-and-examples' }}
+        if: ${{ matrix.browser == 'chromium' && matrix.suite == 'api-and-examples' }}
         env:
           HOME: /root
         run: bun run test:rsc
       - name: Test website analytics
-        if: ${{ matrix.browser == 'chromium' && matrix.suite.name == 'api-and-examples' }}
+        if: ${{ matrix.browser == 'chromium' && matrix.suite != 'stories' }}
         env:
           HOME: /root
         run: bun run test:analytics
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ !cancelled() }}
         with:
-          name: browser-evidence-${{ matrix.browser }}-${{ matrix.suite.name }}
+          name: browser-evidence-${{ matrix.browser }}-${{ matrix.suite }}
           path: |
             .cache/playwright/
             .cache/playwright-rsc/
