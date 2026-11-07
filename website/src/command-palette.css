@@ -15,9 +15,9 @@ body:has(.command-palette[open]) {
   background: var(--surface);
   color: var(--foreground);
   text-align: left;
-  font-size: 13px;
+  font-size: var(--text-md);
   font-weight: 500;
-  line-height: 20px;
+  line-height: 1.25rem;
   letter-spacing: -0.01em;
   transition:
     background-color 120ms ease-out,
@@ -36,7 +36,7 @@ body:has(.command-palette[open]) {
   height: 22px;
   margin-left: auto;
   padding: 0 5px;
-  font: 500 11px/20px var(--font-sans);
+  font: 500 var(--text-xs)/1.25rem var(--font-sans);
   letter-spacing: 0;
   white-space: nowrap;
 }
@@ -75,8 +75,8 @@ body:has(.command-palette[open]) {
 }
 .command-palette kbd {
   font-family: var(--font-sans);
-  font-size: 11px;
-  line-height: 18px;
+  font-size: var(--text-xs);
+  line-height: 1.125rem;
   color: var(--muted-foreground);
 }
 .command-palette {
@@ -146,7 +146,7 @@ body:has(.command-palette[open]) {
   appearance: none;
   box-shadow: none;
   font: inherit;
-  font-size: 16px;
+  font-size: var(--text-lg);
   letter-spacing: -0.02em;
   background: transparent;
   color: var(--foreground);
@@ -160,9 +160,9 @@ body:has(.command-palette[open]) {
   background: var(--surface);
   padding: 3px 7px;
   color: var(--command-muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 500;
-  line-height: 18px;
+  line-height: 1.125rem;
 }
 @media (hover: hover) and (pointer: fine) {
   .command-dismiss:hover {
@@ -181,9 +181,9 @@ body:has(.command-palette[open]) {
 .command-group {
   padding: 8px calc(var(--command-gutter) - 8px) 4px;
   color: var(--command-muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 500;
-  line-height: 16px;
+  line-height: 1rem;
   letter-spacing: 0.02em;
 }
 .command-result {
@@ -225,16 +225,16 @@ body:has(.command-palette[open]) {
 }
 .command-title {
   padding-right: 34px;
-  font-size: 14px;
-  line-height: 20px;
+  font-size: var(--text-base);
+  line-height: 1.25rem;
   font-weight: 500;
   letter-spacing: -0.01em;
   overflow-wrap: anywhere;
 }
 .command-detail {
   margin-top: 1px;
-  font-size: 11px;
-  line-height: 16px;
+  font-size: var(--text-xs);
+  line-height: 1rem;
   color: var(--command-muted);
 }
 .command-description {
@@ -244,8 +244,8 @@ body:has(.command-palette[open]) {
   overflow: hidden;
   margin-top: 5px;
   color: var(--command-muted);
-  font-size: 12px;
-  line-height: 19px;
+  font-size: var(--text-sm);
+  line-height: 1.1875rem;
 }
 .command-result mark {
   padding: 0;
@@ -258,7 +258,7 @@ body:has(.command-palette[open]) {
   text-underline-offset: 3px;
 }
 .command-action .command-title {
-  font-size: 13px;
+  font-size: var(--text-md);
   font-weight: 400;
 }
 .command-result-tail {
@@ -281,8 +281,8 @@ body:has(.command-palette[open]) {
 .command-empty {
   margin: 0;
   padding: 20px calc(var(--command-gutter) - 8px) 16px;
-  font-size: 12px;
-  line-height: 18px;
+  font-size: var(--text-sm);
+  line-height: 1.125rem;
   color: var(--command-muted);
 }
 .command-empty p {
@@ -290,8 +290,8 @@ body:has(.command-palette[open]) {
 }
 .command-empty .command-empty-title {
   margin-bottom: 4px;
-  font-size: 13px;
-  line-height: 20px;
+  font-size: var(--text-md);
+  line-height: 1.25rem;
   font-weight: 500;
   color: var(--foreground);
 }
@@ -312,8 +312,8 @@ body:has(.command-palette[open]) {
   gap: 18px;
   border-top: 1px solid var(--border);
   padding: 8px var(--command-gutter);
-  font-size: 11px;
-  line-height: 20px;
+  font-size: var(--text-xs);
+  line-height: 1.25rem;
   color: var(--command-muted);
 }
 .command-footer kbd {
