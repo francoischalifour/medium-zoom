@@ -50,7 +50,7 @@ test('shared navigation preserves theme and typography across both pages and bac
   expect(fonts.every(count => count > 0)).toBe(true)
   await page.getByRole('button', { name: 'Switch to dark theme' }).click()
   await page
-    .getByRole('navigation', { name: /^(Main navigation|Product navigation)$/ })
+    .getByRole('navigation', { name: 'Main navigation', exact: true })
     .getByRole('link', { name: 'React', exact: true })
     .click()
   await expect(page).toHaveURL(`${testUrl}/react`)
@@ -62,7 +62,7 @@ test('shared navigation preserves theme and typography across both pages and bac
   await page.screenshot({ path: testInfo.outputPath('react-dark.png'), fullPage: true })
   await page.getByRole('button', { name: 'Switch to light theme' }).click()
   await page
-    .getByRole('navigation', { name: /^(Main navigation|Product navigation)$/ })
+    .getByRole('navigation', { name: 'Main navigation', exact: true })
     .getByRole('link', { name: 'JavaScript', exact: true })
     .click()
   await expect(page.getByRole('heading', { name: /Bring images closer/ })).toBeVisible()
@@ -108,28 +108,21 @@ test('mobile navigation remains usable and both pages fit the viewport', async (
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
     .toBe(true)
-  await expect(
-    page
-      .getByRole('navigation', { name: /^(Main navigation|Product navigation)$/ })
-      .getByRole('link', { name: 'React', exact: true })
-  ).toBeVisible()
-  await expect(page.locator('.brand-name')).toBeVisible()
+  const section = page.getByRole('combobox', { name: 'Section', exact: true })
+  await expect(section).toBeVisible()
   await page.screenshot({ path: testInfo.outputPath('javascript-mobile.png'), fullPage: true })
-  await page
-    .getByRole('navigation', { name: /^(Main navigation|Product navigation)$/ })
-    .getByRole('link', { name: 'React', exact: true })
-    .click()
+  await section.selectOption('React')
+  await expect(page).toHaveURL(`${testUrl}/react`)
   await expect(page.getByRole('heading', { name: /Bring images closer/ })).toBeVisible()
+  await expect(section).toHaveValue('/react')
   await page.screenshot({ path: testInfo.outputPath('react-mobile.png'), fullPage: true })
   await page.setViewportSize({ width: 320, height: 740 })
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
     .toBe(true)
-  await expect(
-    page
-      .getByRole('navigation', { name: /^(Main navigation|Product navigation)$/ })
-      .getByRole('link', { name: 'JavaScript', exact: true })
-  ).toBeVisible()
+  await expect(section).toBeInViewport({ ratio: 1 })
+  await page.goBack()
+  await expect(section).toHaveValue('/')
 })
 
 test('system theme is respected before interaction and explicit preference survives reload', async ({
@@ -205,7 +198,7 @@ test('both pages preload the same font resources across navigation', async ({ pa
     .evaluateAll(links => links.map(link => (link as HTMLLinkElement).href).sort())
   expect(homeFonts).toHaveLength(2)
   await page
-    .getByRole('navigation', { name: /^(Main navigation|Product navigation)$/ })
+    .getByRole('navigation', { name: 'Main navigation', exact: true })
     .getByRole('link', { name: 'React', exact: true })
     .click()
   await expect(page.locator('link[rel="preload"][as="font"]')).toHaveCount(2)
@@ -288,9 +281,7 @@ test('guide links underline only on hover', async ({ page }) => {
   }
 })
 
-test('mobile branding stays in the bar and product navigation is centered in the hero', async ({
-  page,
-}) => {
+test('mobile bar shows the section select right after the branding', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await openJavaScriptPage(page)
   for (const framework of ['javascript', 'react'] as const) {
@@ -300,28 +291,24 @@ test('mobile branding stays in the bar and product navigation is centered in the
     for (const width of [320, 390, 680]) {
       await page.setViewportSize({ width, height: 844 })
       const bar = page.getByRole('navigation', { name: 'Main navigation', exact: true })
-      const product = page.getByRole('navigation', { name: 'Product navigation', exact: true })
-      await expect(page.locator('.brand-name')).toBeVisible()
+      const section = bar.getByRole('combobox', { name: 'Section', exact: true })
+      // The select's trigger carries the brand name next to the mark.
+      await expect(page.locator('.brand-name')).toBeHidden()
       await expect(bar.getByRole('link', { name: 'React', exact: true })).toHaveCount(0)
-      await expect(
-        product.getByRole('link', {
-          name: framework === 'react' ? 'React' : 'JavaScript',
-          exact: true,
-        })
-      ).toHaveAttribute('aria-current', 'page')
-      const barBox = (await bar.boundingBox())!
+      await expect(section).toHaveValue(framework === 'react' ? '/react' : '/')
       const brandBox = (await bar.getByRole('link', { name: 'medium-zoom home' }).boundingBox())!
+      const sectionBox = (await section.boundingBox())!
+      const navLinks = (await bar.locator('.nav-links').boundingBox())!
       const utilities = (await bar
         .getByRole('button', { name: /Switch to .* theme/ })
         .boundingBox())!
-      const productBox = (await product.boundingBox())!
-      const labelBox = (await page.locator('.hero .eyebrow').boundingBox())!
-      expect(
-        Math.abs(brandBox.y + brandBox.height / 2 - utilities.y - utilities.height / 2)
-      ).toBeLessThan(1)
-      expect(productBox.y).toBeGreaterThanOrEqual(barBox.y + barBox.height)
-      expect(Math.abs(productBox.x + productBox.width / 2 - width / 2)).toBeLessThan(1)
-      expect(labelBox.y).toBeGreaterThan(productBox.y + productBox.height)
+      const middle = (box: { y: number; height: number }) => box.y + box.height / 2
+      expect(Math.abs(middle(brandBox) - middle(utilities))).toBeLessThan(1)
+      expect(Math.abs(middle(sectionBox) - middle(utilities))).toBeLessThan(1)
+      expect(sectionBox.x).toBeGreaterThan(brandBox.x + brandBox.width)
+      expect(sectionBox.x - (brandBox.x + brandBox.width)).toBeLessThan(16)
+      expect(sectionBox.x + sectionBox.width).toBeLessThan(navLinks.x)
+      expect(utilities.x + utilities.width).toBeLessThanOrEqual(width)
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true
       )

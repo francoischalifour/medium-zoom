@@ -2,7 +2,7 @@ import { Children, isValidElement, useEffect, type ReactNode } from 'react'
 
 import { ScrollArea, revealInScrollArea } from '../scroll-area'
 import { Icon, SiteLink } from '../site-components'
-import { SiteHeader, SiteFooter, SectionLinks } from '../site-shell'
+import { SiteHeader, SiteFooter } from '../site-shell'
 import { CodeFence } from './doc-components'
 import { DocsOutline, DocsOutlineMenu } from './docs-outline'
 import { docsPages, headingId } from './pages'
@@ -147,9 +147,6 @@ export function DocsPage({ path }: { path: string }) {
         <ScrollArea className="docs-sidebar">{navigation}</ScrollArea>
         <main id="main" className="docs-main">
           <div className="docs-mobile-navigation">
-            <nav className="section-links" aria-label="Product navigation">
-              <SectionLinks page="docs" />
-            </nav>
             <details>
               <summary>Documentation</summary>
               <ScrollArea>{navigation}</ScrollArea>

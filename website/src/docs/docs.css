@@ -500,23 +500,6 @@ html:has(.docs-shell) {
   }
 }
 
-.docs-mobile-navigation > .section-links {
-  display: none;
-}
-@media (max-width: 680px) {
-  .docs-mobile-navigation > .section-links {
-    display: flex;
-    gap: 4px;
-    width: max-content;
-    max-width: 100%;
-    margin: 0 auto 16px;
-    font-size: var(--text-sm);
-  }
-  .docs-mobile-navigation > .section-links a {
-    padding: 0 6px;
-  }
-}
-
 .docs-preview > button,
 .docs-preview [data-slot='image-zoom-trigger'] {
   cursor: zoom-in;

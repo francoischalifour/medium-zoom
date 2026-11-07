@@ -30,16 +30,43 @@ const siteSections = [
   },
 ] as const
 
-export function SectionLinks({ page }: { page?: SitePage | 'docs' }) {
+type SiteSection = (typeof siteSections)[number]
+
+function SectionLinks({ page }: { page?: SitePage | 'docs' }) {
   return (
-    <>
+    <div className="section-links">
       {siteSections.map(({ id, href, label, icon }) => (
         <SiteLink key={href} href={href} aria-current={page === id ? 'page' : undefined}>
           {icon}
           {label}
         </SiteLink>
       ))}
-    </>
+    </div>
+  )
+}
+
+// Mobile replacement for the brand name and section links. The native select sits invisibly
+// over the styled trigger: the platform picker opens, and the trigger keeps the site's type size.
+function SectionSelect({ current }: { current: SiteSection }) {
+  return (
+    <div className="section-select">
+      <span className="section-select-label" aria-hidden="true">
+        <span className="section-select-brand">medium-zoom</span>
+        {current.label}
+      </span>
+      <Icon name="selector" className="section-select-indicator" />
+      <select
+        aria-label="Section"
+        value={current.href}
+        onChange={event => location.assign(event.currentTarget.value)}
+      >
+        {siteSections.map(({ href, label }) => (
+          <option key={href} value={href}>
+            {label}
+          </option>
+        ))}
+      </select>
+    </div>
   )
 }
 
@@ -51,6 +78,7 @@ export function SiteHeader({
   searchFramework?: SitePage
 }) {
   const dark = React.useSyncExternalStore(subscribeTheme, getTheme, getServerTheme)
+  const currentSection = siteSections.find(section => section.id === page)
   return (
     <>
       <SiteLink className="skip-link" href="#main">
@@ -62,9 +90,8 @@ export function SiteHeader({
             <img className="brand-mark" src="/brand/mark.svg" alt="" width="24" height="24" />
             <span className="brand-name">medium-zoom</span>
           </SiteLink>
-          <div className="section-links">
-            <SectionLinks page={page} />
-          </div>
+          {currentSection && <SectionSelect current={currentSection} />}
+          <SectionLinks page={page} />
           <div className="nav-links">
             <CommandPalette framework={searchFramework} />
             <SiteLink

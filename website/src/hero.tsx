@@ -6,7 +6,6 @@ import { MonthlyDownloads } from './monthly-downloads'
 import { headline, productPages } from './product-pages'
 import { HeroCrop, Icon, SiteLink } from './site-components'
 import type { SitePage } from './site-data'
-import { SectionLinks } from './site-shell'
 import { JavaScriptIcon, ReactIcon } from './technology-icons'
 
 export function Hero({ page }: { page: SitePage }) {
@@ -14,9 +13,6 @@ export function Hero({ page }: { page: SitePage }) {
   const { eyebrowMark, technologyIcon, secondaryAction } = heroMedia[page]
   return (
     <section className="hero" aria-labelledby="page-title">
-      <nav className="section-links mobile-section-links" aria-label="Product navigation">
-        <SectionLinks page={page} />
-      </nav>
       <span className="eyebrow">
         {eyebrowMark}
         {copy.eyebrow}
