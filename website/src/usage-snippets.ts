@@ -3,10 +3,13 @@ import { siteOrigin } from './site-url.ts'
 
 const imageImport = 'import { ImageZoom } from "@/components/ui/image-zoom"'
 const assets = `${siteOrigin}/assets/images/`
+const serverNote = 'Works with SSR and React Server Components.'
 
 export const usageExamples = [
   {
     id: 'basic',
+    file: 'components/photo.tsx',
+    note: serverNote,
     label: 'Basic',
     description:
       'Pass your source, alt text, and styles. The component handles zoom and keyboard access.',
@@ -14,6 +17,8 @@ export const usageExamples = [
   },
   {
     id: 'composed',
+    file: 'components/photo.tsx',
+    note: serverNote,
     label: 'Composed',
     description: 'Style the trigger and image separately. Add a label inside the button.',
     code: `import * as ImageZoom from "@/components/ui/image-zoom"
@@ -38,6 +43,8 @@ export function Photo() {
   },
   {
     id: 'controlled',
+    file: 'components/photo.tsx',
+    note: 'Use a Client Component to manage zoom state.',
     label: 'Controlled',
     description: 'Own the open state. Trigger activation and dismissal call onOpenChange.',
     code: `"use client"
@@ -66,6 +73,8 @@ export function Photo() {
   },
   {
     id: 'caption',
+    file: 'components/photo.tsx',
+    note: serverNote,
     label: 'With caption',
     description: 'Compose with figure and figcaption to keep the caption alongside your image.',
     code: `${imageImport}
@@ -89,6 +98,8 @@ export function Photo() {
   },
   {
     id: 'gallery',
+    file: 'components/multiple-images.tsx',
+    note: serverNote,
     label: 'Multiple images',
     description: 'Map your photos into a grid. Each image opens independently.',
     code: `${imageImport}
@@ -115,6 +126,8 @@ export function MultipleImages() {
   },
   {
     id: 'hd',
+    file: 'components/photo.tsx',
+    note: serverNote,
     label: 'High resolution',
     description: 'Load a small preview first. Fetch the full-resolution image when zoom opens.',
     code: `${imageImport}

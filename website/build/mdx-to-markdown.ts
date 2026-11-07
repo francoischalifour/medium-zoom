@@ -1,15 +1,16 @@
 import { readFileSync } from 'node:fs'
 
 import { parse, parseExpressionAt, type Expression } from 'acorn'
-import type { Code, List, PhrasingContent, RootContent } from 'mdast'
+import type { List, PhrasingContent, RootContent } from 'mdast'
 import remarkMdx from 'remark-mdx'
 import remarkParse from 'remark-parse'
 import { unified } from 'unified'
 
 import { docsPages } from '../src/docs/pages.ts'
 import { supportedBrowsers } from '../src/docs/supported-browsers.ts'
-import { componentCommands, javascriptCommands } from '../src/install-commands.ts'
-import { heading, link, list, paragraph, text } from './markdown-nodes.ts'
+import { installCommands } from '../src/install-commands.ts'
+import type { SitePage } from '../src/site-data.ts'
+import { codeBlock, heading, link, list, paragraph, text } from './markdown-nodes.ts'
 
 type JsxElement = Extract<RootContent, { type: 'mdxJsxFlowElement' | 'mdxJsxTextElement' }>
 type Convert<Props> = (
@@ -132,12 +133,8 @@ const components: Record<string, Convert<never>> = {
     ...(styles ? [codeBlock(styles)] : []),
   ],
   DocCode: (file: CodeFile) => [codeBlock(file)],
-  InstallCommand: ({ page }: { page: 'javascript' | 'react' }) => [
-    {
-      type: 'code',
-      lang: 'sh',
-      value: (page === 'javascript' ? javascriptCommands : componentCommands).npm,
-    },
+  InstallCommand: ({ page }: { page: SitePage }) => [
+    { type: 'code', lang: 'sh', value: installCommands[page].npm },
   ],
   // The live result of the quickstart's markup is the image itself.
   JavaScriptPreview: ({ src, alt }: { src: string; alt: string }) => [
@@ -283,15 +280,6 @@ function evaluate(expression: Expression, scope: Map<string, unknown>): unknown 
       )
     default:
       throw new Error(`Unsupported MDX expression: ${expression.type}`)
-  }
-}
-
-function codeBlock({ code, title }: CodeFile): Code {
-  return {
-    type: 'code',
-    lang: title.split('.').pop(),
-    meta: `title="${title}"`,
-    value: code.trim(),
   }
 }
 

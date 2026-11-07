@@ -1,6 +1,7 @@
 import * as React from 'react'
 import snippets from 'virtual:highlighted-snippets'
 
+import { splitInlineCode } from './product-pages'
 import { siteOrigin } from './site-url'
 
 const iconPaths = {
@@ -237,5 +238,12 @@ export function ZoomControls({ descriptionId }: { descriptionId?: string }) {
         Press Enter or Space to zoom. Click, press Escape, or scroll to close.
       </span>
     </span>
+  )
+}
+
+// Renders shared page copy, where backticks mark inline code.
+export function InlineCopy({ copy }: { copy: string }) {
+  return splitInlineCode(copy).map((part, index) =>
+    index % 2 === 1 ? <code key={index}>{part}</code> : part
   )
 }

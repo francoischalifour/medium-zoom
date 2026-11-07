@@ -1,12 +1,15 @@
 import { ExampleRail } from './example-rail'
 import { javascriptUsageCode } from './gallery'
 import { ProductFeatures } from './product-features'
+import { integrationsSection, productPages } from './product-pages'
 import { trackSiteEvent } from './site-analytics'
-import { CopyButton, CodeTokens } from './site-components'
+import { CopyButton, CodeTokens, InlineCopy } from './site-components'
 
 import './javascript.css'
 
 export function JavaScriptPage() {
+  const { usage } = productPages.javascript
+  const { featured, integrations } = integrationsSection
   return (
     <>
       <ExampleRail kind="javascript" />
@@ -16,11 +19,10 @@ export function JavaScriptPage() {
         <div className="guide-heading">
           <div>
             <h2 id="usage-title" tabIndex={-1}>
-              Pick your images.
+              {usage.title}
             </h2>
             <p>
-              Add <code>data-zoomable</code> to your images, then attach the zoom. Styles come
-              included.
+              <InlineCopy copy={usage.description} />
             </p>
           </div>
         </div>
@@ -40,61 +42,42 @@ export function JavaScriptPage() {
           </pre>
         </div>
         <p className="guide-note">
-          Set the spacing, match your background, or load a sharper image on zoom.{' '}
-          <a href="/docs/reference/javascript/medium-zoom/">
-            Read the API reference <span aria-hidden="true">→</span>
+          <InlineCopy copy={usage.note} />{' '}
+          <a href={usage.link.href}>
+            {usage.link.label} <span aria-hidden="true">→</span>
           </a>
         </p>
       </section>
       <section className="integration-section" aria-labelledby="integrations-title">
         <div className="section-heading integration-heading">
           <div>
-            <h2 id="integrations-title">Start with your stack.</h2>
-            <p>The same zoom, wherever you build.</p>
+            <h2 id="integrations-title">{integrationsSection.title}</h2>
+            <p>{integrationsSection.description}</p>
           </div>
         </div>
-        <a className="integration-card featured-integration" href="/react">
+        <a className="integration-card featured-integration" href={featured.href}>
           <span className="integration-symbol" aria-hidden="true">
             <span className="shadcn-mark"></span>
           </span>
           <div>
-            <span className="integration-tag">React + TypeScript</span>
-            <h3>A component you own.</h3>
-            <p>Install with the shadcn CLI. Own the source. Match your theme.</p>
+            <span className="integration-tag">{featured.tag}</span>
+            <h3>{featured.title}</h3>
+            <p>{featured.description}</p>
             <span className="integration-action">
-              Explore shadcn/ui <span aria-hidden="true">→</span>
+              {featured.action} <span aria-hidden="true">→</span>
             </span>
           </div>
         </a>
         <div className="integration-grid">
-          <a className="integration-card" href="/docs/integrations/vue/">
-            <span className="stack-name">Vue</span>
-            <span>A component for Vue and Nuxt.</span>
-            <span className="card-arrow" aria-hidden="true">
-              →
-            </span>
-          </a>
-          <a className="integration-card" href="/docs/integrations/svelte/">
-            <span className="stack-name">Svelte</span>
-            <span>A component for Svelte and SvelteKit.</span>
-            <span className="card-arrow" aria-hidden="true">
-              →
-            </span>
-          </a>
-          <a className="integration-card" href="/docs/integrations/solid/">
-            <span className="stack-name">Solid</span>
-            <span>A component for Solid and SolidStart.</span>
-            <span className="card-arrow" aria-hidden="true">
-              →
-            </span>
-          </a>
-          <a className="integration-card" href="/docs/javascript/">
-            <span className="stack-name">JavaScript</span>
-            <span>Attach zoom with a selector.</span>
-            <span className="card-arrow" aria-hidden="true">
-              →
-            </span>
-          </a>
+          {integrations.map(integration => (
+            <a key={integration.href} className="integration-card" href={integration.href}>
+              <span className="stack-name">{integration.name}</span>
+              <span>{integration.description}</span>
+              <span className="card-arrow" aria-hidden="true">
+                →
+              </span>
+            </a>
+          ))}
         </div>
       </section>
     </>
