@@ -14,9 +14,9 @@ test('overview separates quickstarts, task guides, and the two API references', 
     'Get started',
     'Guides',
     'React guides',
-    'Integrations',
     'JavaScript reference',
     'React reference',
+    'Integrations',
   ])
   const choices = page.getByRole('navigation', { name: 'Choose your setup' })
   await expect(choices.getByRole('link', { name: /JavaScript quickstart/ })).toHaveAttribute(
@@ -123,10 +123,10 @@ test('previous and next cards preserve direction and stop only at the sidebar en
   const reference = page.getByRole('navigation', { name: 'Documentation pages', exact: true })
   await expect(reference.locator('a[rel="prev"]')).toHaveCount(0)
   await expect(reference.locator('a[rel="next"]')).toHaveAttribute('href', '/docs/javascript/')
-  await page.goto('/docs/reference/react/composition/')
+  await page.goto('/docs/integrations/astro/')
   await expect(reference.locator('a[rel="next"]')).toHaveCount(0)
   await expect(reference.locator('a[rel="prev"]')).toHaveAttribute(
     'href',
-    '/docs/reference/react/image-zoom/'
+    '/docs/integrations/solid/'
   )
 })

@@ -1,0 +1,41 @@
+---
+import image1 from '../assets/image-1.jpg'
+import image2 from '../assets/image-2.jpg'
+import image3 from '../assets/image-3.jpg'
+import ZoomableImage from '../components/ZoomableImage.astro'
+import '../styles/reset.css'
+import '../styles/style.css'
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000" />
+    <link rel="icon" href="favicon.ico" />
+    <title>Medium Zoom | Astro Demo</title>
+  </head>
+  <body>
+    <article class="container">
+      <h1>Medium Zoom Astro demo</h1>
+
+      <ZoomableImage src={image1} alt="Zoom 1" />
+
+      <p>
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Tempora praesentium cupiditate
+        fugit voluptas, rem eligendi, voluptatem molestias. Doloremque sit voluptatum odio maiores
+        provident consequuntur accusantium saepe.
+      </p>
+
+      <ZoomableImage src={image2} alt="Zoom 2" />
+
+      <p>
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ea dolores quaerat, quis modi
+        nostrum sequi adipisci ratione esse blanditiis error beatae vel non vero dolor nemo. Animi
+        nemo quisquam ducimus!
+      </p>
+
+      <ZoomableImage src={image3} alt="Zoom 3" options={{ background: 'black' }} />
+    </article>
+  </body>
+</html>

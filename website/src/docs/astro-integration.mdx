@@ -1,0 +1,110 @@
+import { InstallCommand } from '../install-command'
+import { JavaScriptPreview, RelatedPages } from './doc-components'
+
+medium-zoom works with Astro out of the box. Wrap Astro's `<Image />` in a small component, then use it like an image.
+
+## Install the package
+
+<InstallCommand page="javascript" id="astro-installation" />
+
+The standard import includes zoom styles and TypeScript definitions.
+
+## Create the component
+
+Render an optimized image inside a custom element, which attaches the zoom when it enters the page and detaches it when it leaves:
+
+```astro
+---
+import { Image } from 'astro:assets'
+import type { ComponentProps } from 'astro/types'
+import type { ZoomOptions } from 'medium-zoom'
+import 'medium-zoom/dist/style.css'
+
+type Props = ComponentProps<typeof Image> & { options?: ZoomOptions }
+
+const { options, ...props } = Astro.props
+---
+
+<zoomable-image data-options={JSON.stringify(options)}>
+  <Image {...props} />
+</zoomable-image>
+
+<script>
+  import mediumZoom, { type Zoom } from 'medium-zoom/dist/pure'
+
+  class ZoomableImage extends HTMLElement {
+    #zoom: Zoom | undefined
+
+    connectedCallback() {
+      const options = JSON.parse(this.dataset.options ?? '{}')
+      this.#zoom = mediumZoom(this.querySelector('img')!, options)
+    }
+
+    disconnectedCallback() {
+      this.#zoom?.detach()
+    }
+  }
+
+  customElements.define('zoomable-image', ZoomableImage)
+</script>
+```
+
+Save it as `src/components/ZoomableImage.astro`. The component accepts every `<Image />` prop, such as `src`, `alt`, `width`, and `height`. Astro bundles the script once, however many images use the component.
+
+The component imports the [pure entry point and stylesheet](/docs/javascript/#separate-stylesheet) so that Astro adds the zoom styles to every page that uses it, instead of the library injecting them at runtime.
+
+## Display an image
+
+Import the component and an image from `src/`:
+
+```astro
+---
+import ZoomableImage from '../components/ZoomableImage.astro'
+import oceanSunset from '../assets/ocean-sunset.jpg'
+---
+
+<ZoomableImage src={oceanSunset} alt="Ocean sunset" />
+```
+
+Astro reads the width and height from the imported file and converts the image to WebP. Click the image to enlarge it:
+
+<JavaScriptPreview
+  src="/assets/images/ocean-sunset.jpg"
+  alt="Ocean sunset"
+  width={1_920}
+  height={1_280}
+  label="Enlarge ocean sunset"
+/>
+
+Click the enlarged image or its background, press <kbd aria-label="Escape">Esc</kbd>, or scroll to close the zoom.
+
+To keep the image responsive, follow the [image size step](/docs/javascript/#set-the-image-size) of the JavaScript quickstart.
+
+## Set options
+
+Pass [options](/docs/reference/javascript/options/) to change the margin, background, or scroll behavior:
+
+```astro
+<ZoomableImage
+  src={oceanSunset}
+  alt="Ocean sunset"
+  options={{ margin: 24, background: '#000000' }}
+/>
+```
+
+The server serializes the options into the page as JSON, so pass `container` and `template` as selectors rather than elements.
+
+## Client-side navigation
+
+The component also works with Astro's `<ClientRouter />`. Leaving a page disconnects its images and detaches their zooms, and arriving on a page attaches the new ones. Because the zoom styles are part of the page stylesheet, the router keeps them while it swaps pages.
+
+## Next steps
+
+<RelatedPages
+  pages={[
+    '/docs/guides/hd-images/',
+    '/docs/guides/multiple-images/',
+    '/docs/guides/styling/',
+    '/docs/reference/javascript/options/',
+  ]}
+/>

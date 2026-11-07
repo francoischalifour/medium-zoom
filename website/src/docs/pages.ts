@@ -7,18 +7,18 @@ export const docsPages = [
     path: '/docs/',
     source: 'overview.mdx',
     summary: 'Choose a quickstart or look up the API.',
-    updatedOn: '2026-11-06',
+    updatedOn: '2026-11-07',
     title: 'Overview',
     documentTitle: 'Documentation • medium-zoom',
     group: 'Get started',
     description:
-      'Choose a JavaScript or React quickstart, follow task guides, integrate with Vue, Svelte, or Solid, and look up the medium-zoom API.',
+      'Choose a JavaScript or React quickstart, follow task guides, look up the medium-zoom API, and integrate with Angular, Vue, Svelte, Solid, or Astro.',
   },
   {
     path: '/docs/javascript/',
     source: 'javascript-quickstart.mdx',
     summary: 'Make your first image zoomable.',
-    updatedOn: '2026-11-06',
+    updatedOn: '2026-11-07',
     title: 'JavaScript quickstart',
     documentTitle: 'JavaScript quickstart • medium-zoom',
     group: 'Get started',
@@ -125,39 +125,6 @@ export const docsPages = [
       'Render React image zoom with SSR and React Server Components, using client boundaries for state and handlers.',
   },
   {
-    path: '/docs/integrations/vue/',
-    source: 'vue-integration.mdx',
-    summary: 'Wrap the library in a Vue component.',
-    updatedOn: '2026-11-06',
-    title: 'Vue',
-    documentTitle: 'Vue image zoom • medium-zoom',
-    group: 'Integrations',
-    description:
-      'Add image zoom to Vue and Nuxt with a small component that attaches medium-zoom on mount and detaches it on unmount.',
-  },
-  {
-    path: '/docs/integrations/svelte/',
-    source: 'svelte-integration.mdx',
-    summary: 'Wrap the library in a Svelte component.',
-    updatedOn: '2026-11-06',
-    title: 'Svelte',
-    documentTitle: 'Svelte image zoom • medium-zoom',
-    group: 'Integrations',
-    description:
-      'Add image zoom to Svelte and SvelteKit with a small component that attaches medium-zoom on mount and detaches it on unmount.',
-  },
-  {
-    path: '/docs/integrations/solid/',
-    source: 'solid-integration.mdx',
-    summary: 'Wrap the library in a Solid component.',
-    updatedOn: '2026-11-06',
-    title: 'Solid',
-    documentTitle: 'Solid image zoom • medium-zoom',
-    group: 'Integrations',
-    description:
-      'Add image zoom to Solid and SolidStart with a small component that attaches medium-zoom on mount and detaches it on unmount.',
-  },
-  {
     path: '/docs/reference/javascript/medium-zoom/',
     source: 'javascript-api.mdx',
     summary: 'Select images and create a zoom instance.',
@@ -222,6 +189,61 @@ export const docsPages = [
     group: 'React reference',
     description:
       'React image zoom composition reference covering Root, Trigger, Image, native props, state, and refs.',
+  },
+  {
+    path: '/docs/integrations/angular/',
+    source: 'angular-integration.mdx',
+    summary: 'Wrap the library in an Angular directive.',
+    updatedOn: '2026-11-07',
+    title: 'Angular',
+    documentTitle: 'Angular image zoom • medium-zoom',
+    group: 'Integrations',
+    description:
+      'Add image zoom to Angular with a standalone directive that attaches medium-zoom after render, updates its options from a signal input, and detaches on destroy.',
+  },
+  {
+    path: '/docs/integrations/vue/',
+    source: 'vue-integration.mdx',
+    summary: 'Wrap the library in a Vue component.',
+    updatedOn: '2026-11-06',
+    title: 'Vue',
+    documentTitle: 'Vue image zoom • medium-zoom',
+    group: 'Integrations',
+    description:
+      'Add image zoom to Vue and Nuxt with a small component that attaches medium-zoom on mount and detaches it on unmount.',
+  },
+  {
+    path: '/docs/integrations/svelte/',
+    source: 'svelte-integration.mdx',
+    summary: 'Wrap the library in a Svelte component.',
+    updatedOn: '2026-11-06',
+    title: 'Svelte',
+    documentTitle: 'Svelte image zoom • medium-zoom',
+    group: 'Integrations',
+    description:
+      'Add image zoom to Svelte and SvelteKit with a small component that attaches medium-zoom on mount and detaches it on unmount.',
+  },
+  {
+    path: '/docs/integrations/solid/',
+    source: 'solid-integration.mdx',
+    summary: 'Wrap the library in a Solid component.',
+    updatedOn: '2026-11-06',
+    title: 'Solid',
+    documentTitle: 'Solid image zoom • medium-zoom',
+    group: 'Integrations',
+    description:
+      'Add image zoom to Solid and SolidStart with a small component that attaches medium-zoom on mount and detaches it on unmount.',
+  },
+  {
+    path: '/docs/integrations/astro/',
+    source: 'astro-integration.mdx',
+    summary: 'Wrap optimized images in an Astro component.',
+    updatedOn: '2026-11-07',
+    title: 'Astro',
+    documentTitle: 'Astro image zoom • medium-zoom',
+    group: 'Integrations',
+    description:
+      'Add image zoom to Astro with a component that renders an optimized image and attaches medium-zoom from a custom element.',
   },
 ] as const
 
