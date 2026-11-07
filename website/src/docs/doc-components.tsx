@@ -1,7 +1,7 @@
 import mediumZoom, { type Zoom } from 'medium-zoom'
 import * as React from 'react'
 
-import { CopyButton, HighlightedCode, Icon, ZoomControls } from '../site-components'
+import { CopyButton, HighlightedCode, ZoomControls } from '../site-components'
 import { TabList } from '../site-tabs'
 import { docsPages } from './pages'
 import { supportedBrowsers } from './supported-browsers'
@@ -189,32 +189,6 @@ export function JavaScriptPreview({
 }
 
 type DocsPath = (typeof docsPages)[number]['path']
-
-export function PageNavigationCards({
-  pages,
-}: {
-  pages: readonly { path: DocsPath; direction: 'prev' | 'next' }[]
-}) {
-  return (
-    <ul className="docs-page-cards">
-      {pages.map(({ path, direction }) => {
-        const page = docsPages.find(page => page.path === path)!
-        return (
-          <li key={path} className={`docs-page-card--${direction}`}>
-            <a href={path} rel={direction} data-direction={direction}>
-              <span className="docs-page-direction">
-                {direction === 'prev' ? 'Previous' : 'Next'}
-              </span>
-              <strong>{page.title}</strong>
-              <span>{page.summary}</span>
-              <Icon name="arrow" />
-            </a>
-          </li>
-        )
-      })}
-    </ul>
-  )
-}
 
 export function RelatedPages({ pages }: { pages: readonly DocsPath[] }) {
   return (
