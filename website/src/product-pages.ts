@@ -55,7 +55,7 @@ export function productFeatures(page: SitePage, gzipBytes: number): ProductFeatu
       {
         icon: 'typescript',
         title: 'Any framework. TypeScript ready.',
-        description: 'Use with React, Vue, Svelte, Solid, or plain HTML.',
+        description: 'Use with React, Angular, Vue, Svelte, Astro, or plain HTML.',
       },
     ],
     react: [
@@ -92,6 +92,11 @@ export const integrationsSection = {
     href: '/react',
   },
   integrations: [
+    {
+      name: 'Angular',
+      description: 'A directive for Angular and Angular SSR.',
+      href: '/docs/integrations/angular/',
+    },
     { name: 'Vue', description: 'A component for Vue and Nuxt.', href: '/docs/integrations/vue/' },
     {
       name: 'Svelte',
@@ -102,6 +107,11 @@ export const integrationsSection = {
       name: 'Solid',
       description: 'A component for Solid and SolidStart.',
       href: '/docs/integrations/solid/',
+    },
+    {
+      name: 'Astro',
+      description: 'A component for optimized Astro images.',
+      href: '/docs/integrations/astro/',
     },
     { name: 'JavaScript', description: 'Attach zoom with a selector.', href: '/docs/javascript/' },
   ],

@@ -9,9 +9,11 @@ const aliases: Record<string, string> = {
   '/docs/guides/styling/': 'css styles caption overlay',
   '/docs/javascript/': 'install installation setup vanilla npm',
   '/docs/react/': 'install installation setup shadcn npm',
+  '/docs/integrations/angular/': 'ng ssr directive signals',
   '/docs/integrations/vue/': 'vuejs nuxt',
   '/docs/integrations/svelte/': 'sveltekit',
   '/docs/integrations/solid/': 'solidjs solidstart',
+  '/docs/integrations/astro/': 'astrojs assets view transitions client router',
 }
 
 // Preserve complete API identifiers and also make their individual words searchable.

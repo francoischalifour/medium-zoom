@@ -20,15 +20,17 @@ const pages = [
     'Server rendering',
     'React SSR and Server Components • medium-zoom',
   ],
-  ['/docs/integrations/vue/', 'Vue', 'Vue image zoom • medium-zoom'],
-  ['/docs/integrations/svelte/', 'Svelte', 'Svelte image zoom • medium-zoom'],
-  ['/docs/integrations/solid/', 'Solid', 'Solid image zoom • medium-zoom'],
   ['/docs/reference/javascript/medium-zoom/', 'mediumZoom()', 'mediumZoom() API • medium-zoom'],
   ['/docs/reference/javascript/options/', 'Options', 'JavaScript options • medium-zoom'],
   ['/docs/reference/javascript/methods/', 'Methods', 'JavaScript methods • medium-zoom'],
   ['/docs/reference/javascript/events/', 'Events', 'JavaScript events • medium-zoom'],
   ['/docs/reference/react/image-zoom/', '<ImageZoom>', 'React ImageZoom API • medium-zoom'],
   ['/docs/reference/react/composition/', 'Composition', 'React composition API • medium-zoom'],
+  ['/docs/integrations/angular/', 'Angular', 'Angular image zoom • medium-zoom'],
+  ['/docs/integrations/vue/', 'Vue', 'Vue image zoom • medium-zoom'],
+  ['/docs/integrations/svelte/', 'Svelte', 'Svelte image zoom • medium-zoom'],
+  ['/docs/integrations/solid/', 'Solid', 'Solid image zoom • medium-zoom'],
+  ['/docs/integrations/astro/', 'Astro', 'Astro image zoom • medium-zoom'],
 ] as const
 
 test('collapsed docs navigation stays inside the article column on phones and tablets', async ({
@@ -66,7 +68,7 @@ test('collapsed docs navigation stays inside the article column on phones and ta
 
 test('the sidebar and outline keep their active entries in view', async ({ page }) => {
   await page.setViewportSize({ width: 1_440, height: 600 })
-  await page.goto('/docs/reference/react/composition/')
+  await page.goto('/docs/integrations/astro/')
   await expect(page.locator('.docs-sidebar [aria-current="page"]')).toBeInViewport({ ratio: 1 })
   await page.goto('/docs/reference/javascript/methods/')
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
@@ -109,7 +111,7 @@ for (const theme of ['light', 'dark'] as const) {
     })
     await expect(area).toHaveAttribute('data-scroll-above', '')
     await expect(area).toHaveAttribute('data-scroll-below', '')
-    await area.getByRole('link', { name: 'Composition', exact: true }).focus()
+    await area.getByRole('link', { name: 'Astro', exact: true }).focus()
     await expect(area).toHaveAttribute('data-scroll-above', '')
     await expect(area).not.toHaveAttribute('data-scroll-below')
     expect(await area.evaluate(element => getComputedStyle(element, '::after').opacity)).toBe('0')
@@ -294,10 +296,13 @@ test('documentation navigation preserves package manager and theme preferences',
     .getByRole('navigation', { name: 'Choose your setup' })
     .getByRole('link', { name: /JavaScript quickstart/ })
     .click()
-  await page
+  // A click before hydration is replayed once React loads, so wait for the choice instead of
+  // asserting it immediately.
+  const bun = page
     .locator('#javascript-installation')
     .getByRole('radio', { name: 'bun', exact: true })
-    .check()
+  await bun.click()
+  await expect(bun).toBeChecked()
   await expect(page.locator('#javascript-installation')).toContainText('bun add medium-zoom')
   await page
     .getByRole('navigation', { name: 'Main navigation', exact: true })

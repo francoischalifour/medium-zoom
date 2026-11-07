@@ -5,6 +5,12 @@ import { basename, join, resolve } from 'node:path'
 
 import { exampleNames } from './example-names.ts'
 
+// Framework CLIs emit root-relative URLs, so they need the subpath the website serves them from.
+const subpathBuildArgs: Record<string, string[]> = {
+  angular: ['--base-href=/standalone-examples/angular/'],
+  astro: ['--base=/standalone-examples/astro/'],
+}
+
 const directory = mkdtempSync(join(tmpdir(), 'medium-zoom-examples-'))
 try {
   const names = exampleNames.values()
@@ -49,7 +55,7 @@ async function checkExample(name: string) {
   console.log(`Checking standalone ${name}`)
   await run(['install', '--no-audit', '--no-fund', '--package-lock=false'])
   await run(['run', 'typecheck'])
-  await run(['run', 'build'])
+  await run(['run', 'build', '--', ...(subpathBuildArgs[name] ?? [])])
   const output = resolve('website/dist/standalone-examples', name)
   rmSync(output, { recursive: true, force: true })
   cpSync(join(root, 'dist'), output, { recursive: true })
