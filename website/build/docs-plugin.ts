@@ -6,9 +6,10 @@ import { parseExpressionAt } from 'acorn'
 import type { Plugin } from 'vite'
 
 import type { SearchEntry } from '../src/docs-search.ts'
-import { docsPages, docsPublishedOn, headingId, markdownPath } from '../src/docs/pages.ts'
+import { docsPages, docsPublishedOn, headingId } from '../src/docs/pages.ts'
 import { siteOrigin } from '../src/site-url.ts'
 import { docsOgImagePath } from './docs-sharing.ts'
+import { markdownPath } from './site-markdown.ts'
 
 function getOutline(source: string) {
   const prose = source.replace(/^```[^\n]*\n[\s\S]*?^```/gm, '')

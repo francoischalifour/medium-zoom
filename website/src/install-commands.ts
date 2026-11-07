@@ -1,3 +1,4 @@
+import type { SitePage } from './site-data.ts'
 import { siteOrigin } from './site-url.ts'
 
 export const registryUrl = `${siteOrigin}/r/image-zoom.json`
@@ -15,3 +16,9 @@ export const componentCommands = {
   yarn: `yarn dlx shadcn@latest add ${registryUrl}`,
   bun: `bunx shadcn@latest add ${registryUrl}`,
 }
+
+// The install command each product page offers.
+export const installCommands = {
+  javascript: javascriptCommands,
+  react: componentCommands,
+} satisfies Record<SitePage, Record<string, string>>
