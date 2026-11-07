@@ -71,11 +71,12 @@ async function buildAngular({ root, base, workDirectory }: FrameworkBuildOptions
 }
 
 // Resolve every medium-zoom import, including its pure entry and stylesheet, to this repository.
-async function buildAstro({ root, base, workDirectory }: FrameworkBuildOptions) {
+// Astro builds into the project's own `dist`: its image service and asset moves fail outside it.
+async function buildAstro({ root, base }: FrameworkBuildOptions) {
   const astro = await import(
     import.meta.resolve('astro', pathToFileURL(join(root, 'package.json')).href)
   )
-  const outDir = join(workDirectory, 'dist')
+  const outDir = join(root, 'dist')
   await astro.build({
     root,
     base,
