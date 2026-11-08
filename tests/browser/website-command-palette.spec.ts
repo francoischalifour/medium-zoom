@@ -32,6 +32,27 @@ for (const shortcut of ['Meta+k', 'Control+k']) {
   })
 }
 
+for (const { platform, label, keys } of [
+  { platform: 'MacIntel', label: '⌘ K', keys: 'Meta+K' },
+  { platform: 'Win32', label: 'Ctrl+K', keys: 'Control+K' },
+]) {
+  test(`the search shortcut reads ${label} on ${platform} from the first paint`, async ({
+    page,
+  }) => {
+    await page.addInitScript(value => {
+      Object.defineProperty(Navigator.prototype, 'platform', { get: () => value })
+    }, platform)
+    const trigger = page.getByRole('button', { name: /Search docs/ })
+    await page.route('**/assets/*.js', route => route.abort())
+    await page.goto('/')
+    await expect(trigger.locator('kbd')).toHaveText(label, { useInnerText: true })
+    await page.unroute('**/assets/*.js')
+    await page.reload()
+    await expect(trigger).toHaveAttribute('aria-keyshortcuts', keys)
+    await expect(trigger.locator('kbd')).toHaveText(label, { useInnerText: true })
+  })
+}
+
 test('aliases, keyboard selection, empty state, and modal accessibility', async ({ page }) => {
   await page.goto('/docs/react/')
   await page.getByRole('button', { name: /Search docs/ }).click()

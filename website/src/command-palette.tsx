@@ -3,6 +3,7 @@ import * as React from 'react'
 import { getCommandGroups, commandVerbs, type CommandItem } from './command-items'
 import { getSearchTerms, type DocsSearch } from './docs-search'
 import { usePackageManager } from './package-manager'
+import { usesAppleShortcuts } from './shortcut-platform'
 import { trackInstallCopied, trackSiteEvent } from './site-analytics'
 import { Icon } from './site-components'
 import type { SitePage } from './site-data'
@@ -166,7 +167,7 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
     }
   }
   React.useEffect(() => {
-    setMac(/Mac|iPhone|iPad/.test(navigator.platform))
+    setMac(usesAppleShortcuts())
     function onKeyDown(event: KeyboardEvent) {
       if (
         event.isComposing ||
@@ -333,7 +334,11 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
       >
         <Icon name="search" />
         <span>Search docs</span>
-        <kbd aria-hidden="true">{mac ? '⌘' : 'Ctrl'} K</kbd>
+        {/* The head script picks the label before the first paint, so it never swaps on hydration. */}
+        <kbd aria-hidden="true">
+          <span data-shortcut-label="apple">⌘ K</span>
+          <span data-shortcut-label="other">Ctrl+K</span>
+        </kbd>
       </button>
       <dialog
         ref={dialog}

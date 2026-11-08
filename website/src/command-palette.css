@@ -40,6 +40,10 @@ body:has(.command-palette[open]) {
   letter-spacing: 0;
   white-space: nowrap;
 }
+:root:not([data-shortcut-platform='apple']) [data-shortcut-label='apple'],
+:root[data-shortcut-platform='apple'] [data-shortcut-label='other'] {
+  display: none;
+}
 .search-trigger[aria-expanded='true'],
 .search-trigger:active {
   border-color: var(--ring);
