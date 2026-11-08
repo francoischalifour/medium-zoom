@@ -9,7 +9,6 @@ import packageJson from '../package.json' with { type: 'json' }
 import { docsPlugin } from '../website/build/docs-plugin.ts'
 import { generatedFiles } from '../website/build/generated-files.ts'
 import { libraryGzipBytes } from '../website/build/library-size.ts'
-import { siteFonts } from '../website/build/site-fonts.ts'
 import { siteHeaders } from '../website/build/site-headers.ts'
 import { siteHighlights } from '../website/build/site-highlights.ts'
 import { siteIndexingFiles } from '../website/build/site-indexing.ts'
@@ -42,7 +41,6 @@ export default defineConfig(({ command }) =>
       { ...mdx(), enforce: 'pre' },
       react({ include: /\.(jsx|tsx|mdx)$/ }),
       galleryAssets(),
-      siteFonts(),
       siteHeaders(),
       siteStyles(),
       sitePreferences(),

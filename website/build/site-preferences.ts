@@ -4,6 +4,7 @@ import {
   packageManagerPreference,
   restorePackageManager,
 } from '../src/package-manager-preference.ts'
+import { restoreShortcutPlatform } from '../src/shortcut-platform.ts'
 import { restoreTheme, themeKey } from '../src/site-theme.ts'
 
 export function sitePreferences(): Plugin {
@@ -13,7 +14,7 @@ export function sitePreferences(): Plugin {
       return [
         {
           tag: 'script',
-          children: `(${restoreTheme.toString()})(${JSON.stringify(themeKey)});(${restorePackageManager.toString()})(${JSON.stringify(packageManagerPreference)})`,
+          children: `(${restoreTheme.toString()})(${JSON.stringify(themeKey)});(${restorePackageManager.toString()})(${JSON.stringify(packageManagerPreference)});(${restoreShortcutPlatform.toString()})()`,
           injectTo: 'head',
         },
       ]
