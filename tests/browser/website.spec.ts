@@ -191,30 +191,22 @@ test('rails start on the content grid and scroll across the viewport', async ({ 
   }
 })
 
-test('both pages preload the same font resources across navigation', async ({ page }) => {
+test('the code font loads after the first paint without blocking it', async ({ page }) => {
   await openJavaScriptPage(page)
-  const homeFonts = await page
-    .locator('link[rel="preload"][as="font"]')
-    .evaluateAll(links => links.map(link => (link as HTMLLinkElement).href).sort())
-  expect(homeFonts).toHaveLength(2)
-  await page
-    .getByRole('navigation', { name: 'Main navigation', exact: true })
-    .getByRole('link', { name: 'React', exact: true })
-    .click()
-  await expect(page.locator('link[rel="preload"][as="font"]')).toHaveCount(2)
-  const componentFonts = await page
-    .locator('link[rel="preload"][as="font"]')
-    .evaluateAll(links => links.map(link => (link as HTMLLinkElement).href).sort())
-  expect(componentFonts).toEqual(homeFonts)
-  await page.evaluate(() => document.fonts.ready)
-  const loadedFonts = await page.evaluate(() =>
-    performance
-      .getEntriesByType('resource')
-      .map(resource => resource.name)
-      .filter(name => name.endsWith('.woff2'))
-      .sort()
-  )
-  expect(loadedFonts).toEqual(homeFonts)
+  await expect(page.locator('link[rel="preload"][as="font"]')).toHaveCount(0)
+  const fontStarts = () =>
+    page.evaluate(() =>
+      performance
+        .getEntriesByType('resource')
+        .filter(resource => resource.name.endsWith('.woff2'))
+        .map(font => font.startTime)
+    )
+  await expect.poll(async () => (await fontStarts()).length).toBe(2)
+  const timing = await page.evaluate(() => ({
+    paint: performance.getEntriesByName('first-contentful-paint')[0].startTime,
+  }))
+  const fonts = await fontStarts()
+  expect(fonts.every(start => start >= timing.paint)).toBe(true)
 })
 
 test('package manager preference follows navigation, reloads, and other tabs', async ({
