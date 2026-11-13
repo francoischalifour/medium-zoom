@@ -56,7 +56,7 @@ The [JavaScript quickstart](https://medium-zoom.francoischalifour.com/docs/javas
 In a project configured for [shadcn/ui](https://ui.shadcn.com), install the component:
 
 ```sh
-npx shadcn@latest add https://medium-zoom.francoischalifour.com/r/image-zoom.json
+npx shadcn@latest add @medium-zoom/image-zoom
 ```
 
 ```tsx

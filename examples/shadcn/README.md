@@ -7,7 +7,7 @@ Editable React integration for medium-zoom. See the [React quickstart](https://m
 From a project configured for shadcn/ui:
 
 ```sh
-npx shadcn@latest add https://medium-zoom.francoischalifour.com/r/image-zoom.json
+npx shadcn@latest add @medium-zoom/image-zoom
 ```
 
 The registry installs the component, stylesheet, and medium-zoom dependency. Use `ImageZoom` for a single image or compose `Root`, `Trigger`, and `Image`.

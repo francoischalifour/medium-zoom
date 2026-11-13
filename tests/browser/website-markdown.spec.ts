@@ -82,7 +82,7 @@ test('product page Markdown includes every usage example and the API table', asy
   request,
 }) => {
   const react = await getText(request, '/react.md', 'text/markdown')
-  expect(react).toContain(`\`\`\`sh\nnpx shadcn@latest add ${origin}/r/image-zoom.json\n\`\`\``)
+  expect(react).toContain('```sh\nnpx shadcn@latest add @medium-zoom/image-zoom\n```')
   for (const example of ['Basic', 'Composed', 'Controlled', 'With caption', 'Multiple images']) {
     expect(react).toContain(`### ${example}\n`)
   }
