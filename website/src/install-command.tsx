@@ -50,6 +50,8 @@ export function InstallCommand({
             {packageManagers.map(value => (
               <span key={value} data-package-manager-option={value}>
                 <CodeTokens code={commands[value]} />
+                {/* Crawlers read every variant from the raw text; keep their URLs apart. */}
+                <span hidden>{'\n'}</span>
               </span>
             ))}
           </code>
