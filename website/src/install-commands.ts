@@ -3,6 +3,9 @@ import { siteOrigin } from './site-url.ts'
 
 export const registryUrl = `${siteOrigin}/r/image-zoom.json`
 
+// The shadcn registry index maps the @medium-zoom namespace to this site's /r/{name}.json.
+export const registryItem = '@medium-zoom/image-zoom'
+
 export const javascriptCommands = {
   npm: 'npm install medium-zoom',
   pnpm: 'pnpm add medium-zoom',
@@ -11,10 +14,10 @@ export const javascriptCommands = {
 }
 
 export const componentCommands = {
-  npm: `npx shadcn@latest add ${registryUrl}`,
-  pnpm: `pnpm dlx shadcn@latest add ${registryUrl}`,
-  yarn: `yarn dlx shadcn@latest add ${registryUrl}`,
-  bun: `bunx shadcn@latest add ${registryUrl}`,
+  npm: `npx shadcn@latest add ${registryItem}`,
+  pnpm: `pnpm dlx shadcn@latest add ${registryItem}`,
+  yarn: `yarn dlx shadcn@latest add ${registryItem}`,
+  bun: `bunx shadcn@latest add ${registryItem}`,
 }
 
 // The install command each product page offers.

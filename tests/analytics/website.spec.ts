@@ -329,7 +329,7 @@ test('palette install actions respect package selection and clipboard permission
   await page.keyboard.press('Enter')
   await expect(page.getByRole('dialog')).not.toBeVisible()
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
-    'pnpm dlx shadcn@latest add https://medium-zoom.francoischalifour.com/r/image-zoom.json'
+    'pnpm dlx shadcn@latest add @medium-zoom/image-zoom'
   )
   await expect
     .poll(() => events.filter(event => event.event === 'Install Command Copied').length)
