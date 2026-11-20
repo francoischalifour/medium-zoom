@@ -36,16 +36,22 @@ const zoom = createZoom('img', {
   margin: 24,
 })
 createZoom('img', { loader: loadHdImage, viewport })
-const unbind = bindZoomTriggers(zoom)
-const gallery = createGallery(zoom)
-const keys = bindGalleryKeyboard(document.createElement('div'), gallery)
 const session = createZoomSession(zoom)
+// A session is a commander: triggers and galleries can route their requests through it.
+const unbind = bindZoomTriggers(zoom, session)
+const gallery = createGallery(zoom, session)
+const keys = bindGalleryKeyboard(document.createElement('div'), gallery)
+void session.toggle()
 void session.open({ trigger: document.createElement('button') })
 void gallery.next()
 keys()
 unbind()
 gallery.dispose()
 void session.dispose()
+// @ts-expect-error A gallery replaces the open image, which needs a renderer.
+createGallery(createZoom('img'))
+// @ts-expect-error Trigger bindings announce a dialog, which needs a renderer.
+bindZoomTriggers(createZoom('img', { loader: loadHdImage }))
 // @ts-expect-error Correct target type for viewport helper.
 containerBounds(42)
 // @ts-expect-error Correct target type for template helper.

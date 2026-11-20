@@ -86,10 +86,13 @@
     "typecheck:examples": "bun run --filter \"@medium-zoom/*-example\" typecheck",
     "test": "bun run test:browser",
     "test:browser": "playwright test --config config/playwright.config.mts",
+    "test:browser:shadcn-composable": "MEDIUM_ZOOM_SHADCN=composable bun run test:browser shadcn.spec.ts shadcn-composition.spec.ts",
     "test:package": "bun scripts/check-package.ts",
-    "test:size": "bun scripts/check-size.ts && bun scripts/check-composition-size.ts",
+    "size": "bun scripts/size.ts",
+    "size:baseline": "bun scripts/size.ts --update-baseline",
+    "test:size": "bun run size",
     "check": "bun run check:library && bun run build:demo && bun run test:examples && bun run test:browser && bun run test:rsc && bun run test:analytics && bun run test:registry",
-    "check:library": "bun run format:check && bun run build && bun run lint && bun run typecheck && bun run typecheck:frames && bun run test:size && bun run test:package && bun run test:geometry",
+    "check:library": "bun run format:check && bun run build && bun run lint && bun run typecheck && bun run test:size && bun run test:package && bun run test:geometry",
     "prepublishOnly": "bun run check",
     "dev:example": "bun scripts/dev-example.ts",
     "test:examples": "bun scripts/check-examples.ts",
@@ -104,8 +107,7 @@
     "typecheck:registry": "mkdir -p .cache && wrangler types .cache/worker-types.d.ts --config config/wrangler.jsonc && tsc --noEmit -p config/tsconfig.worker.json",
     "test:registry": "node --experimental-strip-types --test tests/registry-downloads.test.mts",
     "test:geometry": "node --experimental-strip-types --test tests/geometry.test.mts",
-    "check:core": "bun scripts/check-context.ts && bun run build && bun run typecheck:frames && bun run test:size && bun run test:package && bun run test:geometry",
-    "typecheck:frames": "bun scripts/check-frame-profiles.ts"
+    "check:core": "bun scripts/check-context.ts && bun run build && bun run test:size && bun run test:package && bun run test:geometry"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",

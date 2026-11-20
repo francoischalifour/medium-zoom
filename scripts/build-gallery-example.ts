@@ -1,38 +1,34 @@
 import { resolve } from 'node:path'
 
 import react from '@vitejs/plugin-react'
-import { build as bundle } from 'tsdown'
 import { build } from 'vite'
 
 import { extensionEntries } from '../config/package.config.mts'
 
 export async function buildGalleryExample() {
+  const root = resolve('examples/shadcn/tests/experimental')
   await build({
     configFile: false,
-    root: resolve('examples/shadcn/tests/experimental'),
+    root,
     base: '/composition/',
     logLevel: 'error',
     plugins: [react()],
     resolve: {
-      alias: Object.fromEntries(extensionEntries.map(entry => [entry.path, resolve(entry.esm)])),
+      alias: [
+        ...extensionEntries.map(entry => ({ find: entry.path, replacement: resolve(entry.esm) })),
+        // Run the published component's playground against its composable rewrite.
+        {
+          find: /^.*\/src\/components\/ui\/image-zoom$/,
+          replacement: resolve(root, 'image-zoom.tsx'),
+        },
+      ],
     },
-    build: { outDir: resolve('.cache/gallery-composition'), emptyOutDir: true },
-  })
-  await bundle({
-    config: false,
-    clean: false,
-    entry: { 'frame-probe': 'tests/experimental/frame-probe.ts' },
-    outDir: resolve('.cache/gallery-composition'),
-    platform: 'browser',
-    target: 'es2020',
-    format: 'esm',
-    minify: true,
-    dts: false,
-    logLevel: 'silent',
-    alias: {
-      '#platform': resolve('src/platform/modern.ts'),
-      '#engine-profile': resolve('src/engine/profile.ts'),
+    build: {
+      outDir: resolve('.cache/gallery-composition'),
+      emptyOutDir: true,
+      rolldownOptions: {
+        input: { index: resolve(root, 'index.html'), playground: resolve(root, 'playground.html') },
+      },
     },
-    outputOptions: { entryFileNames: 'frame-probe.mjs' },
   })
 }

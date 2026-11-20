@@ -6,7 +6,10 @@ import { version } from '../../package.json' with { type: 'json' }
 import { shadcnDevUrl } from '../server-urls.ts'
 import { decodeImages, dismissZoom, observeErrors, openImage } from './helpers.ts'
 
-const demo = '/examples/shadcn/playground.html'
+// MEDIUM_ZOOM_SHADCN=composable runs this suite against the component rewritten on the
+// composable entries (core, loaders, viewport, session) instead of the published one.
+const composable = process.env.MEDIUM_ZOOM_SHADCN === 'composable'
+const demo = `${composable ? '/composition/playground.html' : '/examples/shadcn/playground.html'}`
 const firstName = 'Zoom image: Ocean sunset'
 const secondName = 'Zoom image: Floral skateboard'
 
@@ -44,9 +47,14 @@ test('native keyboard controls, clone accessibility, and click dismissal', async
   await trigger.focus()
   await page.keyboard.press('Space')
   const clone = page.locator('.medium-zoom-image--opened')
-  await expect(clone).toHaveAttribute('aria-hidden', 'true')
+  if (composable) {
+    // The dialog is the accessible surface: it exposes the image and hides the page behind it.
+    await expect(page.getByRole('dialog', { name: 'Ocean sunset' }).getByRole('img')).toHaveCount(1)
+  } else {
+    await expect(clone).toHaveAttribute('aria-hidden', 'true')
+    await expect(page.getByRole('button', { name: firstName, exact: true })).toHaveCount(1)
+  }
   await expect(clone).not.toHaveAttribute('tabindex')
-  await expect(page.getByRole('button', { name: firstName, exact: true })).toHaveCount(1)
   await clone.click()
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 })
@@ -304,11 +312,17 @@ test('options changed during a zoom apply to the next opening', async ({ page })
   const enlarged = page.locator('.medium-zoom-image--opened')
   await expect(enlarged).toBeVisible()
   const width = (await enlarged.boundingBox())!.width
-  // A keyboard user can change the surrounding UI without clicking the overlay.
-  await page.getByRole('button', { name: 'Change margin', exact: true }).press('Enter')
-  await expect(enlarged).toBeVisible()
-  expect((await enlarged.boundingBox())!.width).toBeCloseTo(width, 0)
-  await dismissZoom(page)
+  if (composable) {
+    // A modal dialog makes the surrounding UI inert: options can only change between zooms.
+    await dismissZoom(page)
+    await page.getByRole('button', { name: 'Change margin', exact: true }).press('Enter')
+  } else {
+    // A keyboard user can change the surrounding UI without clicking the overlay.
+    await page.getByRole('button', { name: 'Change margin', exact: true }).press('Enter')
+    await expect(enlarged).toBeVisible()
+    expect((await enlarged.boundingBox())!.width).toBeCloseTo(width, 0)
+    await dismissZoom(page)
+  }
   await openImage(page, trigger.locator('img'), { trigger })
   await expect
     .poll(async () => (await enlarged.boundingBox())?.width ?? 0)

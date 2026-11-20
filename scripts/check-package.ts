@@ -12,7 +12,7 @@ import {
   candidateArtifacts,
   extensionEntries,
 } from '../config/package.config.mts'
-import baseline from '../tests/experimental/bundle-baseline.json' with { type: 'json' }
+import baseline from '../config/size-baseline.json' with { type: 'json' }
 import { checkAnalyzers } from './check-package-analyzers.ts'
 import { checkConsumers } from './check-package-consumers.ts'
 import { packExperimental } from './pack-experimental.ts'
@@ -23,6 +23,28 @@ const packageRows: string[][] = []
 const entryFunctions = Object.fromEntries(
   extensionEntries.map(entry => [entry.name, entry.primaryExport])
 )
+
+// Syntax checks cannot see API use. `Object.assign` and `Promise` are allowed only behind
+// the fallbacks that the platform module provides, which the patterns below skip.
+const LEGACY_UNSUPPORTED_APIS: Record<string, RegExp> = {
+  'Node.isConnected': /\.isConnected\b/,
+  'ChildNode.remove()': /\.remove\(\)/,
+  'Element.closest()': /\.closest\(/,
+  'Element.matches()': /\.matches\(/,
+  'ParentNode.append()': /\.(?:append|prepend|replaceChildren)\(/,
+  'Element.getAnimations()': /\.getAnimations\b/,
+  'HTMLElement.dataset': /\.dataset\b/,
+  'window.scrollX/scrollY': /\.scroll[XY]\b/,
+  'new CustomEvent()': /new CustomEvent\b/,
+  'String/Array.includes()': /\.includes\(/,
+  'Array.find()': /\.find(?:Index)?\(/,
+  'Array.from()': /Array\.from\b/,
+  'Object.entries/values()': /Object\.(?:entries|values)\b/,
+  queueMicrotask: /queueMicrotask\b/,
+  'WeakMap/WeakSet': /\bWeak(?:Map|Set)\b/,
+  AbortController: /\bAbortController\b/,
+  'MediaQueryList.addEventListener()': /matchMedia\([^)]*\)\.addEventListener/,
+}
 
 async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boolean) {
   try {
@@ -142,6 +164,13 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
           'documentElement.scrollTop',
         ]) {
           assert(code.includes(fallback), `${path} must retain ${fallback}`)
+        }
+      }
+      if (!modern) {
+        // No browser from the support table runs in CI, so reject the DOM and language
+        // APIs that Internet Explorer 10 lacks instead of discovering them there.
+        for (const [api, pattern] of Object.entries(LEGACY_UNSUPPORTED_APIS)) {
+          assert(!pattern.test(code), `${path} must not use ${api}: unavailable in IE 10`)
         }
       }
       if (modern) {

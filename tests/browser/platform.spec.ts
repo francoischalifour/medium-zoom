@@ -32,9 +32,13 @@ async function loadProfile(page: Page, file: string, withoutAssign = false) {
           if (file === 'core/index.cjs') {
             const core = (await loadCommonJS(url)) as typeof import('../../src/core')
             window.mediumZoom = ((
-              selector?: import('../../src/types').ZoomSelector,
-              options?: import('../../src/types').ZoomOptions
-            ) => core.createZoom(selector, options)) as import('../../src/types').ZoomFactory
+              selector?: import('../../src/engine/create-zoom').ZoomSelector,
+              options?: import('../../src/medium-zoom').ZoomOptions
+            ) =>
+              core.createZoom(
+                selector,
+                options
+              )) as import('../../src/engine/create-zoom').ZoomFactory
           } else {
             window.mediumZoom = (await loadCommonJS(url)) as typeof window.mediumZoom
           }

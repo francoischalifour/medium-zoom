@@ -122,6 +122,8 @@ for (const dismiss of ['overlay', 'Escape', 'API'] as const) {
       })
     })
     if (dismiss === 'overlay') {
+      // WebKit can hit-test the body until the new overlay has been laid out once.
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(resolve)))
       await page.locator('.medium-zoom-overlay').click({ position: { x: 4, y: 4 }, force: true })
     } else if (dismiss === 'Escape') {
       await page.keyboard.press('Escape')

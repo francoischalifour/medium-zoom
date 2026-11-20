@@ -46,8 +46,8 @@ async function fixture(page: Page, order = false) {
       String('/experimental/dist/session/index.mjs')
     )) as typeof import('../../src/session')
     window.mediumZoom = ((
-      selector?: import('../../src/types').ZoomSelector,
-      { template, ...options }: import('../../src/types').ZoomOptions = {}
+      selector?: import('../../src/engine/create-zoom').ZoomSelector,
+      { template, ...options }: import('../../src/medium-zoom').ZoomOptions = {}
     ) => {
       const zoom = createZoom(selector, {
         ...options,
@@ -55,7 +55,10 @@ async function fixture(page: Page, order = false) {
         renderer: dialog({
           content: view => {
             const close = mountCloseControl(view)
-            const controls = mountExampleControls(view.element, createGallery(view.zoom))
+            const controls = mountExampleControls(
+              view.element,
+              createGallery(view.zoom, createZoomSession(view.zoom))
+            )
             const content = template ? templateContent(template)(view) : undefined
             return () => {
               content?.()
@@ -65,15 +68,19 @@ async function fixture(page: Page, order = false) {
           },
         }),
       })
+      // The application composes coordination: every request goes through the session.
+      const session = createZoomSession(zoom)
       if (sessionFirst) {
-        createZoomSession(zoom)
-        bindZoomTriggers(zoom)
+        bindZoomTriggers(zoom, session)
       } else {
-        bindZoomTriggers(zoom)
-        createZoomSession(zoom)
+        bindZoomTriggers(zoom, { open: options => createZoomSession(zoom).open(options) })
       }
-      return zoom
-    }) as import('../../src/types').ZoomFactory
+      return Object.assign(Object.create(zoom), {
+        open: session.open,
+        close: session.close,
+        toggle: session.toggle,
+      })
+    }) as import('../../src/engine/create-zoom').ZoomFactory
     window.zoom = window.mediumZoom('#first, #second, #third', { template: '#caption' })
   }, order)
 }
@@ -246,11 +253,10 @@ test('clones retain rendering strategies with explicit bindings and independent 
     const { createZoomSession } = (await import(
       String('/experimental/dist/session/index.mjs')
     )) as typeof import('../../src/session')
-    const clone = window.zoom.clone().attach('#linked')
+    const clone = (window.zoom as import('../../src/core').ModalZoom).clone().attach('#linked')
     window.zoom.detach()
     clone.attach('#first', '#second', '#third')
-    bindZoomTriggers(clone)
-    createZoomSession(clone)
+    bindZoomTriggers(clone, createZoomSession(clone))
     window.zoom = clone
   })
   await page.locator('#second').focus()
@@ -393,36 +399,6 @@ test('the combined modal has no automated accessibility violations', async ({ pa
   expect(results.violations).toEqual([])
 })
 
-test('gallery and modal-only features reject incompatible factories before DOM mutation', async ({
-  page,
-}) => {
-  await fixture(page)
-  expect(
-    await page.evaluate(async () => {
-      const core = '/experimental/dist/core/index.mjs'
-      const triggers = '/experimental/dist/triggers/index.mjs'
-      const galleries = '/experimental/dist/gallery/index.mjs'
-      const { createZoom } = (await import(core)) as typeof import('../../src/core')
-      const { bindZoomTriggers } = (await import(triggers)) as typeof import('../../src/triggers')
-      const { createGallery } = (await import(galleries)) as typeof import('../../src/gallery')
-      let rejected = 0
-      try {
-        bindZoomTriggers(createZoom())
-      } catch {
-        rejected++
-      }
-      const zoom = createZoom()
-      try {
-        createGallery(zoom)
-      } catch {
-        rejected++
-      }
-      return rejected
-    })
-  ).toBe(2)
-  await expect(page.locator('dialog, .medium-zoom-overlay')).toHaveCount(0)
-})
-
 test('authored image labels survive trigger enhancement and cloning', async ({ page }) => {
   await fixture(page)
   await page.evaluate(() => {
@@ -472,10 +448,10 @@ test('keyboard navigation commits fitted bounds without a gallery animation', as
   expect(
     await page.evaluate(
       () =>
-        document
-          .querySelector('dialog')!
-          .getAnimations({ subtree: true })
-          .filter(animation => animation.playState === 'running').length
+        // The backdrop fade from opening can still be finishing; only frames must not animate.
+        Array.from(document.querySelectorAll('dialog img')).flatMap(frame =>
+          frame.getAnimations().filter(animation => animation.playState === 'running')
+        ).length
     )
   ).toBe(0)
 })
@@ -506,7 +482,7 @@ test('disposing after pointer navigation hands ownership to a fresh session', as
     )) as typeof import('../experimental/gallery-controls.mjs')
     const { dialog } = (await import(renderers)) as typeof import('../../src/renderers')
     const { createZoomSession } = (await import(sessions)) as typeof import('../../src/session')
-    const factory = (selector: import('../../src/types').ZoomSelector) =>
+    const factory = (selector: import('../../src/engine/create-zoom').ZoomSelector) =>
       createZoom(selector, {
         renderer: dialog({
           content: view => {

@@ -1,5 +1,5 @@
-import type { ZoomTarget } from './targets/types'
-import type { ZoomSelector } from './types'
+import type { ZoomSelector } from './engine/create-zoom'
+import type { ZoomTarget } from './engine/frame'
 
 export const isNode = (selector: unknown): selector is ZoomTarget =>
   !!selector && (selector as Node).nodeType === 1

@@ -1,13 +1,6 @@
-import { extendedFrames } from '#engine-profile'
-
 import type { ZoomLoader } from '../core'
-import { isImage } from '../targets/image'
 
 export const loadHdImage: ZoomLoader = ({ original, content: zoomed }, ready) => {
-  if (extendedFrames && (!isImage(original) || !isImage(zoomed))) {
-    ready()
-    return
-  }
   const source = original.getAttribute('data-zoom-src')
   if (!source && !original.hasAttribute('srcset')) {
     ready()

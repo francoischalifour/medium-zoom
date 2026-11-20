@@ -5,7 +5,10 @@ import { test, expect, type Page } from '@playwright/test'
 
 import { decodeImages, dismissZoom, observeErrors, openImage, finishAnimations } from './helpers.ts'
 
-const demo = '/examples/shadcn/playground.html?compound'
+// MEDIUM_ZOOM_SHADCN=composable runs this suite against the component rewritten on the
+// composable entries (core, loaders, viewport, session) instead of the published one.
+const composable = process.env.MEDIUM_ZOOM_SHADCN === 'composable'
+const demo = `${composable ? '/composition/playground.html' : '/examples/shadcn/playground.html'}?compound`
 const oceanName = 'Open composed ocean'
 const boardName = 'Zoom image: Composed skateboard'
 async function ready(page: Page) {

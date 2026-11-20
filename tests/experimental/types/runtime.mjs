@@ -32,6 +32,7 @@ for (const [entry, names] of Object.entries({
   triggers: ['bindZoomTriggers'],
   gallery: ['createGallery', 'bindGalleryKeyboard'],
   session: ['createZoomSession'],
+  transitions: ['galleryTransition'],
   renderers: ['dialog'],
 })) {
   const esm = await import(`medium-zoom/${entry}`)

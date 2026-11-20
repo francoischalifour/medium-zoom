@@ -1,18 +1,24 @@
-import type { CoordinatedZoom, ZoomCommands } from './engine/bridge'
-import type { CoreZoomOptions, Zoom, ZoomOpenOptions, ZoomOptions } from './types'
+import type { CoreZoomOptions, Zoom, ZoomOpenOptions } from './engine/create-zoom'
+import type { ZoomOptions } from './medium-zoom'
 
 export interface ZoomSession<Options extends CoreZoomOptions = ZoomOptions> {
   readonly zoom: Zoom<Options>
-  open(options?: ZoomOpenOptions): Promise<Zoom<Options>>
-  close(): Promise<Zoom<Options>>
-  /** Close/detach and release coordination. The zoom can be reattached and coordinated again. */
-  dispose(): Promise<void>
+  // Methods never read `this`: pass them around freely.
+  open(this: void, options?: ZoomOpenOptions): Promise<Zoom<Options>>
+  close(this: void): Promise<Zoom<Options>>
+  toggle(this: void, options?: ZoomOpenOptions): Promise<Zoom<Options>>
+  /** Close, detach and stop coordinating. The zoom can be reattached and coordinated again. */
+  dispose(this: void): Promise<void>
 }
 
 const sessions = new WeakMap<object, unknown>()
 const active = new WeakMap<Document, { owner: object; close: () => Promise<unknown> }>()
 
-/** One cancellable owner per document, shared by vanilla and framework adapters. */
+/**
+ * One open zoom per document. Requests made through a session wait for the document's
+ * previous zoom to finish closing; requests made on the zoom itself are not coordinated.
+ * Hand the session to whatever opens the zoom: triggers, a gallery, or your own controls.
+ */
 export function createZoomSession<Options extends CoreZoomOptions>(
   zoom: Zoom<Options>
 ): ZoomSession<Options> {
@@ -20,15 +26,6 @@ export function createZoomSession<Options extends CoreZoomOptions>(
   if (existing) {
     return existing
   }
-  const source = zoom as CoordinatedZoom<Options>
-  if (!source.__mz_gate) {
-    throw new Error('Medium Zoom session requires a compatible engine')
-  }
-  const gate = source.__mz_gate
-  if (gate.__mz_owner) {
-    throw new Error('Zoom already coordinated')
-  }
-  const engine = gate.__mz_current
   let released = false
   let disposal: Promise<void> | undefined
   const documents = new Set<Document>()
@@ -78,7 +75,7 @@ export function createZoomSession<Options extends CoreZoomOptions>(
         zoom.getZoomedImage() &&
         image !== zoom.getZoomedImage()
       ) {
-        return engine.open(options)
+        return zoom.open(options)
       }
       if (previous?.owner === session && pending) {
         return pending
@@ -93,7 +90,13 @@ export function createZoomSession<Options extends CoreZoomOptions>(
       const ticket = ++revision
       const opening = Promise.resolve(waiting)
         .then(() => {
-          if (disposed || ticket !== revision || active.get(document) !== request) {
+          // The request waited for another zoom to close: check that it still stands.
+          if (
+            disposed ||
+            ticket !== revision ||
+            active.get(document) !== request ||
+            !zoom.getImages().includes(image)
+          ) {
             return zoom
           }
           if (!documents.has(document)) {
@@ -102,7 +105,7 @@ export function createZoomSession<Options extends CoreZoomOptions>(
             document.addEventListener('medium-zoom:closed', onClosed, true)
           }
           mounted = request
-          return engine.open(options)
+          return zoom.open(options)
         })
         .finally(() => {
           if (pending === opening) {
@@ -124,7 +127,7 @@ export function createZoomSession<Options extends CoreZoomOptions>(
         return closing
       }
       const request = owned
-      const result = engine.close()
+      const result = zoom.close()
       const task = Promise.allSettled([pending, result, completion])
         .then(results => {
           for (const document of documents) {
@@ -151,17 +154,19 @@ export function createZoomSession<Options extends CoreZoomOptions>(
       closing = task
       return task
     },
+    toggle(options) {
+      return pending || zoom.getZoomedImage() ? session.close() : session.open(options)
+    },
     dispose() {
       if (disposal) {
         return disposal
       }
       disposed = true
       const closed = session.close()
-      engine.detach()
+      zoom.detach()
       disposal = closed
         .then(() => undefined)
         .finally(() => {
-          release()
           released = true
           if (sessions.get(zoom) === session) {
             sessions.delete(zoom)
@@ -169,23 +174,6 @@ export function createZoomSession<Options extends CoreZoomOptions>(
         })
       return disposal
     },
-  }
-  const requests: ZoomCommands<Options> = {
-    open: options => session.open(options),
-    close: () => session.close(),
-    toggle: options => (pending || zoom.getZoomedImage() ? session.close() : session.open(options)),
-    detach(...selectors) {
-      void session.close()
-      return engine.detach(...selectors)
-    },
-  }
-  gate.__mz_owner = session
-  gate.__mz_current = requests
-  const release = () => {
-    if (gate.__mz_owner === session) {
-      gate.__mz_current = engine
-      delete gate.__mz_owner
-    }
   }
   sessions.set(zoom, session)
   return session

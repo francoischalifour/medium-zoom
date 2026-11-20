@@ -24,7 +24,7 @@ async function fixture(page: Page) {
       String('/experimental/dist/triggers/index.mjs')
     )) as typeof import('../../src/triggers')
     window.zoom = createZoom('#first', { renderer: dialog() })
-    window.unbindTriggers = bindZoomTriggers(window.zoom)
+    window.unbindTriggers = bindZoomTriggers(window.zoom as import('../../src/core').ModalZoom)
   })
 }
 for (const key of ['Enter', 'Space']) {
@@ -56,7 +56,9 @@ test('bindings follow attach/detach without replacing instance methods', async (
       )) as typeof import('../../src/triggers')
       // oxlint-disable-next-line typescript/unbound-method -- Compare identity, never invoke as a method.
       const attach = window.zoom.attach
-      const same = bindZoomTriggers(window.zoom) === window.unbindTriggers
+      const same =
+        bindZoomTriggers(window.zoom as import('../../src/core').ModalZoom) ===
+        window.unbindTriggers
       window.zoom.attach('#second')
       const role = document.querySelector('#second')!.getAttribute('role')
       window.zoom.detach('#second')
@@ -94,7 +96,7 @@ test('an old unbind cannot remove a later binding', async ({ page }) => {
     )) as typeof import('../../src/triggers')
     const old = window.unbindTriggers
     old()
-    window.unbindTriggers = bindZoomTriggers(window.zoom)
+    window.unbindTriggers = bindZoomTriggers(window.zoom as import('../../src/core').ModalZoom)
     old()
     window.zoom.attach('#second')
   })

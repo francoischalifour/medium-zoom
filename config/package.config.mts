@@ -95,7 +95,7 @@ export const extensionEntries: CandidateEntry[] = [
     'createZoom',
     'instance API',
     'engine/contracts; strategies imported separately',
-    [3_800, 3_800],
+    [2_960, 2_960],
     'dist/modern/style.css'
   ),
   optional(
@@ -104,7 +104,7 @@ export const extensionEntries: CandidateEntry[] = [
     'loadHdImage',
     'loading strategy',
     'detached media; readiness + cancellation',
-    [640, 704]
+    [448, 448]
   ),
   optional(
     'viewport',
@@ -128,15 +128,15 @@ export const extensionEntries: CandidateEntry[] = [
     'bindZoomTriggers',
     'DOM binding',
     'pointer/keyboard activation + cleanup',
-    [896, 960]
+    [832, 832]
   ),
   optional(
     'renderers',
-    'src/renderers/index.ts',
+    'src/renderers.ts',
     'dialog',
     'modal renderer',
-    'native dialog + optional transition runner',
-    [1_472, 1_536]
+    'native dialog + scene replacement',
+    [1_320, 1_320]
   ),
   optional(
     'session',
@@ -144,7 +144,15 @@ export const extensionEntries: CandidateEntry[] = [
     'createZoomSession',
     'coordinator',
     'releasable ownership; no UI',
-    [960, 1_024]
+    [840, 840]
+  ),
+  optional(
+    'transitions',
+    'src/transitions.ts',
+    'galleryTransition',
+    'transition runner',
+    'application effects with cancellation + reduced motion',
+    [600, 600]
   ),
   optional(
     'gallery',
@@ -156,10 +164,10 @@ export const extensionEntries: CandidateEntry[] = [
   ),
 ]
 export const profileEntries: CandidateEntry[] = [
-  preset('compat', 'compat', true, [3_799, 3_799]),
-  preset('compat/pure', 'compat', false, [4_512, 4_512]),
-  preset('modern', 'modern', true, [4_608, 4_608]),
-  preset('pure', 'compat', false, [4_512, 4_512]),
+  preset('compat', 'compat', true, [3_520, 3_520]),
+  preset('compat/pure', 'compat', false, [3_320, 3_320]),
+  preset('modern', 'modern', true, [3_420, 3_420]),
+  preset('pure', 'compat', false, [3_320, 3_320]),
 ]
 export const candidateEntries = [...extensionEntries, ...profileEntries]
 export const candidateArtifacts = candidateEntries.flatMap(entry => [entry.esm, entry.cjs])

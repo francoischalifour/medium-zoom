@@ -1,4 +1,4 @@
-import type { Zoom } from '../types'
+import type { Zoom } from '../engine/create-zoom'
 
 // Preserve v1's no-Promise behavior without installing a global polyfill.
 // This executes the zoom lifecycle but does not implement promise chaining.

@@ -1,11 +1,13 @@
-import type { Zoom } from '../types'
+import type { Zoom } from '../engine/create-zoom'
 
 export const getPromise = (): PromiseConstructor => Promise
 
 export const createCustomEvent = (
   type: string,
   detail: { zoom: Zoom }
-): CustomEvent<{ zoom: Zoom }> => new CustomEvent(type, { detail })
+): CustomEvent<{ zoom: Zoom }> => {
+  return new CustomEvent(type, { detail })
+}
 
 export const getScrollX = (): number => window.scrollX
 export const getScrollY = (): number => window.scrollY

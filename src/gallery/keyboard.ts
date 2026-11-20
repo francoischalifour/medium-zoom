@@ -1,5 +1,5 @@
+import type { CoreZoomOptions } from '../engine/create-zoom'
 import type { GalleryController } from '../gallery'
-import type { CoreZoomOptions } from '../types'
 
 /** Opt-in arrow-key binding for application-owned galleries. Creates no UI. */
 export function bindGalleryKeyboard<Options extends CoreZoomOptions>(

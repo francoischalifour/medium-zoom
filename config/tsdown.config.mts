@@ -131,36 +131,13 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
               // CJS bindings are module-local, just like ESM bindings.
               ...(options.format === 'cjs' && { toplevel: true }),
               mangle: { properties: { regex: privateProperties } },
-              // Core, strategies and bindings are bundled independently: their private keys must agree.
+              // Core and session are bundled independently: the command gate's private keys must agree.
               nameCache: {
                 props: {
                   props: {
                     $__mz_gate: 'w',
                     $__mz_current: 'u',
                     $__mz_owner: 'y',
-                    $__mz_element: 'r',
-                    $__mz_content: 't',
-                    $__mz_measure: 'b',
-                    $__mz_adopt: 'd',
-                    $__mz_apply: 'e',
-                    $__mz_setVisible: 'g',
-                    $__mz_reset: 'i',
-                    $__mz_dispose: 'l',
-                    $__mz_label: 'm',
-                    $__mz_geometry: 'q',
-                    $__mz_original: 'o',
-                    $__mz_zoomed: 'z',
-                    $__mz_nodes: 'n',
-                    $__mz_closing: 'c',
-                    $__mz_cancelOpen: 'a',
-                    $__mz_viewportScale: 'v',
-                    $__mz_isPinching: 'p',
-                    $__mz_scrollTimer: 's',
-                    $__mz_outgoing: 'x',
-                    $__mz_view: 'h',
-                    $__mz_closeContent: 'j',
-                    $__mz_primary: 'k',
-                    $__mz_frames: 'f',
                   },
                 },
               },
@@ -201,7 +178,7 @@ function browserBundle(
   format: 'esm' | 'umd' | 'cjs',
   minify = true,
   profile: Profile = defaultProfile,
-  frames: 'composed' | 'preset' = 'preset'
+  preset = true
 ): UserConfig {
   return {
     cwd: fileURLToPath(new URL('../', import.meta.url)),
@@ -211,18 +188,13 @@ function browserBundle(
     tsconfig: false,
     target: profile === 'compat' ? 'esnext' : 'es2020',
     alias: {
-      '#engine-profile': fileURLToPath(
-        new URL(
-          `../src/engine/profile${frames === 'composed' ? '-core' : '-preset'}.ts`,
-          import.meta.url
-        )
-      ),
       '#platform': fileURLToPath(new URL(`../src/platform/${profile}.ts`, import.meta.url)),
     },
     dts: false,
     clean: false,
     unbundle: false,
-    define: { __TEST__: 'false' },
+    // Fixed presets compile their capability checks away; composed core keeps them.
+    define: { __TEST__: 'false', __PRESET__: String(preset) },
     // Tsdown applies the release banner after renderChunk via Rolldown postBanner.
     banner,
     failOnWarn: true,
@@ -257,7 +229,7 @@ function entryBundle(entry: CandidateEntry, format: 'esm' | 'cjs'): UserConfig {
       format,
       true,
       profile,
-      full ? 'preset' : 'composed'
+      full
     ),
     entry: { [`${name}/index`]: source },
     // Keep shared strategy/controller types on the core declaration entry.
@@ -305,13 +277,13 @@ export default defineConfig([
   browserBundle('src/index.ts', 'medium-zoom.js', 'umd', false),
   browserBundle('src/index.ts', 'medium-zoom.min.js', 'umd'),
   {
-    ...browserBundle('src/medium-zoom.ts', 'pure/index.js', 'esm'),
+    ...browserBundle('src/pure.ts', 'pure/index.js', 'esm'),
     dts: {
       generator: 'oxc',
       tsconfig: fileURLToPath(new URL('../tsconfig.json', import.meta.url)),
     },
   },
-  browserBundle('src/medium-zoom.ts', 'pure/medium-zoom.umd.js', 'umd', false),
-  browserBundle('src/medium-zoom.ts', 'pure/medium-zoom.min.umd.js', 'umd'),
+  browserBundle('src/pure.ts', 'pure/medium-zoom.umd.js', 'umd', false),
+  browserBundle('src/pure.ts', 'pure/medium-zoom.min.umd.js', 'umd'),
   ...candidateEntries.flatMap(entry => [entryBundle(entry, 'esm'), entryBundle(entry, 'cjs')]),
 ])

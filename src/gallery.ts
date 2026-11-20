@@ -1,5 +1,8 @@
-import type { GallerySource } from './engine/types'
-import type { CoreZoomOptions, Zoom, ZoomOptions, ZoomSelector } from './types'
+// Branded types must come from the core entry itself, not a copy bundled into this one.
+import type { ModalZoom } from 'medium-zoom/core'
+
+import type { CoreZoomOptions, Zoom, ZoomCommander, ZoomSelector } from './engine/create-zoom'
+import type { ZoomOptions } from './medium-zoom'
 
 export interface GallerySnapshot {
   readonly images: readonly HTMLElement[]
@@ -23,17 +26,17 @@ export interface GalleryController<Options extends CoreZoomOptions = ZoomOptions
 
 const galleries = new WeakMap<object, unknown>()
 
-/** Headless traversal over an instance's attached images. No UI or session ownership. */
+/**
+ * Headless traversal over a rendered zoom's attached images. No UI. Pass a session as
+ * `commander` to coordinate the gallery's requests with other zooms.
+ */
 export function createGallery<Options extends CoreZoomOptions>(
-  zoom: Zoom<Options>
+  zoom: ModalZoom<Options>,
+  commander: ZoomCommander<Options> = zoom
 ): GalleryController<Options> {
   const existing = galleries.get(zoom) as GalleryController<Options> | undefined
   if (existing) {
     return existing
-  }
-  const source = zoom as unknown as GallerySource
-  if (!source.__mz$modal) {
-    throw new Error('Medium Zoom gallery requires a modal renderer')
   }
   const listeners = new Set<() => void>()
   let disposed = false
@@ -69,7 +72,7 @@ export function createGallery<Options extends CoreZoomOptions>(
   }
   const choose = (index: number) => {
     const target = getSnapshot().images[index]
-    return !disposed && target ? zoom.open({ target }) : Promise.resolve(zoom)
+    return !disposed && target ? commander.open({ target }) : Promise.resolve(zoom)
   }
   let queued = false
   const collectionChanged = () => {

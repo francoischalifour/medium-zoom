@@ -33,6 +33,9 @@ async function fixture(page: Page, mode: 'deferred' | 'throw' | 'reject' | 'anim
     const { dialog } = (await import(renderers)) as typeof import('../../src/renderers')
     const { createGallery } = (await import(galleries)) as typeof import('../../src/gallery')
     const { createZoomSession } = (await import(sessions)) as typeof import('../../src/session')
+    const { galleryTransition } = (await import(
+      String('/experimental/dist/transitions/index.mjs')
+    )) as typeof import('../../src/transitions')
     window.transitionLog = []
     window.finishTransitions = []
     window.gallerySettled = 0
@@ -42,7 +45,7 @@ async function fixture(page: Page, mode: 'deferred' | 'throw' | 'reject' | 'anim
     window.zoom = createZoom('img', {
       loader: loadHdImage,
       renderer: dialog({
-        transition: ({ outgoing, incoming, direction, signal }) => {
+        transition: galleryTransition(({ outgoing, incoming, direction, signal }) => {
           if (mode === 'throw') {
             throw new Error('Consumer transition failed')
           }
@@ -89,12 +92,15 @@ async function fixture(page: Page, mode: 'deferred' | 'throw' | 'reject' | 'anim
               { once: true }
             )
           })
-        },
+        }),
       }),
     })
-    createZoomSession(window.zoom)
-    window.transitionGallery = createGallery(window.zoom)
-    await window.zoom.open({ trigger: document.querySelector('#trigger')! })
+    const session = createZoomSession(window.zoom)
+    window.transitionGallery = createGallery(
+      window.zoom as import('../../src/core').ModalZoom,
+      session
+    )
+    await session.open({ trigger: document.querySelector('#trigger')! })
   }, mode)
 }
 
@@ -128,6 +134,20 @@ test('consumer strategies receive prepared frames/direction while the engine own
   expect(await page.evaluate(() => window.transitionLog[1]!.aborted)).toBe(true)
   await expect(page.locator('dialog,.medium-zoom-image--hidden')).toHaveCount(0)
   await expect(page.locator('#trigger')).toBeFocused()
+})
+
+test('clicking an outgoing frame interrupts the transition and closes', async ({ page }) => {
+  await fixture(page)
+  await page.evaluate(() => {
+    void window.transitionGallery.next().then(() => window.gallerySettled++)
+  })
+  await expect.poll(() => page.evaluate(() => window.transitionLog.length)).toBe(1)
+  await expect(page.locator('dialog img')).toHaveCount(2)
+  await page.locator('dialog img[aria-hidden="true"]').dispatchEvent('click')
+  await expect(page.locator('dialog,.medium-zoom-image--hidden')).toHaveCount(0)
+  expect(await page.evaluate(() => window.transitionLog[0]!.aborted)).toBe(true)
+  await expect.poll(() => page.evaluate(() => window.gallerySettled)).toBe(1)
+  expect(await page.evaluate(() => window.zoom.getZoomedImage())).toBeNull()
 })
 
 test('rapid navigation and close cancel obsolete effects and settle every request', async ({
@@ -277,13 +297,16 @@ for (const abortNavigates of [false, true]) {
         const { createGallery } = (await import(
           String('/experimental/dist/gallery/index.mjs')
         )) as typeof import('../../src/gallery')
+        const { galleryTransition } = (await import(
+          String('/experimental/dist/transitions/index.mjs')
+        )) as typeof import('../../src/transitions')
         let gallery!: import('../../src/gallery').GalleryController
         let interrupted: AbortSignal | undefined
         let latest: Promise<unknown> | undefined
         let fromAbort: Promise<unknown> | undefined
         const zoom = createZoom('img', {
           renderer: dialog({
-            transition: context => {
+            transition: galleryTransition(context => {
               if ((context.incoming[0]!.content as HTMLImageElement).alt === 'Second') {
                 interrupted = context.signal
                 if (abortNavigates) {
@@ -298,7 +321,7 @@ for (const abortNavigates of [false, true]) {
                 latest = gallery.next()
                 return new Promise<void>(() => {})
               }
-            },
+            }),
           }),
         })
         gallery = createGallery(zoom)

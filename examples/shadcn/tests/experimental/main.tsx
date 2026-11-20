@@ -29,7 +29,7 @@ function Example() {
             const node = document.createElement('div')
             element.append(node)
             const root = createRoot(node)
-            const gallery = createGallery(zoom)
+            const gallery = createGallery(zoom, createZoomSession(zoom))
             const unbind = bindGalleryKeyboard(element, gallery)
             root.render(
               <>
@@ -56,7 +56,8 @@ function Example() {
         }),
         margin: 72,
       })
-      current = { session: createZoomSession(zoom), gallery: createGallery(zoom) }
+      const session = createZoomSession(zoom)
+      current = { session, gallery: createGallery(zoom, session) }
       setOwner(current)
     }
     if (closing.current) {

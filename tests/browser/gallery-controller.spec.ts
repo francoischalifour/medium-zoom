@@ -25,7 +25,7 @@ async function fixture(page: Page) {
     const { dialog } = (await import(renderers)) as typeof import('../../src/renderers')
     window.zoom = createZoom('img', { renderer: dialog() })
     createZoomSession(window.zoom)
-    window.galleryController = createGallery(window.zoom)
+    window.galleryController = createGallery(window.zoom as import('../../src/core').ModalZoom)
   })
 }
 
@@ -104,7 +104,9 @@ test('sessions and gallery traversal are independent and idempotent', async ({ p
       const { createZoomSession } = (await import(sessions)) as typeof import('../../src/session')
       const first = createZoomSession(window.zoom)
       const second = createZoomSession(window.zoom)
-      const same = createGallery(window.zoom) === window.galleryController
+      const same =
+        createGallery(window.zoom as import('../../src/core').ModalZoom) ===
+        window.galleryController
       await first.open()
       await window.galleryController.next()
       await second.close()
@@ -128,7 +130,7 @@ test('direct instance mutations publish settled collection state and stale dispo
       )) as typeof import('../../src/gallery')
       const old = window.galleryController
       old.dispose()
-      const gallery = createGallery(window.zoom)
+      const gallery = createGallery(window.zoom as import('../../src/core').ModalZoom)
       old.dispose()
       const counts: number[] = []
       gallery.subscribe(() => counts.push(gallery.getSnapshot().images.length))
@@ -145,7 +147,10 @@ test('direct instance mutations publish settled collection state and stale dispo
       })
       window.zoom.attach(extra)
       await Promise.resolve()
-      return { counts, stable: createGallery(window.zoom) !== gallery }
+      return {
+        counts,
+        stable: createGallery(window.zoom as import('../../src/core').ModalZoom) !== gallery,
+      }
     })
   ).toEqual({ counts: [3, 2], stable: true })
 })

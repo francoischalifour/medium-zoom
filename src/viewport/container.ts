@@ -1,9 +1,22 @@
 import { assign } from '#platform'
 
 import type { ZoomViewport } from '../core'
-import type { Viewport } from '../engine/types'
-import type { ZoomContainer, ZoomOptions } from '../types'
+import type { Viewport } from '../engine/create-zoom'
+import type { ZoomOptions } from '../medium-zoom'
 import { isNode } from '../utils'
+
+export interface ZoomContainer {
+  width?: number
+  height?: number
+  top?: number
+  bottom?: number
+  right?: number
+  left?: number
+}
+
+export interface ContainerOptions {
+  container?: string | HTMLElement | ZoomContainer | null
+}
 
 export const updateContainer = (options: ZoomOptions, previous: ZoomOptions): void => {
   if (options.container && options.container instanceof Object && !isNode(options.container)) {

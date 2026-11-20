@@ -4,61 +4,17 @@ export interface Bounds {
   readonly width: number
   readonly height: number
 }
-export interface TargetMeasurement {
-  readonly layout: Bounds
-  readonly painted: Bounds
-  readonly intrinsic: { readonly width: number; readonly height: number }
-  readonly clip?: Bounds
-}
 export interface FrameGeometry {
   readonly scale: number
   readonly translateX: number
   readonly translateY: number
-  readonly clip?: {
-    readonly top: number
-    readonly right: number
-    readonly bottom: number
-    readonly left: number
-  }
 }
 
-/** Pure positioning. Adapters supply measurement; frames apply the result. */
-export function fitTarget(
-  { layout, painted, intrinsic, clip }: TargetMeasurement,
-  viewport: Bounds
-): FrameGeometry | null {
-  if (!layout.width || !layout.height || !painted.width || !painted.height) {
-    return null
-  }
-  const scale = Math.min(
-    Math.min(Math.max(painted.width, intrinsic.width || viewport.width), viewport.width) /
-      painted.width,
-    Math.min(Math.max(painted.height, intrinsic.height || viewport.height), viewport.height) /
-      painted.height
-  )
-  const centerX = layout.left + layout.width / 2
-  const centerY = layout.top + layout.height / 2
-  return {
-    scale,
-    translateX:
-      (viewport.left + viewport.width / 2 - centerX) / scale -
-      (painted.left + painted.width / 2 - centerX),
-    translateY:
-      (viewport.top + viewport.height / 2 - centerY) / scale -
-      (painted.top + painted.height / 2 - centerY),
-    clip: clip
-      ? {
-          top: clip.top - layout.top,
-          left: clip.left - layout.left,
-          right: layout.left + layout.width - clip.left - clip.width,
-          bottom: layout.top + layout.height - clip.top - clip.height,
-        }
-      : undefined,
-  }
-}
-
-/** Pure transform for fixed image presets with matching layout/painted bounds and no crop. */
-export function imageTransform(
+/**
+ * Pure positioning: the transform that scales a box up to its intrinsic size without
+ * leaving the viewport, then centers it there.
+ */
+export function fitBox(
   layout: Bounds,
   intrinsicWidth: number,
   intrinsicHeight: number,
@@ -75,7 +31,16 @@ export function imageTransform(
     viewportWidth / width,
     viewportHeight / height
   )
-  const x = (viewport.left + viewportWidth / 2 - layout.left - width / 2) / scale
-  const y = (viewport.top + viewportHeight / 2 - layout.top - height / 2) / scale
-  return `scale(${scale}) translate3d(${x}px, ${y}px, 0)`
+  const translateX = (viewport.left + viewportWidth / 2 - layout.left - width / 2) / scale
+  const translateY = (viewport.top + viewportHeight / 2 - layout.top - height / 2) / scale
+  return `scale(${scale}) translate3d(${translateX}px, ${translateY}px, 0)`
+}
+
+// The scale and both translations of a fitted transform, in the order `fitBox` writes them.
+const TRANSFORM_VALUES = /[-\d.e+]+(?=px|\))/g
+
+/** Read a fitted transform back as the geometry handed to gallery transitions. */
+export function readGeometry(transform: string): FrameGeometry {
+  const values = transform.match(TRANSFORM_VALUES)!.map(Number)
+  return { scale: values[0]!, translateX: values[1]!, translateY: values[2]! }
 }

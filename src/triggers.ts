@@ -1,19 +1,24 @@
-import type { CoreZoomOptions, Zoom } from './core'
-import type { GallerySource } from './engine/types'
-import type { ZoomTarget } from './targets/types'
+import type { CoreZoomOptions, ModalZoom } from 'medium-zoom/core'
+
+import type { ZoomCommander } from './engine/create-zoom'
+import type { ZoomTarget } from './engine/frame'
 
 const bindings = new WeakMap<object, () => void>()
 const interactive =
   'button,a[href],input,select,textarea,summary,label,[role="button"],[role="link"],[role="checkbox"],[role="radio"],[role="switch"],[role="menuitem"],[contenteditable]'
 
-/** Pointer and keyboard activation for bare images. Native/framework buttons keep their own activation. */
-export function bindZoomTriggers<Options extends CoreZoomOptions>(zoom: Zoom<Options>): () => void {
+/**
+ * Pointer and keyboard activation for bare images, announced as opening a dialog.
+ * Native and framework buttons keep their own activation.
+ * Pass a session as `commander` to coordinate these requests with other zooms.
+ */
+export function bindZoomTriggers<Options extends CoreZoomOptions>(
+  zoom: ModalZoom<Options>,
+  commander: ZoomCommander<Options> = zoom
+): () => void {
   const existing = bindings.get(zoom)
   if (existing) {
     return existing
-  }
-  if (!(zoom as unknown as GallerySource).__mz$modal) {
-    throw new Error('Medium Zoom trigger bindings require a modal renderer')
   }
   let bound = true
   const records = new Map<ZoomTarget, () => void>()
@@ -47,7 +52,7 @@ export function bindZoomTriggers<Options extends CoreZoomOptions>(zoom: Zoom<Opt
         ) {
           event.preventDefault()
           if (!event.repeat) {
-            void zoom.open({ target: image as HTMLElement, trigger: image as HTMLElement })
+            void commander.open({ target: image as HTMLElement, trigger: image as HTMLElement })
           }
         }
       }
@@ -62,7 +67,7 @@ export function bindZoomTriggers<Options extends CoreZoomOptions>(zoom: Zoom<Opt
           event.button === 0
         ) {
           event.preventDefault()
-          void zoom.open({ target: image as HTMLElement, trigger: image as HTMLElement })
+          void commander.open({ target: image as HTMLElement, trigger: image as HTMLElement })
         }
       }
       const hadClass = image.classList.contains('medium-zoom-image')

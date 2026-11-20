@@ -46,7 +46,7 @@ For a focused check, use the commands below:
 - `bun run typecheck`: check tooling, documentation snippets, and framework examples.
 - `bun run test:package`: verify the npm tarball's exports, declarations, CSS, and ES5 syntax.
 - `bun run test:examples`: copy each example outside the workspace, install with npm, check types, and build against the published package.
-- `bun run test:size`: check gzip budgets.
+- `bun run size`: print the size benchmark and check gzip budgets (`test:size` is an alias). It lists what a bundler ships for each set of imports and every file in `dist`, each compared with `config/size-baseline.json`. After an intended size change, run `bun run size:baseline` to record the new reference.
 - `bun run test:browser`: exercise the packed library, website, examples, and stories in Chromium, Firefox, and WebKit. Package rendering is compared with the published package.
 
 Before individual package checks, run `bun run build`. Before browser checks, run `bun run build:website && bun run test:examples`. Browser fixtures use port 4175. To select browsers, append `--project=chromium --project=webkit` to the browser test command.
@@ -59,7 +59,7 @@ Preserve the [documented browser support](https://medium-zoom.francoischalifour.
 
 The build uses Babel and Terser to retain ES5 syntax after bundling with tsdown. Keep the older-browser CSS fallbacks and existing bundle-size budgets.
 
-Experimental factories, profiles, and entry paths are tested through the [private package fixture](tests/experimental/README.md). Keep them out of the release tarball until their API is ready.
+Composable entries (`core`, `loaders`, `viewport`, `content`, `triggers`, `renderers`, `transitions`, `session`, `gallery`) are listed in `config/package.config.mts` and tested through the private package fixture in `tests/experimental`. Keep them out of the release tarball until their API is ready. `bun run test:browser:shadcn-composable` runs the published React component's suites against `examples/shadcn/tests/experimental/image-zoom.tsx`, the same component rewritten on those entries.
 
 ## Release
 

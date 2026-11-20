@@ -1,8 +1,13 @@
-import type { LegacyContent } from '../engine/types'
-import type { ZoomTarget } from '../targets/types'
-import type { ZoomContent } from '../types'
-import type { ZoomOptions } from '../types'
+import type { ZoomContent } from 'medium-zoom/core'
+
+import type { LegacyContent } from '../engine/create-zoom'
+import type { ZoomTarget } from '../engine/frame'
+import type { ZoomOptions } from '../medium-zoom'
 import { removeNode } from '../utils'
+
+export interface TemplateOptions {
+  template?: string | HTMLTemplateElement | null
+}
 
 const resolveTemplate = (target: string | HTMLTemplateElement): HTMLTemplateElement | null =>
   typeof target === 'string' ? document.querySelector<HTMLTemplateElement>(target) : target
@@ -38,11 +43,11 @@ export const mountTemplate = (
 }
 
 /** Optional renderer content: clone authored markup and remove it on host disposal. */
-export function templateContent(target: string | HTMLTemplateElement): ZoomContent {
-  return ({ element }) => {
+export const templateContent =
+  (target: string | HTMLTemplateElement): ZoomContent =>
+  ({ element }) => {
     const node = document.createElement('div')
     node.appendChild(resolveTemplate(target)!.content.cloneNode(true))
     element.appendChild(node)
     return () => node.remove()
   }
-}

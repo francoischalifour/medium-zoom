@@ -17,7 +17,6 @@
       "medium-zoom/dist/pure": ["../src/medium-zoom.ts"],
       "medium-zoom/dist/pure/index.js": ["../src/medium-zoom.ts"],
       "medium-zoom/core": ["../src/core.ts"],
-      "#engine-profile": ["../src/engine/profile.ts"],
       "#platform": ["../src/platform/compat.ts"]
     },
     "skipLibCheck": true,

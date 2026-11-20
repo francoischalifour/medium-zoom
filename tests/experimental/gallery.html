@@ -121,7 +121,10 @@
           content: view => {
             const content = templateContent('#caption')(view)
             const close = mountCloseControl(view)
-            const controls = mountExampleControls(view.element, createGallery(view.zoom))
+            const controls = mountExampleControls(
+              view.element,
+              createGallery(view.zoom, createZoomSession(view.zoom))
+            )
             return () => {
               content?.()
               controls()
@@ -132,8 +135,8 @@
         loader: loadHdImage,
         margin: 72,
       })
-      bindZoomTriggers(window.zoom)
-      createZoomSession(window.zoom)
+      // Every request goes through the session, so one zoom is open at a time.
+      bindZoomTriggers(window.zoom, createZoomSession(window.zoom))
     </script>
   </body>
 </html>

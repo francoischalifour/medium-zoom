@@ -4,7 +4,7 @@ import { preparePage } from './helpers'
 
 declare global {
   interface Window {
-    configureDialog(options: import('../../src/types').ZoomOptions): void
+    configureDialog(options: import('../../src/medium-zoom').ZoomOptions): void
   }
 }
 
@@ -37,7 +37,7 @@ async function fixture(page: Page, hd = false) {
       String('/experimental/dist/renderers/index.mjs')
     )) as typeof import('../../src/renderers')
     const { mountCloseControl } = await import(String('/experiments/gallery-controls.mjs'))
-    let selected: import('../../src/types').ZoomOptions = {}
+    let selected: import('../../src/medium-zoom').ZoomOptions = {}
     window.zoom = createZoom('#image', {
       renderer: dialog({
         content: view => {
