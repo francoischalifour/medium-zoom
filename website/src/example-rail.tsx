@@ -64,6 +64,7 @@ function ExampleCard({
                   data-zoomable={image.id}
                   className="preview-photo"
                   loading={priority ? 'eager' : 'lazy'}
+                  fetchPriority={priority ? 'high' : undefined}
                   decoding="async"
                 />
               </ImageZoom.Trigger>

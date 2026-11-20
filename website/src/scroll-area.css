@@ -7,12 +7,15 @@
 .scroll-area-viewport {
   max-height: var(--scroll-area-max-height, none);
   overflow-y: auto;
-  overscroll-behavior-y: contain;
   scroll-padding-block: var(--scroll-area-fade);
   scrollbar-width: thin;
 }
 .scroll-area[data-scroll-ready] > .scroll-area-viewport {
   scrollbar-width: none;
+}
+/* Keep the page scrolling until the area has its own overflow to scroll. */
+.scroll-area:is([data-scroll-above], [data-scroll-below]) > .scroll-area-viewport {
+  overscroll-behavior-y: contain;
 }
 .scroll-area[data-scroll-ready] > .scroll-area-viewport::-webkit-scrollbar {
   display: none;

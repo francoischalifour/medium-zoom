@@ -3,7 +3,6 @@ import { test, expect, type Page } from '@playwright/test'
 import { decodeImages, dismissZoom, openImage, observeErrors } from './helpers.ts'
 
 const demo = '/react'
-const registry = 'https://medium-zoom.francoischalifour.com/r/image-zoom.json'
 
 async function ready(page: Page) {
   await page.goto(demo)
@@ -168,7 +167,7 @@ test('keyboard tabs show code and package managers select the install command', 
   await expect(installation.getByRole('radio', { name: 'pnpm', exact: true })).toBeChecked()
   await expect(installation.locator('pre')).toHaveJSProperty(
     'innerText',
-    `$ pnpm dlx shadcn@latest add ${registry}`
+    '$ pnpm dlx shadcn@latest add @medium-zoom/image-zoom'
   )
 })
 

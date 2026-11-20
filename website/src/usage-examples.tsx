@@ -32,7 +32,7 @@ export function UsageExamples() {
           <div className="usage-code">
             <div className="code-block">
               <div className="code-caption">
-                <span>components/{example.id === 'gallery' ? 'multiple-images' : 'photo'}.tsx</span>
+                <span>{example.file}</span>
                 <CopyButton
                   text={example.code}
                   label="Copy usage code"
@@ -43,11 +43,7 @@ export function UsageExamples() {
               </div>
               <HighlightedCode code={example.code} />
             </div>
-            <p className="guide-note">
-              {example.id === 'controlled'
-                ? 'Use a Client Component to manage zoom state.'
-                : 'Works with SSR and React Server Components.'}
-            </p>
+            <p className="guide-note">{example.note}</p>
           </div>
           <UsagePreview key={example.id} exampleId={example.id} />
         </div>

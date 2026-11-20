@@ -54,6 +54,39 @@ test('new npm reports refresh the monthly count', async ({ page }) => {
   await expect(stats).toContainText('420K monthly downloads on npm')
 })
 
+test('the count stays hidden in its reserved line until npm answers', async ({ page }) => {
+  const clock = new Date(`${nextDay}T12:00:00Z`)
+  clock.setUTCDate(clock.getUTCDate() + 1)
+  await page.clock.setFixedTime(clock)
+  let releaseResponse = () => {}
+  const responseReleased = new Promise<void>(resolve => (releaseResponse = resolve))
+  await page.route('https://api.npmjs.org/downloads/point/**', async route => {
+    await responseReleased
+    await route.fulfill({
+      json: {
+        package: 'medium-zoom',
+        downloads: 420_000,
+        start: new Date(Date.parse(nextDay) - 29 * 86_400_000).toISOString().slice(0, 10),
+        end: nextDay,
+      },
+      headers: { 'Access-Control-Allow-Origin': '*' },
+    })
+  })
+  const requested = page.waitForRequest('https://api.npmjs.org/downloads/point/**')
+  await page.goto('/')
+  await requested
+  const stats = page.locator('.monthly-downloads')
+  await expect(stats.getByRole('link')).toHaveCount(0)
+  const reservedHeight = (await stats.boundingBox())?.height
+  expect(reservedHeight).toBeGreaterThan(0)
+
+  releaseResponse()
+  await expect(stats.getByRole('link')).toHaveAccessibleName(
+    `${compact(420_000)} monthly downloads on npm (opens in a new tab)`
+  )
+  expect((await stats.boundingBox())?.height).toBe(reservedHeight)
+})
+
 for (const failure of ['unavailable', 'incomplete', 'older'] as const) {
   test(`an ${failure} npm report preserves the verified count`, async ({ page }) => {
     const clock = new Date(`${nextDay}T12:00:00Z`)

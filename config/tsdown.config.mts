@@ -183,7 +183,8 @@ function browserBundle(
   return {
     cwd: fileURLToPath(new URL('../', import.meta.url)),
     entry: { 'medium-zoom': source },
-    platform: 'browser',
+    // tsdown always builds CommonJS for Node; the code itself is still browser-only.
+    platform: format === 'cjs' ? 'node' : 'browser',
     // Keep editor paths from overriding the runtime platform alias.
     tsconfig: false,
     target: profile === 'compat' ? 'esnext' : 'es2020',

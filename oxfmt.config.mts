@@ -1,6 +1,7 @@
-import { defineConfig } from 'oxfmt'
+// A type-only import lets CI run oxfmt without installing the workspace.
+import type { OxfmtConfig } from 'oxfmt'
 
-export default defineConfig({
+export default {
   singleQuote: true,
   semi: false,
   trailingComma: 'es5',
@@ -13,4 +14,4 @@ export default defineConfig({
     },
   ],
   ignorePatterns: ['CHANGELOG.md', 'bun.lock', '**/dist/**', 'coverage/**', '.cache/**'],
-})
+} satisfies OxfmtConfig

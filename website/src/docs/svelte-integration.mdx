@@ -1,0 +1,92 @@
+import { InstallCommand } from '../install-command'
+import { JavaScriptPreview, RelatedPages } from './doc-components'
+
+medium-zoom works with Svelte out of the box. Wrap it in a small component, then use it like an `<img>`.
+
+## Install the package
+
+<InstallCommand page="javascript" id="svelte-installation" />
+
+The standard import includes zoom styles and TypeScript definitions.
+
+## Create the component
+
+An attachment runs when the image is added to the document. Return a cleanup function to detach the zoom when the image is removed:
+
+```svelte
+<script lang="ts">
+  import mediumZoom, { type ZoomOptions } from 'medium-zoom'
+  import type { HTMLImgAttributes } from 'svelte/elements'
+
+  let { options, ...image }: HTMLImgAttributes & { options?: ZoomOptions } = $props()
+
+  function zoomable(element: HTMLImageElement) {
+    const zoom = mediumZoom(element, options)
+    return () => zoom.detach()
+  }
+</script>
+
+<img {...image} {@attach zoomable} />
+```
+
+Save it as `ZoomableImage.svelte`. The component passes attributes such as `src`, `alt`, `width`, and `height` to the image. Attachments require Svelte 5.29 or later.
+
+## Display an image
+
+Import the component and give it the image attributes:
+
+```svelte
+<script lang="ts">
+  import ZoomableImage from './ZoomableImage.svelte'
+</script>
+
+<ZoomableImage
+  src="/assets/images/ocean-sunset.jpg"
+  alt="Ocean sunset"
+  width="1920"
+  height="1280"
+/>
+```
+
+Click the image to enlarge it:
+
+<JavaScriptPreview
+  src="/assets/images/ocean-sunset.jpg"
+  alt="Ocean sunset"
+  width={1_920}
+  height={1_280}
+  label="Enlarge ocean sunset"
+/>
+
+Click the enlarged image or its background, press <kbd aria-label="Escape">Esc</kbd>, or scroll to close the zoom.
+
+Width and height reserve space while the image loads. To keep the image responsive, follow the [image size step](/docs/javascript/#set-the-image-size) of the JavaScript quickstart.
+
+## Set options
+
+Pass [options](/docs/reference/javascript/options/) to change the margin, background, or scroll behavior:
+
+```svelte
+<ZoomableImage
+  src="/assets/images/ocean-sunset.jpg"
+  alt="Ocean sunset"
+  options={{ margin: 24, background: '#000000' }}
+/>
+```
+
+When the options change, the attachment detaches the zoom and attaches it again with the new options.
+
+## Server rendering
+
+Attachments run only in the browser, so the component also works with SvelteKit server rendering. The server outputs the plain image, and the zoom attaches after hydration.
+
+## Next steps
+
+<RelatedPages
+  pages={[
+    '/docs/guides/hd-images/',
+    '/docs/guides/multiple-images/',
+    '/docs/guides/styling/',
+    '/docs/reference/javascript/options/',
+  ]}
+/>

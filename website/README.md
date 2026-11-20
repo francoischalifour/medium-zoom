@@ -27,6 +27,7 @@ bunx vite preview --config config/vite.website.config.mts --host 127.0.0.1 --por
 - `src/docs/` contains MDX guides, API references, and live examples. `pages.ts` defines their routes and metadata.
 - `build/` handles prerendering, syntax highlighting, and shared HTML templates.
 - `public/_redirects` preserves moved website URLs in production, local development, and preview.
+- `build/site-headers.ts` generates `_headers`: each Markdown copy names its HTML page as canonical, and `llms.txt`, examples, and Storybook stay out of search indexes.
 
 The installable React component lives in `examples/shadcn/`. The root `registry.json` defines its registry entry. See the [component development guide](../examples/shadcn/README.md) for its build and verification commands.
 
@@ -34,11 +35,10 @@ Documentation search uses MiniSearch, loaded when the command palette opens. The
 
 ## Generated files
 
-`bun run build:website` builds the library and regenerates documentation entries, highlighted snippets, the React registry, and the complete site. Edit the source rather than generated output:
+`bun run build:website` builds the library and regenerates documentation entries, the React registry, and the complete site. Highlighted code snippets, page Markdown, `llms.txt`, `sitemap.xml`, and `robots.txt` are generated from the site's sources during development and builds, with no checked-in copy. Edit the source rather than generated output:
 
 - `website/docs/` contains generated documentation entry pages and is ignored by Git.
 - `website/dist/` contains the built site and is ignored by Git.
-- `website/src/highlighted-snippets.json` contains generated syntax highlighting for product-page and documentation code samples.
 - `website/public/r/` contains the generated React registry.
 
 Run `bun run update:downloads` to refresh the committed npm download snapshot. The browser adds newer reported days on page load and keeps the snapshot if npm is unavailable.
@@ -62,9 +62,9 @@ The documentation checks compile authored JavaScript and TSX snippets against th
 
 Set `VITE_ALTERTABLE_API_KEY` in the root `.env.local` or build environment to a public Altertable browser ingestion key. Vite embeds this value in browser code, so never use an admin credential.
 
-Anonymous tracking runs only on the production domain. It records pageviews, successful command and code copies, opened images, and outbound links. The library and installable component contain no tracking. Analytics tests intercept ingestion requests.
+Tracking runs only on the production domain and uses Altertable's audience mode, which stores nothing in the browser and sends no visitor identifiers. It records pageviews, searches, successful command and code copies, opened images, and outbound links. The library and installable component contain no tracking. Analytics tests intercept ingestion requests.
 
-The Cloudflare Worker records `Registry Component Downloaded` for successful production component downloads. Set its `ALTERTABLE_API_KEY` secret to an ingestion key for the same Altertable environment:
+The Cloudflare Worker records `Registry Component Downloaded` in audience mode for successful production component downloads. Set its `ALTERTABLE_API_KEY` secret to an ingestion key for the same Altertable environment:
 
 ```sh
 bunx wrangler secret put ALTERTABLE_API_KEY --config config/wrangler.jsonc

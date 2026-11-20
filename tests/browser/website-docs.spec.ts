@@ -26,32 +26,51 @@ const pages = [
   ['/docs/reference/javascript/events/', 'Events', 'JavaScript events • medium-zoom'],
   ['/docs/reference/react/image-zoom/', '<ImageZoom>', 'React ImageZoom API • medium-zoom'],
   ['/docs/reference/react/composition/', 'Composition', 'React composition API • medium-zoom'],
+  ['/docs/integrations/angular/', 'Angular', 'Angular image zoom • medium-zoom'],
+  ['/docs/integrations/vue/', 'Vue', 'Vue image zoom • medium-zoom'],
+  ['/docs/integrations/svelte/', 'Svelte', 'Svelte image zoom • medium-zoom'],
+  ['/docs/integrations/solid/', 'Solid', 'Solid image zoom • medium-zoom'],
+  ['/docs/integrations/astro/', 'Astro', 'Astro image zoom • medium-zoom'],
+  ['/docs/integrations/vitepress/', 'VitePress', 'VitePress image zoom • medium-zoom'],
 ] as const
 
 test('collapsed docs navigation stays inside the article column on phones and tablets', async ({
   page,
 }) => {
   await page.goto('/docs/javascript/')
+  const outlineButton = page.getByRole('button', { name: 'On this page', exact: true })
   for (const width of [390, 1_024]) {
     await page.setViewportSize({ width, height: 900 })
-    const main = page.locator('.docs-main')
-    const menus = main.locator('.docs-mobile-navigation')
-    await expect(menus).toBeVisible()
-    const mainBounds = (await main.boundingBox())!
-    const menuBounds = (await menus.boundingBox())!
-    expect(menuBounds.x).toBe(mainBounds.x)
-    expect(menuBounds.width).toBe(mainBounds.width)
-    const documentation = menus.getByText('Documentation', { exact: true }).first()
+    const sheetButton = page.getByRole('button', { name: 'Open documentation navigation' })
     if (width === 390) {
-      await expect(documentation).toBeVisible()
+      await expect(sheetButton).toBeVisible()
     } else {
-      await expect(documentation).toBeHidden()
+      await expect(sheetButton).toBeHidden()
     }
-    await expect(menus.locator('summary').last()).toHaveText('On this page')
+    const breadcrumb = page.getByRole('navigation', { name: 'Breadcrumb' })
+    await expect(breadcrumb.getByRole('listitem')).toHaveText([
+      'Get started',
+      'JavaScript quickstart',
+    ])
+    await expect(breadcrumb.locator('[aria-current="page"]')).toHaveText('JavaScript quickstart')
+    await expect(outlineButton).toBeVisible()
   }
+  await page.setViewportSize({ width: 1_440, height: 900 })
+  await expect(outlineButton).toBeHidden()
   await page.setViewportSize({ width: 1_024, height: 900 })
   await page.goto('/docs/')
-  await expect(page.locator('.docs-mobile-navigation')).toBeHidden()
+  await expect(outlineButton).toHaveCount(0)
+})
+
+test('the sidebar and outline keep their active entries in view', async ({ page }) => {
+  await page.setViewportSize({ width: 1_440, height: 600 })
+  await page.goto('/docs/integrations/vitepress/')
+  await expect(page.locator('.docs-sidebar [aria-current="page"]')).toBeInViewport({ ratio: 1 })
+  await page.goto('/docs/reference/javascript/methods/')
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+  const active = page.locator('.docs-outline [aria-current="location"]')
+  await expect(active).toHaveText('getZoomedImage()')
+  await expect(active).toBeInViewport({ ratio: 1 })
 })
 
 test('the active outline section uses text without a rail marker, fill, or underline', async ({
@@ -76,9 +95,9 @@ for (const theme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: theme })
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/docs/guides/hd-images/')
-    const menu = page.locator('.docs-mobile-navigation details').first()
-    await menu.locator('summary').click()
-    const area = menu.locator('.scroll-area')
+    const trigger = page.getByRole('button', { name: 'Open documentation navigation' })
+    await trigger.click()
+    const area = page.getByRole('dialog', { name: 'Documentation' }).locator('.scroll-area')
     const viewport = area.locator('.scroll-area-viewport')
     await expect(area).not.toHaveAttribute('data-scroll-above')
     await expect(area).toHaveAttribute('data-scroll-below', '')
@@ -88,17 +107,18 @@ for (const theme of ['light', 'dark'] as const) {
     })
     await expect(area).toHaveAttribute('data-scroll-above', '')
     await expect(area).toHaveAttribute('data-scroll-below', '')
-    await area.getByRole('link', { name: 'Composition', exact: true }).focus()
+    await area.getByRole('link', { name: 'VitePress', exact: true }).focus()
     await expect(area).toHaveAttribute('data-scroll-above', '')
     await expect(area).not.toHaveAttribute('data-scroll-below')
     expect(await area.evaluate(element => getComputedStyle(element, '::after').opacity)).toBe('0')
-    await menu.locator('summary').click()
-    await menu.locator('summary').click()
+    await page.keyboard.press('Escape')
+    await trigger.click()
     await expect(area).toHaveAttribute('data-scroll-above', '')
-    const contents = page.locator('.docs-mobile-navigation details').last()
-    await contents.locator('summary').click()
-    await expect(contents.locator('.scroll-area')).not.toHaveAttribute('data-scroll-above')
-    await expect(contents.locator('.scroll-area')).not.toHaveAttribute('data-scroll-below')
+    await page.keyboard.press('Escape')
+    await page.getByRole('button', { name: 'On this page', exact: true }).click()
+    const contents = page.locator('.docs-outline-menu .scroll-area')
+    await expect(contents).not.toHaveAttribute('data-scroll-above')
+    await expect(contents).not.toHaveAttribute('data-scroll-below')
     await page.setViewportSize({ width: 1_440, height: 600 })
     await expect(page.locator('.docs-sidebar')).toHaveAttribute('data-scroll-below', '')
     await page.setViewportSize({ width: 1_440, height: 1_500 })
@@ -129,19 +149,25 @@ test('anchor arrival waits for scrolling, fades away, and repeats for the same d
   await expect(heading).toHaveAttribute('data-anchor-arrival', '')
 })
 
-test('mobile contents menus close before landing and transfer keyboard focus', async ({ page }) => {
+test('the breadcrumb outline menu closes before landing and transfers keyboard focus', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/docs/guides/custom-react-triggers/')
-  const menu = page.locator('.docs-mobile-navigation details').last()
-  await expect(menu.locator('.scroll-area')).toHaveAttribute('data-scroll-ready', '')
-  await menu.locator('summary').focus()
+  const button = page.getByRole('button', { name: 'On this page', exact: true })
+  const menu = page.getByRole('navigation', { name: 'On this page' })
+  await button.focus()
   await page.keyboard.press('Enter')
-  await expect(menu).toHaveAttribute('open', '')
-  await expect(menu.locator('.docs-contents-title')).toBeHidden()
+  await expect(button).toHaveAttribute('aria-expanded', 'true')
+  await expect(menu.getByRole('link').first()).toBeFocused()
+  await page.keyboard.press('Escape')
+  await expect(menu).toBeHidden()
+  await expect(button).toBeFocused()
+  await page.keyboard.press('Enter')
   const link = menu.getByRole('link', { name: 'Style the trigger', exact: true })
   await link.focus()
   await page.keyboard.press('Enter')
-  await expect(menu).not.toHaveAttribute('open', '')
+  await expect(button).toHaveAttribute('aria-expanded', 'false')
   const heading = page.locator('#style-the-trigger')
   await expect(heading).toHaveAttribute('data-anchor-arrival', '')
   await expect(heading).toBeFocused()
@@ -267,10 +293,13 @@ test('documentation navigation preserves package manager and theme preferences',
     .getByRole('navigation', { name: 'Choose your setup' })
     .getByRole('link', { name: /JavaScript quickstart/ })
     .click()
-  await page
+  // A click before hydration is replayed once React loads, so wait for the choice instead of
+  // asserting it immediately.
+  const bun = page
     .locator('#javascript-installation')
     .getByRole('radio', { name: 'bun', exact: true })
-    .check()
+  await bun.click()
+  await expect(bun).toBeChecked()
   await expect(page.locator('#javascript-installation')).toContainText('bun add medium-zoom')
   await page
     .getByRole('navigation', { name: 'Main navigation', exact: true })
@@ -403,14 +432,17 @@ test('code copy uses the displayed TypeScript example', async ({ page, context, 
 test('mobile navigation and outline work without horizontal page overflow', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/docs/')
-  const menu = page.locator('.docs-mobile-navigation details').first()
-  await menu.locator('summary').focus()
+  await page.getByRole('button', { name: 'Open documentation navigation' }).focus()
   await page.keyboard.press('Enter')
-  await menu.getByRole('link', { name: 'Controlled state', exact: true }).click()
+  const sheet = page.getByRole('dialog', { name: 'Documentation' })
+  await expect(sheet).toBeVisible()
+  await sheet.getByRole('link', { name: 'Controlled state', exact: true }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Controlled state')
-  const outline = page.locator('.docs-mobile-navigation details').last()
-  await outline.locator('summary').click()
-  await outline.getByRole('link', { name: 'Control the zoom', exact: true }).click()
+  await page.getByRole('button', { name: 'On this page', exact: true }).click()
+  await page
+    .getByRole('navigation', { name: 'On this page' })
+    .getByRole('link', { name: 'Control the zoom', exact: true })
+    .click()
   await expect(page).toHaveURL(/#control-the-zoom$/)
   await expect(page.locator('#control-the-zoom')).toBeInViewport()
   for (const [path] of pages) {
@@ -430,7 +462,8 @@ for (const theme of ['light', 'dark'] as const) {
       for (const width of [1_440, 390]) {
         await page.setViewportSize({ width, height: 900 })
         if (width === 390) {
-          await page.locator('.docs-mobile-navigation details').first().locator('summary').click()
+          await page.getByRole('button', { name: 'Open documentation navigation' }).click()
+          await expect(page.getByRole('dialog', { name: 'Documentation' })).toBeVisible()
         }
         const result = await new AxeBuilder({ page })
           .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
@@ -454,7 +487,18 @@ test('section links and sticky navigation clear the header', async ({ page }) =>
       const navigation = page.locator(selector)
       if (await navigation.isVisible()) {
         const bounds = await navigation.boundingBox()
-        expect(bounds!.y - (header!.y + header!.height)).toBeGreaterThanOrEqual(24)
+        // The column starts at the header (its bottom border overlaps by a pixel) and its
+        // scrolled-to-top content clears it, whichever entry the column has revealed.
+        const contentTop = await navigation.locator('.scroll-area-viewport').evaluate(viewport => {
+          const firstEntry = viewport.querySelector('nav > *')!
+          return (
+            firstEntry.getBoundingClientRect().top -
+            viewport.getBoundingClientRect().top +
+            viewport.scrollTop
+          )
+        })
+        expect(bounds!.y).toBeCloseTo(header!.y + header!.height, -0.5)
+        expect(contentTop).toBeGreaterThanOrEqual(24)
       }
     }
     await page.goto('/docs/guides/hd-images/#data-zoom-src')
@@ -530,9 +574,10 @@ test('sidebar and reference links use distinct hover treatments', async ({ page 
   await articleLink.hover()
   await expect(articleLink).toHaveCSS('text-decoration-line', 'underline')
   await page.setViewportSize({ width: 390, height: 844 })
-  const menu = page.locator('.docs-mobile-navigation details').first()
-  await menu.locator('summary').click()
-  const mobileLink = menu.locator('a[href="/docs/javascript/"]')
+  await page.getByRole('button', { name: 'Open documentation navigation' }).click()
+  const mobileLink = page
+    .getByRole('dialog', { name: 'Documentation' })
+    .locator('a[href="/docs/javascript/"]')
   await mobileLink.hover()
   await expect(mobileLink).toHaveCSS('text-decoration-line', 'none')
   await expect(mobileLink).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
@@ -645,22 +690,24 @@ test('Documentation shares the section navigation across desktop and mobile', as
       ['/docs/', 'Docs'],
     ]) {
       await page.goto(path)
-      const sections =
-        width <= 680
-          ? page.getByRole('navigation', { name: 'Product navigation', exact: true })
-          : page
-              .getByRole('navigation', { name: 'Main navigation', exact: true })
-              .locator('.section-links')
-      for (const label of ['JavaScript', 'React', 'Docs']) {
-        await expect(sections.getByRole('link', { name: label, exact: true })).toBeVisible()
-        await expect(sections.getByRole('link', { name: label, exact: true })).toBeInViewport({
-          ratio: 1,
-        })
+      const bar = page.getByRole('navigation', { name: 'Main navigation', exact: true })
+      if (width <= 680) {
+        const section = bar.getByRole('combobox', { name: 'Section', exact: true })
+        await expect(section).toBeInViewport({ ratio: 1 })
+        await expect(section.getByRole('option')).toHaveText(['JavaScript', 'React', 'Docs'])
+        await expect(section.locator('option:checked')).toHaveText(current)
+      } else {
+        const sections = bar.locator('.section-links')
+        for (const label of ['JavaScript', 'React', 'Docs']) {
+          await expect(sections.getByRole('link', { name: label, exact: true })).toBeInViewport({
+            ratio: 1,
+          })
+        }
+        await expect(sections.getByRole('link', { name: current, exact: true })).toHaveAttribute(
+          'aria-current',
+          'page'
+        )
       }
-      await expect(sections.getByRole('link', { name: current, exact: true })).toHaveAttribute(
-        'aria-current',
-        'page'
-      )
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true
       )
@@ -932,7 +979,7 @@ test('related topics use compact links separate from directional navigation', as
   const gallery = related.getByRole('link', { name: /^Multiple images/ })
   await expect(gallery).toHaveText('Multiple images')
   await expect(gallery.locator('..')).toContainText('Attach zoom behavior to several images')
-  await expect(related.locator('svg, .docs-page-cards')).toHaveCount(0)
+  await expect(related.locator('svg, .docs-pagination')).toHaveCount(0)
   await expect(page.locator('.docs-pagination svg')).toHaveCount(2)
   await gallery.click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Multiple images')

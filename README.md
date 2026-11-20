@@ -56,7 +56,7 @@ The [JavaScript quickstart](https://medium-zoom.francoischalifour.com/docs/javas
 In a project configured for [shadcn/ui](https://ui.shadcn.com), install the component:
 
 ```sh
-npx shadcn@latest add https://medium-zoom.francoischalifour.com/r/image-zoom.json
+npx shadcn@latest add @medium-zoom/image-zoom
 ```
 
 ```tsx
@@ -75,7 +75,7 @@ Follow the [React quickstart](https://medium-zoom.francoischalifour.com/docs/rea
 
 The [documentation](https://medium-zoom.francoischalifour.com/docs/) covers HD images, galleries, styling, and the JavaScript and React APIs.
 
-Runnable [examples](examples/) include [plain JavaScript](examples/vanilla), [React](examples/react), [Vue](examples/vue), and [Svelte](examples/svelte). The React example demonstrates using the library directly; [shadcn/ui](examples/shadcn) demonstrates the installable component.
+Runnable [examples](examples/) include [plain JavaScript](examples/vanilla), [React](examples/react), [Angular](examples/angular), [Vue](examples/vue), [Svelte](examples/svelte), [Astro](examples/astro), and [VitePress](examples/vitepress). The React example demonstrates using the library directly; [shadcn/ui](examples/shadcn) demonstrates the installable component.
 
 ## Contributing
 

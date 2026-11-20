@@ -2,6 +2,8 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
 import packageJson from '../package.json' with { type: 'json' }
+import registry from '../registry.json' with { type: 'json' }
+import { siteOrigin } from '../website/src/site-url.ts'
 import worker from '../website/worker.ts'
 
 const origin = 'https://medium-zoom.francoischalifour.com'
@@ -33,6 +35,10 @@ function serve(
   }
 }
 
+test('the shadcn registry advertises the site origin', () => {
+  assert.equal(registry.homepage, siteOrigin)
+})
+
 test('serves the original JSON while analytics is pending and sends only download metadata', async t => {
   let finishDelivery!: (response: Response) => void
   const delivery = new Promise<Response>(resolve => {
@@ -56,11 +62,9 @@ test('serves the original JSON while analytics is pending and sends only downloa
   assert.equal(typeof init.body, 'string')
   const body = init.body as string
   const [event] = JSON.parse(body)
+  assert.deepEqual(Object.keys(event).sort(), ['event', 'mode', 'properties', 'timestamp'])
+  assert.equal(event.mode, 'audience')
   assert.equal(event.event, 'Registry Component Downloaded')
-  assert.equal(event.distinct_id, 'medium-zoom-registry')
-  assert.equal(event.device_id, 'device-medium-zoom-registry')
-  assert.equal(event.session_id, 'session-medium-zoom-registry')
-  assert.equal(event.anonymous_id, null)
   assert.ok(!Number.isNaN(Date.parse(event.timestamp)))
   assert.deepEqual(event.properties, {
     site: 'medium-zoom',

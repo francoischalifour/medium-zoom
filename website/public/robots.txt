@@ -1,5 +1,0 @@
-User-agent: *
-Content-Signal: search=yes, ai-input=yes, ai-train=yes
-Allow: /
-
-Sitemap: https://medium-zoom.francoischalifour.com/sitemap.xml

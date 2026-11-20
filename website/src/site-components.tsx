@@ -1,6 +1,8 @@
 import * as React from 'react'
+import snippets from 'virtual:highlighted-snippets'
 
-import snippets from './highlighted-snippets.json'
+import { splitInlineCode } from './product-pages'
+import { siteOrigin } from './site-url'
 
 const iconPaths = {
   feather: (
@@ -64,12 +66,28 @@ const iconPaths = {
     </>
   ),
   check: <path d="m5 12 4 4L19 6" />,
+  close: <path d="M6 6l12 12M18 6 6 18" />,
+  sidebar: (
+    <>
+      <rect x="3" y="4" width="18" height="16" rx="3" />
+      <path d="M9 4v16" />
+    </>
+  ),
   code: (
     <>
       <path d="m7 7-5 5 5 5m10-10 5 5-5 5m-4-14-2 18" />
     </>
   ),
   arrow: <path d="M5 12h14m-5-5 5 5-5 5" />,
+  chevron: <path d="m9 6 6 6-6 6" />,
+  selector: <path d="m8 9 4-4 4 4m-8 6 4 4 4-4" />,
+  ellipsis: (
+    <>
+      <circle cx="5" cy="12" r="1" fill="currentColor" />
+      <circle cx="12" cy="12" r="1" fill="currentColor" />
+      <circle cx="19" cy="12" r="1" fill="currentColor" />
+    </>
+  ),
   sun: (
     <>
       <circle cx="12" cy="12" r="4" />
@@ -83,6 +101,16 @@ const iconPaths = {
       <path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M7 15h10" />
     </>
   ),
+}
+
+/** Frames the hero headline and lede with zoom-crop marks sized to the text. */
+export function HeroCrop({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="hero-crop">
+      <span className="hero-frame" aria-hidden="true" />
+      {children}
+    </div>
+  )
 }
 
 export function Icon({
@@ -117,10 +145,9 @@ export function SiteLink({
   'aria-label': ariaLabel,
   ...props
 }: React.ComponentProps<'a'> & { externalIcon?: boolean }) {
-  const url = new URL(href || '', 'https://medium-zoom.francoischalifour.com')
+  const url = new URL(href || '', siteOrigin)
   const external =
-    (url.protocol === 'https:' || url.protocol === 'http:') &&
-    url.origin !== 'https://medium-zoom.francoischalifour.com'
+    (url.protocol === 'https:' || url.protocol === 'http:') && url.origin !== siteOrigin
   const linkTarget = target ?? (external ? '_blank' : undefined)
   const safeRel =
     linkTarget === '_blank'
@@ -189,7 +216,7 @@ export function CopyButton({
 }
 
 export function CodeTokens({ code }: { code: string }) {
-  const html = (snippets as Record<string, string>)[code]
+  const html = snippets[code]
   return (
     <span dangerouslySetInnerHTML={html ? { __html: html } : undefined}>
       {html ? undefined : code}
@@ -219,5 +246,12 @@ export function ZoomControls({ descriptionId }: { descriptionId?: string }) {
         Press Enter or Space to zoom. Click, press Escape, or scroll to close.
       </span>
     </span>
+  )
+}
+
+// Renders shared page copy, where backticks mark inline code.
+export function InlineCopy({ copy }: { copy: string }) {
+  return splitInlineCode(copy).map((part, index) =>
+    index % 2 === 1 ? <code key={index}>{part}</code> : part
   )
 }

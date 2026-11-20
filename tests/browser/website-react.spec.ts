@@ -65,7 +65,7 @@ for (const path of ['/', '/react']) {
           'innerText',
           path === '/'
             ? '$ bun add medium-zoom'
-            : '$ bunx shadcn@latest add https://medium-zoom.francoischalifour.com/r/image-zoom.json'
+            : '$ bunx shadcn@latest add @medium-zoom/image-zoom'
         )
       }
     } finally {

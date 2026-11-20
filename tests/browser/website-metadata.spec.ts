@@ -117,7 +117,7 @@ test('both pages ship readable HTML and complete sharing metadata without JavaSc
           (entity: { '@type': string }) => entity['@type'] === 'SoftwareSourceCode'
         )
         expect(software.description).toBe(packageJson.description)
-        await expect(page.locator('.hero > p').first()).toHaveText(packageJson.description)
+        await expect(page.locator('.hero-crop > p')).toHaveText(packageJson.description)
         expect(software.version).toBe(packageJson.version)
         expect(software.url).toBe(`${origin}/`)
         expect(software.sameAs).toEqual([

@@ -1,40 +1,39 @@
-@font-face {
-  font-family: 'Geist Variable';
-  font-style: normal;
-  font-display: swap;
-  font-weight: 100 900;
-  src: url('@fontsource-variable/geist/files/geist-latin-wght-normal.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Geist Mono Variable';
-  font-style: normal;
-  font-display: swap;
-  font-weight: 100 900;
-  src: url('@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2')
-    format('woff2');
-}
-
 :root {
   color-scheme: light;
   --background: #fff;
   --foreground: #18181b;
+  /* The logo green. */
+  --primary: #00d66b;
   --muted-foreground: #71717a;
   --surface: #fafafa;
   --hover: #f4f4f5;
   --selected: #f4f4f5;
   --border: #e4e4e7;
+  --border-strong: #d4d4d8;
   --ring: #8a8a96;
   --font-sans:
-    'Geist Variable', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Consolas, monospace;
+    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
+  /* Type scale in rem, so every size follows the reader's root font size. */
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-md: 0.875rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1rem;
+  --text-xl: 1.125rem;
+  --text-2xl: 1.375rem;
+  --text-3xl: 1.625rem;
+  --text-4xl: clamp(1.875rem, 1.5rem + 1.5vw, 2.25rem);
+  --text-display: clamp(2.75rem, 5.7vw, 4.25rem);
+  --text-code: var(--text-md);
   --site-width: 1152px;
   --site-header-height: 56px;
   --site-gutter: 32px;
-  --shadow-xs: 0 1px 2px rgb(0 0 0 / 4%), 0 0 0 1px rgb(0 0 0 / 1%);
+  --shadow-xs: 0 1px 0 rgb(0 0 0 / 3%), 0 1px 2px -1px rgb(0 0 0 / 8%);
   --shadow-image: 0 1px 3px rgb(0 0 0 / 6%), 0 12px 28px -14px rgb(0 0 0 / 25%);
   font-family: var(--font-sans);
-  font-size: 14px;
   line-height: 1.5;
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
@@ -51,14 +50,21 @@
   --hover: #252529;
   --selected: #252529;
   --border: #2d2d33;
+  --border-strong: #3f3f46;
   --ring: var(--muted-foreground);
 }
 
 * {
   box-sizing: border-box;
 }
+/* Selected text takes the full foreground so muted copy keeps its contrast on the tint. */
+::selection {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--primary) 24%, transparent);
+}
 body {
   margin: 0;
+  font-size: var(--text-base);
 }
 .site-shell {
   overflow-x: clip;
@@ -125,7 +131,7 @@ pre:focus-visible,
   display: flex;
   gap: 28px;
   align-items: center;
-  font-size: 13px;
+  font-size: var(--text-md);
 }
 .brand {
   display: inline-flex;
@@ -133,7 +139,7 @@ pre:focus-visible,
   gap: 10px;
   font-weight: 600;
   letter-spacing: -0.02em;
-  font-size: 15px;
+  font-size: var(--text-lg);
 }
 .brand-mark {
   width: 24px;
@@ -160,11 +166,55 @@ pre:focus-visible,
   background: transparent;
   color: var(--muted-foreground);
 }
-.mobile-section-links {
+.section-select {
+  position: relative;
   display: none;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  height: 32px;
+  padding: 0 6px;
+  border-radius: 8px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  transition: background 140ms ease-out;
+}
+.section-select-label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.section-select-brand {
+  font-size: var(--text-base);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+.section-select-indicator {
+  width: 14px;
+  height: 14px;
+  color: var(--muted-foreground);
+}
+/* 16px keeps iOS from zooming the page when the picker opens. */
+.section-select select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  font-size: 16px;
+  cursor: pointer;
+}
+.section-select:has(select:focus-visible) {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.section-select:active {
+  background: var(--hover);
 }
 .section-links {
-  font-size: 13px;
+  font-size: var(--text-md);
   font-weight: 500;
   color: var(--muted-foreground);
 }
@@ -247,7 +297,7 @@ pre:focus-visible,
   border: 1px solid var(--border);
   border-radius: 99px;
   padding: 6px 11px;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 500;
 }
 .shadcn-mark {
@@ -261,15 +311,16 @@ pre:focus-visible,
 
 h1 {
   margin: 20px 0 14px;
-  font-size: clamp(44px, 5.7vw, 68px);
+  font-size: var(--text-display);
   font-weight: 600;
   letter-spacing: -0.055em;
   line-height: 1.08;
 }
 .hero p {
   margin: 0;
-  font-size: 17px;
+  font-size: var(--text-xl);
   line-height: 1.7;
+  text-wrap: balance;
   color: var(--muted-foreground);
   letter-spacing: -0.015em;
 }
@@ -286,12 +337,15 @@ h1 {
   text-align: left;
   scroll-margin-top: 88px;
 }
+/* One-line commands stay a step smaller so the longest one fits without scrolling. */
+.install-block {
+  --text-code: var(--text-sm);
+}
 .install-block .code-caption {
   min-height: 43px;
 }
 .install-block pre {
   padding: 14px 18px 18px;
-  font-size: 12px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -300,7 +354,7 @@ h1 {
   justify-content: space-between;
   align-items: center;
   padding: 0 0 12px;
-  font-size: 13px;
+  font-size: var(--text-md);
   font-weight: 500;
 }
 .rail-heading h2 {
@@ -360,7 +414,7 @@ h1 {
 }
 .rail-hint {
   margin-right: 10px;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 400;
   color: var(--muted-foreground);
 }
@@ -447,7 +501,7 @@ h1 {
   justify-content: center;
   gap: 4px 6px;
   color: var(--muted-foreground);
-  font-size: 12px;
+  font-size: var(--text-sm);
   line-height: 1.6;
 }
 .zoom-controls > span {
@@ -467,7 +521,7 @@ a.example-kind {
 .example-kind {
   padding-right: 6px;
   color: var(--muted-foreground);
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 .example-card .demo-stage {
   --stage-height: 360px;
@@ -480,7 +534,6 @@ a.example-kind {
 }
 .example-card .demo-code pre {
   padding: 8px 20px 20px;
-  font-size: 12px;
   line-height: 1.6;
 }
 .example-card .demo-caption > span:first-child {
@@ -499,7 +552,6 @@ a.example-kind {
   }
   .install-block pre {
     padding: 12px 14px 16px;
-    font-size: 11px;
   }
   .example-rail {
     gap: 16px;
@@ -511,9 +563,6 @@ a.example-kind {
   }
   .rail-hint {
     display: none;
-  }
-  .example-card .demo-code pre {
-    font-size: 11px;
   }
   .example-card .demo-stage {
     --stage-height: 300px;
@@ -531,7 +580,7 @@ a.example-kind {
   padding: 0 16px;
   border: 1px solid var(--border);
   border-radius: 7px;
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 500;
   transition:
     background 150ms,
@@ -577,8 +626,8 @@ a.example-kind {
   border-bottom: 1px solid var(--border);
 }
 .demo-tabs button {
-  font-size: 12px;
-  line-height: 18px;
+  font-size: var(--text-sm);
+  line-height: 1.125rem;
 }
 .demo-stage {
   --stage-height: 410px;
@@ -593,11 +642,14 @@ a.example-kind {
   border-radius: 7px;
 }
 .preview-photo {
+  --preview-max-height: calc(var(--stage-height) - 64px);
   display: block;
   width: auto;
+  /* Size the photo from its dimensions so the trigger keeps its size before the photo loads. */
+  width: calc(var(--preview-max-height) * attr(width type(<number>)) / attr(height type(<number>)));
   height: auto;
   max-width: 100%;
-  max-height: calc(var(--stage-height) - 64px);
+  max-height: var(--preview-max-height);
   border-radius: 7px;
   box-shadow: var(--shadow-image);
   outline: 1px solid rgb(0 0 0 / 6%);
@@ -616,7 +668,7 @@ a.example-kind {
   justify-content: space-between;
   padding: 10px 18px;
   color: var(--muted-foreground);
-  font-size: 12px;
+  font-size: var(--text-sm);
   border-top: 1px solid var(--border);
 }
 .demo-caption > span:first-child {
@@ -639,7 +691,7 @@ kbd {
   box-shadow:
     0 1px 0 color-mix(in srgb, var(--foreground) 8%, var(--background)),
     inset 0 1px 0 var(--background);
-  font: 500 10px/1.4 var(--font-mono);
+  font: 500 var(--text-2xs)/1.4 var(--font-mono);
   white-space: nowrap;
 }
 :root.dark kbd {
@@ -683,7 +735,7 @@ kbd {
   color: var(--muted-foreground);
 }
 .details-strip h2 {
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 500;
   letter-spacing: -0.015em;
   margin: 0;
@@ -691,7 +743,7 @@ kbd {
 }
 .details-strip p {
   grid-column: 2;
-  font-size: 13px;
+  font-size: var(--text-md);
   line-height: 1.7;
   color: var(--muted-foreground);
   margin: 0;
@@ -712,7 +764,7 @@ kbd {
 @media (hover: hover) and (pointer: fine) {
   .integration-card:hover {
     background: var(--surface);
-    border-color: var(--ring);
+    border-color: var(--border-strong);
   }
 }
 .guide-section {
@@ -731,7 +783,7 @@ kbd {
 .guide-heading h2,
 .section-heading h2 {
   margin: 0 0 9px;
-  font-size: 24px;
+  font-size: var(--text-3xl);
   line-height: 1.3;
   font-weight: 500;
   letter-spacing: -0.04em;
@@ -740,7 +792,7 @@ kbd {
 .section-heading p {
   margin: 0;
   color: var(--muted-foreground);
-  font-size: 13px;
+  font-size: var(--text-md);
   line-height: 1.7;
 }
 .code-block {
@@ -763,14 +815,14 @@ kbd {
   min-height: 49px;
   padding: 5px 12px 5px 22px;
   border-bottom: 1px solid var(--border);
-  font: 12px var(--font-mono);
+  font: var(--text-sm) var(--font-mono);
   color: var(--muted-foreground);
 }
 pre {
   margin: 0;
   padding: 22px 24px 26px;
   overflow-x: auto;
-  font: 13px/1.8 var(--font-mono);
+  font: var(--text-code)/1.8 var(--font-mono);
   scrollbar-width: thin;
   tab-size: 2;
 }
@@ -797,7 +849,7 @@ code {
   border-radius: 5px;
   background: var(--surface);
   color: var(--foreground);
-  font-size: 0.88em;
+  font-size: 0.875em;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
@@ -829,7 +881,7 @@ pre code span {
 }
 .package-switch {
   margin: 0 0 0 -12px;
-  font: 12px var(--font-sans);
+  font: var(--text-sm) var(--font-sans);
 }
 .package-switch label {
   position: relative;
@@ -859,7 +911,7 @@ pre code span {
   white-space: nowrap;
   background: var(--background);
   color: var(--foreground);
-  font: 12px var(--font-sans);
+  font: var(--text-sm) var(--font-sans);
   opacity: 0;
   transition: opacity 120ms;
   pointer-events: none;
@@ -871,7 +923,7 @@ pre code span {
 .guide-note {
   margin: 14px 0 0;
   color: var(--muted-foreground);
-  font-size: 12px;
+  font-size: var(--text-sm);
   line-height: 1.8;
 }
 .guide-note a {
@@ -892,7 +944,7 @@ pre code span {
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: var(--text-sm);
   line-height: 1.6;
   text-align: left;
 }
@@ -911,7 +963,7 @@ td:last-child {
   color: var(--muted-foreground);
 }
 td code {
-  font-size: 12px;
+  font-size: var(--text-sm);
   white-space: nowrap;
 }
 .site-footer {
@@ -923,13 +975,13 @@ td code {
   max-width: var(--site-width);
   margin: auto;
   padding: 40px var(--site-gutter);
-  font-size: 13px;
+  font-size: var(--text-md);
   color: var(--muted-foreground);
 }
 .footer-brand {
   color: var(--foreground);
   min-height: 28px;
-  font-size: 15px;
+  font-size: var(--text-lg);
   font-weight: 600;
   letter-spacing: -0.02em;
 }
@@ -939,7 +991,7 @@ td code {
 }
 .footer-identity .footer-credit {
   margin-top: 12px;
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 .footer-credit a {
   color: var(--foreground);
@@ -953,7 +1005,7 @@ td code {
 .footer-nav-group > p {
   margin: 0 0 8px;
   color: var(--foreground);
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 550;
 }
 .footer-nav-group ul {
@@ -1011,6 +1063,7 @@ td code {
 @media (max-width: 680px) {
   :root {
     --site-gutter: 20px;
+    --text-code: var(--text-sm);
   }
   .navigation {
     height: var(--site-header-height);
@@ -1023,23 +1076,14 @@ td code {
   .navigation > .section-links {
     display: none;
   }
-  .hero .mobile-section-links {
-    display: flex;
-    width: max-content;
-    max-width: 100%;
-    margin: 0 auto 24px;
+  .navigation > .brand {
+    margin-right: -4px;
   }
-  .section-links {
-    gap: 4px;
-    font-size: 12px;
+  .navigation .brand-name {
+    display: none;
   }
-  .section-links a {
-    padding: 0 6px;
-    gap: 5px;
-  }
-  .section-links .documentation-mark {
-    width: 12px;
-    height: 12px;
+  .section-select {
+    display: inline-flex;
   }
   .nav-links > a:not(.github-link) {
     display: none;
@@ -1047,10 +1091,10 @@ td code {
   .github-link {
     gap: 5px;
     white-space: nowrap;
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
   .brand {
-    font-size: 14px;
+    font-size: var(--text-base);
     gap: 7px;
   }
   .brand-mark {
@@ -1061,20 +1105,18 @@ td code {
     padding: 0 var(--site-gutter);
   }
   .hero {
+    --text-display: clamp(1.75rem, 8.4vw, 2.75rem);
     padding: 24px 0 32px;
   }
-  .hero h1 {
-    font-size: clamp(28px, 8.4vw, 44px);
-  }
   .hero p {
-    font-size: 14px;
+    font-size: var(--text-base);
   }
   .hero-actions {
     gap: 8px;
     margin-top: 22px;
   }
   .button {
-    font-size: 12px;
+    font-size: var(--text-sm);
     padding: 0 12px;
     gap: 8px;
   }
@@ -1093,14 +1135,14 @@ td code {
     max-width: calc(100% - 40px);
   }
   .preview-photo {
-    max-height: calc(var(--stage-height) - 60px);
+    --preview-max-height: calc(var(--stage-height) - 60px);
   }
   .demo-code {
     min-height: 300px;
   }
   .demo-caption {
     padding: 10px 12px;
-    font-size: 10px;
+    font-size: var(--text-2xs);
   }
   .details-strip {
     grid-template-columns: 1fr;
@@ -1108,10 +1150,10 @@ td code {
     padding: 30px 4px 34px;
   }
   .details-strip h2 {
-    font-size: 13px;
+    font-size: var(--text-md);
   }
   .details-strip p {
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
   .guide-section {
     padding-top: 42px;
@@ -1121,16 +1163,15 @@ td code {
   }
   .guide-heading h2,
   .section-heading h2 {
-    font-size: 21px;
+    font-size: var(--text-2xl);
   }
   .guide-heading p {
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
   .code-caption {
     padding-left: 16px;
   }
   pre {
-    font-size: 12px;
     padding: 18px 16px 22px;
   }
   .demo-code .code-caption {
@@ -1141,7 +1182,7 @@ td code {
   }
   .package-switch label {
     padding: 8px;
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
   .api-section {
     padding: 44px 0 48px;
@@ -1152,7 +1193,7 @@ td code {
   }
   table {
     min-width: 540px;
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
   .site-footer {
     margin: 0 auto;
@@ -1169,6 +1210,17 @@ td code {
   }
   .footer-brand {
     min-height: 44px;
+  }
+}
+/* Phones give the bar's room to the branded section select; GitHub stays in the footer. */
+@media (max-width: 460px) {
+  .nav-links > .github-link {
+    display: none;
+  }
+}
+@media (max-width: 374px) {
+  .section-select-brand {
+    display: none;
   }
 }
 @media (prefers-reduced-motion: no-preference) {
@@ -1327,81 +1379,84 @@ td code {
   position: relative;
   isolation: isolate;
   --hero-spotlight: #f2f2f5;
-  --hero-frame-width: min(100vw, 1480px);
-  --hero-frame-height: 540px;
-  --hero-crop-width: calc(var(--hero-frame-width) * 0.425);
-  --hero-crop-height: calc(var(--hero-frame-height) * 0.458333);
-  --hero-crop-top: calc(var(--hero-frame-height) * 0.158333);
+  --hero-mark-color: color-mix(in srgb, var(--foreground) 22%, transparent);
 }
 .dark .hero {
   --hero-spotlight: #222226;
 }
-.hero::before,
-.hero::after {
+/* The crop hugs the headline and lede, so its marks follow the type at any size. */
+.hero-crop {
+  position: relative;
+  width: fit-content;
+  margin-inline: auto;
+}
+.hero-crop::before {
   content: '';
   position: absolute;
-  inset: 0 calc(50% - 50vw) auto;
+  z-index: -2;
+  top: 50%;
+  left: 50%;
+  width: min(56vw, 760px);
   height: 360px;
+  translate: -50% -50%;
+  background: radial-gradient(closest-side, var(--hero-spotlight), transparent 85%);
   pointer-events: none;
 }
-.hero::before {
+.hero-frame {
+  position: absolute;
   z-index: -1;
-  height: 560px;
-  background: color-mix(in srgb, var(--foreground) 22%, transparent);
-  mask:
-    url('./assets/hero-zoom-frames.svg') center top / var(--hero-frame-width)
-      var(--hero-frame-height) no-repeat,
-    url('./assets/hero-zoom-outer-frame.svg') center top / var(--hero-frame-width)
-      var(--hero-frame-height) no-repeat;
-  transform-origin: 50% 209px;
+  /* Insets in em scale with the headline. */
+  font-size: var(--text-display);
+  inset: -0.16em -0.65em -0.24em;
+  background: radial-gradient(
+    ellipse at 50% 45%,
+    color-mix(in srgb, var(--foreground) 2.5%, transparent),
+    transparent 75%
+  );
+  pointer-events: none;
 }
-.hero::after {
-  z-index: -2;
-  transform-origin: 50% 209px;
-  height: 560px;
-  background:
-    radial-gradient(
-        ellipse at 50% 45%,
-        color-mix(in srgb, var(--foreground) 2.5%, transparent),
-        transparent 75%
-      )
-      center var(--hero-crop-top) / var(--hero-crop-width) var(--hero-crop-height) no-repeat,
-    radial-gradient(
-      ellipse min(28vw, 380px) 180px at 50% 209px,
-      var(--hero-spotlight),
-      transparent 85%
-    );
+.hero-frame::before,
+.hero-frame::after {
+  content: '';
+  position: absolute;
+  border: var(--mark-width) solid var(--hero-mark-color);
+  mask:
+    linear-gradient(#000 0 0) top left / var(--mark-length) var(--mark-length) no-repeat,
+    linear-gradient(#000 0 0) top right / var(--mark-length) var(--mark-length) no-repeat,
+    linear-gradient(#000 0 0) bottom left / var(--mark-length) var(--mark-length) no-repeat,
+    linear-gradient(#000 0 0) bottom right / var(--mark-length) var(--mark-length) no-repeat;
+}
+.hero-frame::before {
+  --mark-width: 1.75px;
+  --mark-length: 26px;
+  inset: 0;
+}
+.hero-frame::after {
+  --mark-width: 1px;
+  --mark-length: 24px;
+  inset: -18% -25%;
+  opacity: 0.2;
 }
 
 @media (max-width: 680px) {
   .hero {
-    --hero-frame-width: 200vw;
-    --hero-frame-height: 520px;
+    --hero-mark-color: color-mix(in srgb, var(--foreground) 10%, transparent);
   }
-  .hero::before {
-    height: 460px;
-    background: color-mix(in srgb, var(--foreground) 10%, transparent);
-    mask-size:
-      200% 520px,
-      185% 520px;
-    transform-origin: 50% 202px;
-  }
-  .hero::after {
-    transform-origin: 50% 202px;
-    height: 460px;
+  .hero-frame {
+    inset-inline: -12px;
   }
 }
 
 /* The crop opens as the light recedes, leaving the content stationary. */
 @supports (animation-timeline: scroll(root block)) and (animation-range: 0px 300px) {
   @media (prefers-reduced-motion: no-preference) {
-    .hero::before,
-    .hero::after {
+    .hero-frame,
+    .hero-crop::before {
       animation: hero-zoom-expand 1s linear both;
       animation-timeline: scroll(root block);
       animation-range: 0px 300px;
     }
-    .hero::after {
+    .hero-crop::before {
       animation-name: hero-light-fade;
     }
   }
@@ -1428,12 +1483,12 @@ td code {
   margin-top: 24px;
 }
 .usage-tabs button {
-  font-size: 13px;
+  font-size: var(--text-md);
 }
 .usage-description {
   margin: 12px 0 20px;
   color: var(--muted-foreground);
-  font-size: 14px;
+  font-size: var(--text-base);
   line-height: 1.6;
 }
 .usage-example {
@@ -1457,7 +1512,7 @@ td code {
 .usage-preview figcaption {
   margin-top: 12px;
   color: var(--muted-foreground);
-  font-size: 13px;
+  font-size: var(--text-md);
   line-height: 1.5;
 }
 .usage-preview .image-zoom-trigger {
@@ -1484,7 +1539,6 @@ td code {
 }
 .usage-example pre {
   max-height: 440px;
-  font-size: 12px;
 }
 @supports (corner-shape: squircle) {
   .usage-preview,
@@ -1526,7 +1580,7 @@ td code {
   border-radius: 8px;
   background: var(--background);
   color: var(--foreground);
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .closing-install {
@@ -1536,7 +1590,7 @@ td code {
 }
 .closing-install h2 {
   margin: 0;
-  font-size: clamp(26px, 3vw, 36px);
+  font-size: var(--text-4xl);
   line-height: 1.2;
   font-weight: 550;
   letter-spacing: -0.04em;
@@ -1544,7 +1598,7 @@ td code {
 .closing-install > p {
   margin: 12px 0 0;
   color: var(--muted-foreground);
-  font-size: 14px;
+  font-size: var(--text-base);
   line-height: 1.6;
 }
 .closing-install .install-block {
@@ -1558,15 +1612,28 @@ td code {
   }
 }
 
+/* A footnote to the install snippet, aligned with its right edge. */
 .hero .monthly-downloads {
-  margin: 16px auto 0;
-  font-size: 14px;
+  max-width: 760px;
+  margin: 10px auto 0;
+  padding-inline: 4px;
+  font-size: var(--text-sm);
   line-height: 1.5;
   letter-spacing: normal;
+  text-align: right;
+  /* Reserve the line while the count loads so nothing below moves. */
+  min-height: 1.5em;
+}
+.monthly-downloads a {
+  animation: monthly-downloads-in 400ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+@keyframes monthly-downloads-in {
+  from {
+    opacity: 0;
+  }
 }
 .monthly-downloads strong {
   color: var(--foreground);
-  font-size: 15px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }

@@ -5,6 +5,11 @@ declare module '*.mdx' {
   export default Content
 }
 
+declare module 'virtual:highlighted-snippets' {
+  const snippets: Record<string, string>
+  export default snippets
+}
+
 declare module 'virtual:docs-search' {
   const search: import('../docs-search').DocsSearch
   export default search

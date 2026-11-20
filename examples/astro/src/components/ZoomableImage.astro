@@ -1,0 +1,33 @@
+---
+import { Image } from 'astro:assets'
+import type { ComponentProps } from 'astro/types'
+import type { ZoomOptions } from 'medium-zoom'
+import 'medium-zoom/dist/style.css'
+
+type Props = ComponentProps<typeof Image> & { options?: ZoomOptions }
+
+const { options, ...props } = Astro.props
+---
+
+<zoomable-image data-options={JSON.stringify(options)}>
+  <Image {...props} />
+</zoomable-image>
+
+<script>
+  import mediumZoom, { type Zoom } from 'medium-zoom/dist/pure'
+
+  class ZoomableImage extends HTMLElement {
+    #zoom: Zoom | undefined
+
+    connectedCallback() {
+      const options = JSON.parse(this.dataset.options ?? '{}')
+      this.#zoom = mediumZoom(this.querySelector('img')!, options)
+    }
+
+    disconnectedCallback() {
+      this.#zoom?.detach()
+    }
+  }
+
+  customElements.define('zoomable-image', ZoomableImage)
+</script>

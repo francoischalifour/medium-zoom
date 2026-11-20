@@ -2,7 +2,9 @@ import { fileURLToPath } from 'node:url'
 
 import { defineConfig, devices } from '@playwright/test'
 
-import { testUrl } from '../tests/server-urls.ts'
+import { reserveTestPorts } from './test-ports.mts'
+
+const { testUrl } = await reserveTestPorts()
 
 export default defineConfig({
   testDir: '../tests/analytics',

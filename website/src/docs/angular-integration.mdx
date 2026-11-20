@@ -1,0 +1,111 @@
+import { InstallCommand } from '../install-command'
+import { JavaScriptPreview, RelatedPages } from './doc-components'
+
+medium-zoom works with Angular out of the box. Wrap it in a small directive, then add it to any `<img>`.
+
+## Install the package
+
+<InstallCommand page="javascript" id="angular-installation" />
+
+The standard import includes zoom styles and TypeScript definitions.
+
+## Create the directive
+
+Attach the zoom after Angular renders the image, update it when the options change, and detach it when the image is destroyed:
+
+```angular
+import { afterRenderEffect, DestroyRef, Directive, ElementRef, inject, input } from '@angular/core'
+import mediumZoom, { type Zoom, type ZoomOptions } from 'medium-zoom'
+
+@Directive({ selector: 'img[appZoomable]' })
+export class ZoomableImage {
+  readonly zoomOptions = input<ZoomOptions>({})
+
+  constructor() {
+    const image = inject<ElementRef<HTMLImageElement>>(ElementRef).nativeElement
+    let zoom: Zoom | undefined
+
+    afterRenderEffect(() => {
+      const options = this.zoomOptions()
+      if (zoom) {
+        zoom.update(options)
+      } else {
+        zoom = mediumZoom(image, options)
+      }
+    })
+
+    inject(DestroyRef).onDestroy(() => zoom?.detach())
+  }
+}
+```
+
+Save it as `zoomable-image.ts`. The directive is standalone and attaches with `afterRenderEffect()`, which requires Angular 20 or later.
+
+## Display an image
+
+Import the directive in your component and add `appZoomable` to the image:
+
+```angular
+import { Component } from '@angular/core'
+
+import { ZoomableImage } from './zoomable-image'
+
+@Component({
+  selector: 'app-article',
+  imports: [ZoomableImage],
+  template: `
+    <img
+      appZoomable
+      src="/assets/images/ocean-sunset.jpg"
+      alt="Ocean sunset"
+      width="1920"
+      height="1280"
+    />
+  `,
+})
+export class Article {}
+```
+
+Click the image to enlarge it:
+
+<JavaScriptPreview
+  src="/assets/images/ocean-sunset.jpg"
+  alt="Ocean sunset"
+  width={1_920}
+  height={1_280}
+  label="Enlarge ocean sunset"
+/>
+
+Click the enlarged image or its background, press <kbd aria-label="Escape">Esc</kbd>, or scroll to close the zoom.
+
+Width and height reserve space while the image loads. To keep the image responsive, follow the [image size step](/docs/javascript/#set-the-image-size) of the JavaScript quickstart.
+
+## Set options
+
+Bind [options](/docs/reference/javascript/options/) to change the margin, background, or scroll behavior:
+
+```html
+<img
+  appZoomable
+  [zoomOptions]="{ margin: 24, background: '#000000' }"
+  src="/assets/images/ocean-sunset.jpg"
+  alt="Ocean sunset"
+/>
+```
+
+When the options change, the directive merges them into the zoom.
+
+## Server rendering
+
+Render effects run only in the browser, so the directive also works with Angular SSR and prerendering. The server outputs the plain image, and the zoom attaches after hydration.
+
+## Next steps
+
+<RelatedPages
+  pages={[
+    '/docs/guides/hd-images/',
+    '/docs/guides/multiple-images/',
+    '/docs/guides/styling/',
+    '/docs/reference/javascript/options/',
+  ]}
+/>

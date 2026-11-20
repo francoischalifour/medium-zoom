@@ -1,5 +1,6 @@
 import packageJson from '../package.json' with { type: 'json' }
 import registry from '../registry.json' with { type: 'json' }
+import { siteOrigin } from './src/site-url.ts'
 
 const componentPaths = new Map(registry.items.map(item => [`/r/${item.name}.json`, item.name]))
 
@@ -11,13 +12,10 @@ async function trackDownload(apiKey: string, component: string, path: string) {
       signal: AbortSignal.timeout(2_000),
       body: JSON.stringify([
         {
+          // Audience events count downloads without identifying a developer, device, or project.
+          mode: 'audience',
           event: 'Registry Component Downloaded',
           timestamp: new Date().toISOString(),
-          // This identifies the source, never a developer, device, or project.
-          distinct_id: 'medium-zoom-registry',
-          device_id: 'device-medium-zoom-registry',
-          session_id: 'session-medium-zoom-registry',
-          anonymous_id: null,
           properties: {
             site: 'medium-zoom',
             component,
@@ -44,7 +42,7 @@ export default {
     const component = componentPaths.get(url.pathname)
     if (
       request.method === 'GET' &&
-      url.origin === registry.homepage &&
+      url.origin === siteOrigin &&
       component &&
       response.status === 200 &&
       env.ALTERTABLE_API_KEY

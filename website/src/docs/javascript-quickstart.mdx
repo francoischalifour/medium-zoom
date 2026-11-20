@@ -7,6 +7,8 @@ import {
 
 Install medium-zoom, select an image, and click it to zoom.
 
+Using React? Follow the [React quickstart](/docs/react/). For Angular, Vue, Svelte, Solid, Astro, or VitePress, see the [integrations](/docs/#integrations).
+
 ## Install the package
 
 <InstallCommand page="javascript" id="javascript-installation" />
@@ -39,7 +41,13 @@ mediumZoom('[data-zoomable]')
 
 Click the image to enlarge it:
 
-<JavaScriptPreview />
+<JavaScriptPreview
+  src="/assets/images/ocean-sunset.jpg"
+  alt="Ocean sunset"
+  width={1_920}
+  height={1_280}
+  label="Enlarge ocean sunset"
+/>
 
 Click the enlarged image or its background, press <kbd aria-label="Escape">Esc</kbd>, or scroll to close the zoom.
 

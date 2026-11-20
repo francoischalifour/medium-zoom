@@ -1,4 +1,5 @@
 import './site.css'
+import { loadCodeFont } from './code-font'
 
 const pendingActions: (() => void)[] = []
 const listeners = new AbortController()
@@ -97,31 +98,41 @@ document.addEventListener('click', deferClick, options)
 document.addEventListener('keydown', deferKeyDown, options)
 document.addEventListener('change', deferRadioChange, options)
 
-// Development has no prerendered content to paint before hydration.
-if (!document.getElementById('root')?.hasChildNodes()) {
-  startHydration()
-} else if (PerformanceObserver.supportedEntryTypes.includes('paint')) {
+function afterFirstPaint(callback: () => void) {
+  // Development has no prerendered content to paint before hydration.
+  if (!document.getElementById('root')?.hasChildNodes()) {
+    callback()
+    return
+  }
+  if (!PerformanceObserver.supportedEntryTypes.includes('paint')) {
+    requestAnimationFrame(() => requestAnimationFrame(callback))
+    return
+  }
+  let called = false
   const observer = new PerformanceObserver(entries => {
-    if (!entries.getEntries().some(entry => entry.name === 'first-contentful-paint')) {
-      return
+    if (entries.getEntries().some(entry => entry.name === 'first-contentful-paint')) {
+      run()
     }
-    observer.disconnect()
-    startHydration()
   })
+  function run() {
+    observer.disconnect()
+    if (!called) {
+      called = true
+      callback()
+    }
+  }
   observer.observe({ type: 'paint', buffered: true })
 
   // Bound the wait for browsers that omit paint timing on some navigations.
-  const startAfterLoad = () => {
-    window.setTimeout(() => {
-      observer.disconnect()
-      startHydration()
-    }, 1_000)
-  }
+  const runAfterLoad = () => window.setTimeout(run, 1_000)
   if (document.readyState === 'complete') {
-    startAfterLoad()
+    runAfterLoad()
   } else {
-    window.addEventListener('load', startAfterLoad, { once: true })
+    window.addEventListener('load', runAfterLoad, { once: true })
   }
-} else {
-  requestAnimationFrame(() => requestAnimationFrame(startHydration))
 }
+
+afterFirstPaint(() => {
+  loadCodeFont()
+  startHydration()
+})

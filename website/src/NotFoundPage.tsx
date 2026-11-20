@@ -1,3 +1,4 @@
+import { HeroCrop } from './site-components'
 import { SiteHeader, SiteFooter } from './site-shell'
 import { JavaScriptIcon, ReactIcon } from './technology-icons'
 
@@ -10,8 +11,10 @@ export function NotFoundPage() {
       <main className="page-content" id="main">
         <section className="hero not-found-hero" aria-labelledby="page-title">
           <span className="eyebrow">404 · Out of frame</span>
-          <h1 id="page-title">Page not found.</h1>
-          <p>This page may have moved. Search the docs or choose a quickstart.</p>
+          <HeroCrop>
+            <h1 id="page-title">Page not found.</h1>
+            <p>This page may have moved. Search the docs or choose a quickstart.</p>
+          </HeroCrop>
           <div className="hero-actions">
             <a className="button button-primary" href="/docs/?q=">
               Search docs
