@@ -44,11 +44,11 @@ export function createZoomSession<Options extends CoreZoomOptions>(
   if (existing) {
     return existing
   }
-  let released = false
+  // Set once dispose() starts; `released` once its close has settled.
   let disposal: Promise<void> | undefined
+  let released = false
   const documents = new Set<Document>()
   let revision = 0
-  let disposed = false
   let owned: { owner: object; close: () => Promise<unknown> } | undefined
   let mounted: typeof owned
   let pending: Promise<Zoom<Options>> | undefined
@@ -82,7 +82,7 @@ export function createZoomSession<Options extends CoreZoomOptions>(
     zoom,
     open(options) {
       const image = options?.target || zoom.getImages()[0]
-      if (disposed || !image || !zoom.getImages().includes(image)) {
+      if (disposal || !image || !zoom.getImages().includes(image)) {
         return Promise.resolve(zoom)
       }
       const document = image.ownerDocument
@@ -110,7 +110,7 @@ export function createZoomSession<Options extends CoreZoomOptions>(
         .then(() => {
           // The request waited for another zoom to close: check that it still stands.
           if (
-            disposed ||
+            disposal ||
             ticket !== revision ||
             active.get(document) !== request ||
             !zoom.getImages().includes(image)
@@ -181,7 +181,6 @@ export function createZoomSession<Options extends CoreZoomOptions>(
       if (disposal) {
         return disposal
       }
-      disposed = true
       const closed = session.close()
       zoom.detach()
       disposal = closed
