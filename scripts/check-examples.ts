@@ -15,7 +15,6 @@ const subpathBuildArgs: Record<string, string[]> = {
 const directory = mkdtempSync(join(tmpdir(), 'medium-zoom-examples-'))
 try {
   const names = exampleNames.values()
-  // Keep independent installs and builds busy without oversubscribing CI runners.
   const results = await Promise.allSettled(
     Array.from({ length: Math.min(4, exampleNames.length) }, async () => {
       for (const name of names) {

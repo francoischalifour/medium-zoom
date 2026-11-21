@@ -67,7 +67,6 @@ function resolveExpressions(
   })
 }
 
-// `import code from './example.tsx?raw'` makes the example's source available to attributes.
 function readRawImports(
   source: string,
   file: URL,
@@ -171,7 +170,6 @@ function convertElement(
           ? value
           : evaluate(parseExpression(value.value), scope)
   }
-  // Each mapping declares the props its component takes; MDX attributes are untyped.
   return convert(props as never, element, nodes => convertFlow(nodes, scope))
 }
 
@@ -186,7 +184,6 @@ const components: Record<string, Convert<never>> = {
   InstallCommand: ({ page }: { page: SitePage }) => [
     { type: 'code', lang: 'sh', value: installCommands[page].npm },
   ],
-  // The live result of the quickstart's markup is the image itself.
   JavaScriptPreview: ({ src, alt }: { src: string; alt: string }) => [
     paragraph([{ type: 'image', url: src, alt }]),
   ],
@@ -253,7 +250,6 @@ const components: Record<string, Convert<never>> = {
     }
     return []
   },
-  // A disclosure's summary becomes a subheading over its always-visible content.
   details: (_, element, convertChildren) =>
     (element.children as RootContent[]).flatMap(node =>
       node.type === 'paragraph' &&
@@ -301,7 +297,6 @@ function literalAttribute(element: JsxElement, name: string) {
   return value
 }
 
-// Finds the outermost descendants with these tag names, in document order.
 function findElements(
   node: { children?: unknown[] },
   ...names: string[]
@@ -319,7 +314,6 @@ function parseExpression(source: string): Expression {
   return parseExpressionAt(source, 0, { ecmaVersion: 'latest' })
 }
 
-// The text content of an element, like the DOM's textContent.
 function textOf(node: { value?: unknown; children?: unknown[] }): string {
   return typeof node.value === 'string'
     ? node.value

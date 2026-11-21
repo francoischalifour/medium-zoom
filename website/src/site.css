@@ -2,7 +2,6 @@
   color-scheme: light;
   --background: #fff;
   --foreground: #18181b;
-  /* The logo green. */
   --primary: #00d66b;
   --muted-foreground: #71717a;
   --surface: #fafafa;
@@ -16,7 +15,6 @@
     'Helvetica Neue', Arial, sans-serif;
   --font-mono:
     'IBM Plex Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
-  /* Type scale in rem, so every size follows the reader's root font size. */
   --text-2xs: 0.6875rem;
   --text-xs: 0.75rem;
   --text-sm: 0.8125rem;
@@ -339,7 +337,6 @@ h1 {
   text-align: left;
   scroll-margin-top: 88px;
 }
-/* One-line commands stay a step smaller so the longest one fits without scrolling. */
 .install-block {
   --text-code: var(--text-sm);
 }
@@ -1227,7 +1224,6 @@ td code {
     min-height: 44px;
   }
 }
-/* Phones give the bar's room to the branded section select; GitHub stays in the footer. */
 @media (max-width: 460px) {
   .nav-links > .github-link {
     display: none;
@@ -1292,7 +1288,6 @@ td code {
   }
 }
 
-/* Native smooth corners, with the existing rounded corners as the fallback. */
 @supports (corner-shape: squircle) {
   .section-links,
   .section-links a,
@@ -1365,7 +1360,6 @@ td code {
   outline-color: var(--muted-foreground);
   outline-offset: 2px;
 }
-/* Align the grouped package choices with the install panel inset. */
 .install-block .code-caption {
   padding: 4px 12px 4px 20px;
 }
@@ -1389,7 +1383,6 @@ td code {
   }
 }
 
-/* A lit image surface sits inside the dominant crop; outer marks recede. */
 .hero {
   position: relative;
   isolation: isolate;
@@ -1399,7 +1392,6 @@ td code {
 .dark .hero {
   --hero-spotlight: #222226;
 }
-/* The crop hugs the headline and lede, so its marks follow the type at any size. */
 .hero-crop {
   position: relative;
   width: fit-content;
@@ -1424,7 +1416,6 @@ td code {
 .hero-frame {
   position: absolute;
   z-index: -1;
-  /* Insets in em scale with the headline. */
   font-size: var(--text-display);
   inset: -0.16em -0.65em -0.24em;
   background: radial-gradient(
@@ -1470,7 +1461,6 @@ td code {
   }
 }
 
-/* The crop opens as the light recedes, leaving the content stationary. */
 @supports (animation-timeline: scroll(root block)) and
   (animation-range: 0px 300px) {
   @media (prefers-reduced-motion: no-preference) {
@@ -1636,7 +1626,6 @@ td code {
   }
 }
 
-/* A footnote to the install snippet, aligned with its right edge. */
 .hero .monthly-downloads {
   max-width: 760px;
   margin: 10px auto 0;

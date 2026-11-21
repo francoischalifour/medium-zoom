@@ -5,8 +5,7 @@ import { ImageZoom } from '../../../../../examples/shadcn/src/components/ui/imag
 
 export const dynamic = 'force-dynamic'
 
-// An async Server Component imports the real client boundary. All props cross the
-// RSC transport; no fixture wrapper, copied implementation, or browser globals.
+// Import the real client component so the test exercises prop serialization through React Server Components.
 export default async function Page() {
   const caption = await Promise.resolve('Rendered by a Server Component')
   return (

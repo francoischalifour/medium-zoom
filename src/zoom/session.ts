@@ -44,7 +44,6 @@ export function createZoomSession<Options extends CoreZoomOptions>(
   if (existing) {
     return existing
   }
-  // Set once dispose() starts; `released` once its close has settled.
   let disposal: Promise<void> | undefined
   let released = false
   const documents = new Set<Document>()
@@ -108,7 +107,7 @@ export function createZoomSession<Options extends CoreZoomOptions>(
       const ticket = ++revision
       const opening = Promise.resolve(waiting)
         .then(() => {
-          // The request waited for another zoom to close: check that it still stands.
+          // Another request may have superseded this one while the previous zoom was closing.
           if (
             disposal ||
             ticket !== revision ||

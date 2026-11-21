@@ -61,7 +61,6 @@ test('native keyboard controls, clone accessibility, and click dismissal', async
   await page.keyboard.press('Space')
   const clone = page.locator('.medium-zoom-image--opened')
   if (composable) {
-    // The dialog is the accessible surface: it exposes the image and hides the page behind it.
     await expect(
       page.getByRole('dialog', { name: 'Ocean sunset' }).getByRole('img')
     ).toHaveCount(1)
@@ -100,7 +99,6 @@ test('serializes rapid instance switching, including repeated queued clicks', as
   await ready(page)
   await page.getByRole('button', { name: firstName, exact: true }).click()
   await expect(page.locator('.medium-zoom-overlay')).toBeVisible()
-  // Real button activation while the overlay covers the other controls.
   const maxConcurrent = await page
     .getByRole('button', { name: secondName, exact: true })
     .evaluate(async button => {
@@ -395,7 +393,6 @@ test('options changed during a zoom apply to the next opening', async ({
       .getByRole('button', { name: 'Change margin', exact: true })
       .press('Enter')
   } else {
-    // A keyboard user can change the surrounding UI without clicking the overlay.
     await page
       .getByRole('button', { name: 'Change margin', exact: true })
       .press('Enter')

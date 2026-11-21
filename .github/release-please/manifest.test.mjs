@@ -19,7 +19,6 @@ const commit = (message, files = ['src/zoom/index.ts']) => ({
   files,
 })
 
-// These website features also touched tests and build tooling outside website/.
 const websiteCommits = [
   {
     sha: '164e7a89f723daa3a4e10fa07577b53eabe22f38',

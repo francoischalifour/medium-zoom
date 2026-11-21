@@ -42,7 +42,6 @@ interface PackageOptions {
   preset?: Preset
 }
 
-/** Candidate entries of the private package fixture, by `medium-zoom/<name>` subpath. */
 interface CandidateEntries {
   core: typeof import('../../src/zoom')
   loaders: typeof import('../../src/zoom/hd-image')
@@ -57,18 +56,14 @@ interface CandidateEntries {
 
 declare global {
   interface Window {
-    /** Imports a packed candidate entry in the page. `preparePage` installs it. */
     loadEntry<Name extends keyof CandidateEntries>(
       name: Name
     ): Promise<CandidateEntries[Name]>
-    /** The zoom under test in composed-entry specs: `createZoom()` without a renderer. */
     coreZoom: import('../../src/zoom').Zoom
-    /** The zoom under test in composed-entry specs: `createZoom()` with a renderer. */
     modalZoom: import('../../src/zoom').ModalZoom
   }
 }
 
-/** The stylesheet that candidate entries leave to the application. */
 export async function addModernStyles(page: Page) {
   await page.addStyleTag({ url: '/experimental/dist/modern/style.css' })
 }

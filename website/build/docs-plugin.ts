@@ -77,7 +77,6 @@ function getSearchEntries(
   ]
 }
 
-// The authored headings own both the article anchors and its server-rendered outline.
 export function docsPlugin(): Plugin {
   return {
     name: 'medium-zoom-docs',

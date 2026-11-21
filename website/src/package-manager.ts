@@ -25,9 +25,7 @@ export function setPackageManager(manager: PackageManager) {
   document.documentElement.dataset.packageManager = manager
   try {
     localStorage.setItem(packageManagerPreference.storageKey, manager)
-  } catch {
-    // Keep the current page usable when browser storage is unavailable.
-  }
+  } catch {}
   window.dispatchEvent(new Event(changeEvent))
 }
 

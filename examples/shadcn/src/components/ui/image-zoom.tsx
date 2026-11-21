@@ -86,7 +86,6 @@ export function Root({
     void sessionRef.current?.close()
   }, [requestOpen])
 
-  // Read committed props from event handlers and async work, never abandoned renders.
   React.useEffect(() => {
     changeRef.current = onOpenChange
     if (disabled) requestOpen(false)
@@ -94,7 +93,7 @@ export function Root({
     requestedRef.current = wantedOpen
   })
 
-  // Publish options after commit, so an abandoned render cannot affect an active zoom.
+  // Update the zoom after commit so an abandoned React render cannot change its options.
   React.useEffect(() => {
     optionsRef.current = options
   }, [options])
@@ -128,8 +127,8 @@ export function Root({
         pending: null,
         close: () => {
           const completion = zoom.close()
-          // Escape, scroll, and overlay clicks can start a close outside this component.
-          // Core close() resolves immediately on repeated calls; wait for its closed event.
+          // Older medium-zoom versions can resolve a repeated close() before the animation ends.
+          // Wait for the closed event when a dismissal is already in progress.
           return Promise.all([session?.pending, closing ?? completion]).then(
             () => zoom
           )
@@ -256,7 +255,6 @@ export const Image = React.forwardRef<HTMLImageElement, ImageProps>(
       [setImage]
     )
 
-    // Never keep a clone of a previous source over the replacement image.
     React.useEffect(() => {
       if (
         source.some((value, index) => value !== previousSource.current[index])
@@ -326,7 +324,6 @@ function resolveOptions(
     'getBoundingClientRect' in container
   ) {
     const bounds = container.getBoundingClientRect()
-    // Core's object form describes viewport bounds with top/left insets.
     container = {
       width: bounds.right,
       height: bounds.bottom,

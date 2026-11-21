@@ -22,8 +22,6 @@ import {
   text,
 } from './markdown-nodes.ts'
 
-// A product page's content as Markdown, from the copy and code samples the page renders.
-// Interactive parts give way to what they show: every usage tab and the npm command.
 export function productMarkdown(page: SitePage): RootContent[] {
   const { usage, closing } = productPages[page]
   const sections = pageSections[page]
@@ -57,7 +55,6 @@ export function productMarkdown(page: SitePage): RootContent[] {
 
 type Section = () => RootContent[]
 
-// The parts each page shows in its own way.
 const pageSections: Record<
   SitePage,
   { installNote: Section; usageCode: Section; details: Section }

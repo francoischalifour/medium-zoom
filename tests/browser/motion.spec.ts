@@ -2,7 +2,6 @@ import { expect, test } from '@playwright/test'
 
 import { loadZoomFixture } from './helpers.ts'
 
-// The template fade lasts 150 ms, unless the reader asks for reduced motion.
 const templateFadeDurations = {
   reduce: '0s',
   'no-preference': '0.15s',

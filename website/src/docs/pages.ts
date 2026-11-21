@@ -1,7 +1,6 @@
 // The rebuilt documentation launched on this date; update each page when its content changes.
 export const docsPublishedOn = '2026-10-26'
 
-// Complete pages own their route, navigation, and sharing metadata.
 export const docsPages = [
   {
     path: '/docs/',

@@ -10,7 +10,6 @@ export const exampleNames = readdirSync('examples', { withFileTypes: true })
   .map(entry => entry.name)
   .sort()
 
-// Examples with their own Vite config; the others are built by their framework CLI.
 export const viteExampleNames = exampleNames.filter(name =>
   existsSync(join('examples', name, 'vite.config.ts'))
 )

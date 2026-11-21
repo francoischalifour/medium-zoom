@@ -58,7 +58,7 @@ export function ZoomableVideo({
         { once: true }
       )
       video.addEventListener('error', removePlayer, { once: true })
-      // Start within the gesture; append the player after the image finishes opening.
+      // Start playback in the user gesture so browsers allow it. Mount the player after the zoom opens.
       void video.play().catch(() => {
         if (player === video) {
           video.hidden = false

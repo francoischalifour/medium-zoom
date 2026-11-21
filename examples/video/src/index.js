@@ -8,7 +8,6 @@ const zoom = mediumZoom(poster, { margin: 24 })
 let player
 
 trigger.addEventListener('click', event => {
-  // Let the button handle both pointer and keyboard activation.
   event.stopPropagation()
   zoom.open()
 })
@@ -30,8 +29,7 @@ zoom.on('open', () => {
   })
   video.addEventListener('error', () => video.remove(), { once: true })
 
-  // Start during the user gesture, before the image animation finishes.
-  // If autoplay is blocked, show the poster and native play control instead.
+  // Start playback in the user gesture so browsers allow it. If blocked, leave native controls available.
   video.play().catch(() => (video.hidden = false))
 })
 

@@ -153,7 +153,6 @@ for (const path of ['/', '/react']) {
       .poll(() => events.filter(event => event.event === 'Code Copied').length)
       .toBe(2)
 
-    // An in-page anchor is not another pageview.
     await page
       .getByRole('link', { name: 'Start building', exact: true })
       .click()

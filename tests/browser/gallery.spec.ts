@@ -4,7 +4,6 @@ import { addModernStyles, preparePage } from './helpers'
 
 declare global {
   interface Window {
-    /** A composed gallery zoom whose open requests all go through a session. */
     createGalleryZoom(
       selector?: import('../../src/zoom').ZoomSelector,
       options?: import('../../src/preset/medium-zoom').ZoomOptions
@@ -66,7 +65,6 @@ async function fixture(page: Page, order = false) {
           },
         }),
       })
-      // The application composes coordination: every request goes through the session.
       const session = createZoomSession(zoom)
       if (sessionFirst) {
         bindZoomTriggers(zoom, session)

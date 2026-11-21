@@ -37,7 +37,6 @@ const zoom = createZoom('img', {
 })
 createZoom('img', { loader: loadHdImage, viewport })
 const session = createZoomSession(zoom)
-// A session is a commander: triggers and galleries can route their requests through it.
 const unbind = bindZoomTriggers(zoom, session)
 const gallery = createGallery(zoom, session)
 const keys = bindGalleryKeyboard(document.createElement('div'), gallery)

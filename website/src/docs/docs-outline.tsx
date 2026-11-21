@@ -39,7 +39,6 @@ export function DocsOutline({
   )
 }
 
-// The outline column only fits wide screens, so narrower ones open it from the breadcrumb.
 export function DocsOutlineMenu({
   outline,
   activeId,

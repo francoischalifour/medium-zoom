@@ -7,7 +7,6 @@ import { reserveTestPorts } from './test-ports.mts'
 const repositoryRoot = fileURLToPath(new URL('../', import.meta.url))
 const { testUrl, sveltePort, svelteDevUrl, shadcnPort, shadcnDevUrl } =
   await reserveTestPorts()
-// Touch devices run the mobile suite and every suite of the composable modal and gallery.
 const mobileSpecs = [
   'mobile',
   'dialog',

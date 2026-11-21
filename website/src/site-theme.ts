@@ -1,7 +1,7 @@
 export const themeKey = 'medium-zoom-theme'
 const themeEvent = 'medium-zoom:theme'
 
-// Also runs inline in the document head. Keep this function self-contained.
+// Keep this self-contained because the build embeds it in the document head.
 export function restoreTheme(key: string) {
   let theme: string | null = null
   try {
@@ -31,9 +31,7 @@ export function setTheme(dark: boolean) {
   document.documentElement.classList.toggle('dark', dark)
   try {
     localStorage.setItem(themeKey, dark ? 'dark' : 'light')
-  } catch {
-    // The current page still works when storage is unavailable.
-  }
+  } catch {}
   window.dispatchEvent(new Event(themeEvent))
 }
 

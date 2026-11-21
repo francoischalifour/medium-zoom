@@ -24,7 +24,6 @@ function getClient() {
   try {
     let lastPage: string | undefined
     altertable.init(apiKey, {
-      // Aggregate measurement without cookies, storage, or visitor identifiers.
       mode: 'audience',
       trackingConsent: 'granted',
       transformEvent(event) {
@@ -76,9 +75,7 @@ export function trackSiteEvent(
   }
   try {
     getClient()?.track(event, properties)
-  } catch {
-    // Analytics must not interrupt the website.
-  }
+  } catch {}
 }
 
 export function trackInstallCopied() {

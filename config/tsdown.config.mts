@@ -31,7 +31,6 @@ const defaultProfile: Profile = 'compat'
 
 type Format = 'esm' | 'umd' | 'cjs'
 
-// Everything that differs between the compatibility and modern builds.
 interface ProfileConfig {
   /** tsdown's syntax target; compat lowers later, through Babel. */
   target: string
@@ -39,7 +38,6 @@ interface ProfileConfig {
   /** Lower bundled syntax for the profile's browsers. */
   lower: (source: string, minify: boolean) => string | null | undefined
   terser: Pick<MinifyOptions, 'ecma'> & { compress: CompressOptions }
-  /** The syntax acorn must accept in the minified output. */
   ecmaVersion: ecmaVersion
 }
 
@@ -47,7 +45,6 @@ const profiles: Record<Profile, ProfileConfig> = {
   compat: {
     target: 'esnext',
     css: {
-      // Browsers without zoom cursors fall back to a pointer.
       prepare: source =>
         source.replace(
           /cursor: (zoom-(?:in|out));/g,
@@ -105,13 +102,12 @@ const profiles: Record<Profile, ProfileConfig> = {
   },
 }
 
-// Everything that differs between the output module formats.
 interface FormatConfig {
   /** tsdown always builds CommonJS for Node; the code itself is still browser-only. */
   platform: 'browser' | 'node'
   terser: Pick<MinifyOptions, 'module' | 'toplevel'>
   outputOptions: { exports?: 'default'; intro?: string }
-  /** Line-based package analyzers can mistake URL strings for comments: keep ESM exports on their own lines. */
+  /** Keep exports on separate lines so line-based package analyzers can find them even when URLs look like comments. */
   separateExports: boolean
 }
 
@@ -128,7 +124,6 @@ const formats: Record<Format, FormatConfig> = {
     outputOptions: { exports: 'default', intro: '"use strict";' },
     separateExports: false,
   },
-  // CJS bindings are module-local, just like ESM bindings.
   cjs: {
     platform: 'node',
     terser: { toplevel: true },
@@ -217,8 +212,7 @@ function browserSyntax(
               compress: { ...config.terser.compress },
               ...output.terser,
               mangle: { properties: { regex: privateProperties } },
-              // No source property uses these keys. Reserving their short names shifts the mangled
-              // scene keys to a sequence that gzips 1-3 B smaller in the fixed presets (`bun run size`).
+              // Reserving these unused names shifts Terser's scene keys and saves 1–3 bytes after gzip.
               nameCache: {
                 props: {
                   props: {
@@ -257,7 +251,6 @@ function separateExports(code: string, ecmaVersion: ecmaVersion) {
   return output
 }
 
-// `medium-zoom.esm.js` → `medium-zoom.d.ts`, `core/index.mjs` → `core/index.d.mts`.
 const declarationFileName = (fileName: string) =>
   /\.[mc]js$/.test(fileName)
     ? fileName.replace(/\.([mc])js$/, '.d.$1ts')
@@ -293,10 +286,8 @@ function browserBundle(
     failOnWarn: true,
     format,
     globalName: 'mediumZoom',
-    // Apply profile-specific lowering and minification once in the output plugin.
     minify: false,
     outputOptions: {
-      // No namespace branding is needed for callable/named package entries.
       generatedCode: { symbols: false },
       entryFileNames: chunk =>
         chunk.name.endsWith('.d') ? declarationFileName(fileName) : fileName,

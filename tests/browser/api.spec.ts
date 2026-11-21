@@ -97,7 +97,6 @@ test('factory defaults, options-only overload, and fluent methods remain availab
   })
 })
 
-// Attach starts empty and adds #first; detach starts with every image and removes #first.
 const selectorMethods = {
   attach: { initial: undefined, ids: ['first'] },
   detach: { initial: 'img', ids: ['second'] },
@@ -372,7 +371,6 @@ test('native browser listeners are registered only while needed', async ({
       'touchend',
       'touchcancel',
     ])
-    // Observe native calls without replacing their behavior.
     const addDocument = document.addEventListener.bind(document)
     const removeDocument = document.removeEventListener.bind(document)
     const addWindow = window.addEventListener.bind(window)

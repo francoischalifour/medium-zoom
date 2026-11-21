@@ -88,7 +88,6 @@ test('production prerendering preserves a running development site and its hydra
     await page.goto(server.resolvedUrls!.local[0])
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
 
-    // This builds and prerenders a separate artifact while development remains open.
     await promisify(execFile)('bun', ['scripts/build-analytics-fixture.ts'])
     await page.reload()
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
