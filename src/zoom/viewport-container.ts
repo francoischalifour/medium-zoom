@@ -1,9 +1,12 @@
-import type { ZoomBounds, ZoomViewport } from 'medium-zoom/core'
+import type {
+  CoreZoomOptions,
+  ZoomBounds,
+  ZoomViewport,
+} from 'medium-zoom/core'
 
 import { assign } from '#platform'
 
-import type { ZoomOptions } from '../medium-zoom'
-import { isNode } from '../utils'
+import { isNode } from './dom'
 
 /**
  * Explicit bounds to fit the zoomed image in, in viewport pixels. `width` and `height`
@@ -28,8 +31,8 @@ export interface ContainerOptions {
 }
 
 export const updateContainer = (
-  options: ZoomOptions,
-  previous: ZoomOptions
+  options: ContainerOptions,
+  previous: ContainerOptions
 ): void => {
   if (
     options.container &&
@@ -42,7 +45,7 @@ export const updateContainer = (
 
 export const getContainerViewport = (
   viewport: ZoomBounds,
-  options: ZoomOptions
+  options: CoreZoomOptions & ContainerOptions
 ): ZoomBounds => {
   const target = options.container
   if (!target) {

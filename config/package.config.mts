@@ -61,7 +61,7 @@ function preset(
   const pure = name.includes('pure')
   const entry = optional(
     name,
-    `src/${pure ? 'pure' : 'index'}.ts`,
+    `src/preset/${pure ? 'pure' : 'index'}.ts`,
     'default',
     `${profile} preset`,
     'HD/container/template; no modal/gallery',
@@ -75,7 +75,7 @@ function preset(
     emitsCss: injected,
     source: {
       ...entry.source,
-      cjs: `src/${pure ? 'pure' : 'index'}-commonjs.ts`,
+      cjs: `src/preset/${pure ? 'pure' : 'index'}-commonjs.ts`,
     },
   }
 }
@@ -102,7 +102,7 @@ export const releaseEntries: PackageEntry[] = [
 export const extensionEntries: CandidateEntry[] = [
   optional(
     'core',
-    'src/core.ts',
+    'src/zoom/index.ts',
     'createZoom',
     'instance API',
     'engine/contracts; strategies imported separately',
@@ -111,7 +111,7 @@ export const extensionEntries: CandidateEntry[] = [
   ),
   optional(
     'loaders',
-    'src/loaders.ts',
+    'src/zoom/hd-image.ts',
     'loadHdImage',
     'loading strategy',
     'detached media; readiness + cancellation',
@@ -119,7 +119,7 @@ export const extensionEntries: CandidateEntry[] = [
   ),
   optional(
     'viewport',
-    'src/viewport.ts',
+    'src/zoom/viewport.ts',
     'containerBounds',
     'measurement strategy',
     'positioning-time layout',
@@ -127,7 +127,7 @@ export const extensionEntries: CandidateEntry[] = [
   ),
   optional(
     'content',
-    'src/content.ts',
+    'src/zoom/content.ts',
     'templateContent',
     'content helper',
     'renderer-neutral mount + cleanup',
@@ -135,7 +135,7 @@ export const extensionEntries: CandidateEntry[] = [
   ),
   optional(
     'triggers',
-    'src/triggers.ts',
+    'src/zoom/triggers.ts',
     'bindZoomTriggers',
     'DOM binding',
     'pointer/keyboard activation + cleanup',
@@ -143,7 +143,7 @@ export const extensionEntries: CandidateEntry[] = [
   ),
   optional(
     'renderers',
-    'src/renderers.ts',
+    'src/zoom/dialog.ts',
     'dialog',
     'modal renderer',
     'native dialog + scene replacement',
@@ -151,7 +151,7 @@ export const extensionEntries: CandidateEntry[] = [
   ),
   optional(
     'session',
-    'src/session.ts',
+    'src/zoom/session.ts',
     'createZoomSession',
     'coordinator',
     'releasable ownership; no UI',
@@ -159,7 +159,7 @@ export const extensionEntries: CandidateEntry[] = [
   ),
   optional(
     'transitions',
-    'src/transitions.ts',
+    'src/gallery/transition.ts',
     'galleryTransition',
     'transition runner',
     'application effects with cancellation + reduced motion',
@@ -167,7 +167,7 @@ export const extensionEntries: CandidateEntry[] = [
   ),
   optional(
     'gallery',
-    'src/gallery.ts',
+    'src/gallery/index.ts',
     'createGallery',
     'headless controller',
     'selection/subscriptions + keyboard; no UI',

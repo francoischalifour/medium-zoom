@@ -6,7 +6,7 @@ import {
   isEscape,
 } from '#platform'
 
-import { createOverlay, getImagesFromSelectors, removeNode } from '../utils'
+import { createOverlay, getImagesFromSelectors, removeNode } from './dom'
 import {
   cloneImage,
   fitImage,

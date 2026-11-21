@@ -54,7 +54,7 @@ export default defineConfig(({ command }) =>
         ...(command === 'serve'
           ? {
               'medium-zoom': fileURLToPath(
-                new URL('../src/index.ts', import.meta.url)
+                new URL('../src/preset/index.ts', import.meta.url)
               ),
               '#platform': fileURLToPath(
                 new URL('../src/platform/compat.ts', import.meta.url)

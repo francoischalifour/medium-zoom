@@ -43,11 +43,11 @@ async function loadProfile(page: Page, file: string, withoutAssign = false) {
           if (file === 'core/index.cjs') {
             const core = (await loadCommonJS(
               url
-            )) as typeof import('../../src/core')
+            )) as typeof import('../../src/zoom')
             // Drive core through the shared v1 scenario; only the declared null-ness differs.
             window.mediumZoom = ((
-              selector?: import('../../src/engine/create-zoom').ZoomSelector,
-              options?: import('../../src/medium-zoom').ZoomOptions
+              selector?: import('../../src/zoom/engine').ZoomSelector,
+              options?: import('../../src/preset/medium-zoom').ZoomOptions
             ) =>
               core.createZoom(
                 selector,

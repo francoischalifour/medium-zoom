@@ -1,6 +1,6 @@
 import type { CoreZoomOptions } from 'medium-zoom/core'
 
-import type { GalleryController } from '../gallery'
+import type { GalleryController } from './index'
 
 /**
  * Opens the previous or next image on ArrowLeft and ArrowRight pressed inside `element`.

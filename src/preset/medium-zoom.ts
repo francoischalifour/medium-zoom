@@ -2,19 +2,19 @@ import {
   mountTemplate,
   type TemplateOptions,
   updateTemplate,
-} from './content/template'
+} from '../zoom/content-template'
 import {
   type CoreZoomOptions,
   createEngine,
   type ZoomFactory,
   type ZoomInstance,
-} from './engine/create-zoom'
-import { loadHdImage } from './loaders/hd-image'
+} from '../zoom/engine'
+import { loadHdImage } from '../zoom/hd-image'
 import {
   type ContainerOptions,
   getContainerViewport,
   updateContainer,
-} from './viewport/container'
+} from '../zoom/viewport-container'
 
 /** The v1 options: core options plus the container and template the presets always support. */
 export interface ZoomOptions
@@ -56,5 +56,5 @@ const mediumZoom = createEngine<ZoomOptions>(
 ) as ZoomFactory<ZoomOptions, Zoom>
 
 export default mediumZoom
-export type { ZoomSelector, ZoomOpenOptions } from './engine/create-zoom'
-export type { ZoomContainer } from './viewport/container'
+export type { ZoomSelector, ZoomOpenOptions } from '../zoom/engine'
+export type { ZoomContainer } from '../zoom/viewport-container'

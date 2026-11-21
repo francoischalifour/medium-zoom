@@ -1,4 +1,4 @@
-import type { ZoomInstance } from '../engine/create-zoom'
+import type { ZoomInstance } from '../zoom/engine'
 
 export const getPromise = (): PromiseConstructor => Promise
 

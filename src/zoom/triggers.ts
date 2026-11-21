@@ -4,7 +4,7 @@ import type {
   ZoomCommander,
 } from 'medium-zoom/core'
 
-import type { ZoomTarget } from './engine/frame'
+import type { ZoomTarget } from './frame'
 
 const bindings = new WeakMap<object, () => void>()
 const interactive =

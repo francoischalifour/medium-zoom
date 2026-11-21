@@ -166,4 +166,4 @@ export function createGallery<Options extends CoreZoomOptions>(
   return controller
 }
 
-export { bindGalleryKeyboard } from './gallery/keyboard'
+export { bindGalleryKeyboard } from './keyboard'

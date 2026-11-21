@@ -1,8 +1,8 @@
 import type { SceneTransition } from 'medium-zoom/renderers'
 
-import { type FrameGeometry, readGeometry } from './engine/geometry'
+import { type FrameGeometry, readGeometry } from '../zoom/geometry'
 
-export type { FrameGeometry } from './engine/geometry'
+export type { FrameGeometry } from '../zoom/geometry'
 
 /** A frame on stage, fitted to the viewport. */
 export interface PreparedFrame {

@@ -6,9 +6,9 @@ declare global {
   interface Window {
     /** A composed gallery zoom whose open requests all go through a session. */
     createGalleryZoom(
-      selector?: import('../../src/core').ZoomSelector,
-      options?: import('../../src/medium-zoom').ZoomOptions
-    ): import('../../src/core').ModalZoom
+      selector?: import('../../src/zoom').ZoomSelector,
+      options?: import('../../src/preset/medium-zoom').ZoomOptions
+    ): import('../../src/zoom').ModalZoom
   }
 }
 
@@ -526,9 +526,7 @@ test('disposing after pointer navigation hands ownership to a fresh session', as
     )) as typeof import('../experimental/gallery-controls.mjs')
     const { dialog } = await window.loadEntry('renderers')
     const { createZoomSession } = await window.loadEntry('session')
-    const factory = (
-      selector: import('../../src/engine/create-zoom').ZoomSelector
-    ) =>
+    const factory = (selector: import('../../src/zoom/engine').ZoomSelector) =>
       createZoom(selector, {
         renderer: dialog({
           content: view => {
