@@ -104,7 +104,6 @@ jobs:
     name: ${{ matrix.browser }} (${{ matrix.suite }})
     needs: [changes, build]
     runs-on: ubuntu-latest
-    # WebKit runs the API and example suites in about 10 minutes on two workers.
     timeout-minutes: 20
     container:
       image: ${{ needs.build.outputs.playwright-image }}
