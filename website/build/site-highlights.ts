@@ -2,17 +2,11 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
 import { codeToHtml } from '@pierre/highlights'
-import {
-  githubDarkDefault,
-  githubLightDefault,
-} from '@pierre/highlights/themes'
+import { githubDarkDefault, githubLightDefault } from '@pierre/highlights/themes'
 import type { Plugin } from 'vite'
 
 import { javascriptUsageCode, photos, usageCode } from '../src/gallery.ts'
-import {
-  componentCommands,
-  javascriptCommands,
-} from '../src/install-commands.ts'
+import { componentCommands, javascriptCommands } from '../src/install-commands.ts'
 import { usageExamples } from '../src/usage-snippets.ts'
 
 type HighlightLanguage =

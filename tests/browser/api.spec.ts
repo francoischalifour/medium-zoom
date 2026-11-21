@@ -109,12 +109,8 @@ for (const method of ['attach', 'detach'] as const) {
             array: [first],
             nodelist: document.querySelectorAll('#first'),
           }
-          const zoom = window.mediumZoom(
-            method === 'detach' ? 'img' : undefined
-          )
-          const returned = zoom[method](
-            targets[selector as keyof typeof targets]
-          )
+          const zoom = window.mediumZoom(method === 'detach' ? 'img' : undefined)
+          const returned = zoom[method](targets[selector as keyof typeof targets])
           return {
             ids: zoom.getImages().map(image => image.id),
             fluent: returned === zoom,
@@ -130,9 +126,7 @@ for (const method of ['attach', 'detach'] as const) {
   }
 }
 
-test('repeated attachment is idempotent and detach() removes every image', async ({
-  page,
-}) => {
+test('repeated attachment is idempotent and detach() removes every image', async ({ page }) => {
   const result = await page.evaluate(() => {
     const zoom = window.mediumZoom('#first')
     zoom.attach('#first').attach('#second').attach('#second')
@@ -151,18 +145,13 @@ test('repeated attachment is idempotent and detach() removes every image', async
   })
 })
 
-test('options update individually and coordinate containers merge', async ({
-  page,
-}) => {
+test('options update individually and coordinate containers merge', async ({ page }) => {
   const result = await page.evaluate(() => {
     const zoom = window.mediumZoom('img', {
       margin: 24,
       container: { width: 600, top: 10 },
     })
-    zoom
-      .update({ margin: 48 })
-      .update({ background: '#123456' })
-      .update({ scrollOffset: 0 })
+    zoom.update({ margin: 48 }).update({ background: '#123456' }).update({ scrollOffset: 0 })
     zoom.update({ container: { left: 20 } })
     return zoom.getOptions()
   })
@@ -175,9 +164,7 @@ test('options update individually and coordinate containers merge', async ({
   })
 })
 
-test('clone copies options without attached images or shared option updates', async ({
-  page,
-}) => {
+test('clone copies options without attached images or shared option updates', async ({ page }) => {
   const result = await page.evaluate(() => {
     const zoom = window.mediumZoom('img', { margin: 24, background: '#123456' })
     const clone = zoom.clone({ margin: 48 })
@@ -205,12 +192,8 @@ test('event handlers follow attachment and off removes only the selected handler
   const result = await page.evaluate(() => {
     const calls: string[] = []
     const removed = () => calls.push('removed')
-    const retained = (event: Event) =>
-      calls.push((event.target as HTMLElement).id)
-    const zoom = window
-      .mediumZoom('#first')
-      .on('update', removed)
-      .on('update', retained)
+    const retained = (event: Event) => calls.push((event.target as HTMLElement).id)
+    const zoom = window.mediumZoom('#first').on('update', removed).on('update', retained)
     zoom.attach('#second').off('update', removed).update({ margin: 32 })
     zoom.detach('#first').update({ margin: 48 })
     zoom.off('update', retained).update({ margin: 64 })
@@ -251,22 +234,11 @@ test('open, close, and toggle resolve with the instance and expose the active or
     active: 'second',
     empty: null,
     toggled: 'first',
-    calls: [
-      'open',
-      'opened',
-      'close',
-      'closed',
-      'open',
-      'opened',
-      'close',
-      'closed',
-    ],
+    calls: ['open', 'opened', 'close', 'closed', 'open', 'opened', 'close', 'closed'],
   })
 })
 
-test('once handlers run once and their custom event identifies the instance', async ({
-  page,
-}) => {
+test('once handlers run once and their custom event identifies the instance', async ({ page }) => {
   const result = await page.evaluate(async () => {
     const zoom = window.mediumZoom('#first')
     let calls = 0
@@ -288,9 +260,7 @@ test('once handlers run once and their custom event identifies the instance', as
   expect(result).toEqual({ calls: 1, detailMatches: true })
 })
 
-test('closing during opening cancels the zoom and allows reopening', async ({
-  page,
-}) => {
+test('closing during opening cancels the zoom and allows reopening', async ({ page }) => {
   await page.evaluate(async () => {
     window.zoom = window.mediumZoom('#first')
     const opening = window.zoom.open()
@@ -314,9 +284,7 @@ test('detach closes an open zoom and releases the images', async ({ page }) => {
   expect(await page.evaluate(() => window.zoom.getImages().length)).toBe(0)
 })
 
-test('an empty zoom can open and close before later attachment', async ({
-  page,
-}) => {
+test('an empty zoom can open and close before later attachment', async ({ page }) => {
   const result = await page.evaluate(async () => {
     const zoom = window.mediumZoom()
     await zoom.open()
@@ -339,9 +307,7 @@ test('viewport resize dismisses an open zoom', async ({ page }) => {
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 })
 
-test('overlay clicks dismiss while unrelated keys leave the zoom open', async ({
-  page,
-}) => {
+test('overlay clicks dismiss while unrelated keys leave the zoom open', async ({ page }) => {
   await page.evaluate(async () => {
     window.zoom = window.mediumZoom('#first')
     await window.zoom.open()
@@ -352,9 +318,7 @@ test('overlay clicks dismiss while unrelated keys leave the zoom open', async ({
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 })
 
-test('native browser listeners are registered only while needed', async ({
-  page,
-}) => {
+test('native browser listeners are registered only while needed', async ({ page }) => {
   const result = await page.evaluate(async () => {
     const calls: string[] = []
     const relevant = new Set([
@@ -482,13 +446,9 @@ test('touch listeners are removed when browser event options accept only a boole
   expect(touchReads).toBe(0)
 })
 
-test('a missing HD image falls back to the original image', async ({
-  page,
-}) => {
+test('a missing HD image falls back to the original image', async ({ page }) => {
   await page.evaluate(async () => {
-    document
-      .querySelector('#first')!
-      .setAttribute('data-zoom-src', '/images/missing.jpg')
+    document.querySelector('#first')!.setAttribute('data-zoom-src', '/images/missing.jpg')
     window.zoom = window.mediumZoom('#first')
     await window.zoom.open()
   })
@@ -601,9 +561,7 @@ test('attachment validates selectors, supports variadic nodes, and ignores HTMLC
   })
 })
 
-test('off removes a subscription from images attached later', async ({
-  page,
-}) => {
+test('off removes a subscription from images attached later', async ({ page }) => {
   expect(
     await page.evaluate(() => {
       const zoom = window.mediumZoom('#first')

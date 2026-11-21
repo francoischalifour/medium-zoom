@@ -11,10 +11,7 @@ const changeEvent = 'medium-zoom:package-manager'
 
 export function getPackageManager(): PackageManager {
   const value = document.documentElement.dataset.packageManager
-  return (
-    packageManagers.find(manager => manager === value) ??
-    packageManagerPreference.fallback
-  )
+  return packageManagers.find(manager => manager === value) ?? packageManagerPreference.fallback
 }
 
 export function getServerPackageManager(): PackageManager {
@@ -39,10 +36,7 @@ export function subscribePackageManager(onChange: () => void) {
     onChange()
   }
   const onStorage = (event: StorageEvent) => {
-    if (
-      event.key === packageManagerPreference.storageKey ||
-      event.key === null
-    ) {
+    if (event.key === packageManagerPreference.storageKey || event.key === null) {
       restore()
     }
   }
@@ -53,9 +47,5 @@ export function subscribePackageManager(onChange: () => void) {
 }
 
 export function usePackageManager() {
-  return useSyncExternalStore(
-    subscribePackageManager,
-    getPackageManager,
-    getServerPackageManager
-  )
+  return useSyncExternalStore(subscribePackageManager, getPackageManager, getServerPackageManager)
 }

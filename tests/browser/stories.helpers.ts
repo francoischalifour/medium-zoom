@@ -38,11 +38,7 @@ export async function readStories(page: Page): Promise<StoryLink[]> {
 export async function captureStory(
   page: Page,
   testInfo: TestInfo,
-  {
-    story,
-    index,
-    state,
-  }: { story: StoryLink; index: number; state: 'before' | 'after' }
+  { story, index, state }: { story: StoryLink; index: number; state: 'before' | 'after' }
 ) {
   const slug = story.id.replace(/[^a-z0-9]+/gi, '-')
   const name = `${String(index + 1).padStart(2, '0')}-${slug}-${state}.png`

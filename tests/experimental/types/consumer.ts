@@ -30,10 +30,7 @@ void images
 const current: HTMLElement = zoom.getZoomedImage()
 void current
 
-import pureAlias, {
-  type Zoom as PureZoom,
-  type ZoomOptions as PureOptions,
-} from 'medium-zoom/pure'
+import pureAlias, { type Zoom as PureZoom, type ZoomOptions as PureOptions } from 'medium-zoom/pure'
 const aliased: PureZoom = pureAlias('img', options as PureOptions)
 void aliased
 

@@ -3,19 +3,13 @@ exact = true
 
 [fmt]
 # Explicit: defaults otherwise follow whichever Prettier or oxfmt config Bun detects.
-printWidth = 80
+printWidth = 100
 singleQuote = true
 semi = false
 trailingComma = "es5"
 arrowParens = "avoid"
 sortImports = true
-ignorePatterns = [
-  "CHANGELOG.md",
-  "bun.lock",
-  "**/dist/**",
-  "coverage/**",
-  ".cache/**",
-]
+ignorePatterns = ["CHANGELOG.md", "bun.lock", "**/dist/**", "coverage/**", ".cache/**"]
 
 [[fmt.overrides]]
 files = ["website/src/docs/examples/*.tsx", "website/src/docs/*.mdx"]

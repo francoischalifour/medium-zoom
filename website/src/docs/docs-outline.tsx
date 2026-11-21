@@ -83,10 +83,7 @@ export function DocsOutlineMenu({
     root.addEventListener(
       'focusout',
       event => {
-        if (
-          event.relatedTarget instanceof Node &&
-          !root.contains(event.relatedTarget)
-        ) {
+        if (event.relatedTarget instanceof Node && !root.contains(event.relatedTarget)) {
           setOpen(false)
         }
       },
@@ -109,11 +106,7 @@ export function DocsOutlineMenu({
       </button>
       {open && (
         <ScrollArea className="docs-outline-menu-panel">
-          <DocsOutline
-            outline={outline}
-            activeId={activeId}
-            onSelect={() => setOpen(false)}
-          />
+          <DocsOutline outline={outline} activeId={activeId} onSelect={() => setOpen(false)} />
         </ScrollArea>
       )}
     </div>

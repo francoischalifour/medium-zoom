@@ -21,15 +21,11 @@ export function useDocsNavigation(path: string) {
   const [activeHeadingId, setActiveHeadingId] = useState('')
 
   useEffect(() => {
-    const headings = [
-      ...articleRef.current!.querySelectorAll<HTMLElement>('h2[id]'),
-    ]
+    const headings = [...articleRef.current!.querySelectorAll<HTMLElement>('h2[id]')]
     let frame = 0
     const updateActiveHeading = () => {
       frame = 0
-      const offset = Number.parseFloat(
-        getComputedStyle(document.documentElement).scrollPaddingTop
-      )
+      const offset = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)
       let currentId = ''
       for (const heading of headings) {
         if (heading.getBoundingClientRect().top > offset + 8) {
@@ -40,8 +36,7 @@ export function useDocsNavigation(path: string) {
       // The last section may be too short to reach the top of the viewport.
       if (
         window.scrollY > 0 &&
-        window.innerHeight + window.scrollY >=
-          document.documentElement.scrollHeight - 2
+        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2
       ) {
         currentId = headings.at(-1)?.id || currentId
       }
@@ -134,8 +129,7 @@ export function useDocsNavigation(path: string) {
         element: target,
         focusAfterScroll:
           focusAfterScroll ||
-          (previousDestination?.element === target &&
-            previousDestination.focusAfterScroll),
+          (previousDestination?.element === target && previousDestination.focusAfterScroll),
       }
       waitForScroll()
     }
@@ -151,13 +145,8 @@ export function useDocsNavigation(path: string) {
       ) {
         return
       }
-      const link =
-        event.target instanceof Element ? event.target.closest('a') : null
-      if (
-        !link ||
-        link.hasAttribute('download') ||
-        (link.target && link.target !== '_self')
-      ) {
+      const link = event.target instanceof Element ? event.target.closest('a') : null
+      if (!link || link.hasAttribute('download') || (link.target && link.target !== '_self')) {
         return
       }
       const url = new URL(link.href)

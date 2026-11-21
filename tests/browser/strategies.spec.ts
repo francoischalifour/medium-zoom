@@ -9,9 +9,7 @@ for (const capabilities of [
   ['content'],
   ['loader', 'viewport', 'content'],
 ]) {
-  test(`explicit strategies: ${capabilities.join(', ') || 'core'}`, async ({
-    page,
-  }) => {
+  test(`explicit strategies: ${capabilities.join(', ') || 'core'}`, async ({ page }) => {
     await preparePage(page, {
       body: '<img id="image" src="/images/image-1.jpg" data-zoom-src="/images/image-2.jpg?hd" width="160" alt="Zoom fixture"><template id="caption"><p id="details">Caption</p></template>',
     })
@@ -50,39 +48,26 @@ for (const capabilities of [
     await expect(page.locator('.medium-zoom-image--opened')).toHaveCount(
       capabilities.includes('loader') ? 2 : 1
     )
-    await expect(page.locator('#details')).toHaveCount(
-      capabilities.includes('content') ? 1 : 0
-    )
-    expect(requests.some(url => url.includes('?hd'))).toBe(
-      capabilities.includes('loader')
-    )
+    await expect(page.locator('#details')).toHaveCount(capabilities.includes('content') ? 1 : 0)
+    expect(requests.some(url => url.includes('?hd'))).toBe(capabilities.includes('loader'))
     if (capabilities.includes('viewport')) {
-      const rect = await page
-        .locator('.medium-zoom-image--opened')
-        .last()
-        .boundingBox()
+      const rect = await page.locator('.medium-zoom-image--opened').last().boundingBox()
       expect(rect!.x + rect!.width / 2).toBeCloseTo(315, 0)
       expect(rect!.y + rect!.height / 2).toBeCloseTo(220, 0)
     }
     await page.evaluate(() => window.coreZoom.close())
-    await expect(
-      page.locator('.medium-zoom-overlay,#details,dialog')
-    ).toHaveCount(0)
+    await expect(page.locator('.medium-zoom-overlay,#details,dialog')).toHaveCount(0)
     await page.evaluate(async () => {
       window.coreZoom.detach()
       window.coreZoom = window.coreZoom.clone({ margin: 24 }).attach('#image')
       await window.coreZoom.open()
     })
-    await expect(page.locator('#details')).toHaveCount(
-      capabilities.includes('content') ? 1 : 0
-    )
+    await expect(page.locator('#details')).toHaveCount(capabilities.includes('content') ? 1 : 0)
     await page.evaluate(() => window.coreZoom.close())
   })
 }
 
-test('viewport strategy remeasures layout and observes updated core margins', async ({
-  page,
-}) => {
+test('viewport strategy remeasures layout and observes updated core margins', async ({ page }) => {
   await preparePage(page, {
     body: '<div id="bounds" style="position:fixed;left:20px;top:30px;width:600px;height:400px"></div><img id="image" src="/images/image-1.jpg" width="160" alt="Zoom">',
   })
@@ -96,9 +81,7 @@ test('viewport strategy remeasures layout and observes updated core margins', as
       margin: 10,
     })
     const center = () => {
-      const box = document
-        .querySelector('.medium-zoom-image--opened')!
-        .getBoundingClientRect()
+      const box = document.querySelector('.medium-zoom-image--opened')!.getBoundingClientRect()
       return [box.x + box.width / 2, box.y + box.height / 2]
     }
     await window.coreZoom.open()
@@ -158,9 +141,7 @@ test('loader completion is single-use, canceled on close, and ignores late readi
 })
 
 for (const kind of ['loader', 'viewport'] as const) {
-  test(`${kind} strategy failures use normal engine cleanup`, async ({
-    page,
-  }) => {
+  test(`${kind} strategy failures use normal engine cleanup`, async ({ page }) => {
     await preparePage(page)
     expect(
       await page.evaluate(async kind => {
@@ -168,19 +149,13 @@ for (const kind of ['loader', 'viewport'] as const) {
         const fail = () => {
           throw Error('Strategy failed')
         }
-        const zoom = createZoom(
-          '#image',
-          kind === 'loader' ? { loader: fail } : { viewport: fail }
-        )
+        const zoom = createZoom('#image', kind === 'loader' ? { loader: fail } : { viewport: fail })
         try {
           await zoom.open()
           return false
         } catch {
           await zoom.close()
-          return (
-            zoom.getZoomedImage() === null &&
-            !document.querySelector('.medium-zoom-overlay')
-          )
+          return zoom.getZoomedImage() === null && !document.querySelector('.medium-zoom-overlay')
         }
       }, kind)
     ).toBe(true)
@@ -197,12 +172,7 @@ test('construction configuration is copied; clone retains strategies and core op
       let calls = 0
       const config = {
         margin: 12,
-        viewport: (bounds: {
-          left: number
-          top: number
-          width: number
-          height: number
-        }) => {
+        viewport: (bounds: { left: number; top: number; width: number; height: number }) => {
           calls++
           return bounds
         },
@@ -276,9 +246,7 @@ test('plain renderer content stays above the backdrop and closes through authore
   await expect(page.locator('dialog')).toHaveCount(0)
 })
 
-test('synchronous loader readiness still releases its returned cleanup once', async ({
-  page,
-}) => {
+test('synchronous loader readiness still releases its returned cleanup once', async ({ page }) => {
   await preparePage(page, {
     body: '<img id="one" src="/images/image-1.jpg" width="160" alt="One"><img id="two" src="/images/image-2.jpg" width="160" alt="Two">',
   })
@@ -369,9 +337,7 @@ test('content cleanup errors release the modal and session before rejecting clos
   ).toEqual({ message: 'cleanup failed', current: null, removed: true })
 })
 
-test('backdrop dismissal remains available across repeated openings', async ({
-  page,
-}) => {
+test('backdrop dismissal remains available across repeated openings', async ({ page }) => {
   await preparePage(page)
   await page.evaluate(async () => {
     const { createZoom } = await window.loadEntry('core')
@@ -384,9 +350,7 @@ test('backdrop dismissal remains available across repeated openings', async ({
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 })
 
-test('HD request attributes apply before fetching the replacement', async ({
-  page,
-}) => {
+test('HD request attributes apply before fetching the replacement', async ({ page }) => {
   await preparePage(page, {
     body: '<img id="image" src="/images/image-1.jpg" data-zoom-src="https://photos.example/hd.jpg" crossorigin="anonymous" referrerpolicy="no-referrer" width="160" alt="Photo">',
   })
@@ -414,9 +378,7 @@ test('HD request attributes apply before fetching the replacement', async ({
 })
 
 for (const kind of ['connected', 'incompatible'] as const) {
-  test(`loader rejects ${kind} media through normal cleanup`, async ({
-    page,
-  }) => {
+  test(`loader rejects ${kind} media through normal cleanup`, async ({ page }) => {
     await preparePage(page)
     expect(
       await page.evaluate(async kind => {
@@ -425,11 +387,7 @@ for (const kind of ['connected', 'incompatible'] as const) {
         const zoom = createZoom(source, {
           loader: (_context, ready) =>
             // The runtime check covers untyped loaders that hand back other elements.
-            ready(
-              kind === 'connected'
-                ? source
-                : (document.createElement('div') as never)
-            ),
+            ready(kind === 'connected' ? source : (document.createElement('div') as never)),
         })
         let rejected = false
         try {
@@ -449,9 +407,7 @@ for (const kind of ['connected', 'incompatible'] as const) {
   })
 }
 
-test('HD cancellation removes native callbacks before a late load error', async ({
-  page,
-}) => {
+test('HD cancellation removes native callbacks before a late load error', async ({ page }) => {
   await preparePage(page, {
     body: '<img id="image" src="/images/image-1.jpg" width="160" alt="Photo" onerror="document.documentElement.dataset.hdError=\'dispatched\'">',
   })
@@ -476,19 +432,13 @@ test('HD cancellation removes native callbacks before a late load error', async 
     const pending = window as Window & { cancelHd?: () => void }
     document.documentElement.dataset.hdCompletions = '0'
     pending.cancelHd =
-      loadHdImage(
-        { original: source, clone: source.cloneNode() as HTMLImageElement },
-        () => {
-          document.documentElement.dataset.hdCompletions = '1'
-        }
-      ) || undefined
+      loadHdImage({ original: source, clone: source.cloneNode() as HTMLImageElement }, () => {
+        document.documentElement.dataset.hdCompletions = '1'
+      }) || undefined
     pending.cancelHd?.()
   })
   release()
-  await expect(page.locator('html')).toHaveAttribute(
-    'data-hd-error',
-    'dispatched'
-  )
+  await expect(page.locator('html')).toHaveAttribute('data-hd-error', 'dispatched')
   await expect(page.locator('html')).toHaveAttribute('data-hd-completions', '0')
   expect(warnings).toEqual([])
   await page.evaluate(() => {

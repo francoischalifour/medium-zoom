@@ -35,22 +35,15 @@ function deferInteraction(event: Event, target: Node, replay: () => void) {
 
 function isExternalLink(link: HTMLAnchorElement) {
   const url = new URL(link.href)
-  return (
-    ['http:', 'https:'].includes(url.protocol) && url.origin !== location.origin
-  )
+  return ['http:', 'https:'].includes(url.protocol) && url.origin !== location.origin
 }
 
 function deferClick(event: MouseEvent) {
   if (!(event.target instanceof Element)) {
     return
   }
-  const target = event.target.closest<HTMLElement>(
-    'button, input[type="radio"], a[href]'
-  )
-  if (
-    !target ||
-    (target instanceof HTMLAnchorElement && !isExternalLink(target))
-  ) {
+  const target = event.target.closest<HTMLElement>('button, input[type="radio"], a[href]')
+  if (!target || (target instanceof HTMLAnchorElement && !isExternalLink(target))) {
     return
   }
   deferInteraction(event, target, () => {
@@ -72,10 +65,7 @@ function deferKeyDown(event: KeyboardEvent) {
   if (!target) {
     return
   }
-  if (
-    target instanceof HTMLAnchorElement &&
-    (!isExternalLink(target) || event.key !== 'Enter')
-  ) {
+  if (target instanceof HTMLAnchorElement && (!isExternalLink(target) || event.key !== 'Enter')) {
     return
   }
 
@@ -87,9 +77,7 @@ function deferKeyDown(event: KeyboardEvent) {
     return
   }
   deferInteraction(event, target, () => {
-    const useDefaultAction = target.dispatchEvent(
-      new KeyboardEvent('keydown', event)
-    )
+    const useDefaultAction = target.dispatchEvent(new KeyboardEvent('keydown', event))
     if (useDefaultAction && activatesControl) {
       target.click()
     }
@@ -122,11 +110,7 @@ function afterFirstPaint(callback: () => void) {
   }
   let called = false
   const observer = new PerformanceObserver(entries => {
-    if (
-      entries
-        .getEntries()
-        .some(entry => entry.name === 'first-contentful-paint')
-    ) {
+    if (entries.getEntries().some(entry => entry.name === 'first-contentful-paint')) {
       run()
     }
   })

@@ -16,10 +16,7 @@ const registry = {
 
 const output = resolve('website/public/r')
 mkdirSync(output, { recursive: true })
-writeFileSync(
-  resolve(output, 'registry.json'),
-  `${JSON.stringify(registry, null, 2)}\n`
-)
+writeFileSync(resolve(output, 'registry.json'), `${JSON.stringify(registry, null, 2)}\n`)
 for (const item of registry.items) {
   writeFileSync(
     resolve(output, `${item.name}.json`),

@@ -15,10 +15,7 @@ interface AttwAnalysis {
     typesFileName?: string
     implementationFileName?: string
   }[]
-  entrypoints: Record<
-    string,
-    { resolutions: Record<string, { visibleProblems: number[] }> }
-  >
+  entrypoints: Record<string, { resolutions: Record<string, { visibleProblems: number[] }> }>
 }
 
 export async function checkAnalyzers(archive: string, experimental = false) {
@@ -36,17 +33,10 @@ async function checkPublint(archive: string) {
   }
   // These established ESM .js paths cannot be renamed or put in a type:module
   // package without breaking v1's dist imports or callable UMD main.
-  const legacyEsmPaths = new Set([
-    '/dist/medium-zoom.esm.js',
-    '/dist/pure/index.js',
-  ])
+  const legacyEsmPaths = new Set(['/dist/medium-zoom.esm.js', '/dist/pure/index.js'])
   const reportedPaths = new Set<string>()
   for (const message of result.messages) {
-    assert.equal(
-      message.code,
-      'FILE_INVALID_FORMAT',
-      'Unexpected publint finding'
-    )
+    assert.equal(message.code, 'FILE_INVALID_FORMAT', 'Unexpected publint finding')
     assert.equal(message.type, 'warning')
     assert(message.args.actualFilePath)
     const path = message.args.actualFilePath.replace(/^\./, '')
@@ -61,10 +51,7 @@ function checkAttw(archive: string, experimental: boolean) {
   // are runtime-only and are checked separately.
   const releaseEntrypoints = ['.', './dist/pure', './dist/pure/index.js']
   const entrypoints = experimental
-    ? [
-        ...releaseEntrypoints,
-        ...candidateEntries.map(entry => `./${entry.name}`),
-      ]
+    ? [...releaseEntrypoints, ...candidateEntries.map(entry => `./${entry.name}`)]
     : releaseEntrypoints
   const attw = spawnSync(
     resolve('node_modules/.bin/attw'),
@@ -77,11 +64,9 @@ function checkAttw(archive: string, experimental: boolean) {
   const { analysis } = JSON.parse(attw.stdout) as { analysis: AttwAnalysis }
   const findings = analysis.problems.map(problem => ({
     kind: problem.kind,
-    files: [
-      problem.fileName,
-      problem.typesFileName,
-      problem.implementationFileName,
-    ].filter(Boolean),
+    files: [problem.fileName, problem.typesFileName, problem.implementationFileName].filter(
+      Boolean
+    ),
   }))
   console.log('ATTW v1 compatibility findings:', findings)
   // v1's default-export types misdescribe the callable UMD. Switching to export =
@@ -105,16 +90,11 @@ function checkAttw(archive: string, experimental: boolean) {
     const { resolutions } = analysis.entrypoints[entry]
     assert.deepEqual(Object.keys(resolutions), modes)
     for (const mode of modes) {
-      const actual = resolutions[mode].visibleProblems.map(
-        index => analysis.problems[index].kind
-      )
+      const actual = resolutions[mode].visibleProblems.map(index => analysis.problems[index].kind)
       let expected: string[] = []
       if (entry === '.') {
         expected = ['FalseExportDefault']
-      } else if (
-        entry.startsWith('./dist/pure') &&
-        mode.startsWith('node16-')
-      ) {
+      } else if (entry.startsWith('./dist/pure') && mode.startsWith('node16-')) {
         expected = ['UnexpectedModuleSyntax']
       }
       assert.deepEqual(actual, expected, `${entry}: ${mode}`)

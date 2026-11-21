@@ -3,32 +3,19 @@ import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from './website-fixture'
 
 for (const shortcut of ['Meta+k', 'Control+k']) {
-  test(`${shortcut} searches section anchors and restores focus`, async ({
-    page,
-  }) => {
+  test(`${shortcut} searches section anchors and restores focus`, async ({ page }) => {
     await page.goto('/')
     const trigger = page.getByRole('button', { name: /Search docs/ })
     await trigger.focus()
     await page.keyboard.press(shortcut)
     const search = page.getByRole('combobox', { name: 'Search documentation' })
     await expect(search).toBeFocused()
-    await expect(
-      page.getByRole('option', { name: /JavaScript quickstart/ })
-    ).toBeVisible()
+    await expect(page.getByRole('option', { name: /JavaScript quickstart/ })).toBeVisible()
     await search.fill('margin')
+    await expect(page.getByRole('dialog').getByRole('option').first()).toContainText('margin')
+    await expect(page.getByRole('dialog').getByRole('option').first()).toContainText('Options')
     await expect(
-      page.getByRole('dialog').getByRole('option').first()
-    ).toContainText('margin')
-    await expect(
-      page.getByRole('dialog').getByRole('option').first()
-    ).toContainText('Options')
-    await expect(
-      page
-        .getByRole('dialog')
-        .getByRole('option')
-        .first()
-        .locator('mark')
-        .first()
+      page.getByRole('dialog').getByRole('option').first().locator('mark').first()
     ).toHaveText('margin')
     await page.keyboard.press('Escape')
     await expect(page.getByRole('dialog')).not.toBeVisible()
@@ -37,14 +24,10 @@ for (const shortcut of ['Meta+k', 'Control+k']) {
     await expect(search).toHaveValue('')
     await search.fill('margin')
     await page.keyboard.press('Enter')
-    await expect(page).toHaveURL(
-      /\/docs\/reference\/javascript\/options\/#margin$/
-    )
+    await expect(page).toHaveURL(/\/docs\/reference\/javascript\/options\/#margin$/)
     await expect(page.locator('#margin')).toBeInViewport()
     await page.goBack()
-    await expect(
-      page.getByRole('combobox', { name: 'Search documentation' })
-    ).toHaveValue('margin')
+    await expect(page.getByRole('combobox', { name: 'Search documentation' })).toHaveValue('margin')
     expect(new URL(page.url()).searchParams.get('q')).toBe('margin')
   })
 }
@@ -76,86 +59,58 @@ for (const { platform, label, keys } of [
   })
 }
 
-test('aliases, keyboard selection, empty state, and modal accessibility', async ({
-  page,
-}) => {
+test('aliases, keyboard selection, empty state, and modal accessibility', async ({ page }) => {
   await page.goto('/docs/react/')
   await page.getByRole('button', { name: /Search docs/ }).click()
   const search = page.getByRole('combobox', { name: 'Search documentation' })
   await search.fill('toggle')
-  await expect(
-    page.getByRole('dialog').getByRole('option').first()
-  ).toContainText('toggle()')
-  await expect(
-    page.getByRole('option', { name: /Switch to .* theme/ })
-  ).toHaveCount(0)
+  await expect(page.getByRole('dialog').getByRole('option').first()).toContainText('toggle()')
+  await expect(page.getByRole('option', { name: /Switch to .* theme/ })).toHaveCount(0)
   await search.fill('nextjs')
-  await expect(
-    page.getByRole('dialog').getByRole('option').first()
-  ).toContainText('Server rendering')
+  await expect(page.getByRole('dialog').getByRole('option').first()).toContainText(
+    'Server rendering'
+  )
   await search.fill('high resolution')
-  await expect(
-    page.getByRole('dialog').getByRole('option').first()
-  ).toContainText('HD images')
+  await expect(page.getByRole('dialog').getByRole('option').first()).toContainText('HD images')
   await search.fill('nothing matches this query')
   await expect(page.getByText('No matches found')).toBeVisible()
   await expect(page.getByRole('option', { name: /Ask ChatGPT/ })).toBeVisible()
-  await expect(page.getByRole('dialog').getByRole('status')).toHaveText(
-    '0 matches'
-  )
+  await expect(page.getByRole('dialog').getByRole('status')).toHaveText('0 matches')
   await expect(page.getByRole('dialog').getByRole('option')).toHaveCount(2)
   await expect(page.getByRole('option', { name: /^Ask ChatGPT/ })).toBeVisible()
   await expect(page.getByRole('dialog')).toBeVisible()
   const emptyReport = await new AxeBuilder({ page }).include('dialog').analyze()
   expect(emptyReport.violations).toEqual([])
   await search.fill('')
-  await expect(
-    page.getByRole('dialog').getByRole('option').first()
-  ).toBeVisible()
+  await expect(page.getByRole('dialog').getByRole('option').first()).toBeVisible()
   await page.keyboard.press('ArrowDown')
-  await expect(page.getByRole('option', { selected: true })).toContainText(
-    'React quickstart'
-  )
+  await expect(page.getByRole('option', { selected: true })).toContainText('React quickstart')
   const report = await new AxeBuilder({ page }).include('dialog').analyze()
   expect(report.violations).toEqual([])
   await page.keyboard.press('Enter')
   await expect(page).toHaveURL(/\/docs\/react\/$/)
 })
 
-test('the theme action updates the control and persists across reloads', async ({
-  page,
-}) => {
+test('the theme action updates the control and persists across reloads', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'light' })
   await page.goto('/docs/react/')
   await page.getByRole('button', { name: /Search docs/ }).click()
-  await page
-    .getByRole('combobox', { name: 'Search documentation' })
-    .fill('theme')
+  await page.getByRole('combobox', { name: 'Search documentation' }).fill('theme')
   await page.getByRole('option', { name: 'Switch to dark theme' }).click()
   await expect(page.getByRole('dialog')).not.toBeVisible()
   await expect(page.getByRole('button', { name: /Search docs/ })).toBeFocused()
-  await expect(
-    page.getByRole('button', { name: 'Switch to light theme' })
-  ).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Switch to light theme' })).toBeVisible()
   await page.reload()
-  await expect(
-    page.getByRole('button', { name: 'Switch to light theme' })
-  ).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Switch to light theme' })).toBeVisible()
 })
 
-test('mobile search fits the viewport and dismisses with the close button', async ({
-  page,
-}) => {
+test('mobile search fits the viewport and dismisses with the close button', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 700 })
   await page.goto('/docs/')
   const trigger = page.getByRole('button', { name: /Search docs/ })
   await trigger.click()
-  await expect(
-    page.getByRole('combobox', { name: 'Search documentation' })
-  ).toBeFocused()
-  await expect(
-    page.getByRole('dialog').getByRole('option').first()
-  ).toBeVisible()
+  await expect(page.getByRole('combobox', { name: 'Search documentation' })).toBeFocused()
+  await expect(page.getByRole('dialog').getByRole('option').first()).toBeVisible()
   const bounds = await page.getByRole('dialog').boundingBox()
   expect(bounds!.x).toBeGreaterThanOrEqual(0)
   expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(390)
@@ -165,9 +120,7 @@ test('mobile search fits the viewport and dismisses with the close button', asyn
   await expect(trigger).toBeFocused()
 })
 
-test('query highlighting preserves API punctuation and works in dark mode', async ({
-  page,
-}) => {
+test('query highlighting preserves API punctuation and works in dark mode', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'dark' })
   await page.goto('/docs/react/')
   await page.getByRole('button', { name: /Search docs/ }).click()
@@ -190,31 +143,17 @@ for (const [query, path, highlight] of [
   ['react controled', '/docs/guides/controlled-state/', 'Controlled'],
   ['magrin', '/docs/reference/javascript/options/#margin', 'margin'],
   ['opne', '/docs/reference/javascript/methods/#open', 'open'],
-  [
-    'scroll distance',
-    '/docs/reference/javascript/options/#scrolloffset',
-    'scroll',
-  ],
-  [
-    'scroll offset',
-    '/docs/reference/javascript/options/#scrolloffset',
-    'scroll',
-  ],
+  ['scroll distance', '/docs/reference/javascript/options/#scrolloffset', 'scroll'],
+  ['scroll offset', '/docs/reference/javascript/options/#scrolloffset', 'scroll'],
   ['image zoom', '/docs/reference/react/image-zoom/', 'Image'],
-  [
-    'onopenchange',
-    '/docs/reference/react/image-zoom/#state-props',
-    'onOpenChange',
-  ],
+  ['onopenchange', '/docs/reference/react/image-zoom/#state-props', 'onOpenChange'],
   ['on', '/docs/reference/javascript/methods/#on', 'on'],
   ['off', '/docs/reference/javascript/methods/#off', 'off'],
 ]) {
   test(`local search ranks and highlights ${query}`, async ({ page }) => {
     await page.goto('/docs/react/')
     await page.getByRole('button', { name: /Search docs/ }).click()
-    await page
-      .getByRole('combobox', { name: 'Search documentation' })
-      .fill(query)
+    await page.getByRole('combobox', { name: 'Search documentation' }).fill(query)
     const results = page
       .getByRole('group', { name: 'Documentation', exact: true })
       .getByRole('option')
@@ -225,13 +164,11 @@ for (const [query, path, highlight] of [
       ).toBeVisible()
     }
     if (query === 'scroll distance') {
-      await expect(
-        results.first().locator('.command-description')
-      ).toContainText('scroll distance in pixels')
-      await page.keyboard.press('Enter')
-      await expect(page).toHaveURL(
-        /\/docs\/reference\/javascript\/options\/#scrolloffset$/
+      await expect(results.first().locator('.command-description')).toContainText(
+        'scroll distance in pixels'
       )
+      await page.keyboard.press('Enter')
+      await expect(page).toHaveURL(/\/docs\/reference\/javascript\/options\/#scrolloffset$/)
       await expect(page.locator('#scrolloffset')).toBeInViewport()
     }
     if (query === 'off') {
@@ -240,38 +177,22 @@ for (const [query, path, highlight] of [
   })
 }
 
-test('search excerpts display MDX string expressions as text', async ({
-  page,
-}) => {
+test('search excerpts display MDX string expressions as text', async ({ page }) => {
   await page.goto('/docs/react/')
   await page.getByRole('button', { name: /Search docs/ }).click()
   for (const [query, path, text] of [
-    [
-      'plain html',
-      '/docs/',
-      'Use the library with plain HTML or any framework.',
-    ],
-    [
-      'keyboard support',
-      '/docs/',
-      'Add an image component with a button and keyboard support.',
-    ],
+    ['plain html', '/docs/', 'Use the library with plain HTML or any framework.'],
+    ['keyboard support', '/docs/', 'Add an image component with a button and keyboard support.'],
     ['reference', '/docs/#reference', '<ImageZoom>'],
   ]) {
-    await page
-      .getByRole('combobox', { name: 'Search documentation' })
-      .fill(query)
-    const description = page.locator(
-      `a[role="option"][href="${path}"] .command-description`
-    )
+    await page.getByRole('combobox', { name: 'Search documentation' }).fill(query)
+    const description = page.locator(`a[role="option"][href="${path}"] .command-description`)
     await expect(description).toContainText(text)
     await expect(description).not.toContainText("{'")
   }
 })
 
-test('API query casing preserves the same results and ranking', async ({
-  page,
-}) => {
+test('API query casing preserves the same results and ranking', async ({ page }) => {
   await page.goto('/docs/react/')
   await page.getByRole('button', { name: /Search docs/ }).click()
   const search = page.getByRole('combobox', { name: 'Search documentation' })
@@ -285,11 +206,7 @@ test('API query casing preserves the same results and ranking', async ({
       ['onOpenChange', 'ONOPENCHANGE'],
       '/docs/reference/react/image-zoom/#state-props',
     ],
-    [
-      'imagezoom',
-      ['ImageZoom', 'IMAGEZOOM'],
-      '/docs/reference/react/image-zoom/',
-    ],
+    ['imagezoom', ['ImageZoom', 'IMAGEZOOM'], '/docs/reference/react/image-zoom/'],
   ] as const) {
     await search.fill(lowercase)
     await expect(results.first()).toHaveAttribute('href', firstPath)
@@ -300,9 +217,7 @@ test('API query casing preserves the same results and ranking', async ({
       await search.fill(variant)
       await expect
         .poll(() =>
-          results.evaluateAll(elements =>
-            elements.map(element => element.getAttribute('href'))
-          )
+          results.evaluateAll(elements => elements.map(element => element.getAttribute('href')))
         )
         .toEqual(paths)
     }
@@ -322,18 +237,15 @@ test('the search engine loads on demand and is reused after closing the palette'
   await expect(page.getByRole('button', { name: /Search docs/ })).toBeVisible()
   expect(requests).toHaveLength(0)
   await page.getByRole('button', { name: /Search docs/ }).click()
-  await expect(
-    page.getByRole('dialog').getByRole('option').first()
-  ).toBeVisible()
+  await expect(page.getByRole('dialog').getByRole('option').first()).toBeVisible()
   expect(requests).toHaveLength(1)
   await page.keyboard.press('Escape')
   await page.getByRole('button', { name: /Search docs/ }).click()
-  await page
-    .getByRole('combobox', { name: 'Search documentation' })
-    .fill('scroll distance')
-  await expect(
-    page.getByRole('dialog').getByRole('option').first()
-  ).toHaveAttribute('href', '/docs/reference/javascript/options/#scrolloffset')
+  await page.getByRole('combobox', { name: 'Search documentation' }).fill('scroll distance')
+  await expect(page.getByRole('dialog').getByRole('option').first()).toHaveAttribute(
+    'href',
+    '/docs/reference/javascript/options/#scrolloffset'
+  )
   expect(requests).toHaveLength(1)
 })
 
@@ -351,25 +263,17 @@ for (const [name, hostname, pathname] of [
     )
     await page.goto('/docs/react/')
     await page.getByRole('button', { name: /Search docs/ }).click()
-    await expect(page.getByRole('option', { name: `Ask ${name}` })).toHaveCount(
-      0
-    )
+    await expect(page.getByRole('option', { name: `Ask ${name}` })).toHaveCount(0)
     const question = 'How do I control React zoom state? & preserve focus #1'
-    await page
-      .getByRole('combobox', { name: 'Search documentation' })
-      .fill(question)
+    await page.getByRole('combobox', { name: 'Search documentation' }).fill(question)
     await expect(
-      page
-        .getByRole('option', { name: `Ask ${name}` })
-        .locator('.command-detail')
+      page.getByRole('option', { name: `Ask ${name}` }).locator('.command-detail')
     ).toHaveText(question)
     const popupPromise = page.waitForEvent('popup')
     if (name === 'ChatGPT') {
       await page.keyboard.press('Enter')
     } else {
-      await page
-        .getByRole('option', { name: new RegExp(`Ask ${name}`) })
-        .click()
+      await page.getByRole('option', { name: new RegExp(`Ask ${name}`) }).click()
     }
     const popup = await popupPromise
     await popup.waitForLoadState()
@@ -384,9 +288,7 @@ for (const [name, hostname, pathname] of [
   })
 }
 
-test('balances actions, matching documentation, and chat handoffs', async ({
-  page,
-}) => {
+test('balances actions, matching documentation, and chat handoffs', async ({ page }) => {
   await page.goto('/docs/react/')
   await page.getByRole('button', { name: /Search docs/ }).click()
   const groups = page.getByRole('dialog').getByRole('group')
@@ -398,26 +300,20 @@ test('balances actions, matching documentation, and chat handoffs', async ({
   await expect(groups.nth(0)).toHaveAccessibleName('Actions')
   await expect(groups.nth(1)).toHaveAccessibleName('Documentation')
   await expect(groups.nth(2)).toHaveAccessibleName('Open in chat')
+  await expect(page.getByRole('dialog').getByRole('option').first()).toContainText(
+    'Copy React install command'
+  )
   await expect(
-    page.getByRole('dialog').getByRole('option').first()
-  ).toContainText('Copy React install command')
-  await expect(
-    page
-      .getByRole('group', { name: 'Documentation', exact: true })
-      .getByRole('option')
+    page.getByRole('group', { name: 'Documentation', exact: true }).getByRole('option')
   ).toHaveCount(5)
   await search.fill('margin')
   await expect(groups).toHaveCount(2)
   await expect(groups.nth(0)).toHaveAccessibleName('Documentation')
   await expect(groups.nth(1)).toHaveAccessibleName('Open in chat')
-  await expect(
-    page.getByRole('dialog').getByRole('option').first()
-  ).toContainText('margin')
+  await expect(page.getByRole('dialog').getByRole('option').first()).toContainText('margin')
 })
 
-test('search URLs hydrate when the browser does not report paint timing', async ({
-  page,
-}) => {
+test('search URLs hydrate when the browser does not report paint timing', async ({ page }) => {
   await page.addInitScript(() => {
     window.PerformanceObserver = class extends PerformanceObserver {
       observe(options?: PerformanceObserverInit) {
@@ -428,111 +324,72 @@ test('search URLs hydrate when the browser does not report paint timing', async 
     }
   })
   await page.goto('/docs/javascript/?q=margin#install-the-package')
-  await expect(
-    page.getByRole('combobox', { name: 'Search documentation' })
-  ).toBeFocused()
-  await expect(
-    page.getByRole('combobox', { name: 'Search documentation' })
-  ).toHaveValue('margin')
-  await expect(
-    page.getByRole('dialog').getByRole('option').first()
-  ).toContainText('margin')
+  await expect(page.getByRole('combobox', { name: 'Search documentation' })).toBeFocused()
+  await expect(page.getByRole('combobox', { name: 'Search documentation' })).toHaveValue('margin')
+  await expect(page.getByRole('dialog').getByRole('option').first()).toContainText('margin')
 })
 
-test('search URLs preserve page context and reopen the same query', async ({
-  page,
-}) => {
-  await page.goto(
-    '/docs/javascript/?utm_source=search-test#install-the-package'
-  )
+test('search URLs preserve page context and reopen the same query', async ({ page }) => {
+  await page.goto('/docs/javascript/?utm_source=search-test#install-the-package')
   await page.getByRole('button', { name: /Search docs/ }).click()
   const search = page.getByRole('combobox', { name: 'Search documentation' })
   await search.fill('margin')
-  await expect
-    .poll(() => new URL(page.url()).searchParams.get('q'))
-    .toBe('margin')
+  await expect.poll(() => new URL(page.url()).searchParams.get('q')).toBe('margin')
   expect(new URL(page.url()).searchParams.get('utm_source')).toBe('search-test')
   expect(new URL(page.url()).hash).toBe('#install-the-package')
   await page.reload()
   await expect(search).toBeFocused()
   await expect(search).toHaveValue('margin')
-  await expect(
-    page.getByRole('dialog').getByRole('option').first()
-  ).toContainText('margin')
+  await expect(page.getByRole('dialog').getByRole('option').first()).toContainText('margin')
   await search.fill('')
   await expect.poll(() => new URL(page.url()).searchParams.has('q')).toBe(false)
   await expect(page.getByRole('dialog')).toBeVisible()
   await search.fill('HD images')
-  await expect
-    .poll(() => new URL(page.url()).searchParams.get('q'))
-    .toBe('HD images')
+  await expect.poll(() => new URL(page.url()).searchParams.get('q')).toBe('HD images')
   await page.keyboard.press('Escape')
   await expect.poll(() => new URL(page.url()).searchParams.has('q')).toBe(false)
   expect(new URL(page.url()).searchParams.get('utm_source')).toBe('search-test')
   expect(new URL(page.url()).hash).toBe('#install-the-package')
 })
 
-test('browser Back and Forward restore search and its destination', async ({
-  page,
-}) => {
+test('browser Back and Forward restore search and its destination', async ({ page }) => {
   await page.goto('/docs/?q=galleries')
-  await expect(
-    page.getByRole('dialog').getByRole('option').first()
-  ).toHaveAccessibleName(/^Multiple images/)
-  await page
-    .getByRole('combobox', { name: 'Search documentation' })
-    .press('Enter')
+  await expect(page.getByRole('dialog').getByRole('option').first()).toHaveAccessibleName(
+    /^Multiple images/
+  )
+  await page.getByRole('combobox', { name: 'Search documentation' }).press('Enter')
   await expect(page).toHaveURL(/\/docs\/guides\/multiple-images\/$/)
   await page.goBack()
-  await expect(
-    page.getByRole('combobox', { name: 'Search documentation' })
-  ).toHaveValue('galleries')
+  await expect(page.getByRole('combobox', { name: 'Search documentation' })).toHaveValue(
+    'galleries'
+  )
   await page.goForward()
   await expect(page).toHaveURL(/\/docs\/guides\/multiple-images\/$/)
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Multiple images' })
-  ).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Multiple images' })).toBeVisible()
 })
 
-test('documentation results support opening in another tab', async ({
-  page,
-  context,
-}) => {
+test('documentation results support opening in another tab', async ({ page, context }) => {
   await page.goto('/docs/?q=margin')
   const result = page.getByRole('option', { name: /^margin Options/ })
   await expect(result).toBeVisible()
   const popupPromise = context.waitForEvent('page')
-  await expect(result).toHaveAttribute(
-    'href',
-    '/docs/reference/javascript/options/#margin'
-  )
+  await expect(result).toHaveAttribute('href', '/docs/reference/javascript/options/#margin')
   await result.click({ modifiers: ['ControlOrMeta'] })
   const popup = await popupPromise
-  await expect(popup).toHaveURL(
-    /\/docs\/reference\/javascript\/options\/#margin$/
-  )
-  await expect(
-    popup.getByRole('heading', { name: 'margin', exact: true })
-  ).toBeVisible()
-  await expect(
-    page.getByRole('combobox', { name: 'Search documentation' })
-  ).toHaveValue('margin')
+  await expect(popup).toHaveURL(/\/docs\/reference\/javascript\/options\/#margin$/)
+  await expect(popup.getByRole('heading', { name: 'margin', exact: true })).toBeVisible()
+  await expect(page.getByRole('combobox', { name: 'Search documentation' })).toHaveValue('margin')
   await popup.close()
 })
 
-test('the search action keeps its accessible name at full and compact widths', async ({
-  page,
-}) => {
+test('the search action keeps its accessible name at full and compact widths', async ({ page }) => {
   await page.goto('/docs/')
   const search = page.getByRole('button', { name: 'Search docs', exact: true })
   for (const width of [1_280, 900, 390]) {
     await page.setViewportSize({ width, height: 800 })
     await expect(search).toBeVisible()
     await expect(search).toHaveAccessibleName('Search docs')
-    await expect(search).toHaveAttribute(
-      'aria-keyshortcuts',
-      /^(Meta|Control)\+K$/
-    )
+    await expect(search).toHaveAttribute('aria-keyshortcuts', /^(Meta|Control)\+K$/)
   }
 })
 
@@ -550,20 +407,15 @@ test('the palette stays near the top as results change and fits short viewports'
     await page.getByRole('button', { name: /Search docs/ }).click()
     const dialog = page.getByRole('dialog')
     const initial = (await dialog.boundingBox())!
-    const inset =
-      viewport.width <= 680 ? 16 : Math.min(viewport.height * 0.08, 64)
+    const inset = viewport.width <= 680 ? 16 : Math.min(viewport.height * 0.08, 64)
     expect(Math.abs(initial.y - inset)).toBeLessThan(2)
     expect(initial.y + initial.height).toBeLessThanOrEqual(viewport.height - 15)
     await page
       .getByRole('combobox', { name: 'Search documentation' })
       .fill('no matching documentation page')
-    await expect(
-      page.getByText('No matches found', { exact: true })
-    ).toBeVisible()
+    await expect(page.getByText('No matches found', { exact: true })).toBeVisible()
     expect((await dialog.boundingBox())!.y).toBe(initial.y)
-    await expect(
-      page.getByRole('combobox', { name: 'Search documentation' })
-    ).toBeFocused()
+    await expect(page.getByRole('combobox', { name: 'Search documentation' })).toBeFocused()
   }
 })
 
@@ -588,9 +440,9 @@ test('search header focuses the input and install actions explain their purpose 
   ).toBeVisible()
   await expect(page.locator('.command-action .command-detail')).toHaveCount(0)
   await input.fill('Copy React install command with shadcn/ui')
-  await expect(
-    page.getByRole('dialog').getByRole('option').first()
-  ).toHaveAccessibleName('Copy React install command with shadcn/ui')
+  await expect(page.getByRole('dialog').getByRole('option').first()).toHaveAccessibleName(
+    'Copy React install command with shadcn/ui'
+  )
   await close.click()
   await expect(page.getByRole('dialog')).not.toBeVisible()
 })
@@ -600,14 +452,9 @@ for (const dark of [false, true]) {
     page,
   }) => {
     await page.goto('/docs/')
-    await page.evaluate(
-      dark => document.documentElement.classList.toggle('dark', dark),
-      dark
-    )
+    await page.evaluate(dark => document.documentElement.classList.toggle('dark', dark), dark)
     await page.getByRole('button', { name: /Search docs/ }).click()
-    await expect(
-      page.getByRole('option', { name: /JavaScript quickstart/ })
-    ).toBeVisible()
+    await expect(page.getByRole('option', { name: /JavaScript quickstart/ })).toBeVisible()
     const keycaps = page.locator('.command-enter, .command-footer kbd')
     const styles = await keycaps.evaluateAll(keys =>
       keys.map(key => {
@@ -635,27 +482,19 @@ test('the command menu locks page scrolling while its results remain scrollable'
   await page.goto('/docs/')
   await page.evaluate(() => window.scrollTo(0, 300))
   await page.getByRole('button', { name: /Search docs/ }).click()
-  await expect(
-    page.getByRole('option', { name: /JavaScript quickstart/ })
-  ).toBeVisible()
+  await expect(page.getByRole('option', { name: /JavaScript quickstart/ })).toBeVisible()
   const scrollBefore = await page.evaluate(() => window.scrollY)
   await page.mouse.move(5, 315)
   await page.mouse.wheel(0, 200)
-  await expect
-    .poll(() => page.evaluate(() => window.scrollY))
-    .toBe(scrollBefore)
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(scrollBefore)
   const results = page.locator('.command-results')
   await results.hover()
   await page.mouse.wheel(0, 200)
-  await expect
-    .poll(() => results.evaluate(element => element.scrollTop))
-    .toBeGreaterThan(0)
+  await expect.poll(() => results.evaluate(element => element.scrollTop)).toBeGreaterThan(0)
   expect(await page.evaluate(() => window.scrollY)).toBe(scrollBefore)
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog')).not.toBeVisible()
   await page.mouse.move(5, 315)
   await page.mouse.wheel(0, 200)
-  await expect
-    .poll(() => page.evaluate(() => window.scrollY))
-    .toBeGreaterThan(scrollBefore)
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(scrollBefore)
 })

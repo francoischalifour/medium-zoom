@@ -1,19 +1,9 @@
 import * as React from 'react'
 
 import * as ImageZoom from '../../examples/shadcn/src/components/ui/image-zoom'
-import {
-  type ExampleImage,
-  galleryImages,
-  getPreviewImageProps,
-  usageCode,
-} from './gallery'
+import { type ExampleImage, galleryImages, getPreviewImageProps, usageCode } from './gallery'
 import { trackSiteEvent } from './site-analytics'
-import {
-  CopyButton,
-  HighlightedCode,
-  SiteLink,
-  ZoomControls,
-} from './site-components'
+import { CopyButton, HighlightedCode, SiteLink, ZoomControls } from './site-components'
 import { TabList } from './site-tabs'
 
 function ExampleCard({
@@ -57,12 +47,7 @@ function ExampleCard({
           <span className="example-kind">{image.label}</span>
         )}
       </div>
-      <div
-        id={`${id}-panel`}
-        role="tabpanel"
-        aria-labelledby={`${id}-${tab}`}
-        tabIndex={0}
-      >
+      <div id={`${id}-panel`} role="tabpanel" aria-labelledby={`${id}-${tab}`} tabIndex={0}>
         {tab === 'preview' ? (
           <div className="demo-stage">
             <ImageZoom.Root>
@@ -72,14 +57,9 @@ function ExampleCard({
                 aria-label={`Zoom image: ${image.alt}`}
               >
                 <ImageZoom.Image
-                  {...getPreviewImageProps(
-                    image,
-                    '(max-width: 640px) calc(100vw - 100px), 480px'
-                  )}
+                  {...getPreviewImageProps(image, '(max-width: 640px) calc(100vw - 100px), 480px')}
                   id={
-                    kind === 'javascript' && image.id === 'landscape'
-                      ? 'zoom-default'
-                      : undefined
+                    kind === 'javascript' && image.id === 'landscape' ? 'zoom-default' : undefined
                   }
                   data-zoomable={image.id}
                   className="preview-photo"
@@ -118,11 +98,7 @@ function ExampleCard({
   )
 }
 
-export function ExampleRail({
-  kind = 'react',
-}: {
-  kind?: 'react' | 'javascript'
-}) {
+export function ExampleRail({ kind = 'react' }: { kind?: 'react' | 'javascript' }) {
   const railRef = React.useRef<HTMLDivElement>(null)
   const [edges, setEdges] = React.useState({ start: true, end: false })
   const [expanded, setExpanded] = React.useState(false)
@@ -250,12 +226,7 @@ export function ExampleRail({
           }}
         >
           {galleryImages.map((image, index) => (
-            <ExampleCard
-              key={image.id}
-              image={image}
-              kind={kind}
-              priority={index === 0}
-            />
+            <ExampleCard key={image.id} image={image} kind={kind} priority={index === 0} />
           ))}
         </div>
       </div>

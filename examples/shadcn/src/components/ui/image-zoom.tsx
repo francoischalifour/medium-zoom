@@ -15,10 +15,7 @@ export type RootProps = {
   onOpenChange?: (open: boolean) => void
 }
 
-export type TriggerProps = Omit<
-  React.ComponentPropsWithoutRef<'button'>,
-  'type'
->
+export type TriggerProps = Omit<React.ComponentPropsWithoutRef<'button'>, 'type'>
 export type ImageProps = Omit<
   React.ComponentPropsWithoutRef<'img'>,
   'alt' | 'onClick' | 'onKeyDown' | 'onKeyUp' | 'tabIndex' | 'role'
@@ -38,10 +35,7 @@ const ZoomContext = React.createContext<{
 
 function useZoomContext() {
   const context = React.useContext(ZoomContext)
-  if (!context)
-    throw new Error(
-      'ImageZoom.Trigger and ImageZoom.Image require ImageZoom.Root.'
-    )
+  if (!context) throw new Error('ImageZoom.Trigger and ImageZoom.Image require ImageZoom.Root.')
   return context
 }
 
@@ -54,13 +48,7 @@ type Session = {
 // The library shares a body class between instances. Finish closing one before opening another.
 const activeSessions = new WeakMap<Document, Session>()
 
-export function Root({
-  children,
-  disabled = false,
-  options,
-  open,
-  onOpenChange,
-}: RootProps) {
+export function Root({ children, disabled = false, options, open, onOpenChange }: RootProps) {
   const [image, setImage] = React.useState<HTMLImageElement | null>(null)
   const [alt, setAlt] = React.useState('')
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false)
@@ -130,9 +118,7 @@ export function Root({
           const completion = zoom.close()
           // Escape, scroll, and overlay clicks can start a close outside this component.
           // Core close() resolves immediately on repeated calls; wait for its closed event.
-          return Promise.all([session?.pending, closing ?? completion]).then(
-            () => zoom
-          )
+          return Promise.all([session?.pending, closing ?? completion]).then(() => zoom)
         },
       }
       sessionRef.current = session
@@ -211,120 +197,98 @@ export function Root({
   )
 }
 
-export const Trigger = React.forwardRef<HTMLButtonElement, TriggerProps>(
-  function Trigger({ className, onClick, disabled, ...props }, ref) {
-    const context = useZoomContext()
-    return (
-      <button
-        {...props}
-        ref={ref}
-        type="button"
-        data-slot="image-zoom-trigger"
-        disabled={context.disabled || disabled}
+export const Trigger = React.forwardRef<HTMLButtonElement, TriggerProps>(function Trigger(
+  { className, onClick, disabled, ...props },
+  ref
+) {
+  const context = useZoomContext()
+  return (
+    <button
+      {...props}
+      ref={ref}
+      type="button"
+      data-slot="image-zoom-trigger"
+      disabled={context.disabled || disabled}
+      aria-label={
+        props['aria-label'] ?? (context.alt ? `Zoom image: ${context.alt}` : 'Zoom image')
+      }
+      className={['image-zoom-trigger', className].filter(Boolean).join(' ')}
+      onClick={event => {
+        onClick?.(event)
+        if (!event.defaultPrevented) context.toggle()
+      }}
+    />
+  )
+})
+
+export const Image = React.forwardRef<HTMLImageElement, ImageProps>(function Image(
+  { alt, className, style, ...props },
+  forwardedRef
+) {
+  const { setImage, setAlt, disabled, zoomed, close } = useZoomContext()
+  const imageRef = React.useRef<HTMLImageElement>(null)
+  const source = [props.src, props.srcSet, props.sizes, props['data-zoom-src']]
+  const previousSource = React.useRef(source)
+  React.useEffect(() => setAlt(alt), [alt, setAlt])
+  React.useImperativeHandle(forwardedRef, () => imageRef.current!, [])
+  const attachImage = React.useCallback(
+    (image: HTMLImageElement | null) => {
+      imageRef.current = image
+      setImage(image)
+    },
+    [setImage]
+  )
+
+  // Never keep a clone of a previous source over the replacement image.
+  React.useEffect(() => {
+    if (source.some((value, index) => value !== previousSource.current[index])) close()
+    previousSource.current = source
+  }, [props.src, props.srcSet, props.sizes, props['data-zoom-src'], close])
+
+  return (
+    <img
+      {...props}
+      alt={alt}
+      ref={attachImage}
+      data-slot="image-zoom"
+      aria-hidden="true"
+      className={[
+        className,
+        !disabled && 'medium-zoom-image',
+        zoomed && 'medium-zoom-image--hidden',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      style={{ ...style, pointerEvents: 'none' }}
+    />
+  )
+})
+
+export const ImageZoom = React.forwardRef<HTMLImageElement, ImageZoomProps>(function ImageZoom(
+  { disabled, options, open, onOpenChange, ...props },
+  ref
+) {
+  return (
+    <Root disabled={disabled} options={options} open={open} onOpenChange={onOpenChange}>
+      <Trigger
         aria-label={
-          props['aria-label'] ??
-          (context.alt ? `Zoom image: ${context.alt}` : 'Zoom image')
+          disabled ? props.alt || 'Image' : props.alt ? `Zoom image: ${props.alt}` : 'Zoom image'
         }
-        className={['image-zoom-trigger', className].filter(Boolean).join(' ')}
-        onClick={event => {
-          onClick?.(event)
-          if (!event.defaultPrevented) context.toggle()
-        }}
-      />
-    )
-  }
-)
-
-export const Image = React.forwardRef<HTMLImageElement, ImageProps>(
-  function Image({ alt, className, style, ...props }, forwardedRef) {
-    const { setImage, setAlt, disabled, zoomed, close } = useZoomContext()
-    const imageRef = React.useRef<HTMLImageElement>(null)
-    const source = [
-      props.src,
-      props.srcSet,
-      props.sizes,
-      props['data-zoom-src'],
-    ]
-    const previousSource = React.useRef(source)
-    React.useEffect(() => setAlt(alt), [alt, setAlt])
-    React.useImperativeHandle(forwardedRef, () => imageRef.current!, [])
-    const attachImage = React.useCallback(
-      (image: HTMLImageElement | null) => {
-        imageRef.current = image
-        setImage(image)
-      },
-      [setImage]
-    )
-
-    // Never keep a clone of a previous source over the replacement image.
-    React.useEffect(() => {
-      if (
-        source.some((value, index) => value !== previousSource.current[index])
-      )
-        close()
-      previousSource.current = source
-    }, [props.src, props.srcSet, props.sizes, props['data-zoom-src'], close])
-
-    return (
-      <img
-        {...props}
-        alt={alt}
-        ref={attachImage}
-        data-slot="image-zoom"
-        aria-hidden="true"
-        className={[
-          className,
-          !disabled && 'medium-zoom-image',
-          zoomed && 'medium-zoom-image--hidden',
-        ]
-          .filter(Boolean)
-          .join(' ')}
-        style={{ ...style, pointerEvents: 'none' }}
-      />
-    )
-  }
-)
-
-export const ImageZoom = React.forwardRef<HTMLImageElement, ImageZoomProps>(
-  function ImageZoom({ disabled, options, open, onOpenChange, ...props }, ref) {
-    return (
-      <Root
-        disabled={disabled}
-        options={options}
-        open={open}
-        onOpenChange={onOpenChange}
       >
-        <Trigger
-          aria-label={
-            disabled
-              ? props.alt || 'Image'
-              : props.alt
-                ? `Zoom image: ${props.alt}`
-                : 'Zoom image'
-          }
-        >
-          <Image {...props} ref={ref} />
-        </Trigger>
-      </Root>
-    )
-  }
-)
+        <Image {...props} ref={ref} />
+      </Trigger>
+    </Root>
+  )
+})
 
-function resolveOptions(
-  image: HTMLImageElement,
-  options?: ZoomOptions
-): ZoomOptions {
+function resolveOptions(image: HTMLImageElement, options?: ZoomOptions): ZoomOptions {
   // The overlay lives in document.body, outside themes scoped to the trigger's ancestors.
   const background = image.ownerDocument
     .defaultView!.getComputedStyle(image)
     .getPropertyValue('--background')
     .trim()
   let container = options?.container
-  if (
-    container &&
-    typeof container === 'object' &&
-    'getBoundingClientRect' in container
-  ) {
+  if (container && typeof container === 'object' && 'getBoundingClientRect' in container) {
     const bounds = container.getBoundingClientRect()
     // Core's object form describes viewport bounds with top/left insets.
     container = {

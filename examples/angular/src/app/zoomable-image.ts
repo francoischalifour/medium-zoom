@@ -1,11 +1,4 @@
-import {
-  afterRenderEffect,
-  DestroyRef,
-  Directive,
-  ElementRef,
-  inject,
-  input,
-} from '@angular/core'
+import { afterRenderEffect, DestroyRef, Directive, ElementRef, inject, input } from '@angular/core'
 import mediumZoom, { type Zoom, type ZoomOptions } from 'medium-zoom'
 
 @Directive({ selector: 'img[appZoomable]' })

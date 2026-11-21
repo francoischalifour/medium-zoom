@@ -1,11 +1,6 @@
 import { expect, type Page, test } from '@playwright/test'
 
-import {
-  addModernStyles,
-  finishAnimations,
-  openImage,
-  preparePage,
-} from './helpers'
+import { addModernStyles, finishAnimations, openImage, preparePage } from './helpers'
 
 const profiles = {
   compat: 'compat/index.mjs',
@@ -34,29 +29,18 @@ async function loadProfile(page: Page, file: string, withoutAssign = false) {
             const commonjs = { exports: {} as unknown }
             const source = await (await fetch(url)).text()
             // oxlint-disable-next-line typescript/no-implied-eval -- Execute our packed CJS artifact in its module scope.
-            new Function('module', 'exports', source)(
-              commonjs,
-              commonjs.exports
-            )
+            new Function('module', 'exports', source)(commonjs, commonjs.exports)
             return commonjs.exports
           }
           if (file === 'core/index.cjs') {
-            const core = (await loadCommonJS(
-              url
-            )) as typeof import('../../src/core')
+            const core = (await loadCommonJS(url)) as typeof import('../../src/core')
             // Drive core through the shared v1 scenario; only the declared null-ness differs.
             window.mediumZoom = ((
               selector?: import('../../src/engine/create-zoom').ZoomSelector,
               options?: import('../../src/medium-zoom').ZoomOptions
-            ) =>
-              core.createZoom(
-                selector,
-                options
-              )) as unknown as typeof window.mediumZoom
+            ) => core.createZoom(selector, options)) as unknown as typeof window.mediumZoom
           } else {
-            window.mediumZoom = (await loadCommonJS(
-              url
-            )) as typeof window.mediumZoom
+            window.mediumZoom = (await loadCommonJS(url)) as typeof window.mediumZoom
           }
         } else {
           window.mediumZoom = (await import(url)).default
@@ -77,9 +61,7 @@ async function loadProfile(page: Page, file: string, withoutAssign = false) {
 
 for (const [profile, file] of Object.entries(profiles)) {
   if (profile.startsWith('compat')) {
-    test(`${profile}: option copying works without native Object.assign`, async ({
-      page,
-    }) => {
+    test(`${profile}: option copying works without native Object.assign`, async ({ page }) => {
       await preparePage(page)
       await loadProfile(page, file, true)
       const result = await page.evaluate(async () => {
@@ -160,9 +142,7 @@ for (const [profile, file] of Object.entries(profiles)) {
     )
   })
 
-  test(`${profile}: CustomEvent compatibility stays isolated`, async ({
-    page,
-  }) => {
+  test(`${profile}: CustomEvent compatibility stays isolated`, async ({ page }) => {
     await preparePage(page)
     await loadProfile(page, file)
     const result = await page.evaluate(() => {
@@ -190,15 +170,11 @@ for (const [profile, file] of Object.entries(profiles)) {
       }
     })
     expect(result).toEqual(
-      !profile.startsWith('modern')
-        ? { observed: true }
-        : { error: 'TypeError' }
+      !profile.startsWith('modern') ? { observed: true } : { error: 'TypeError' }
     )
   })
 
-  test(`${profile}: frozen update options retain strict-mode semantics`, async ({
-    page,
-  }) => {
+  test(`${profile}: frozen update options retain strict-mode semantics`, async ({ page }) => {
     await preparePage(page)
     await loadProfile(page, file)
     const result = await page.evaluate(() => {
@@ -214,9 +190,7 @@ for (const [profile, file] of Object.entries(profiles)) {
   })
 
   for (const legacy of ['Esc', 'keyCode'] as const) {
-    test(`${profile}: ${legacy} keyboard handling is profile-specific`, async ({
-      page,
-    }) => {
+    test(`${profile}: ${legacy} keyboard handling is profile-specific`, async ({ page }) => {
       await preparePage(page)
       await loadProfile(page, file)
       await page.evaluate(async () => {
@@ -226,10 +200,7 @@ for (const [profile, file] of Object.entries(profiles)) {
       await page.evaluate(
         legacy =>
           document.dispatchEvent(
-            new KeyboardEvent(
-              'keyup',
-              legacy === 'Esc' ? { key: 'Esc' } : { keyCode: 27 }
-            )
+            new KeyboardEvent('keyup', legacy === 'Esc' ? { key: 'Esc' } : { keyCode: 27 })
           ),
         legacy
       )

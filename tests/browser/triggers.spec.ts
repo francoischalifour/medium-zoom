@@ -22,9 +22,7 @@ async function fixture(page: Page) {
   })
 }
 for (const key of ['Enter', 'Space']) {
-  test(`${key} opens a named content image and restores focus`, async ({
-    page,
-  }) => {
+  test(`${key} opens a named content image and restores focus`, async ({ page }) => {
     await fixture(page)
     const source = page.locator('#first')
     await expect(source).toHaveAttribute('role', 'button')
@@ -43,9 +41,7 @@ for (const key of ['Enter', 'Space']) {
   })
 }
 
-test('bindings follow attach/detach without replacing instance methods', async ({
-  page,
-}) => {
+test('bindings follow attach/detach without replacing instance methods', async ({ page }) => {
   await fixture(page)
   expect(
     await page.evaluate(async () => {
@@ -98,9 +94,7 @@ test('an old unbind cannot remove a later binding', async ({ page }) => {
   await expect(page.getByRole('dialog', { name: 'Forest' })).toBeVisible()
 })
 
-test('native and editable surfaces keep authored activation', async ({
-  page,
-}) => {
+test('native and editable surfaces keep authored activation', async ({ page }) => {
   await fixture(page)
   await page.evaluate(() => {
     window.modalZoom.attach('#wrapped', '#editable')
@@ -120,9 +114,7 @@ test('native and editable surfaces keep authored activation', async ({
   await expect(page.locator('#native')).toBeFocused()
 })
 
-test('protected keys and repeated activation do not reopen a scene', async ({
-  page,
-}) => {
+test('protected keys and repeated activation do not reopen a scene', async ({ page }) => {
   await fixture(page)
   await page.locator('#first').focus()
   await page.keyboard.press('Control+Enter')
@@ -141,9 +133,7 @@ test('protected keys and repeated activation do not reopen a scene', async ({
   await expect(page.locator('dialog')).toHaveCount(1)
 })
 
-test('clone retains strategies but does not install an activation binding', async ({
-  page,
-}) => {
+test('clone retains strategies but does not install an activation binding', async ({ page }) => {
   await fixture(page)
   await page.evaluate(() => {
     const clone = window.modalZoom.clone().attach('#second')
@@ -158,9 +148,7 @@ test('clone retains strategies but does not install an activation binding', asyn
   await expect(page.locator('dialog')).toHaveCount(0)
 })
 
-test('authored image buttons keep their own click and keyboard behavior', async ({
-  page,
-}) => {
+test('authored image buttons keep their own click and keyboard behavior', async ({ page }) => {
   await fixture(page)
   await page.evaluate(() => {
     const image = document.querySelector<HTMLImageElement>('#second')!
@@ -179,10 +167,7 @@ test('authored image buttons keep their own click and keyboard behavior', async 
   await page.locator('#second').focus()
   await page.keyboard.press('Enter')
   await expect(page.locator('dialog')).toHaveCount(0)
-  await expect(page.locator('#second')).toHaveAttribute(
-    'aria-label',
-    'Custom action'
-  )
+  await expect(page.locator('#second')).toHaveAttribute('aria-label', 'Custom action')
 })
 
 test('unbinding removes pointer activation and preserves author updates made while bound', async ({
@@ -206,14 +191,10 @@ test('unbinding removes pointer activation and preserves author updates made whi
   await expect(page.locator('dialog')).toHaveCount(0)
 })
 
-test('authored cancellation runs before delegated pointer activation', async ({
-  page,
-}) => {
+test('authored cancellation runs before delegated pointer activation', async ({ page }) => {
   await fixture(page)
   await page.evaluate(() =>
-    document
-      .querySelector('#first')!
-      .addEventListener('click', event => event.preventDefault())
+    document.querySelector('#first')!.addEventListener('click', event => event.preventDefault())
   )
   await page.locator('#first').click()
   await expect(page.locator('dialog')).toHaveCount(0)

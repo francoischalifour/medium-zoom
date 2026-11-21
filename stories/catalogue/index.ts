@@ -12,9 +12,7 @@ for (const story of stories) {
 
 const query = new URLSearchParams(location.search)
 const selected = stories.find(
-  story =>
-    story.kind === query.get('selectedKind') &&
-    story.name === query.get('selectedStory')
+  story => story.kind === query.get('selectedKind') && story.name === query.get('selectedStory')
 )
 document.querySelector('iframe')!.src =
   `frame.html?story=${encodeURIComponent((selected || stories[0]).id)}`

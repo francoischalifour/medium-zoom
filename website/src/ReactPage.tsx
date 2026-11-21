@@ -12,11 +12,7 @@ export function ReactPage() {
 
       <ProductFeatures page="react" />
 
-      <section
-        className="guide-section"
-        id="usage"
-        aria-labelledby="usage-title"
-      >
+      <section className="guide-section" id="usage" aria-labelledby="usage-title">
         <div className="guide-heading">
           <div>
             <h2 id="usage-title" tabIndex={-1}>
@@ -35,12 +31,7 @@ export function ReactPage() {
             <InlineCopy copy={imageZoomApi.description} />
           </p>
         </div>
-        <div
-          className="api-table-scroll"
-          role="region"
-          aria-label="ImageZoom props"
-          tabIndex={0}
-        >
+        <div className="api-table-scroll" role="region" aria-label="ImageZoom props" tabIndex={0}>
           <table>
             <caption className="sr-only">ImageZoom component props</caption>
             <thead>

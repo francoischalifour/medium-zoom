@@ -40,10 +40,7 @@ function stylesheet(profile: Profile): TsdownPlugin {
         filename: stylesheetPath.pathname,
         code: Buffer.from(
           profile === 'compat'
-            ? source.replace(
-                /cursor: (zoom-(?:in|out));/g,
-                'cursor: pointer;\n  cursor: $1;'
-              )
+            ? source.replace(/cursor: (zoom-(?:in|out));/g, 'cursor: pointer;\n  cursor: $1;')
             : source
         ),
         minify: true,
@@ -78,8 +75,7 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
         }
         declaration.code = declaration.code.replace(
           /export \{([^}]+)\}/g,
-          (_match, names: string) =>
-            `export {${names.replace(/\btype\s+/g, '')}}`
+          (_match, names: string) => `export {${names.replace(/\btype\s+/g, '')}}`
         )
       }
     },
@@ -102,10 +98,7 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
                 setSpreadProperties: true,
               },
               presets: [
-                [
-                  '@babel/preset-env',
-                  { modules: false, exclude: ['transform-typeof-symbol'] },
-                ],
+                ['@babel/preset-env', { modules: false, exclude: ['transform-typeof-symbol'] }],
               ],
               compact: minify,
               minified: minify,
@@ -189,9 +182,7 @@ function browserBundle(
     tsconfig: false,
     target: profile === 'compat' ? 'esnext' : 'es2020',
     alias: {
-      '#platform': fileURLToPath(
-        new URL(`../src/platform/${profile}.ts`, import.meta.url)
-      ),
+      '#platform': fileURLToPath(new URL(`../src/platform/${profile}.ts`, import.meta.url)),
     },
     dts: false,
     clean: false,
@@ -243,21 +234,13 @@ function entryBundle(entry: CandidateEntry, format: 'esm' | 'cjs'): UserConfig {
       tsconfig: fileURLToPath(new URL('../tsconfig.json', import.meta.url)),
       cjsDefault: full && format === 'cjs',
     },
-    plugins: [
-      ...(entry.emitsCss ? [stylesheet(profile)] : []),
-      browserSyntax(profile, true),
-    ],
+    plugins: [...(entry.emitsCss ? [stylesheet(profile)] : []), browserSyntax(profile, true)],
     ...(full &&
       format === 'cjs' && {
         onSuccess(config) {
           // CJS declarations are emitted in a separate pipeline without runtime plugins.
           const path = join(config.outDir, `${name}/index.d.cts`)
-          const names = [
-            'ZoomOptions',
-            'ZoomSelector',
-            'ZoomContainer',
-            'ZoomOpenOptions',
-          ]
+          const names = ['ZoomOptions', 'ZoomSelector', 'ZoomContainer', 'ZoomOpenOptions']
           const aliases = names
             .map(name => `type ${name} = import('medium-zoom').${name};`)
             .join('\n')
@@ -297,8 +280,5 @@ export default defineConfig([
   },
   browserBundle('src/pure.ts', 'pure/medium-zoom.umd.js', 'umd', false),
   browserBundle('src/pure.ts', 'pure/medium-zoom.min.umd.js', 'umd'),
-  ...candidateEntries.flatMap(entry => [
-    entryBundle(entry, 'esm'),
-    entryBundle(entry, 'cjs'),
-  ]),
+  ...candidateEntries.flatMap(entry => [entryBundle(entry, 'esm'), entryBundle(entry, 'cjs')]),
 ])

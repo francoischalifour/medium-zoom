@@ -36,12 +36,9 @@ test('headless traversal creates no controls, retains modal focus and publishes 
       throw new Error('Snapshot identity changed without a state change')
     }
     const indexes: number[] = []
-    const unsubscribe = gallery.subscribe(() =>
-      indexes.push(gallery.getSnapshot().index)
-    )
+    const unsubscribe = gallery.subscribe(() => indexes.push(gallery.getSnapshot().index))
     await window.modalZoom.open()
-    const focusContained =
-      document.activeElement === document.querySelector('dialog')
+    const focusContained = document.activeElement === document.querySelector('dialog')
     await gallery.next()
     const controls = document.querySelectorAll(
       'dialog button, dialog input, dialog [role="button"]'
@@ -69,16 +66,12 @@ test('headless traversal creates no controls, retains modal focus and publishes 
   })
 })
 
-test('controller owns dynamic collection bounds and releases subscriptions', async ({
-  page,
-}) => {
+test('controller owns dynamic collection bounds and releases subscriptions', async ({ page }) => {
   await fixture(page)
   expect(
     await page.evaluate(async () => {
       const gallery = window.galleryController
-      const extra = document
-        .querySelector('#first')!
-        .cloneNode() as HTMLImageElement
+      const extra = document.querySelector('#first')!.cloneNode() as HTMLImageElement
       extra.id = 'third'
       document.body.append(extra)
       gallery.attach(extra)
@@ -97,9 +90,7 @@ test('controller owns dynamic collection bounds and releases subscriptions', asy
   await page.evaluate(() => window.modalZoom.close())
 })
 
-test('sessions and gallery traversal are independent and idempotent', async ({
-  page,
-}) => {
+test('sessions and gallery traversal are independent and idempotent', async ({ page }) => {
   await fixture(page)
   expect(
     await page.evaluate(async () => {

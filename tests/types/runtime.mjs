@@ -19,11 +19,7 @@ for (const path of [
   assert.equal(typeof require(specifier), 'function', specifier)
   assert.equal(typeof (await import(specifier)).default, 'function', specifier)
 }
-for (const path of [
-  'dist/medium-zoom.esm.js',
-  'dist/pure/index.js',
-  'dist/style.css',
-]) {
+for (const path of ['dist/medium-zoom.esm.js', 'dist/pure/index.js', 'dist/style.css']) {
   assert(require.resolve(`medium-zoom/${path}`))
 }
 // Native Node ESM does not support the directory shorthand used by bundlers.
@@ -39,10 +35,7 @@ for (const path of [
   'dist/pure/medium-zoom.umd',
   'dist/pure/medium-zoom.min.umd',
 ]) {
-  assert.equal(
-    require.resolve(`medium-zoom/${path}`),
-    require.resolve(`medium-zoom/${path}.js`)
-  )
+  assert.equal(require.resolve(`medium-zoom/${path}`), require.resolve(`medium-zoom/${path}.js`))
 }
 assert.equal(
   require.resolve('medium-zoom/dist/pure'),

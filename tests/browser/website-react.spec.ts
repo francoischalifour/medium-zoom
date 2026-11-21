@@ -17,16 +17,10 @@ for (const path of ['/', '/react']) {
     expect(html).toContain('Bring images closer')
     expect(html).toContain('Add zoom to your project.')
     await expect(
-      page
-        .locator('.hero-install')
-        .getByRole('radio', { name: 'bun', exact: true })
+      page.locator('.hero-install').getByRole('radio', { name: 'bun', exact: true })
     ).toBeChecked()
-    await expect(
-      page.getByRole('button', { name: 'Switch to light theme' })
-    ).toBeVisible()
-    const mark = page
-      .getByRole('link', { name: 'medium-zoom home' })
-      .locator('img')
+    await expect(page.getByRole('button', { name: 'Switch to light theme' })).toBeVisible()
+    const mark = page.getByRole('link', { name: 'medium-zoom home' }).locator('img')
     await mark.evaluate(image => (image as HTMLImageElement).decode())
     await page.getByRole('button', { name: 'Switch to light theme' }).click()
     await expect(page.locator('html')).not.toHaveClass(/dark/)
@@ -36,21 +30,15 @@ for (const path of ['/', '/react']) {
       .locator(`a[href="${path === '/' ? '/react' : '/'}"]`)
       .click()
     await expect(
-      page
-        .locator('.hero-install')
-        .getByRole('radio', { name: 'bun', exact: true })
+      page.locator('.hero-install').getByRole('radio', { name: 'bun', exact: true })
     ).toBeChecked()
-    await expect(
-      page.getByRole('button', { name: 'Switch to dark theme' })
-    ).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Switch to dark theme' })).toBeVisible()
     expect(errors).toEqual([])
   })
 }
 
 for (const path of ['/', '/react']) {
-  test(`${path} shows the saved install command before React loads`, async ({
-    page,
-  }) => {
+  test(`${path} shows the saved install command before React loads`, async ({ page }) => {
     const errors: string[] = []
     page.on('console', message => {
       if (message.type() === 'error') {
@@ -70,16 +58,9 @@ for (const path of ['/', '/react']) {
     })
     await page.goto(path, { waitUntil: 'commit' })
     try {
-      for (const panel of [
-        page.locator('.hero-install'),
-        page.locator('.closing-install'),
-      ]) {
-        await expect(
-          panel.locator('pre [data-package-manager-option="bun"]')
-        ).toBeVisible()
-        await expect(
-          panel.locator('pre [data-package-manager-option="npm"]')
-        ).toBeHidden()
+      for (const panel of [page.locator('.hero-install'), page.locator('.closing-install')]) {
+        await expect(panel.locator('pre [data-package-manager-option="bun"]')).toBeVisible()
+        await expect(panel.locator('pre [data-package-manager-option="npm"]')).toBeHidden()
         await expect(panel.locator('pre')).toHaveJSProperty(
           'innerText',
           path === '/'
@@ -91,27 +72,18 @@ for (const path of ['/', '/react']) {
       resume()
     }
     await expect(
-      page
-        .locator('.hero-install')
-        .getByRole('radio', { name: 'bun', exact: true })
+      page.locator('.hero-install').getByRole('radio', { name: 'bun', exact: true })
     ).toBeChecked()
-    await page
-      .locator('.closing-install')
-      .getByRole('radio', { name: 'pnpm', exact: true })
-      .check()
+    await page.locator('.closing-install').getByRole('radio', { name: 'pnpm', exact: true }).check()
     await expect(
-      page
-        .locator('.hero-install')
-        .getByRole('radio', { name: 'pnpm', exact: true })
+      page.locator('.hero-install').getByRole('radio', { name: 'pnpm', exact: true })
     ).toBeChecked()
     expect(errors).toEqual([])
   })
 }
 
 for (const interaction of ['pointer', 'keyboard'] as const) {
-  test(`package manager ${interaction} changes survive before hydration`, async ({
-    page,
-  }) => {
+  test(`package manager ${interaction} changes survive before hydration`, async ({ page }) => {
     let resume!: () => void
     const hydration = new Promise<void>(resolve => {
       resume = resolve
@@ -124,51 +96,32 @@ for (const interaction of ['pointer', 'keyboard'] as const) {
     const installation = page.locator('.hero-install')
     try {
       if (interaction === 'pointer') {
-        await installation
-          .locator('label[data-package-manager-option="pnpm"]')
-          .click()
+        await installation.locator('label[data-package-manager-option="pnpm"]').click()
       } else {
-        await installation
-          .getByRole('radio', { name: 'npm', exact: true })
-          .focus()
+        await installation.getByRole('radio', { name: 'npm', exact: true }).focus()
         await page.keyboard.press('ArrowRight')
       }
     } finally {
       resume()
     }
     for (const panel of [installation, page.locator('.closing-install')]) {
-      await expect(
-        panel.getByRole('radio', { name: 'pnpm', exact: true })
-      ).toBeChecked()
-      await expect(
-        panel.locator('pre [data-package-manager-option="pnpm"]')
-      ).toBeVisible()
+      await expect(panel.getByRole('radio', { name: 'pnpm', exact: true })).toBeChecked()
+      await expect(panel.locator('pre [data-package-manager-option="pnpm"]')).toBeVisible()
     }
     await expect
-      .poll(() =>
-        page.evaluate(() => localStorage.getItem('medium-zoom-package-manager'))
-      )
+      .poll(() => page.evaluate(() => localStorage.getItem('medium-zoom-package-manager')))
       .toBe('pnpm')
   })
 }
 
-test('installation snippets default to npm when JavaScript is disabled', async ({
-  browser,
-}) => {
+test('installation snippets default to npm when JavaScript is disabled', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false })
   try {
     const page = await context.newPage()
     await page.goto('/')
-    for (const panel of [
-      page.locator('.hero-install'),
-      page.locator('.closing-install'),
-    ]) {
-      await expect(
-        panel.locator('pre [data-package-manager-option="npm"]')
-      ).toBeVisible()
-      await expect(
-        panel.locator('pre [data-package-manager-option="bun"]')
-      ).toBeHidden()
+    for (const panel of [page.locator('.hero-install'), page.locator('.closing-install')]) {
+      await expect(panel.locator('pre [data-package-manager-option="npm"]')).toBeVisible()
+      await expect(panel.locator('pre [data-package-manager-option="bun"]')).toBeHidden()
     }
   } finally {
     await context.close()
@@ -176,9 +129,7 @@ test('installation snippets default to npm when JavaScript is disabled', async (
 })
 
 for (const storage of ['invalid', 'unavailable'] as const) {
-  test(`installation remains usable with ${storage} storage`, async ({
-    page,
-  }) => {
+  test(`installation remains usable with ${storage} storage`, async ({ page }) => {
     await page.addInitScript(mode => {
       if (mode === 'invalid') {
         localStorage.setItem('medium-zoom-package-manager', 'unknown')
@@ -193,21 +144,11 @@ for (const storage of ['invalid', 'unavailable'] as const) {
     await page.goto('/')
     const top = page.locator('.hero-install')
     const bottom = page.locator('.closing-install')
-    await expect(
-      top.getByRole('radio', { name: 'npm', exact: true })
-    ).toBeChecked()
-    await expect(
-      top.locator('pre [data-package-manager-option="npm"]')
-    ).toBeVisible()
+    await expect(top.getByRole('radio', { name: 'npm', exact: true })).toBeChecked()
+    await expect(top.locator('pre [data-package-manager-option="npm"]')).toBeVisible()
     await bottom.getByRole('radio', { name: 'bun', exact: true }).check()
-    await expect(
-      top.getByRole('radio', { name: 'bun', exact: true })
-    ).toBeChecked()
-    await expect(
-      top.locator('pre [data-package-manager-option="bun"]')
-    ).toBeVisible()
-    await expect(
-      bottom.locator('pre [data-package-manager-option="bun"]')
-    ).toBeVisible()
+    await expect(top.getByRole('radio', { name: 'bun', exact: true })).toBeChecked()
+    await expect(top.locator('pre [data-package-manager-option="bun"]')).toBeVisible()
+    await expect(bottom.locator('pre [data-package-manager-option="bun"]')).toBeVisible()
   })
 }

@@ -21,10 +21,7 @@ export function paragraph(children: PhrasingContent[]): Paragraph {
   return { type: 'paragraph', children }
 }
 
-export function heading(
-  depth: Heading['depth'],
-  children: PhrasingContent[]
-): Heading {
+export function heading(depth: Heading['depth'], children: PhrasingContent[]): Heading {
   return { type: 'heading', depth, children }
 }
 
@@ -50,13 +47,7 @@ export function blockquote(value: string): Blockquote {
 }
 
 // A code block titled by its file name, with the language taken from the extension.
-export function codeBlock({
-  code,
-  title,
-}: {
-  code: string
-  title: string
-}): Code {
+export function codeBlock({ code, title }: { code: string; title: string }): Code {
   return {
     type: 'code',
     lang: title.split('.').pop(),

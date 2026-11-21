@@ -3,17 +3,16 @@ import { expect, test } from '@playwright/test'
 
 import { decodeImages, dismissZoom, finishAnimations } from './helpers'
 
-test('React usage examples compose and zoom through their tabs', async ({
-  page,
-}) => {
+test('React usage examples compose and zoom through their tabs', async ({ page }) => {
   await page.goto('/react')
   const usage = page.locator('#usage')
   const tabs = usage.getByRole('tablist', { name: 'React examples' })
   const panel = usage.getByRole('tabpanel')
 
-  await expect(
-    tabs.getByRole('tab', { name: 'Basic', exact: true })
-  ).toHaveAttribute('aria-selected', 'true')
+  await expect(tabs.getByRole('tab', { name: 'Basic', exact: true })).toHaveAttribute(
+    'aria-selected',
+    'true'
+  )
   await expect(panel.locator('.usage-preview img')).toHaveCount(1)
   await tabs.getByRole('tab', { name: 'With caption', exact: true }).click()
   await expect(panel.locator('figure figcaption')).toHaveText(
@@ -22,9 +21,7 @@ test('React usage examples compose and zoom through their tabs', async ({
   await expect(panel.locator('pre')).toContainText('<figcaption')
 
   await page.keyboard.press('ArrowRight')
-  await expect(
-    tabs.getByRole('tab', { name: 'Multiple images', exact: true })
-  ).toBeFocused()
+  await expect(tabs.getByRole('tab', { name: 'Multiple images', exact: true })).toBeFocused()
   const images = panel.locator('.usage-preview img')
   await expect(images).toHaveCount(3)
   for (let index = 0; index < 3; index++) {
@@ -34,10 +31,7 @@ test('React usage examples compose and zoom through their tabs', async ({
     await image.locator('..').click()
     const source = await image.getAttribute('data-zoom-src')
     const opened = page.locator(`.medium-zoom-image--opened[src="${source}"]`)
-    await expect(opened).toHaveAttribute(
-      'alt',
-      (await image.getAttribute('alt'))!
-    )
+    await expect(opened).toHaveAttribute('alt', (await image.getAttribute('alt'))!)
     await page.keyboard.press('Escape')
     await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
   }
@@ -48,31 +42,20 @@ test('React usage examples compose and zoom through their tabs', async ({
     .toBeLessThanOrEqual(page.viewportSize()!.width)
 })
 
-test('React usage copies the selected snippet', async ({
-  page,
-  context,
-  browserName,
-}) => {
-  test.skip(
-    browserName !== 'chromium',
-    'Clipboard read permission is available in Chromium.'
-  )
+test('React usage copies the selected snippet', async ({ page, context, browserName }) => {
+  test.skip(browserName !== 'chromium', 'Clipboard read permission is available in Chromium.')
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.goto('/react')
   const usage = page.locator('#usage')
   await usage.getByRole('tab', { name: 'Multiple images', exact: true }).click()
-  await usage
-    .getByRole('button', { name: 'Copy usage code', exact: true })
-    .click()
+  await usage.getByRole('button', { name: 'Copy usage code', exact: true }).click()
   const copied = await page.evaluate(() => navigator.clipboard.readText())
   expect(copied).toMatch(/photos\.map\(photo/)
   expect(copied).not.toMatch(/--hls-/)
   await expect(usage.getByRole('status')).toHaveText('Copied to clipboard')
 })
 
-test('HD usage loads the original only when the visitor zooms', async ({
-  page,
-}) => {
+test('HD usage loads the original only when the visitor zooms', async ({ page }) => {
   const originals: string[] = []
   page.on('request', request => {
     if (new URL(request.url()).pathname.endsWith('/images/denali.jpg')) {
@@ -89,17 +72,13 @@ test('HD usage loads the original only when the visitor zooms', async ({
   await image.evaluate((element: HTMLImageElement) => element.decode())
   expect(originals).toEqual([])
   await image.locator('..').click()
-  await expect(
-    page.locator('.medium-zoom-image--opened[src$="denali.jpg"]')
-  ).toBeVisible()
+  await expect(page.locator('.medium-zoom-image--opened[src$="denali.jpg"]')).toBeVisible()
   await expect.poll(() => originals.length).toBe(1)
   await page.keyboard.press('Escape')
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 })
 
-test('React compositions remain accessible in light and dark themes', async ({
-  page,
-}) => {
+test('React compositions remain accessible in light and dark themes', async ({ page }) => {
   await page.goto('/react')
   for (const theme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: theme })
@@ -108,16 +87,8 @@ test('React compositions remain accessible in light and dark themes', async ({
     } else {
       await expect(page.locator('html')).not.toHaveClass(/dark/)
     }
-    for (const name of [
-      'Basic',
-      'With caption',
-      'Multiple images',
-      'High resolution',
-    ]) {
-      await page
-        .locator('#usage')
-        .getByRole('tab', { name, exact: true })
-        .click()
+    for (const name of ['Basic', 'With caption', 'Multiple images', 'High resolution']) {
+      await page.locator('#usage').getByRole('tab', { name, exact: true }).click()
       await finishAnimations(page)
       const results = await new AxeBuilder({ page })
         .include('#usage')
@@ -138,9 +109,7 @@ test('example tabs share hover and keyboard behavior, with code before the previ
   await caption.hover()
   await finishAnimations(page)
   await expect(caption).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
-  const hoverColor = await caption.evaluate(
-    element => getComputedStyle(element).backgroundColor
-  )
+  const hoverColor = await caption.evaluate(element => getComputedStyle(element).backgroundColor)
   const rail = page.getByRole('tablist', { name: 'Landscape view' })
   const codeTab = rail.getByRole('tab', { name: 'Code', exact: true })
   await codeTab.hover()
@@ -151,13 +120,9 @@ test('example tabs share hover and keyboard behavior, with code before the previ
 
   await caption.click()
   await caption.press('End')
-  await expect(
-    tabs.getByRole('tab', { name: 'High resolution', exact: true })
-  ).toBeFocused()
+  await expect(tabs.getByRole('tab', { name: 'High resolution', exact: true })).toBeFocused()
   await page.keyboard.press('Home')
-  await expect(
-    tabs.getByRole('tab', { name: 'Basic', exact: true })
-  ).toBeFocused()
+  await expect(tabs.getByRole('tab', { name: 'Basic', exact: true })).toBeFocused()
   await tabs.getByRole('tab', { name: 'Basic', exact: true }).click()
   const trigger = usage.getByRole('button', {
     name: 'Zoom image: Ocean sunset',
@@ -183,21 +148,13 @@ test('example tabs share hover and keyboard behavior, with code before the previ
   expect(corners.offset).toBe('2px')
   const code = usage.locator('.usage-code')
   const preview = usage.locator('.usage-preview')
-  expect((await code.boundingBox())!.x).toBeLessThan(
-    (await preview.boundingBox())!.x
-  )
-  await expect(code).toContainText(
-    'Works with SSR and React Server Components.'
-  )
+  expect((await code.boundingBox())!.x).toBeLessThan((await preview.boundingBox())!.x)
+  await expect(code).toContainText('Works with SSR and React Server Components.')
   await page.setViewportSize({ width: 390, height: 844 })
-  expect((await code.boundingBox())!.y).toBeLessThan(
-    (await preview.boundingBox())!.y
-  )
+  expect((await code.boundingBox())!.y).toBeLessThan((await preview.boundingBox())!.y)
 })
 
-test('the published composition and controlled examples work as documented', async ({
-  page,
-}) => {
+test('the published composition and controlled examples work as documented', async ({ page }) => {
   await page.goto('/react')
   await page.getByRole('tab', { name: 'Composed', exact: true }).click()
   const example = page.locator('#usage [role="tabpanel"]')
@@ -217,17 +174,12 @@ test('the published composition and controlled examples work as documented', asy
   await dismissZoom(page)
 })
 
-test('composed and controlled examples are accessible in both themes', async ({
-  page,
-}) => {
+test('composed and controlled examples are accessible in both themes', async ({ page }) => {
   await page.goto('/react')
   for (const theme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: theme })
     for (const name of ['Composed', 'Controlled']) {
-      await page
-        .locator('#usage')
-        .getByRole('tab', { name, exact: true })
-        .click()
+      await page.locator('#usage').getByRole('tab', { name, exact: true }).click()
       await finishAnimations(page)
       const results = await new AxeBuilder({ page })
         .include('#usage')

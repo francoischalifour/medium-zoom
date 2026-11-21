@@ -1,10 +1,6 @@
 import MiniSearch, { type Query } from 'minisearch'
 
-import {
-  type DocsSearch,
-  getSearchTerms,
-  type SearchEntry,
-} from './docs-search'
+import { type DocsSearch, getSearchTerms, type SearchEntry } from './docs-search'
 
 const aliases: Record<string, string> = {
   '/docs/guides/server-rendering/': 'nextjs next.js ssr server components rsc',
@@ -42,9 +38,7 @@ function excerpt(text: string, terms: string[]) {
   if (matching.length <= 180) {
     return matching
   }
-  const position = matching
-    .toLowerCase()
-    .search(new RegExp(terms.join('|'), 'i'))
+  const position = matching.toLowerCase().search(new RegExp(terms.join('|'), 'i'))
   const offset = Math.max(0, position - 60)
   const start = offset ? matching.lastIndexOf(' ', offset) + 1 : 0
   const end = matching.lastIndexOf(' ', start + 177)
@@ -55,15 +49,7 @@ export function createDocsSearch(entries: SearchEntry[]): DocsSearch {
   const byPath = new Map(entries.map(entry => [entry.path, entry]))
   const index = new MiniSearch({
     idField: 'path',
-    fields: [
-      'title',
-      'keywords',
-      'parent',
-      'group',
-      'description',
-      'content',
-      'aliases',
-    ],
+    fields: ['title', 'keywords', 'parent', 'group', 'description', 'content', 'aliases'],
     tokenize,
     searchOptions: {
       combineWith: 'AND',
@@ -103,26 +89,18 @@ export function createDocsSearch(entries: SearchEntry[]): DocsSearch {
       const exactName =
         getSearchTerms(entry.title).join(' ') === terms.join(' ') ||
         getSearchTerms(entry.keywords ?? '').includes(terms.join(' '))
-      const preferredFramework = `${entry.group} ${entry.path}`.includes(
-        framework
-      )
+      const preferredFramework = `${entry.group} ${entry.path}`.includes(framework)
       const pageBoost =
-        !entry.parent &&
-        tokenize(`${entry.title} ${aliases[entry.path] ?? ''}`).includes(term)
+        !entry.parent && tokenize(`${entry.title} ${aliases[entry.path] ?? ''}`).includes(term)
           ? 3
           : 1
       // A topic alias should favor its landing page over incidental section matches.
-      const aliasBoost = getSearchTerms(aliases[entry.path] ?? '').includes(
-        term
+      const aliasBoost = getSearchTerms(aliases[entry.path] ?? '').includes(term) ? 2 : 1
+      const navigationBoost = /^(Related pages|Next steps|Guides|React guides|Reference)$/.test(
+        entry.title
       )
-        ? 2
+        ? 0.3
         : 1
-      const navigationBoost =
-        /^(Related pages|Next steps|Guides|React guides|Reference)$/.test(
-          entry.title
-        )
-          ? 0.3
-          : 1
       return (
         (exactName ? 4 : 1) *
         (preferredFramework ? 1.15 : 1) *
@@ -133,9 +111,7 @@ export function createDocsSearch(entries: SearchEntry[]): DocsSearch {
     }
     const queries: Query[] = terms.map((term, position) => {
       const prefix =
-        term.length >= 2 &&
-        !['on', 'off'].includes(term) &&
-        position === terms.length - 1
+        term.length >= 2 && !['on', 'off'].includes(term) && position === terms.length - 1
       // Accept adjacent letter swaps without broadening every short word to two edits.
       const swaps =
         term.length < 4
@@ -143,10 +119,7 @@ export function createDocsSearch(entries: SearchEntry[]): DocsSearch {
           : Array.from(
               { length: term.length - 1 },
               (_, index) =>
-                term.slice(0, index) +
-                term[index + 1] +
-                term[index] +
-                term.slice(index + 2)
+                term.slice(0, index) + term[index + 1] + term[index] + term.slice(index + 2)
             ).filter(swapped => swapped !== term)
       return {
         combineWith: 'OR',

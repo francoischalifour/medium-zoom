@@ -128,10 +128,7 @@ export const galleryImages: ExampleImage[] = [
   photos.aurora,
 ]
 
-export function usageCode(
-  image: ExampleImage,
-  kind: 'react' | 'javascript' = 'react'
-) {
+export function usageCode(image: ExampleImage, kind: 'react' | 'javascript' = 'react') {
   if (kind === 'javascript') {
     return `<img
   src="${siteOrigin}/assets/${image.src}"
@@ -170,9 +167,7 @@ export function getPreviewImageProps(image: ExampleImage, sizes: string) {
     srcSet: image.previewSmall
       ? [
           `${galleryAssetBase}${image.previewSmall} 480w`,
-          ...(image.previewMedium
-            ? [`${galleryAssetBase}${image.previewMedium} 720w`]
-            : []),
+          ...(image.previewMedium ? [`${galleryAssetBase}${image.previewMedium} 720w`] : []),
           `${galleryAssetBase}${image.preview} 960w`,
         ].join(', ')
       : undefined,

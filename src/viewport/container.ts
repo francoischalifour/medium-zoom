@@ -27,23 +27,13 @@ export interface ContainerOptions {
   container?: string | HTMLElement | ZoomContainer | null
 }
 
-export const updateContainer = (
-  options: ZoomOptions,
-  previous: ZoomOptions
-): void => {
-  if (
-    options.container &&
-    options.container instanceof Object &&
-    !isNode(options.container)
-  ) {
+export const updateContainer = (options: ZoomOptions, previous: ZoomOptions): void => {
+  if (options.container && options.container instanceof Object && !isNode(options.container)) {
     options.container = assign({}, previous.container, options.container)
   }
 }
 
-export const getContainerViewport = (
-  viewport: ZoomBounds,
-  options: ZoomOptions
-): ZoomBounds => {
+export const getContainerViewport = (viewport: ZoomBounds, options: ZoomOptions): ZoomBounds => {
   const target = options.container
   if (!target) {
     return viewport
@@ -62,18 +52,13 @@ export const getContainerViewport = (
       target
     )
     return {
-      width:
-        box.width - box.left - box.right - margin * 2 || box.width - margin * 2,
-      height:
-        box.height - box.top - box.bottom - margin * 2 ||
-        box.height - margin * 2,
+      width: box.width - box.left - box.right - margin * 2 || box.width - margin * 2,
+      height: box.height - box.top - box.bottom - margin * 2 || box.height - margin * 2,
       left: box.left + margin,
       top: box.top + margin,
     }
   }
-  const element = isNode(target)
-    ? target
-    : document.querySelector<HTMLElement>(target)!
+  const element = isNode(target) ? target : document.querySelector<HTMLElement>(target)!
   const { width, height, left, top } = element.getBoundingClientRect()
   return {
     width: width - margin * 2,
@@ -88,9 +73,6 @@ export const getContainerViewport = (
  * bounds, measured each time the zoom is positioned. Replaces the v1 `container` option:
  * `createZoom(images, { viewport: containerBounds('#stage') })`.
  */
-export function containerBounds(
-  target: string | HTMLElement | ZoomContainer | null
-): ZoomViewport {
-  return (viewport, options) =>
-    getContainerViewport(viewport, { ...options, container: target })
+export function containerBounds(target: string | HTMLElement | ZoomContainer | null): ZoomViewport {
+  return (viewport, options) => getContainerViewport(viewport, { ...options, container: target })
 }

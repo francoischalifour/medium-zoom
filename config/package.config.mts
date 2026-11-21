@@ -173,10 +173,7 @@ export const profileEntries: CandidateEntry[] = [
   preset('pure', 'compat', false, [3_320, 3_320]),
 ]
 export const candidateEntries = [...extensionEntries, ...profileEntries]
-export const candidateArtifacts = candidateEntries.flatMap(entry => [
-  entry.esm,
-  entry.cjs,
-])
+export const candidateArtifacts = candidateEntries.flatMap(entry => [entry.esm, entry.cjs])
 export const candidateBudgets = candidateEntries.flatMap(entry => [
   { path: entry.esm, maxBytes: entry.budgets[0] },
   { path: entry.cjs, maxBytes: entry.budgets[1] },

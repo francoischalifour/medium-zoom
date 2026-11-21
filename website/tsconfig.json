@@ -12,9 +12,7 @@
     "moduleResolution": "Bundler",
     "strict": true,
     "paths": {
-      "@/components/ui/image-zoom": [
-        "../examples/shadcn/src/components/ui/image-zoom.tsx"
-      ],
+      "@/components/ui/image-zoom": ["../examples/shadcn/src/components/ui/image-zoom.tsx"],
       "medium-zoom": ["../src/medium-zoom.ts"],
       "medium-zoom/dist/pure": ["../src/medium-zoom.ts"],
       "medium-zoom/dist/pure/index.js": ["../src/medium-zoom.ts"],

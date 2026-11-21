@@ -7,10 +7,7 @@ export default defineConfig({
   globals: { __TEST__: 'readonly', __PRESET__: 'readonly' },
   rules: {
     curly: ['error', 'all'],
-    'unicorn/numeric-separators-style': [
-      'error',
-      { number: { minimumDigits: 4, groupLength: 3 } },
-    ],
+    'unicorn/numeric-separators-style': ['error', { number: { minimumDigits: 4, groupLength: 3 } }],
     'no-unused-vars': ['error', { caughtErrors: 'none' }],
   },
   options: { typeAware: true },

@@ -20,8 +20,7 @@ export const usageExamples = [
     file: 'components/photo.tsx',
     note: serverNote,
     label: 'Composed',
-    description:
-      'Style the trigger and image separately. Add a label inside the button.',
+    description: 'Style the trigger and image separately. Add a label inside the button.',
     code: `import * as ImageZoom from "@/components/ui/image-zoom"
 
 export function Photo() {
@@ -47,8 +46,7 @@ export function Photo() {
     file: 'components/photo.tsx',
     note: 'Use a Client Component to manage zoom state.',
     label: 'Controlled',
-    description:
-      'Own the open state. Trigger activation and dismissal call onOpenChange.',
+    description: 'Own the open state. Trigger activation and dismissal call onOpenChange.',
     code: `"use client"
 
 import * as React from "react"
@@ -78,8 +76,7 @@ export function Photo() {
     file: 'components/photo.tsx',
     note: serverNote,
     label: 'With caption',
-    description:
-      'Compose with figure and figcaption to keep the caption alongside your image.',
+    description: 'Compose with figure and figcaption to keep the caption alongside your image.',
     code: `${imageImport}
 
 export function Photo() {
@@ -132,8 +129,7 @@ export function MultipleImages() {
     file: 'components/photo.tsx',
     note: serverNote,
     label: 'High resolution',
-    description:
-      'Load a small preview first. Fetch the full-resolution image when zoom opens.',
+    description: 'Load a small preview first. Fetch the full-resolution image when zoom opens.',
     code: `${imageImport}
 
 export function Photo() {

@@ -17,10 +17,7 @@ export function readExactHeaders(file: string | URL) {
       Object.fromEntries(
         lines.map(line => {
           const separator = line.indexOf(':')
-          return [
-            line.slice(0, separator).trim(),
-            line.slice(separator + 1).trim(),
-          ]
+          return [line.slice(0, separator).trim(), line.slice(separator + 1).trim()]
         })
       )
     )
@@ -34,11 +31,7 @@ export function siteHeaders(): Plugin {
     generateBundle(_options, bundle) {
       // Only Vite's fingerprinted output can stay immutable across deployments.
       const fingerprintedAssetPaths = Object.keys(bundle)
-        .filter(
-          assetPath =>
-            assetPath.startsWith('assets/') &&
-            /-[\w-]{8}\.[^.]+$/.test(assetPath)
-        )
+        .filter(assetPath => assetPath.startsWith('assets/') && /-[\w-]{8}\.[^.]+$/.test(assetPath))
         .sort()
       this.emitFile({
         type: 'asset',
@@ -50,8 +43,7 @@ export function siteHeaders(): Plugin {
           '/r/*\n  X-Robots-Tag: noindex',
           ...siteMarkdownHeaders(),
           ...fingerprintedAssetPaths.map(
-            assetPath =>
-              `/${assetPath}\n  Cache-Control: public, max-age=31536000, immutable`
+            assetPath => `/${assetPath}\n  Cache-Control: public, max-age=31536000, immutable`
           ),
           '',
         ].join('\n\n'),

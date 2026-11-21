@@ -7,14 +7,7 @@ import packageJson from '../../package.json' with { type: 'json' }
 import { docsPages } from '../src/docs/pages.ts'
 import { headline, productPages } from '../src/product-pages.ts'
 import { siteOrigin } from '../src/site-url.ts'
-import {
-  blockquote,
-  heading,
-  link,
-  list,
-  paragraph,
-  text,
-} from './markdown-nodes.ts'
+import { blockquote, heading, link, list, paragraph, text } from './markdown-nodes.ts'
 import { mdxToMarkdown } from './mdx-to-markdown.ts'
 import { productMarkdown } from './product-markdown.ts'
 
@@ -40,8 +33,7 @@ const markdownPages: MarkdownPage[] = [
     title: page.title,
     summary: page.description,
     group: page.group,
-    content: () =>
-      mdxToMarkdown(new URL(`../src/docs/${page.source}`, import.meta.url)),
+    content: () => mdxToMarkdown(new URL(`../src/docs/${page.source}`, import.meta.url)),
   })),
 ]
 
@@ -70,12 +62,9 @@ export function siteMarkdownFiles(): Map<string, string> {
 export function siteMarkdownHeaders(): string[] {
   return [
     ...markdownPages.map(
-      page =>
-        `${markdownPath(page.path)}\n  Link: <${siteOrigin}${page.path}>; rel="canonical"`
+      page => `${markdownPath(page.path)}\n  Link: <${siteOrigin}${page.path}>; rel="canonical"`
     ),
-    ...['/llms.txt', '/llms-full.txt'].map(
-      path => `${path}\n  X-Robots-Tag: noindex, follow`
-    ),
+    ...['/llms.txt', '/llms-full.txt'].map(path => `${path}\n  X-Robots-Tag: noindex, follow`),
   ]
 }
 
@@ -95,9 +84,7 @@ function llmsIndex(): RootContent[] {
     heading(1, [text(packageJson.name)]),
     blockquote(packageJson.description),
     paragraph([
-      text(
-        'The documentation covers the framework-agnostic JavaScript library, published as '
-      ),
+      text('The documentation covers the framework-agnostic JavaScript library, published as '),
       { type: 'inlineCode', value: 'medium-zoom' },
       text(' on npm, and the React '),
       { type: 'inlineCode', value: '<ImageZoom>' },
@@ -130,10 +117,7 @@ function stringify(children: RootContent[]) {
 
 // Agents read these files away from the site, so site-relative links need its origin.
 function absolutizeLinks(node: Root | RootContent) {
-  if (
-    (node.type === 'link' || node.type === 'image') &&
-    node.url.startsWith('/')
-  ) {
+  if ((node.type === 'link' || node.type === 'image') && node.url.startsWith('/')) {
     node.url = siteOrigin + node.url
   }
   if ('children' in node) {

@@ -18,8 +18,6 @@ export async function loadManifest(github) {
     '.github/release-please-config.json',
     '.github/.release-please-manifest.json'
   )
-  manifest.plugins.unshift(
-    new ExcludeScopes(github, 'main', manifest.repositoryConfig)
-  )
+  manifest.plugins.unshift(new ExcludeScopes(github, 'main', manifest.repositoryConfig))
   return manifest
 }

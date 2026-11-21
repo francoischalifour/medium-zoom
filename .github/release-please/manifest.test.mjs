@@ -35,16 +35,11 @@ const websiteCommits = [
   {
     sha: '042704da336ea0a3661c6e0bcbccfdaf6c55adbe',
     message: 'feat(website): add searchable command palette (#252)',
-    files: [
-      'website/src/command-palette.tsx',
-      'tests/analytics/website.spec.ts',
-    ],
+    files: ['website/src/command-palette.tsx', 'tests/analytics/website.spec.ts'],
   },
   commit('fix(website): repair navigation'),
   commit('perf(website): reduce hydration overhead'),
-  commit(
-    'feat(website)!: replace navigation\n\nBREAKING CHANGE: remove old routes'
-  ),
+  commit('feat(website)!: replace navigation\n\nBREAKING CHANGE: remove old routes'),
   commit('chore(website): prepare website launch\n\nRelease-As: 9.0.0'),
 ]
 
@@ -84,40 +79,26 @@ for (const [message, version] of [
   ['fix: restore image focus', `${major}.${minor}.${patch + 1}`],
   ['perf(core): reduce zoom overhead', `${major}.${minor}.${patch + 1}`],
   ['feat(accessibility): add keyboard controls', `${major}.${minor + 1}.0`],
-  [
-    'feat(core)!: replace zoom API\n\nBREAKING CHANGE: remove old zoom API',
-    `${major + 1}.0.0`,
-  ],
+  ['feat(core)!: replace zoom API\n\nBREAKING CHANGE: remove old zoom API', `${major + 1}.0.0`],
 ]) {
   test(`mixed history preserves library release: ${message.split('\n')[0]}`, async () => {
     const [release] = await build([...websiteCommits, commit(message)])
     assert.equal(release.version.toString(), version)
-    const changelog = release.updates.find(
-      update => update.path === 'CHANGELOG.md'
-    )
+    const changelog = release.updates.find(update => update.path === 'CHANGELOG.md')
     const content = changelog.updater.updateContent('')
     assert.match(content, new RegExp(version.replaceAll('.', '\\.')))
     assert.match(content, new RegExp(message.split(': ').at(-1).split('\n')[0]))
-    assert.doesNotMatch(
-      content,
-      /website|navigation|palette|hydration|old routes|9\.0\.0/
-    )
+    assert.doesNotMatch(content, /website|navigation|palette|hydration|old routes|9\.0\.0/)
     assert.doesNotMatch(release.body.toString(), /website|palette|old routes/)
-    const packageUpdate = release.updates.find(
-      update => update.path === 'package.json'
-    )
+    const packageUpdate = release.updates.find(update => update.path === 'package.json')
     assert.equal(
-      JSON.parse(
-        packageUpdate.updater.updateContent(await read('package.json'))
-      ).version,
+      JSON.parse(packageUpdate.updater.updateContent(await read('package.json'))).version,
       version
     )
   })
 }
 
 test('library features remain eligible when their files are under website/', async () => {
-  const [release] = await build([
-    commit('feat: add library integration', ['website/src/demo.tsx']),
-  ])
+  const [release] = await build([commit('feat: add library integration', ['website/src/demo.tsx'])])
   assert.equal(release.version.toString(), `${major}.${minor + 1}.0`)
 })

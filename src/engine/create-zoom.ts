@@ -1,29 +1,12 @@
-import {
-  assign,
-  createCustomEvent,
-  getPromise,
-  getScrollY,
-  isEscape,
-} from '#platform'
+import { assign, createCustomEvent, getPromise, getScrollY, isEscape } from '#platform'
 
 import { createOverlay, getImagesFromSelectors, removeNode } from '../utils'
-import {
-  cloneImage,
-  fitImage,
-  type Frame,
-  isImage,
-  type ZoomTarget,
-} from './frame'
+import { cloneImage, fitImage, type Frame, isImage, type ZoomTarget } from './frame'
 import type { ZoomBounds } from './geometry'
 import { waitForTransition } from './transition'
 
 /** The images to zoom: a CSS selector, an element, a list of elements, or `null` for none. */
-export type ZoomSelector =
-  | string
-  | HTMLElement
-  | HTMLElement[]
-  | NodeList
-  | null
+export type ZoomSelector = string | HTMLElement | HTMLElement[] | NodeList | null
 
 /** Options every zoom accepts, in every entry. Change them later with `zoom.update()`. */
 export interface CoreZoomOptions {
@@ -74,9 +57,7 @@ export interface ModalOpenOptions extends ZoomOpenOptions {
  * Events are dispatched on the images as `medium-zoom:<type>` (`open`, `opened`, `close`,
  * `closed`, `attach`, `detach`, `update`) with `event.detail.zoom`.
  */
-export interface ZoomInstance<
-  Options extends CoreZoomOptions = CoreZoomOptions,
-> {
+export interface ZoomInstance<Options extends CoreZoomOptions = CoreZoomOptions> {
   /**
    * Opens the zoom. Does nothing while it is already open.
    *
@@ -234,19 +215,12 @@ export type ZoomLoader = (
  * Measures where the zoomed image fits, at positioning time. Receives the window bounds
  * minus `margin` and returns the bounds to fit into, in viewport coordinates.
  */
-export type ZoomViewport = (
-  bounds: ZoomBounds,
-  options: Readonly<CoreZoomOptions>
-) => ZoomBounds
+export type ZoomViewport = (bounds: ZoomBounds, options: Readonly<CoreZoomOptions>) => ZoomBounds
 /** Closed compatibility adapter, not an extension/install API. */
 export interface LegacyAdapter<Options extends CoreZoomOptions> {
   defaults: Partial<Options>
   update: (options: Options, previous: Options) => void
-  content: (
-    frame: ZoomTarget,
-    host: HTMLElement,
-    options: Options
-  ) => LegacyContent | void
+  content: (frame: ZoomTarget, host: HTMLElement, options: Options) => LegacyContent | void
 }
 
 /**
@@ -300,10 +274,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
   adoptMedia?: (frame: Frame, media: HTMLImageElement) => void
 ): ZoomFactory<Options> => {
   const stage = __PRESET__ ? undefined : stageOption
-  const mediumZoom = (
-    selector?: ZoomSelector | Options,
-    options = {} as Options
-  ) => {
+  const mediumZoom = (selector?: ZoomSelector | Options, options = {} as Options) => {
     const Promise = getPromise()
 
     const _dispatchEvent = (image: ZoomTarget, type: string) => {
@@ -333,8 +304,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
       // Pinching and panning a magnified page must keep the full-size image open.
       if (
         active.__mz_isPinching ||
-        (window.visualViewport &&
-          window.visualViewport.scale > active.__mz_viewportScale!)
+        (window.visualViewport && window.visualViewport.scale > active.__mz_viewportScale!)
       ) {
         scrollTop = currentScroll
         clearTimeout(active.__mz_scrollTimer || undefined)
@@ -394,8 +364,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
       return zoom
     }
 
-    const clone = (options?: Options) =>
-      mediumZoom(assign({}, zoomOptions, options))
+    const clone = (options?: Options) => mediumZoom(assign({}, zoomOptions, options))
 
     const attach: ZoomInstance<Options>['attach'] = function () {
       const newImages = getImagesFromSelectors(arguments, isImage).filter(
@@ -426,9 +395,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
       }
 
       const imagesToDetach =
-        arguments.length > 0
-          ? getImagesFromSelectors(arguments, isImage)
-          : images
+        arguments.length > 0 ? getImagesFromSelectors(arguments, isImage) : images
 
       imagesToDetach.forEach(image => {
         if (__PRESET__) {
@@ -449,11 +416,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
       (type, listener, options = {}) => {
         const eventType = `medium-zoom:${type}`
         images.forEach(image =>
-          image[add ? 'addEventListener' : 'removeEventListener'](
-            eventType,
-            listener,
-            options
-          )
+          image[add ? 'addEventListener' : 'removeEventListener'](eventType, listener, options)
         )
         if (add) {
           eventListeners.push([eventType, listener, options])
@@ -487,9 +450,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
       window[method]('resize', _close)
     }
 
-    const open = (
-      options: ModalOpenOptions = {}
-    ): Promise<ZoomInstance<Options>> => {
+    const open = (options: ModalOpenOptions = {}): Promise<ZoomInstance<Options>> => {
       const target = options.target
       // With a stage, a request for another image replaces the open scene.
       let previous: Scene | undefined
@@ -524,10 +485,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
           clearTimeout(previous.__mz_scrollTimer || undefined)
           previous.__mz_original!.classList.remove('medium-zoom-image--hidden')
           current.__mz_view = previous.__mz_view
-          current.__mz_view!.take(
-            previous.__mz_frames!,
-            previous.__mz_original!
-          )
+          current.__mz_view!.take(previous.__mz_frames!, previous.__mz_original!)
         }
         active = current
 
@@ -577,9 +535,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
           resolve(zoom)
           return
         }
-        current.__mz_viewportScale = window.visualViewport
-          ? window.visualViewport.scale
-          : 1
+        current.__mz_viewportScale = window.visualViewport ? window.visualViewport.scale : 1
         _updateGlobalEvents(true)
         _dispatchEvent(current.__mz_original!, 'open')
         if (!current.__mz_cancelOpen) {
@@ -587,17 +543,13 @@ export const createEngine = <Options extends CoreZoomOptions>(
         }
 
         scrollTop = getScrollY()
-        const primary = cloneImage(
-          current.__mz_original as HTMLImageElement,
-          stage
-        )
+        const primary = cloneImage(current.__mz_original as HTMLImageElement, stage)
         current.__mz_frames = [primary]
 
         try {
           if (stage) {
             current.__mz_view =
-              current.__mz_view ||
-              stage.mount({ zoom, close: _close, trigger: options.trigger })
+              current.__mz_view || stage.mount({ zoom, close: _close, trigger: options.trigger })
             current.__mz_view.enter(primary)
           }
         } catch (error) {
@@ -621,11 +573,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
         }
         try {
           if (__PRESET__) {
-            current.__mz_closeContent = legacy!.content(
-              primary,
-              host,
-              zoomOptions
-            )
+            current.__mz_closeContent = legacy!.content(primary, host, zoomOptions)
           }
         } catch (error) {
           reject(error)
@@ -676,15 +624,10 @@ export const createEngine = <Options extends CoreZoomOptions>(
               content,
               __PRESET__
                 ? measureViewport!(bounds, zoomOptions)
-                : (measureViewport && measureViewport(bounds, zoomOptions)) ||
-                    bounds
+                : (measureViewport && measureViewport(bounds, zoomOptions)) || bounds
             )
             if (stage) {
-              cancelTransition = current.__mz_view!.present(
-                frames,
-                transform,
-                settle
-              )
+              cancelTransition = current.__mz_view!.present(frames, transform, settle)
             }
             if (!cancelTransition) {
               if (transform) {

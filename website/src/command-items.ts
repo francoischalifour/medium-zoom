@@ -95,18 +95,15 @@ export function getCommandGroups({
     return queryTerms.every(term => text.includes(term))
   })
   const referencePath =
-    matchingDocs[0]?.path ??
-    (framework === 'react' ? '/docs/react/' : '/docs/javascript/')
-  const chat: CommandItem[] = getChatLinks(searchQuery, referencePath).map(
-    provider => ({
-      id: provider.key,
-      kind: 'chat',
-      title: provider.title,
-      detail: searchQuery,
-      url: provider.url,
-      icon: 'chat',
-    })
-  )
+    matchingDocs[0]?.path ?? (framework === 'react' ? '/docs/react/' : '/docs/javascript/')
+  const chat: CommandItem[] = getChatLinks(searchQuery, referencePath).map(provider => ({
+    id: provider.key,
+    kind: 'chat',
+    title: provider.title,
+    detail: searchQuery,
+    url: provider.url,
+    icon: 'chat',
+  }))
   const groups = searching
     ? [
         { title: 'Actions', items: actions },

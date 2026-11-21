@@ -36,18 +36,12 @@ test('standalone sessions serialize legacy instances and the latest request wins
       const [first, second, third] = window.zoomSessions
       await first!.open()
       await Promise.all([second!.open(), third!.open()])
-      return window.zoomSessions.map(
-        session => session.zoom.getZoomedImage()?.id || null
-      )
+      return window.zoomSessions.map(session => session.zoom.getZoomedImage()?.id || null)
     })
   ).toEqual([null, null, 'third'])
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(1)
-  await page.evaluate(() =>
-    Promise.all(window.zoomSessions.map(session => session.dispose()))
-  )
-  await expect(
-    page.locator('.medium-zoom-image, .medium-zoom-overlay')
-  ).toHaveCount(0)
+  await page.evaluate(() => Promise.all(window.zoomSessions.map(session => session.dispose())))
+  await expect(page.locator('.medium-zoom-image, .medium-zoom-overlay')).toHaveCount(0)
 })
 
 test('closing coalesces, and the same session can reopen after an in-flight close', async ({
@@ -75,9 +69,7 @@ test('closing coalesces, and the same session can reopen after an in-flight clos
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 })
 
-test('disposal cancels a queued opening and makes later openings inert', async ({
-  page,
-}) => {
+test('disposal cancels a queued opening and makes later openings inert', async ({ page }) => {
   await fixture(page)
   expect(
     await page.evaluate(async () => {
@@ -93,9 +85,7 @@ test('disposal cancels a queued opening and makes later openings inert', async (
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 })
 
-test('close waits for an Escape close already started inside legacy core', async ({
-  page,
-}) => {
+test('close waits for an Escape close already started inside legacy core', async ({ page }) => {
   await fixture(page)
   await page.evaluate(() => window.zoomSessions[0]!.open())
   await page.keyboard.press('Escape')
@@ -118,9 +108,9 @@ test('explicit sessions coordinate keyboard adapters and standalone consumers', 
     await window.zoomSessions[0]!.open()
     const zoom = createZoom('#second', { renderer: dialog() })
     bindZoomTriggers(zoom)
-    const session = (window.zoomSessions[1] = (
-      await window.loadEntry('session')
-    ).createZoomSession(zoom))
+    const session = (window.zoomSessions[1] = (await window.loadEntry('session')).createZoomSession(
+      zoom
+    ))
     await session.open()
     if (window.zoomSessions[0]!.zoom.getZoomedImage()) {
       throw new Error('Session was bundled twice')
@@ -165,17 +155,11 @@ test('coordination keeps command identities stable and releases a reusable zoom'
   ).toEqual({ fresh: true, current: 'image', stable: true })
 })
 
-test('compat pointer activation survives repeated detach and reattach', async ({
-  page,
-}) => {
+test('compat pointer activation survives repeated detach and reattach', async ({ page }) => {
   await fixture(page)
   await page.evaluate(async () => {
     await Promise.all(window.zoomSessions.map(session => session.dispose()))
-    window.zoom
-      .attach('#image')
-      .detach('#image')
-      .detach('#image')
-      .attach('#image')
+    window.zoom.attach('#image').detach('#image').detach('#image').attach('#image')
   })
   await page.locator('#image').click()
   await expect(page.locator('.medium-zoom-image--opened')).toHaveCount(1)

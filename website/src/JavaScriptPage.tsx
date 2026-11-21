@@ -15,11 +15,7 @@ export function JavaScriptPage() {
       <ExampleRail kind="javascript" />
       <ProductFeatures page="javascript" />
 
-      <section
-        className="guide-section"
-        id="usage"
-        aria-labelledby="usage-title"
-      >
+      <section className="guide-section" id="usage" aria-labelledby="usage-title">
         <div className="guide-heading">
           <div>
             <h2 id="usage-title" tabIndex={-1}>
@@ -36,9 +32,7 @@ export function JavaScriptPage() {
             <CopyButton
               text={javascriptUsageCode}
               label="Copy usage code"
-              onCopied={() =>
-                trackSiteEvent('Code Copied', { snippet: 'usage' })
-              }
+              onCopied={() => trackSiteEvent('Code Copied', { snippet: 'usage' })}
             />
           </div>
           <pre tabIndex={0}>
@@ -54,20 +48,14 @@ export function JavaScriptPage() {
           </a>
         </p>
       </section>
-      <section
-        className="integration-section"
-        aria-labelledby="integrations-title"
-      >
+      <section className="integration-section" aria-labelledby="integrations-title">
         <div className="section-heading integration-heading">
           <div>
             <h2 id="integrations-title">{integrationsSection.title}</h2>
             <p>{integrationsSection.description}</p>
           </div>
         </div>
-        <a
-          className="integration-card featured-integration"
-          href={featured.href}
-        >
+        <a className="integration-card featured-integration" href={featured.href}>
           <span className="integration-symbol" aria-hidden="true">
             <span className="shadcn-mark"></span>
           </span>
@@ -82,11 +70,7 @@ export function JavaScriptPage() {
         </a>
         <div className="integration-grid">
           {integrations.map(integration => (
-            <a
-              key={integration.href}
-              className="integration-card"
-              href={integration.href}
-            >
+            <a key={integration.href} className="integration-card" href={integration.href}>
               <span className="stack-name">{integration.name}</span>
               <span>{integration.description}</span>
               <span className="card-arrow" aria-hidden="true">

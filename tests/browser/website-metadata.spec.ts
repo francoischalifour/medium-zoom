@@ -3,9 +3,7 @@ import { expect, test } from './website-fixture'
 
 const origin = 'https://medium-zoom.francoischalifour.com'
 
-test('page aliases redirect permanently to their canonical URLs', async ({
-  request,
-}) => {
+test('page aliases redirect permanently to their canonical URLs', async ({ request }) => {
   const sitemap = await (await request.get('/sitemap.xml')).text()
   const docsPaths = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)]
     .map(([, url]) => new URL(url!).pathname)
@@ -26,9 +24,7 @@ test('page aliases redirect permanently to their canonical URLs', async ({
       maxRedirects: 0,
     })
     expect(response.status(), alias).toBe(301)
-    expect(response.headers().location, alias).toBe(
-      `${canonical}?source=old-link`
-    )
+    expect(response.headers().location, alias).toBe(`${canonical}?source=old-link`)
     expect((await request.get(canonical!)).status(), canonical).toBe(200)
   }
 })
@@ -53,10 +49,7 @@ test('the React showcase owns /react and redirects its previous URLs', async ({
   await page.goto('/examples/shadcn/?source=old-link#usage-title')
   await expect(page).toHaveURL(/\/react\?source=old-link#usage-title$/)
   await expect(page.locator('.hero-install')).toContainText('shadcn@latest add')
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
-    'href',
-    `${origin}/react`
-  )
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `${origin}/react`)
   const sitemap = await (await request.get('/sitemap.xml')).text()
   expect(sitemap).toContain(`<loc>${origin}/react</loc>`)
   expect(sitemap).not.toContain('/examples/shadcn/')
@@ -71,13 +64,7 @@ test('both pages ship readable HTML and complete sharing metadata without JavaSc
   const page = await context.newPage()
   try {
     for (const [path, canonical, heading, image, documentTitle] of [
-      [
-        '/',
-        '/',
-        'Bring images closer',
-        'og-javascript.jpg',
-        'JavaScript image zoom • medium-zoom',
-      ],
+      ['/', '/', 'Bring images closer', 'og-javascript.jpg', 'JavaScript image zoom • medium-zoom'],
       [
         '/react',
         '/react',
@@ -97,22 +84,15 @@ test('both pages ship readable HTML and complete sharing metadata without JavaSc
         documentTitle
       )
       const description =
-        canonical === '/'
-          ? packageJson.description
-          : /lightweight.*lightbox alternative/i
+        canonical === '/' ? packageJson.description : /lightweight.*lightbox alternative/i
       for (const selector of [
         'meta[name="description"]',
         'meta[property="og:description"]',
         'meta[name="twitter:description"]',
       ]) {
-        await expect(page.locator(selector)).toHaveAttribute(
-          'content',
-          description
-        )
+        await expect(page.locator(selector)).toHaveAttribute('content', description)
       }
-      await expect(page.getByRole('heading', { level: 1 })).toContainText(
-        heading
-      )
+      await expect(page.getByRole('heading', { level: 1 })).toContainText(heading)
       await expect(page.locator('.hero-install')).toContainText(
         canonical === '/' ? 'npm install medium-zoom' : 'shadcn@latest add'
       )
@@ -120,30 +100,28 @@ test('both pages ship readable HTML and complete sharing metadata without JavaSc
         'href',
         `${origin}${canonical}`
       )
-      await expect(
-        page.locator('head meta[property="og:url"]')
-      ).toHaveAttribute('content', `${origin}${canonical}`)
-      await expect(
-        page.locator('head meta[property="og:image"]')
-      ).toHaveAttribute('content', `${origin}/${image}`)
-      await expect(
-        page.locator('head meta[name="twitter:card"]')
-      ).toHaveAttribute('content', 'summary_large_image')
+      await expect(page.locator('head meta[property="og:url"]')).toHaveAttribute(
+        'content',
+        `${origin}${canonical}`
+      )
+      await expect(page.locator('head meta[property="og:image"]')).toHaveAttribute(
+        'content',
+        `${origin}/${image}`
+      )
+      await expect(page.locator('head meta[name="twitter:card"]')).toHaveAttribute(
+        'content',
+        'summary_large_image'
+      )
       const schema = JSON.parse(
-        (await page
-          .locator('script[type="application/ld+json"]')
-          .textContent()) || '{}'
+        (await page.locator('script[type="application/ld+json"]').textContent()) || '{}'
       )
       expect(schema['@context']).toBe('https://schema.org')
       if (canonical === '/') {
         const software = schema['@graph'].find(
-          (entity: { '@type': string }) =>
-            entity['@type'] === 'SoftwareSourceCode'
+          (entity: { '@type': string }) => entity['@type'] === 'SoftwareSourceCode'
         )
         expect(software.description).toBe(packageJson.description)
-        await expect(page.locator('.hero-crop > p')).toHaveText(
-          packageJson.description
-        )
+        await expect(page.locator('.hero-crop > p')).toHaveText(packageJson.description)
         expect(software.version).toBe(packageJson.version)
         expect(software.url).toBe(`${origin}/`)
         expect(software.sameAs).toEqual([
@@ -157,9 +135,7 @@ test('both pages ship readable HTML and complete sharing metadata without JavaSc
       const icon = await page
         .locator('head link[rel="icon"][type="image/svg+xml"]')
         .getAttribute('href')
-      expect(
-        (await context.request.get(new URL(icon!, page.url()).href)).ok()
-      ).toBe(true)
+      expect((await context.request.get(new URL(icon!, page.url()).href)).ok()).toBe(true)
       const sharingImage = await context.request.get(`/${image}`)
       expect(sharingImage.ok()).toBe(true)
       expect(sharingImage.headers()['content-type']).toBe('image/jpeg')
@@ -191,15 +167,9 @@ test('search pages have distinct metadata and crawlable internal destinations', 
     for (const path of ['/', '/react']) {
       const response = await page.goto(path)
       expect(response!.status()).toBe(200)
-      expect(response!.headers()['x-robots-tag'] || '').not.toMatch(
-        /noindex|nofollow/
-      )
+      expect(response!.headers()['x-robots-tag'] || '').not.toMatch(/noindex|nofollow/)
       titles.add(await page.title())
-      descriptions.add(
-        (await page
-          .locator('meta[name="description"]')
-          .getAttribute('content'))!
-      )
+      descriptions.add((await page.locator('meta[name="description"]').getAttribute('content'))!)
       await expect(page.locator('h1')).toHaveCount(1)
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
         'content',
@@ -224,10 +194,7 @@ test('search pages have distinct metadata and crawlable internal destinations', 
     expect(descriptions.size).toBe(2)
     await expect(page).toHaveTitle(/React.*shadcn/)
     await page.goto('/examples/shadcn/playground.html')
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
-      'content',
-      'noindex,follow'
-    )
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex,follow')
   } finally {
     await context.close()
   }

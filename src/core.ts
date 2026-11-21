@@ -44,8 +44,7 @@ export type ZoomContent = (view: {
 }) => void | (() => void)
 
 /** A zoom created by `createZoom()`. See `ModalZoom` for one created with a renderer. */
-export type Zoom<Options extends CoreZoomOptions = CoreZoomOptions> =
-  ZoomInstance<Options>
+export type Zoom<Options extends CoreZoomOptions = CoreZoomOptions> = ZoomInstance<Options>
 
 declare const modalType: unique symbol
 /**
@@ -79,9 +78,7 @@ export interface ModalZoom<
  * Whatever issues open requests for a rendered zoom: the zoom itself, or a session from
  * `medium-zoom/session` coordinating it with other zooms.
  */
-export interface ZoomCommander<
-  Options extends CoreZoomOptions = CoreZoomOptions,
-> {
+export interface ZoomCommander<Options extends CoreZoomOptions = CoreZoomOptions> {
   open(options?: ModalOpenOptions): Promise<Zoom<Options>>
 }
 
@@ -128,10 +125,7 @@ export function createZoom(
   images: ZoomSelector | undefined,
   options: CreateZoomOptions & { renderer: ZoomRenderer }
 ): ModalZoom
-export function createZoom(
-  images?: ZoomSelector,
-  options?: CreateZoomOptions
-): Zoom
+export function createZoom(images?: ZoomSelector, options?: CreateZoomOptions): Zoom
 export function createZoom(
   images?: ZoomSelector,
   { renderer, loader, viewport, ...options }: CreateZoomOptions = {}

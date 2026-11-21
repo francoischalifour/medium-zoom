@@ -30,15 +30,11 @@ export const productPages = {
     path: '/react',
     technology: 'React',
     eyebrow: 'Install with shadcn/ui',
-    tagline: [
-      'Lightweight image zoom for React.',
-      'Keep the source. Make it yours.',
-    ],
+    tagline: ['Lightweight image zoom for React.', 'Keep the source. Make it yours.'],
     featuresLabel: 'Component features',
     usage: {
       title: 'Add zoom to an image.',
-      description:
-        'Use it like an image. Add your source, alt text, and styles.',
+      description: 'Use it like an image. Add your source, alt text, and styles.',
       note: 'Image attributes and the forwarded ref reach the underlying `<img>`.',
       link: {
         label: 'Explore all zoom options',
@@ -49,20 +45,12 @@ export const productPages = {
   },
 } as const satisfies Record<SitePage, unknown>
 
-export type FeatureIcon =
-  | 'code'
-  | 'keyboard'
-  | 'feather'
-  | 'typescript'
-  | 'image'
+export type FeatureIcon = 'code' | 'keyboard' | 'feather' | 'typescript' | 'image'
 
 type ProductFeature = { icon: FeatureIcon; title: string; description: string }
 
 // Callers pass the gzip size: the app gets it from the Vite define, the Markdown from dist.
-export function productFeatures(
-  page: SitePage,
-  gzipBytes: number
-): ProductFeature[] {
+export function productFeatures(page: SitePage, gzipBytes: number): ProductFeature[] {
   const leadingFeatures: Record<SitePage, ProductFeature[]> = {
     javascript: [
       {
@@ -73,8 +61,7 @@ export function productFeatures(
       {
         icon: 'typescript',
         title: 'Any framework. TypeScript ready.',
-        description:
-          'Use with React, Angular, Vue, Svelte, Astro, or plain HTML.',
+        description: 'Use with React, Angular, Vue, Svelte, Astro, or plain HTML.',
       },
     ],
     react: [
@@ -106,8 +93,7 @@ export const integrationsSection = {
   featured: {
     tag: 'React + TypeScript',
     title: 'A component you own.',
-    description:
-      'Install with the shadcn CLI. Own the source. Match your theme.',
+    description: 'Install with the shadcn CLI. Own the source. Match your theme.',
     action: 'Explore shadcn/ui',
     href: '/react',
   },

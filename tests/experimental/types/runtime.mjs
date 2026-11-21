@@ -19,11 +19,7 @@ for (const path of [
   assert.equal(typeof require(specifier), 'function', specifier)
   assert.equal(typeof (await import(specifier)).default, 'function', specifier)
 }
-for (const path of [
-  'dist/medium-zoom.esm.js',
-  'dist/pure/index.js',
-  'dist/style.css',
-]) {
+for (const path of ['dist/medium-zoom.esm.js', 'dist/pure/index.js', 'dist/style.css']) {
   assert(require.resolve(`medium-zoom/${path}`))
 }
 assert.equal(typeof (await import('medium-zoom/dist/pure')).default, 'function')
@@ -68,24 +64,15 @@ assert.equal(
   require.resolve('medium-zoom/style.css'),
   require.resolve('medium-zoom/dist/style.css')
 )
-assert.match(
-  require.resolve('medium-zoom/modern/style.css'),
-  /\/dist\/modern\/style\.css$/
-)
+assert.match(require.resolve('medium-zoom/modern/style.css'), /\/dist\/modern\/style\.css$/)
 assert.equal(
   require.resolve('medium-zoom/compat/style.css'),
   require.resolve('medium-zoom/dist/style.css')
 )
 
 for (const profile of ['compat', 'compat/pure', 'modern']) {
-  assert.equal(
-    typeof (await import(`medium-zoom/${profile}`)).default,
-    'function'
-  )
+  assert.equal(typeof (await import(`medium-zoom/${profile}`)).default, 'function')
   assert.equal(typeof require(`medium-zoom/${profile}`), 'function')
 }
 
-assert.notEqual(
-  require.resolve('medium-zoom/compat/pure'),
-  require.resolve('medium-zoom/pure')
-)
+assert.notEqual(require.resolve('medium-zoom/compat/pure'), require.resolve('medium-zoom/pure'))

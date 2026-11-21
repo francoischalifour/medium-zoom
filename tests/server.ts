@@ -55,9 +55,7 @@ const server = createServer((request, response) => {
   }
   const [, root, ...segments] = decodeURIComponent(url.pathname).split('/')
   const directory = roots[root] || roots.site
-  let relative = roots[root]
-    ? segments.join('/')
-    : [root, ...segments].join('/')
+  let relative = roots[root] ? segments.join('/') : [root, ...segments].join('/')
   if (!relative || relative.endsWith('/')) {
     relative += 'index.html'
   }
@@ -71,20 +69,14 @@ const server = createServer((request, response) => {
   }
   try {
     const contents = readFileSync(path)
-    const contentType =
-      contentTypes[extname(path)] || 'application/octet-stream'
+    const contentType = contentTypes[extname(path)] || 'application/octet-stream'
     // Native video players (including WebKit) request byte ranges when loading media.
     const range = request.headers.range?.match(/^bytes=(\d+)-(\d*)$/)
     if (range) {
       const start = Number(range[1])
-      const end = Math.min(
-        Number(range[2] || contents.length - 1),
-        contents.length - 1
-      )
+      const end = Math.min(Number(range[2] || contents.length - 1), contents.length - 1)
       if (start > end) {
-        response
-          .writeHead(416, { 'Content-Range': `bytes */${contents.length}` })
-          .end()
+        response.writeHead(416, { 'Content-Range': `bytes */${contents.length}` }).end()
         return
       }
       response.writeHead(206, {

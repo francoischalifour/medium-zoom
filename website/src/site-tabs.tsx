@@ -32,9 +32,7 @@ export function TabList<Value extends string>({
           tabIndex={value === item.value ? 0 : -1}
           onClick={() => onValueChange(item.value)}
           onKeyDown={event => {
-            if (
-              !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)
-            ) {
+            if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
               return
             }
             event.preventDefault()
@@ -43,15 +41,10 @@ export function TabList<Value extends string>({
                 ? 0
                 : event.key === 'End'
                   ? items.length - 1
-                  : (index +
-                      (event.key === 'ArrowRight' ? 1 : -1) +
-                      items.length) %
-                    items.length
+                  : (index + (event.key === 'ArrowRight' ? 1 : -1) + items.length) % items.length
             onValueChange(items[next].value)
             event.currentTarget
-              .parentElement!.querySelectorAll<HTMLButtonElement>(
-                '[role="tab"]'
-              )
+              .parentElement!.querySelectorAll<HTMLButtonElement>('[role="tab"]')
               [next].focus()
           }}
         >

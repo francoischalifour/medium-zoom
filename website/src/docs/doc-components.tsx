@@ -6,13 +6,7 @@ import { TabList } from '../site-tabs'
 import { docsPages } from './pages'
 import { supportedBrowsers } from './supported-browsers'
 
-export function DocCode({
-  code,
-  title = 'Example',
-}: {
-  code: string
-  title?: string
-}) {
+export function DocCode({ code, title = 'Example' }: { code: string; title?: string }) {
   const snippet = code.trim()
   const isSingleLine = !snippet.includes('\n')
   const copyButton = <CopyButton text={snippet} label={`Copy ${title}`} />
@@ -86,12 +80,7 @@ export function Example({
         />
         <span className="example-kind">{title}</span>
       </div>
-      <div
-        id={`${id}-panel`}
-        role="tabpanel"
-        aria-labelledby={`${id}-${tab}`}
-        tabIndex={0}
-      >
+      <div id={`${id}-panel`} role="tabpanel" aria-labelledby={`${id}-${tab}`} tabIndex={0}>
         <div hidden={tab !== 'preview'}>
           <Preview>{children}</Preview>
         </div>
@@ -104,13 +93,7 @@ export function Example({
   )
 }
 
-export function PropertyMeta({
-  type,
-  defaultValue,
-}: {
-  type: string
-  defaultValue?: string
-}) {
+export function PropertyMeta({ type, defaultValue }: { type: string; defaultValue?: string }) {
   return (
     <dl className="docs-property-meta">
       <div>
@@ -234,13 +217,7 @@ export function EntryPoints({ children }: { children: React.ReactNode }) {
   )
 }
 
-export function EntryPoint({
-  path,
-  children,
-}: {
-  path: DocsPath
-  children: React.ReactNode
-}) {
+export function EntryPoint({ path, children }: { path: DocsPath; children: React.ReactNode }) {
   return (
     <a href={path}>
       <strong>{docsPages.find(page => page.path === path)!.title}</strong>
@@ -254,13 +231,7 @@ export function ReferenceLinks({ children }: { children: React.ReactNode }) {
   return <div className="docs-reference-links">{children}</div>
 }
 
-export function ReferenceGroup({
-  title,
-  children,
-}: {
-  title: string
-  children: React.ReactNode
-}) {
+export function ReferenceGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
       <h3>{title}</h3>
