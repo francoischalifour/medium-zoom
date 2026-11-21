@@ -15,7 +15,9 @@ export function readExactRedirects(file: string | URL) {
 
 // Hosting owns wildcard asset redirects; mirror exact page redirects locally.
 export function siteRedirects(): Plugin {
-  const redirects = readExactRedirects(new URL('../public/_redirects', import.meta.url))
+  const redirects = readExactRedirects(
+    new URL('../public/_redirects', import.meta.url)
+  )
   const configure = (server: ViteDevServer | PreviewServer) => {
     server.middlewares.use((request, response, next) => {
       const url = new URL(request.url || '/', 'http://localhost')

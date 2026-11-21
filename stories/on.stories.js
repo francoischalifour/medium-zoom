@@ -14,7 +14,8 @@ storiesOf('on()', module)
     `,
     {
       notes: {
-        markdown: 'The `open` event fires immediately when the open method is called.',
+        markdown:
+          'The `open` event fires immediately when the open method is called.',
       },
     }
   )
@@ -31,7 +32,8 @@ storiesOf('on()', module)
     `,
     {
       notes: {
-        markdown: 'The `opened` event fires when the zoom has finished being animated.',
+        markdown:
+          'The `opened` event fires when the zoom has finished being animated.',
       },
     }
   )
@@ -48,7 +50,8 @@ storiesOf('on()', module)
     `,
     {
       notes: {
-        markdown: 'The `close` event fires immediately when the `close` instance method is called.',
+        markdown:
+          'The `close` event fires immediately when the `close` instance method is called.',
       },
     }
   )
@@ -65,7 +68,8 @@ storiesOf('on()', module)
     `,
     {
       notes: {
-        markdown: 'The `closed` event fires when the zoom out has finished being animated.',
+        markdown:
+          'The `closed` event fires when the zoom out has finished being animated.',
       },
     }
   )

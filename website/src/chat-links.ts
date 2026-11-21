@@ -4,7 +4,10 @@ export function getChatLinks(query: string, referencePath: string) {
   if (!query.trim()) {
     return []
   }
-  const prompt = [query.trim(), `Read ${siteOrigin + referencePath} and answer`].join('\n\n')
+  const prompt = [
+    query.trim(),
+    `Read ${siteOrigin + referencePath} and answer`,
+  ].join('\n\n')
   return [
     { key: 'chatgpt', title: 'Ask ChatGPT', base: 'https://chatgpt.com/' },
     { key: 'claude', title: 'Ask Claude', base: 'https://claude.ai/new' },

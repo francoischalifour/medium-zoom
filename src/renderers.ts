@@ -23,7 +23,10 @@ export interface SceneChange {
  * Build one from an application effect with `galleryTransition` from
  * `medium-zoom/transitions`.
  */
-export type SceneTransition = (change: SceneChange, done: (error?: unknown) => void) => () => void
+export type SceneTransition = (
+  change: SceneChange,
+  done: (error?: unknown) => void
+) => () => void
 
 const frameLabel = (frame: Frame) =>
   frame.alt.trim() || frame.getAttribute('aria-label')?.trim() || ''
@@ -52,12 +55,18 @@ export interface DialogOptions {
  * forms close it, and focus returns to the trigger on close. Pass it to `createZoom(…, { renderer })`.
  * Requires `HTMLDialogElement.showModal()`; opening throws without it, and no polyfill is installed.
  */
-export function dialog({ label, content, transition }: DialogOptions = {}): ZoomRenderer {
+export function dialog({
+  label,
+  content,
+  transition,
+}: DialogOptions = {}): ZoomRenderer {
   const stage: Stage = {
     mount({ zoom, close, trigger = document.activeElement as HTMLElement }) {
       const element = document.createElement('dialog')
       if (typeof element.showModal !== 'function') {
-        throw new Error('Medium Zoom dialog renderer requires HTMLDialogElement.showModal()')
+        throw new Error(
+          'Medium Zoom dialog renderer requires HTMLDialogElement.showModal()'
+        )
       }
       element.className = 'medium-zoom-dialog'
       // enter() names the dialog after the frame.
@@ -70,8 +79,12 @@ export function dialog({ label, content, transition }: DialogOptions = {}): Zoom
       let disposed = false
       element.addEventListener('submit', event => {
         const form = event.target as HTMLFormElement
-        const submitter = (event as SubmitEvent).submitter as HTMLButtonElement | null
-        if (!event.defaultPrevented && (submitter?.formMethod || form.method) === 'dialog') {
+        const submitter = (event as SubmitEvent)
+          .submitter as HTMLButtonElement | null
+        if (
+          !event.defaultPrevented &&
+          (submitter?.formMethod || form.method) === 'dialog'
+        ) {
           event.preventDefault()
           close()
         }
@@ -115,12 +128,20 @@ export function dialog({ label, content, transition }: DialogOptions = {}): Zoom
         if (previous) {
           previous.setAttribute('aria-hidden', 'true')
         }
-        for (const name of ['aria-hidden', 'role', 'tabindex', 'aria-haspopup']) {
+        for (const name of [
+          'aria-hidden',
+          'role',
+          'tabindex',
+          'aria-haspopup',
+        ]) {
           next.removeAttribute(name)
         }
         element.setAttribute(
           'aria-label',
-          label?.trim() || frameLabel(next) || (previous && frameLabel(previous)) || 'Zoomed image'
+          label?.trim() ||
+            frameLabel(next) ||
+            (previous && frameLabel(previous)) ||
+            'Zoomed image'
         )
       }
       return {
@@ -178,7 +199,8 @@ export function dialog({ label, content, transition }: DialogOptions = {}): Zoom
                 outgoing: staged(outgoing),
                 incoming: staged(frames),
                 direction:
-                  images.indexOf(zoom.getZoomedImage()!) > images.indexOf(source as HTMLElement)
+                  images.indexOf(zoom.getZoomedImage()!) >
+                  images.indexOf(source as HTMLElement)
                     ? 1
                     : -1,
               },
@@ -211,7 +233,10 @@ export function dialog({ label, content, transition }: DialogOptions = {}): Zoom
 }
 
 /** Scene replacement commits fitted geometry without replaying the thumbnail motion. */
-const commitFrame = (frame: Frame, transform: string | undefined | null): void => {
+const commitFrame = (
+  frame: Frame,
+  transform: string | undefined | null
+): void => {
   if (!transform) {
     return
   }

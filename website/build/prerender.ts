@@ -27,6 +27,9 @@ export function prerenderWebsite(directory: string) {
       throw new Error(`Missing React outlet: ${file}`)
     }
     const markup = renderToString(createElement(StrictMode, null, element))
-    writeFileSync(path, template.replace(outlet, `<div id="root">${markup}</div>`))
+    writeFileSync(
+      path,
+      template.replace(outlet, `<div id="root">${markup}</div>`)
+    )
   }
 }

@@ -14,7 +14,8 @@
   scrollbar-width: none;
 }
 /* Keep the page scrolling until the area has its own overflow to scroll. */
-.scroll-area:is([data-scroll-above], [data-scroll-below]) > .scroll-area-viewport {
+.scroll-area:is([data-scroll-above], [data-scroll-below])
+  > .scroll-area-viewport {
   overscroll-behavior-y: contain;
 }
 .scroll-area[data-scroll-ready] > .scroll-area-viewport::-webkit-scrollbar {
@@ -35,11 +36,19 @@
 }
 .scroll-area::before {
   top: 0;
-  background: linear-gradient(to bottom, var(--scroll-area-background), transparent);
+  background: linear-gradient(
+    to bottom,
+    var(--scroll-area-background),
+    transparent
+  );
 }
 .scroll-area::after {
   bottom: 0;
-  background: linear-gradient(to top, var(--scroll-area-background), transparent);
+  background: linear-gradient(
+    to top,
+    var(--scroll-area-background),
+    transparent
+  );
 }
 .scroll-area[data-scroll-above]::before,
 .scroll-area[data-scroll-below]::after {

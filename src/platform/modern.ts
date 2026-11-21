@@ -12,7 +12,8 @@ export const createCustomEvent = (
 export const getScrollX = (): number => window.scrollX
 export const getScrollY = (): number => window.scrollY
 
-export const isEscape = (event: KeyboardEvent): boolean => event.key === 'Escape'
+export const isEscape = (event: KeyboardEvent): boolean =>
+  event.key === 'Escape'
 
 export const listenForMotionChange = (
   query: MediaQueryList,

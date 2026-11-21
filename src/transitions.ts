@@ -27,14 +27,18 @@ export interface GalleryTransitionContext extends PreparedTransition {
  * An application effect, such as Web Animations on the frames. Settle the returned promise
  * when it ends; the runner cancels the frames' animations afterwards.
  */
-export type GalleryTransition = (context: GalleryTransitionContext) => void | PromiseLike<void>
+export type GalleryTransition = (
+  context: GalleryTransitionContext
+) => void | PromiseLike<void>
 
 /**
  * Turns an application effect into a transition for `dialog({ transition })`. The dialog
  * keeps ownership of frame removal and completion; this runner owns cancellation, reduced
  * motion (it skips the effect) and clearing the effect's animations.
  */
-export function galleryTransition(strategy: GalleryTransition): SceneTransition {
+export function galleryTransition(
+  strategy: GalleryTransition
+): SceneTransition {
   return (change, done) => {
     // Narrow the runtime objects as well as their types before crossing into application code.
     const prepare = (frames: typeof change.incoming): PreparedFrame[] =>
@@ -47,7 +51,9 @@ export function galleryTransition(strategy: GalleryTransition): SceneTransition 
     let settled = false
     const clearEffects = () =>
       [...change.outgoing, ...change.incoming].forEach(({ element }) =>
-        element.getAnimations?.({ subtree: true }).forEach(animation => animation.cancel())
+        element
+          .getAnimations?.({ subtree: true })
+          .forEach(animation => animation.cancel())
       )
     const finish = (error?: unknown) => {
       if (settled) {

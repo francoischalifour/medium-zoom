@@ -10,7 +10,8 @@ export type ZoomTarget = HTMLElement | SVGElement
  */
 export type Frame = HTMLImageElement
 
-export const isImage = (target: ZoomTarget): target is HTMLImageElement => target.tagName === 'IMG'
+export const isImage = (target: ZoomTarget): target is HTMLImageElement =>
+  target.tagName === 'IMG'
 
 const isSvgSource = (source: string): boolean => /\.svg$/i.test(source)
 
@@ -28,7 +29,11 @@ export function cloneImage(image: HTMLImageElement, fixed?: unknown): Frame {
     transform: '',
   })
   // A picture's selected source can differ from the image's own src.
-  if (image.parentElement && image.parentElement.tagName === 'PICTURE' && image.currentSrc) {
+  if (
+    image.parentElement &&
+    image.parentElement.tagName === 'PICTURE' &&
+    image.currentSrc
+  ) {
     clone.src = image.currentSrc
   }
   clone.classList.add('medium-zoom-image')

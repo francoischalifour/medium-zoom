@@ -12,7 +12,15 @@ import {
 import type { SitePage } from '../src/site-data.ts'
 import { usageExamples } from '../src/usage-snippets.ts'
 import { libraryGzipBytes } from './library-size.ts'
-import { codeBlock, heading, inlineCopy, link, list, paragraph, text } from './markdown-nodes.ts'
+import {
+  codeBlock,
+  heading,
+  inlineCopy,
+  link,
+  list,
+  paragraph,
+  text,
+} from './markdown-nodes.ts'
 
 // A product page's content as Markdown, from the copy and code samples the page renders.
 // Interactive parts give way to what they show: every usage tab and the npm command.
@@ -39,7 +47,11 @@ export function productMarkdown(page: SitePage): RootContent[] {
     ]),
     ...sections.details(),
     heading(2, [text(closingTitle)]),
-    paragraph([text(`${closing} `), link('/docs/', [text('Read the documentation')]), text('.')]),
+    paragraph([
+      text(`${closing} `),
+      link('/docs/', [text('Read the documentation')]),
+      text('.'),
+    ]),
   ]
 }
 
@@ -52,7 +64,9 @@ const pageSections: Record<
 > = {
   javascript: {
     installNote: () => [],
-    usageCode: () => [codeBlock({ code: javascriptUsageCode, title: 'app.js' })],
+    usageCode: () => [
+      codeBlock({ code: javascriptUsageCode, title: 'app.js' }),
+    ],
     details: integrationLinks,
   },
   react: {

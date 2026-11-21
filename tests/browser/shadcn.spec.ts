@@ -4,7 +4,12 @@ import { expect, type Page, test } from '@playwright/test'
 
 import { version } from '../../package.json' with { type: 'json' }
 import { shadcnDevUrl } from '../server-urls.ts'
-import { decodeImages, dismissZoom, observeErrors, openImage } from './helpers.ts'
+import {
+  decodeImages,
+  dismissZoom,
+  observeErrors,
+  openImage,
+} from './helpers.ts'
 
 // MEDIUM_ZOOM_SHADCN=composable runs this suite against the component rewritten on the
 // composable entries (core, loaders, viewport, session) instead of the published one.
@@ -19,7 +24,9 @@ async function ready(page: Page) {
   await decodeImages(page.locator('.gallery img'))
 }
 
-test('hydrates server markup without mismatches and forwards the image ref', async ({ page }) => {
+test('hydrates server markup without mismatches and forwards the image ref', async ({
+  page,
+}) => {
   const errors = observeErrors(page)
   const markup = execFileSync('bun', ['examples/shadcn/tests/ssr.tsx'], {
     encoding: 'utf8',
@@ -39,11 +46,15 @@ test('hydrates server markup without mismatches and forwards the image ref', asy
   await page.keyboard.press('Enter')
   await expect(page.locator('.medium-zoom-overlay')).toBeVisible()
   await dismissZoom(page)
-  await expect(page.getByRole('button', { name: firstName, exact: true })).toBeFocused()
+  await expect(
+    page.getByRole('button', { name: firstName, exact: true })
+  ).toBeFocused()
   expect(errors).toEqual([])
 })
 
-test('native keyboard controls, clone accessibility, and click dismissal', async ({ page }) => {
+test('native keyboard controls, clone accessibility, and click dismissal', async ({
+  page,
+}) => {
   await ready(page)
   const trigger = page.getByRole('button', { name: firstName, exact: true })
   await trigger.focus()
@@ -51,31 +62,41 @@ test('native keyboard controls, clone accessibility, and click dismissal', async
   const clone = page.locator('.medium-zoom-image--opened')
   if (composable) {
     // The dialog is the accessible surface: it exposes the image and hides the page behind it.
-    await expect(page.getByRole('dialog', { name: 'Ocean sunset' }).getByRole('img')).toHaveCount(1)
+    await expect(
+      page.getByRole('dialog', { name: 'Ocean sunset' }).getByRole('img')
+    ).toHaveCount(1)
   } else {
     await expect(clone).toHaveAttribute('aria-hidden', 'true')
-    await expect(page.getByRole('button', { name: firstName, exact: true })).toHaveCount(1)
+    await expect(
+      page.getByRole('button', { name: firstName, exact: true })
+    ).toHaveCount(1)
   }
   await expect(clone).not.toHaveAttribute('tabindex')
   await clone.click()
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 })
 
-test('consumer cancellation and disabled state prevent zooming', async ({ page }) => {
+test('consumer cancellation and disabled state prevent zooming', async ({
+  page,
+}) => {
   await ready(page)
   await page.getByRole('button', { name: 'Cancel clicks', exact: true }).click()
   await page.getByRole('button', { name: firstName, exact: true }).click()
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
   await page.getByRole('button', { name: 'Cancel clicks', exact: true }).click()
   await page.getByRole('button', { name: 'Disable zoom', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Ocean sunset', exact: true })).toBeDisabled()
+  await expect(
+    page.getByRole('button', { name: 'Ocean sunset', exact: true })
+  ).toBeDisabled()
   await page.getByRole('button', { name: 'Disable zoom', exact: true }).click()
   await page.getByRole('button', { name: firstName, exact: true }).click()
   await expect(page.locator('.medium-zoom-overlay')).toBeVisible()
   await dismissZoom(page)
 })
 
-test('serializes rapid instance switching, including repeated queued clicks', async ({ page }) => {
+test('serializes rapid instance switching, including repeated queued clicks', async ({
+  page,
+}) => {
   await ready(page)
   await page.getByRole('button', { name: firstName, exact: true }).click()
   await expect(page.locator('.medium-zoom-overlay')).toBeVisible()
@@ -85,15 +106,20 @@ test('serializes rapid instance switching, including repeated queued clicks', as
     .evaluate(async button => {
       let maximum = 0
       const observer = new MutationObserver(() => {
-        maximum = Math.max(maximum, document.querySelectorAll('.medium-zoom-overlay').length)
+        maximum = Math.max(
+          maximum,
+          document.querySelectorAll('.medium-zoom-overlay').length
+        )
       })
       observer.observe(document.body, { childList: true })
       ;(button as HTMLButtonElement).click()
       ;(button as HTMLButtonElement).click()
       await new Promise<void>(resolve => {
-        button.querySelector('img')!.addEventListener('medium-zoom:opened', () => resolve(), {
-          once: true,
-        })
+        button
+          .querySelector('img')!
+          .addEventListener('medium-zoom:opened', () => resolve(), {
+            once: true,
+          })
       })
       observer.disconnect()
       return maximum
@@ -110,7 +136,12 @@ test('serializes rapid instance switching, including repeated queued clicks', as
   await expect(page.locator('.medium-zoom-image--hidden')).toHaveCount(0)
 })
 
-for (const control of ['Hide first image', 'Disable zoom', 'Change source', 'Hide with Activity']) {
+for (const control of [
+  'Hide first image',
+  'Disable zoom',
+  'Change source',
+  'Hide with Activity',
+]) {
   test(`cleans up an opening zoom when using ${control}`, async ({ page }) => {
     const errors = observeErrors(page)
     await ready(page)
@@ -125,13 +156,17 @@ for (const control of ['Hide first image', 'Disable zoom', 'Change source', 'Hid
     await expect(page.locator('body')).not.toHaveClass(/medium-zoom--opened/)
     if (control === 'Disable zoom') {
       await expect(
-        page.getByRole('button', { name: 'Ocean sunset', exact: true }).locator('img')
+        page
+          .getByRole('button', { name: 'Ocean sunset', exact: true })
+          .locator('img')
       ).toBeVisible()
     }
     if (control !== 'Change source') {
       await page.getByRole('button', { name: control, exact: true }).click()
     }
-    await expect(page.getByRole('button', { name: firstName, exact: true })).toBeVisible()
+    await expect(
+      page.getByRole('button', { name: firstName, exact: true })
+    ).toBeVisible()
     await page.getByRole('button', { name: firstName, exact: true }).click()
     await expect(page.locator('.medium-zoom-overlay')).toBeVisible()
     await dismissZoom(page)
@@ -139,12 +174,18 @@ for (const control of ['Hide first image', 'Disable zoom', 'Change source', 'Hid
   })
 }
 
-test('uses updated options, scoped theme tokens, and same-document portals', async ({ page }) => {
+test('uses updated options, scoped theme tokens, and same-document portals', async ({
+  page,
+}) => {
   await ready(page)
-  await page.getByRole('button', { name: 'Render in portal', exact: true }).click()
+  await page
+    .getByRole('button', { name: 'Render in portal', exact: true })
+    .click()
   await page.getByRole('button', { name: 'Change margin', exact: true }).click()
   const trigger = page.getByRole('button', { name: firstName, exact: true })
-  await trigger.evaluate(element => element.style.setProperty('--background', 'oklch(0.3 0 0)'))
+  await trigger.evaluate(element =>
+    element.style.setProperty('--background', 'oklch(0.3 0 0)')
+  )
   await trigger.locator('img').evaluate(image => {
     image.addEventListener(
       'medium-zoom:open',
@@ -157,7 +198,10 @@ test('uses updated options, scoped theme tokens, and same-document portals', asy
     )
   })
   await trigger.click()
-  await expect(page.locator('.medium-zoom-overlay')).toHaveCSS('background-color', 'oklch(0.3 0 0)')
+  await expect(page.locator('.medium-zoom-overlay')).toHaveCSS(
+    'background-color',
+    'oklch(0.3 0 0)'
+  )
   await expect(trigger.locator('img')).toHaveAttribute('data-margin', '80')
   await dismissZoom(page)
 })
@@ -170,7 +214,9 @@ test('reduced motion still completes open and close', async ({ page }) => {
   await dismissZoom(page)
 })
 
-test('unmount cancels a pending high-resolution image load', async ({ page }) => {
+test('unmount cancels a pending high-resolution image load', async ({
+  page,
+}) => {
   await ready(page)
   await page.route('**/images/ocean-sunset.jpg?hd', () => {})
   await page.getByRole('button', { name: 'Load HD image', exact: true }).click()
@@ -185,22 +231,30 @@ test('unmount cancels a pending high-resolution image load', async ({ page }) =>
   await dismissZoom(page)
 })
 
-test('development Strict Mode replays effects without duplicate zooms', async ({ page }) => {
+test('development Strict Mode replays effects without duplicate zooms', async ({
+  page,
+}) => {
   const errors = observeErrors(page)
   await page.goto(`${shadcnDevUrl}playground.html`)
   await expect(page.locator('.medium-zoom-image')).toHaveCount(2)
   await page.getByRole('button', { name: firstName, exact: true }).click()
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(1)
   await dismissZoom(page)
-  await page.getByRole('button', { name: 'Hide with Activity', exact: true }).click()
-  await page.getByRole('button', { name: 'Hide with Activity', exact: true }).click()
+  await page
+    .getByRole('button', { name: 'Hide with Activity', exact: true })
+    .click()
+  await page
+    .getByRole('button', { name: 'Hide with Activity', exact: true })
+    .click()
   await page.getByRole('button', { name: firstName, exact: true }).click()
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(1)
   await dismissZoom(page)
   expect(errors).toEqual([])
 })
 
-test('waits for an Escape-initiated close before opening another image', async ({ page }) => {
+test('waits for an Escape-initiated close before opening another image', async ({
+  page,
+}) => {
   await ready(page)
   await page.getByRole('button', { name: firstName, exact: true }).click()
   await expect(page.locator('.medium-zoom-overlay')).toBeVisible()
@@ -209,15 +263,20 @@ test('waits for an Escape-initiated close before opening another image', async (
     .evaluate(async button => {
       let maximum = 0
       const observer = new MutationObserver(() => {
-        maximum = Math.max(maximum, document.querySelectorAll('.medium-zoom-overlay').length)
+        maximum = Math.max(
+          maximum,
+          document.querySelectorAll('.medium-zoom-overlay').length
+        )
       })
       observer.observe(document.body, { childList: true })
       document.dispatchEvent(new KeyboardEvent('keyup', { key: 'Escape' }))
       ;(button as HTMLButtonElement).click()
       await new Promise<void>(resolve => {
-        button.querySelector('img')!.addEventListener('medium-zoom:opened', () => resolve(), {
-          once: true,
-        })
+        button
+          .querySelector('img')!
+          .addEventListener('medium-zoom:opened', () => resolve(), {
+            once: true,
+          })
       })
       observer.disconnect()
       return maximum
@@ -232,7 +291,9 @@ test('waits for an Escape-initiated close before opening another image', async (
 
 test('measures element containers at the time of opening', async ({ page }) => {
   await ready(page)
-  await page.getByRole('button', { name: 'Constrain to gallery', exact: true }).click()
+  await page
+    .getByRole('button', { name: 'Constrain to gallery', exact: true })
+    .click()
   await page.getByRole('button', { name: firstName, exact: true }).click()
   const clone = page.locator('.medium-zoom-image--opened')
   await expect(clone).toBeVisible()
@@ -278,10 +339,14 @@ test('serves the installable registry with its component source and stylesheet',
   })
 })
 
-test('keeps clones above the overlay despite inline stacking on the source', async ({ page }) => {
+test('keeps clones above the overlay despite inline stacking on the source', async ({
+  page,
+}) => {
   await ready(page)
   const trigger = page.getByRole('button', { name: firstName, exact: true })
-  await trigger.locator('img').evaluate(image => ((image as HTMLElement).style.zIndex = '0'))
+  await trigger
+    .locator('img')
+    .evaluate(image => ((image as HTMLElement).style.zIndex = '0'))
   await trigger.click()
   const clone = page.locator('.medium-zoom-image--opened')
   await expect(clone).toHaveCSS('z-index', '51')
@@ -289,7 +354,9 @@ test('keeps clones above the overlay despite inline stacking on the source', asy
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 })
 
-test('preserves zoom classes across React className changes', async ({ page }) => {
+test('preserves zoom classes across React className changes', async ({
+  page,
+}) => {
   await ready(page)
   const trigger = page.getByRole('button', { name: firstName, exact: true })
   await trigger.click()
@@ -300,13 +367,20 @@ test('preserves zoom classes across React className changes', async ({ page }) =
   await expect(trigger.locator('img')).toHaveClass(/emphasized/)
   await expect(trigger.locator('img')).toHaveClass(/medium-zoom-image--hidden/)
   await dismissZoom(page)
-  await expect(trigger.locator('img')).not.toHaveClass(/medium-zoom-image--hidden/)
+  await expect(trigger.locator('img')).not.toHaveClass(
+    /medium-zoom-image--hidden/
+  )
   await trigger.click()
-  await expect(page.locator('.medium-zoom-image--opened')).toHaveCSS('transition-duration', '0.3s')
+  await expect(page.locator('.medium-zoom-image--opened')).toHaveCSS(
+    'transition-duration',
+    '0.3s'
+  )
   await dismissZoom(page)
 })
 
-test('options changed during a zoom apply to the next opening', async ({ page }) => {
+test('options changed during a zoom apply to the next opening', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1_000, height: 1_100 })
   await ready(page)
   const trigger = page.getByRole('button', { name: firstName, exact: true })
@@ -317,10 +391,14 @@ test('options changed during a zoom apply to the next opening', async ({ page })
   if (composable) {
     // A modal dialog makes the surrounding UI inert: options can only change between zooms.
     await dismissZoom(page)
-    await page.getByRole('button', { name: 'Change margin', exact: true }).press('Enter')
+    await page
+      .getByRole('button', { name: 'Change margin', exact: true })
+      .press('Enter')
   } else {
     // A keyboard user can change the surrounding UI without clicking the overlay.
-    await page.getByRole('button', { name: 'Change margin', exact: true }).press('Enter')
+    await page
+      .getByRole('button', { name: 'Change margin', exact: true })
+      .press('Enter')
     await expect(enlarged).toBeVisible()
     expect((await enlarged.boundingBox())!.width).toBeCloseTo(width, 0)
     await dismissZoom(page)

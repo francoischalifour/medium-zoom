@@ -17,7 +17,10 @@ async function fixture(page: Page, hd = false) {
   })
   // Allow the mobile viewport metadata from setContent to settle before resize dismissal is armed.
   await page.evaluate(
-    () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+    () =>
+      new Promise(resolve =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve))
+      )
   )
   await addModernStyles(page)
   await page.evaluate(async () => {
@@ -26,13 +29,17 @@ async function fixture(page: Page, hd = false) {
     const { containerBounds } = await window.loadEntry('viewport')
     const { templateContent } = await window.loadEntry('content')
     const { dialog } = await window.loadEntry('renderers')
-    const { mountCloseControl } = await import(String('/experiments/gallery-controls.mjs'))
+    const { mountCloseControl } = await import(
+      String('/experiments/gallery-controls.mjs')
+    )
     let selected: import('../../src/medium-zoom').ZoomOptions = {}
     window.modalZoom = createZoom('#image', {
       renderer: dialog({
         content: view => {
           const close = mountCloseControl(view)
-          const content = selected.template ? templateContent(selected.template)(view) : undefined
+          const content = selected.template
+            ? templateContent(selected.template)(view)
+            : undefined
           return () => {
             content?.()
             close()
@@ -41,7 +48,9 @@ async function fixture(page: Page, hd = false) {
       }),
       loader: loadHdImage,
       viewport: (bounds, options) =>
-        selected.container ? containerBounds(selected.container)(bounds, options) : bounds,
+        selected.container
+          ? containerBounds(selected.container)(bounds, options)
+          : bounds,
     })
     window.configureDialog = ({ container, template, ...options }) => {
       if (container !== undefined) {
@@ -60,7 +69,8 @@ async function fixture(page: Page, hd = false) {
     })
     for (const type of ['open', 'opened', 'close', 'closed']) {
       window.modalZoom.on(type, () => {
-        document.body.dataset.events = (document.body.dataset.events || '') + type + ','
+        document.body.dataset.events =
+          (document.body.dataset.events || '') + type + ','
       })
     }
   })
@@ -79,11 +89,16 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
     await page.keyboard.press('Enter')
     const modal = page.getByRole('dialog', { name: 'Mountain' })
     await expect(modal).toBeVisible()
-    await expect(page.locator('body')).toHaveAttribute('data-events', 'open,opened,')
+    await expect(page.locator('body')).toHaveAttribute(
+      'data-events',
+      'open,opened,'
+    )
     await expect(modal.locator('.medium-zoom-image--opened')).toHaveCount(2)
     await expect(modal.getByRole('img')).toHaveCount(1)
     await expect(modal.locator('#template-control')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Close image' })).toBeFocused()
+    await expect(
+      page.getByRole('button', { name: 'Close image' })
+    ).toBeFocused()
     await page.keyboard.press('Tab')
     await expect(page.locator('#template-control')).toBeFocused()
     await page.keyboard.press('Tab')
@@ -91,12 +106,15 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
     expect(
       await page.evaluate(
         () =>
-          document.activeElement === document.body || !!document.activeElement?.closest('dialog')
+          document.activeElement === document.body ||
+          !!document.activeElement?.closest('dialog')
       )
     ).toBe(true)
     await page.keyboard.press('Tab')
     expect(
-      await page.locator('#outside').evaluate(element => element === document.activeElement)
+      await page
+        .locator('#outside')
+        .evaluate(element => element === document.activeElement)
     ).toBe(false)
     await page.keyboard.press('Escape')
     if (reducedMotion === 'no-preference') {
@@ -104,7 +122,10 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
     }
     await expect(modal).toHaveCount(0)
     await expect(page.locator('#trigger')).toBeFocused()
-    await expect(page.locator('body')).toHaveAttribute('data-events', 'open,opened,close,closed,')
+    await expect(page.locator('body')).toHaveAttribute(
+      'data-events',
+      'open,opened,close,closed,'
+    )
     await expect(page.locator('#image')).toBeVisible()
     await page.keyboard.press('Space')
     await expect(page.locator('body')).toHaveAttribute(
@@ -131,21 +152,40 @@ test('top layer and scrolled geometry with custom container, backdrop and image 
     document.body.appendChild(cover)
   })
   const { original, initial } = await page.evaluate(() => {
-    const original = document.querySelector('#image')!.getBoundingClientRect().toJSON()
+    const original = document
+      .querySelector('#image')!
+      .getBoundingClientRect()
+      .toJSON()
     void window.modalZoom.open({
       trigger: document.querySelector('#trigger')!,
     })
-    const initial = document.querySelector('dialog img')!.getBoundingClientRect().toJSON()
+    const initial = document
+      .querySelector('dialog img')!
+      .getBoundingClientRect()
+      .toJSON()
     return { original, initial }
   })
   expect(initial!.x).toBeCloseTo(original!.x, 0)
   expect(initial!.y).toBeCloseTo(original!.y, 0)
-  await expect(page.locator('body')).toHaveAttribute('data-events', 'open,opened,')
+  await expect(page.locator('body')).toHaveAttribute(
+    'data-events',
+    'open,opened,'
+  )
   const box = await page.locator('dialog img').boundingBox()
   const container = await page.locator('#container').boundingBox()
-  expect(box!.x + box!.width / 2).toBeCloseTo(container!.x + container!.width / 2, 0)
-  expect(box!.y + box!.height / 2).toBeCloseTo(container!.y + container!.height / 2, 0)
-  expect(await page.evaluate(() => document.querySelector('dialog')!.matches(':modal'))).toBe(true)
+  expect(box!.x + box!.width / 2).toBeCloseTo(
+    container!.x + container!.width / 2,
+    0
+  )
+  expect(box!.y + box!.height / 2).toBeCloseTo(
+    container!.y + container!.height / 2,
+    0
+  )
+  expect(
+    await page.evaluate(() =>
+      document.querySelector('dialog')!.matches(':modal')
+    )
+  ).toBe(true)
   await page.screenshot({ path: '.cache/dialog.png' })
   await page.locator('dialog img').click()
   await expect(page.locator('dialog')).toHaveCount(0)
@@ -154,7 +194,9 @@ test('top layer and scrolled geometry with custom container, backdrop and image 
   await expect(page.locator('dialog')).toHaveCount(0)
 })
 
-test('Escape cancels pending HD loading and cleanup allows reopening', async ({ page }) => {
+test('Escape cancels pending HD loading and cleanup allows reopening', async ({
+  page,
+}) => {
   await fixture(page, true)
   let release!: () => void
   const gate = new Promise<void>(resolve => {
@@ -172,7 +214,10 @@ test('Escape cancels pending HD loading and cleanup allows reopening', async ({ 
   release()
   await page.unrouteAll({ behavior: 'wait' })
   await expect(page.locator('.medium-zoom-image--opened')).toHaveCount(0)
-  await expect(page.locator('body')).toHaveAttribute('data-events', 'open,close,closed,')
+  await expect(page.locator('body')).toHaveAttribute(
+    'data-events',
+    'open,close,closed,'
+  )
   await page.evaluate(() => window.modalZoom.open())
   await expect(page.locator('dialog img')).toHaveCount(2)
   await page.evaluate(() => window.modalZoom.close())
@@ -211,13 +256,16 @@ test('opening can be interrupted and closed listeners can reopen a fresh modal',
   await expect(page.locator('dialog')).toHaveCount(0)
 })
 
-test('unsupported browsers reject without leaving an active session', async ({ page }) => {
+test('unsupported browsers reject without leaving an active session', async ({
+  page,
+}) => {
   await fixture(page)
   expect(
     await page.evaluate(async () => {
       // oxlint-disable-next-line typescript/unbound-method -- Restore the native method after the capability test.
       const show = HTMLDialogElement.prototype.showModal
-      HTMLDialogElement.prototype.showModal = undefined as unknown as typeof show
+      HTMLDialogElement.prototype.showModal =
+        undefined as unknown as typeof show
       try {
         await window.modalZoom.open()
         return false
@@ -235,7 +283,9 @@ test('unsupported browsers reject without leaving an active session', async ({ p
   })
 })
 
-test('template dialog forms use the animated close lifecycle', async ({ page }) => {
+test('template dialog forms use the animated close lifecycle', async ({
+  page,
+}) => {
   await fixture(page)
   await page.evaluate(() => {
     document.querySelector('template')!.innerHTML =
@@ -243,7 +293,10 @@ test('template dialog forms use the animated close lifecycle', async ({ page }) 
     window.configureDialog({ template: '#template' })
   })
   await page.locator('#trigger').click()
-  await expect(page.locator('body')).toHaveAttribute('data-events', 'open,opened,')
+  await expect(page.locator('body')).toHaveAttribute(
+    'data-events',
+    'open,opened,'
+  )
   await page.evaluate(() =>
     document
       .querySelector('dialog form')!
@@ -253,10 +306,16 @@ test('template dialog forms use the animated close lifecycle', async ({ page }) 
   )
   await page.getByRole('button', { name: 'Done' }).click()
   await expect(page.locator('dialog')).toHaveJSProperty('open', true)
-  await expect(page.locator('body')).toHaveAttribute('data-events', 'open,opened,')
+  await expect(page.locator('body')).toHaveAttribute(
+    'data-events',
+    'open,opened,'
+  )
   await page.getByRole('button', { name: 'Done' }).click()
   await expect(page.locator('dialog')).toHaveCount(0)
-  await expect(page.locator('body')).toHaveAttribute('data-events', 'open,opened,close,closed,')
+  await expect(page.locator('body')).toHaveAttribute(
+    'data-events',
+    'open,opened,close,closed,'
+  )
   await expect(page.locator('#image')).toBeVisible()
 })
 
@@ -284,7 +343,9 @@ test('native close and focus listeners cannot leave stale state or dismiss a fre
   })
   await expect(page.locator('dialog')).toHaveCount(0)
   await expect(page.locator('#image')).toBeVisible()
-  expect(await page.evaluate(() => window.modalZoom.getZoomedImage())).toBeNull()
+  expect(
+    await page.evaluate(() => window.modalZoom.getZoomedImage())
+  ).toBeNull()
 })
 
 test('clone retains the renderer and owns independent sessions; detach cleans up', async ({
@@ -307,11 +368,17 @@ test('clone retains the renderer and owns independent sessions; detach cleans up
   })
 })
 
-test('touch controls and viewport dismissal clean up the modal', async ({ page, isMobile }) => {
+test('touch controls and viewport dismissal clean up the modal', async ({
+  page,
+  isMobile,
+}) => {
   test.skip(!isMobile, 'Touch interaction requires a mobile context')
   await fixture(page)
   await page.locator('#trigger').tap()
-  await expect(page.locator('body')).toHaveAttribute('data-events', 'open,opened,')
+  await expect(page.locator('body')).toHaveAttribute(
+    'data-events',
+    'open,opened,'
+  )
   await page.getByRole('button', { name: 'Close image' }).tap()
   await expect(page.locator('dialog')).toHaveCount(0)
   await page.locator('#trigger').tap()
@@ -351,7 +418,9 @@ test('reentrant opening and autofocus listeners can cancel without leaking a hos
     await window.modalZoom.open()
   })
   await expect(page.locator('dialog')).toHaveCount(0)
-  await expect(page.locator('.medium-zoom-overlay, .medium-zoom-image--opened')).toHaveCount(0)
+  await expect(
+    page.locator('.medium-zoom-overlay, .medium-zoom-image--opened')
+  ).toHaveCount(0)
   await expect(page.locator('#image')).toBeVisible()
   await page.evaluate(async () => {
     await window.modalZoom.open()
@@ -360,7 +429,9 @@ test('reentrant opening and autofocus listeners can cancel without leaking a hos
 })
 
 for (const kind of ['element', 'coordinates'] as const) {
-  test(`${kind} containers retain geometry inside the modal`, async ({ page }) => {
+  test(`${kind} containers retain geometry inside the modal`, async ({
+    page,
+  }) => {
     await fixture(page)
     await page.evaluate(async kind => {
       const element = document.querySelector<HTMLElement>('#container')!
@@ -376,7 +447,10 @@ for (const kind of ['element', 'coordinates'] as const) {
     const image = await page.locator('dialog img').boundingBox()
     const box = await page.locator('#container').boundingBox()
     expect(image!.x + image!.width / 2).toBeCloseTo(box!.x + box!.width / 2, 0)
-    expect(image!.y + image!.height / 2).toBeCloseTo(box!.y + box!.height / 2, 0)
+    expect(image!.y + image!.height / 2).toBeCloseTo(
+      box!.y + box!.height / 2,
+      0
+    )
     await page.evaluate(() => window.modalZoom.close())
   })
 }

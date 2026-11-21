@@ -1,7 +1,12 @@
 import type { Page } from '@playwright/test'
 
 import { testUrl } from '../server-urls.ts'
-import { decodeImages, dismissZoom, observeErrors, openImage } from './helpers.ts'
+import {
+  decodeImages,
+  dismissZoom,
+  observeErrors,
+  openImage,
+} from './helpers.ts'
 import { expect, test } from './website-fixture'
 
 const frameworks = {
@@ -13,7 +18,10 @@ const frameworks = {
   react: {
     label: 'React',
     path: '/react',
-    install: { pnpm: /pnpm dlx shadcn@latest add/, yarn: 'yarn dlx shadcn@latest add' },
+    install: {
+      pnpm: /pnpm dlx shadcn@latest add/,
+      yarn: 'yarn dlx shadcn@latest add',
+    },
   },
 } as const
 type Framework = keyof typeof frameworks
@@ -31,11 +39,15 @@ async function showFramework(page: Page, framework: Framework) {
 
 async function openJavaScriptPage(page: Page) {
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: /Bring images closer/ })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: /Bring images closer/ })
+  ).toBeVisible()
   await decodeImages(page.locator('#zoom-default'))
   await page.evaluate(() => document.fonts.ready)
   const install = await page.locator('.hero-install').boundingBox()
-  expect(install!.y + install!.height).toBeLessThanOrEqual(page.viewportSize()!.height)
+  expect(install!.y + install!.height).toBeLessThanOrEqual(
+    page.viewportSize()!.height
+  )
 }
 
 test('JavaScript page presents the library with the shared preview and code rail', async ({
@@ -43,10 +55,12 @@ test('JavaScript page presents the library with the shared preview and code rail
 }, testInfo) => {
   const errors = observeErrors(page, { includeConsole: true })
   await openJavaScriptPage(page)
-  await expect(page.getByText('Zero dependencies, any framework, React via shadcn.')).toBeVisible()
-  await expect(page.locator('.section-links:visible [aria-current="page"]')).toHaveText(
-    'JavaScript'
-  )
+  await expect(
+    page.getByText('Zero dependencies, any framework, React via shadcn.')
+  ).toBeVisible()
+  await expect(
+    page.locator('.section-links:visible [aria-current="page"]')
+  ).toHaveText('JavaScript')
   await page.screenshot({
     path: testInfo.outputPath('javascript-desktop.png'),
     fullPage: true,
@@ -64,7 +78,9 @@ test('JavaScript page presents the library with the shared preview and code rail
   await expect(card.getByRole('tabpanel')).toContainText('data-zoomable')
   await expect(card.getByRole('tabpanel')).not.toContainText('mediumZoom(')
   await expect(card.getByRole('tabpanel').locator('img')).toHaveCount(0)
-  await expect(page.locator('#usage-code')).toContainText("mediumZoom('[data-zoomable]'")
+  await expect(page.locator('#usage-code')).toContainText(
+    "mediumZoom('[data-zoomable]'"
+  )
   expect(errors).toEqual([])
 })
 
@@ -86,8 +102,12 @@ test('shared navigation preserves theme and typography across both pages and bac
     .click()
   await expect(page).toHaveURL(`${testUrl}/react`)
   await expect(page.locator('html')).toHaveClass('dark')
-  await expect(page.locator('.section-links:visible [aria-current="page"]')).toHaveText('React')
-  await expect(page.getByRole('heading', { name: /Bring images closer/ })).toBeVisible()
+  await expect(
+    page.locator('.section-links:visible [aria-current="page"]')
+  ).toHaveText('React')
+  await expect(
+    page.getByRole('heading', { name: /Bring images closer/ })
+  ).toBeVisible()
   const nextHeader = await page.locator('.navigation').boundingBox()
   expect(nextHeader).toEqual(header)
   await page.screenshot({
@@ -99,13 +119,17 @@ test('shared navigation preserves theme and typography across both pages and bac
     .getByRole('navigation', { name: 'Main navigation', exact: true })
     .getByRole('link', { name: 'JavaScript', exact: true })
     .click()
-  await expect(page.getByRole('heading', { name: /Bring images closer/ })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: /Bring images closer/ })
+  ).toBeVisible()
   await expect(page.locator('html')).not.toHaveClass('dark')
   await page.getByRole('button', { name: 'Switch to dark theme' }).click()
   await page.goBack()
   await expect(page).toHaveURL(`${testUrl}/react`)
   await expect(page.locator('html')).toHaveClass('dark')
-  await expect(page.getByRole('button', { name: 'Switch to light theme' })).toBeVisible()
+  await expect(
+    page.getByRole('button', { name: 'Switch to light theme' })
+  ).toBeVisible()
 })
 
 test('JavaScript page commands copy the selected package manager and usage', async ({
@@ -113,15 +137,28 @@ test('JavaScript page commands copy the selected package manager and usage', asy
   context,
   browserName,
 }) => {
-  test.skip(browserName !== 'chromium', 'Clipboard read permission is available in Chromium.')
+  test.skip(
+    browserName !== 'chromium',
+    'Clipboard read permission is available in Chromium.'
+  )
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await openJavaScriptPage(page)
-  await page.locator('.hero-install').getByRole('radio', { name: 'npm', exact: true }).focus()
+  await page
+    .locator('.hero-install')
+    .getByRole('radio', { name: 'npm', exact: true })
+    .focus()
   await page.keyboard.press('ArrowRight')
-  await page.locator('.hero-install').getByRole('button', { name: 'Copy install command' }).click()
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('pnpm add medium-zoom')
+  await page
+    .locator('.hero-install')
+    .getByRole('button', { name: 'Copy install command' })
+    .click()
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+    'pnpm add medium-zoom'
+  )
   await page.getByRole('button', { name: 'Copy usage code' }).click()
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(/margin: 24/)
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(
+    /margin: 24/
+  )
   expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(
     /import mediumZoom from 'medium-zoom'/
   )
@@ -130,11 +167,15 @@ test('JavaScript page commands copy the selected package manager and usage', asy
     exact: true,
   })
   await card.getByRole('tab', { name: 'Code', exact: true }).click()
-  await card.getByRole('button', { name: 'Copy landscape code', exact: true }).click()
+  await card
+    .getByRole('button', { name: 'Copy landscape code', exact: true })
+    .click()
   expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(
     /<img[\s\S]*data-zoomable\n>/
   )
-  expect(await page.evaluate(() => navigator.clipboard.readText())).not.toMatch(/<span|--hls-/)
+  expect(await page.evaluate(() => navigator.clipboard.readText())).not.toMatch(
+    /<span|--hls-/
+  )
 })
 
 test('mobile navigation remains usable and both pages fit the viewport', async ({
@@ -143,7 +184,11 @@ test('mobile navigation remains usable and both pages fit the viewport', async (
   await page.setViewportSize({ width: 390, height: 844 })
   await openJavaScriptPage(page)
   await expect
-    .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+    .poll(() =>
+      page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth
+      )
+    )
     .toBe(true)
   const section = page.getByRole('combobox', { name: 'Section', exact: true })
   await expect(section).toBeVisible()
@@ -153,7 +198,9 @@ test('mobile navigation remains usable and both pages fit the viewport', async (
   })
   await section.selectOption('React')
   await expect(page).toHaveURL(`${testUrl}/react`)
-  await expect(page.getByRole('heading', { name: /Bring images closer/ })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: /Bring images closer/ })
+  ).toBeVisible()
   await expect(section).toHaveValue('/react')
   await page.screenshot({
     path: testInfo.outputPath('react-mobile.png'),
@@ -161,7 +208,11 @@ test('mobile navigation remains usable and both pages fit the viewport', async (
   })
   await page.setViewportSize({ width: 320, height: 740 })
   await expect
-    .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+    .poll(() =>
+      page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth
+      )
+    )
     .toBe(true)
   await expect(section).toBeInViewport({ ratio: 1 })
   await page.goBack()
@@ -177,10 +228,14 @@ test('system theme is respected before interaction and explicit preference survi
   await page.getByRole('button', { name: 'Switch to light theme' }).click()
   await page.reload()
   await expect(page.locator('html')).not.toHaveClass('dark')
-  await expect(page.getByRole('button', { name: 'Switch to dark theme' })).toBeVisible()
+  await expect(
+    page.getByRole('button', { name: 'Switch to dark theme' })
+  ).toBeVisible()
 })
 
-test('both pages end with an install action and one curated gallery', async ({ page }) => {
+test('both pages end with an install action and one curated gallery', async ({
+  page,
+}) => {
   await openJavaScriptPage(page)
   for (const framework of frameworkNames) {
     await showFramework(page, framework)
@@ -188,10 +243,21 @@ test('both pages end with an install action and one curated gallery', async ({ p
       name: 'Image zoom examples',
       exact: true,
     })
-    await expect(page.getByLabel('Scrollable examples', { exact: true })).toHaveCount(1)
+    await expect(
+      page.getByLabel('Scrollable examples', { exact: true })
+    ).toHaveCount(1)
     await expect(main.getByRole('article')).toHaveCount(6)
-    await expect(main.getByRole('article', { name: 'Panorama example' })).toHaveCount(0)
-    for (const name of ['Landscape', 'Portrait', 'Mountains', 'Earth', 'Architecture', 'Aurora']) {
+    await expect(
+      main.getByRole('article', { name: 'Panorama example' })
+    ).toHaveCount(0)
+    for (const name of [
+      'Landscape',
+      'Portrait',
+      'Mountains',
+      'Earth',
+      'Architecture',
+      'Aurora',
+    ]) {
       const card = main.getByRole('article', {
         name: `${name} example`,
         exact: true,
@@ -213,12 +279,16 @@ test('both pages end with an install action and one curated gallery', async ({ p
     await expect(
       closing.getByRole('button', { name: 'Copy install command', exact: true })
     ).toBeVisible()
-    const ids = await page.locator('[id]').evaluateAll(nodes => nodes.map(node => node.id))
+    const ids = await page
+      .locator('[id]')
+      .evaluateAll(nodes => nodes.map(node => node.id))
     expect(new Set(ids).size).toBe(ids.length)
   }
 })
 
-test('rails start on the content grid and scroll across the viewport', async ({ page }) => {
+test('rails start on the content grid and scroll across the viewport', async ({
+  page,
+}) => {
   await openJavaScriptPage(page)
   for (const framework of frameworkNames) {
     await showFramework(page, framework)
@@ -228,21 +298,31 @@ test('rails start on the content grid and scroll across the viewport', async ({ 
     })
     const rail = section.locator('.example-rail')
     const first = section.getByRole('article').first()
-    const heading = await section.getByRole('heading', { name: 'Try the zoom.' }).boundingBox()
+    const heading = await section
+      .getByRole('heading', { name: 'Try the zoom.' })
+      .boundingBox()
     const card = await first.boundingBox()
     const bounds = await rail.boundingBox()
     expect(Math.abs(card!.x - heading!.x)).toBeLessThan(2)
     expect(Math.abs(bounds!.x)).toBeLessThan(2)
     expect(Math.abs(bounds!.width - page.viewportSize()!.width)).toBeLessThan(2)
-    await section.getByRole('button', { name: 'Next example', exact: true }).click()
-    await expect.poll(async () => (await first.boundingBox())!.x).toBeLessThan(0)
+    await section
+      .getByRole('button', { name: 'Next example', exact: true })
+      .click()
+    await expect
+      .poll(async () => (await first.boundingBox())!.x)
+      .toBeLessThan(0)
     expect(
-      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth
+      )
     ).toBe(true)
   }
 })
 
-test('the code font loads after the first paint without blocking it', async ({ page }) => {
+test('the code font loads after the first paint without blocking it', async ({
+  page,
+}) => {
   await openJavaScriptPage(page)
   await expect(page.locator('link[rel="preload"][as="font"]')).toHaveCount(0)
   const fontStarts = () =>
@@ -269,45 +349,69 @@ test('package manager preference follows navigation, reloads, and other tabs', a
     .locator('.hero-install')
     .getByRole('radio', { name: 'pnpm', exact: true })
     .press('Space')
-  await expect(page.locator('.hero-install pre')).toContainText('pnpm add medium-zoom')
+  await expect(page.locator('.hero-install pre')).toContainText(
+    'pnpm add medium-zoom'
+  )
   await page.reload()
   await expect(
-    page.locator('.hero-install').getByRole('radio', { name: 'pnpm', exact: true })
+    page
+      .locator('.hero-install')
+      .getByRole('radio', { name: 'pnpm', exact: true })
   ).toBeChecked()
-  await expect(page.locator('.hero-install pre')).toContainText('pnpm add medium-zoom')
+  await expect(page.locator('.hero-install pre')).toContainText(
+    'pnpm add medium-zoom'
+  )
 
   await page.getByRole('link', { name: 'React component', exact: true }).click()
   await expect(
-    page.locator('.hero-install').getByRole('radio', { name: 'pnpm', exact: true })
+    page
+      .locator('.hero-install')
+      .getByRole('radio', { name: 'pnpm', exact: true })
   ).toBeChecked()
-  await expect(page.locator('.hero-install pre')).toContainText('pnpm dlx shadcn@latest add')
+  await expect(page.locator('.hero-install pre')).toContainText(
+    'pnpm dlx shadcn@latest add'
+  )
   await page
     .locator('.hero-install')
     .getByRole('radio', { name: 'bun', exact: true })
     .press('Space')
   await page.goBack()
   await expect(
-    page.locator('.hero-install').getByRole('radio', { name: 'bun', exact: true })
+    page
+      .locator('.hero-install')
+      .getByRole('radio', { name: 'bun', exact: true })
   ).toBeChecked()
-  await expect(page.locator('.hero-install pre')).toContainText('bun add medium-zoom')
+  await expect(page.locator('.hero-install pre')).toContainText(
+    'bun add medium-zoom'
+  )
 
   const otherTab = await context.newPage()
   await otherTab.goto('/react')
   await expect(
-    otherTab.locator('.hero-install').getByRole('radio', { name: 'bun', exact: true })
+    otherTab
+      .locator('.hero-install')
+      .getByRole('radio', { name: 'bun', exact: true })
   ).toBeChecked()
   await otherTab
     .locator('.hero-install')
     .getByRole('radio', { name: 'yarn', exact: true })
     .press('Space')
-  await expect(otherTab.locator('.hero-install pre')).toContainText('yarn dlx shadcn@latest add')
+  await expect(otherTab.locator('.hero-install pre')).toContainText(
+    'yarn dlx shadcn@latest add'
+  )
   await expect(
-    page.locator('.hero-install').getByRole('radio', { name: 'yarn', exact: true })
+    page
+      .locator('.hero-install')
+      .getByRole('radio', { name: 'yarn', exact: true })
   ).toBeChecked()
-  await expect(page.locator('.hero-install pre')).toContainText('yarn add medium-zoom')
+  await expect(page.locator('.hero-install pre')).toContainText(
+    'yarn add medium-zoom'
+  )
   await otherTab.reload()
   await expect(
-    otherTab.locator('.hero-install').getByRole('radio', { name: 'yarn', exact: true })
+    otherTab
+      .locator('.hero-install')
+      .getByRole('radio', { name: 'yarn', exact: true })
   ).toBeChecked()
 })
 
@@ -324,7 +428,9 @@ test('guide links underline only on hover', async ({ page }) => {
   }
 })
 
-test('mobile bar shows the section select right after the branding', async ({ page }) => {
+test('mobile bar shows the section select right after the branding', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await openJavaScriptPage(page)
   for (const framework of frameworkNames) {
@@ -341,24 +447,31 @@ test('mobile bar shows the section select right after the branding', async ({ pa
       })
       // The select's trigger carries the brand name next to the mark.
       await expect(page.locator('.brand-name')).toBeHidden()
-      await expect(bar.getByRole('link', { name: 'React', exact: true })).toHaveCount(0)
+      await expect(
+        bar.getByRole('link', { name: 'React', exact: true })
+      ).toHaveCount(0)
       await expect(section).toHaveValue(frameworks[framework].path)
-      const brandBox = (await bar.getByRole('link', { name: 'medium-zoom home' }).boundingBox())!
+      const brandBox = (await bar
+        .getByRole('link', { name: 'medium-zoom home' })
+        .boundingBox())!
       const sectionBox = (await section.boundingBox())!
       const navLinks = (await bar.locator('.nav-links').boundingBox())!
       const utilities = (await bar
         .getByRole('button', { name: /Switch to .* theme/ })
         .boundingBox())!
-      const middle = (box: { y: number; height: number }) => box.y + box.height / 2
+      const middle = (box: { y: number; height: number }) =>
+        box.y + box.height / 2
       expect(Math.abs(middle(brandBox) - middle(utilities))).toBeLessThan(1)
       expect(Math.abs(middle(sectionBox) - middle(utilities))).toBeLessThan(1)
       expect(sectionBox.x).toBeGreaterThan(brandBox.x + brandBox.width)
       expect(sectionBox.x - (brandBox.x + brandBox.width)).toBeLessThan(16)
       expect(sectionBox.x + sectionBox.width).toBeLessThan(navLinks.x)
       expect(utilities.x + utilities.width).toBeLessThanOrEqual(width)
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
-        true
-      )
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth
+        )
+      ).toBe(true)
       if (width === 390) {
         await page.screenshot({
           path: `/tmp/medium-zoom-mobile-navigation-${framework}.png`,
@@ -384,10 +497,14 @@ for (const framework of frameworkNames) {
     const sectionBox = (await section.boundingBox())!
     const firstBox = (await first.boundingBox())!
     const outsideCard = async () =>
-      page.evaluate(({ x, y }) => !!document.elementFromPoint(x, y)?.closest('.example-card'), {
-        x: sectionBox.x + sectionBox.width + 80,
-        y: (await first.boundingBox())!.y + 160,
-      })
+      page.evaluate(
+        ({ x, y }) =>
+          !!document.elementFromPoint(x, y)?.closest('.example-card'),
+        {
+          x: sectionBox.x + sectionBox.width + 80,
+          y: (await first.boundingBox())!.y + 160,
+        }
+      )
     await expect.poll(outsideCard).toBe(false)
     if (framework === 'javascript') {
       await page.screenshot({ path: '/tmp/medium-zoom-wide-rail-resting.png' })
@@ -397,18 +514,24 @@ for (const framework of frameworkNames) {
     expect((await first.boundingBox())!.x).toBe(firstBox.x)
     await page.mouse.move(100, 100)
     await expect.poll(outsideCard).toBe(true)
-    await section.getByRole('button', { name: 'Next example', exact: true }).focus()
+    await section
+      .getByRole('button', { name: 'Next example', exact: true })
+      .focus()
     await page.keyboard.press('Tab')
     await expect(rail).toBeFocused()
     await expect.poll(outsideCard).toBe(true)
     await page.keyboard.press('ArrowRight')
-    await expect.poll(() => rail.evaluate(element => element.scrollLeft)).toBeGreaterThan(0)
+    await expect
+      .poll(() => rail.evaluate(element => element.scrollLeft))
+      .toBeGreaterThan(0)
     const position = await rail.evaluate(element => element.scrollLeft)
     await page.getByRole('button', { name: /Switch to .* theme/ }).focus()
     await expect.poll(outsideCard).toBe(true)
     await page
       .locator('#usage-title')
-      .evaluate(element => element.scrollIntoView({ block: 'start', behavior: 'instant' }))
+      .evaluate(element =>
+        element.scrollIntoView({ block: 'start', behavior: 'instant' })
+      )
     await expect
       .poll(() =>
         rail.evaluate(element => {
@@ -423,12 +546,18 @@ for (const framework of frameworkNames) {
     await section.getByRole('heading').hover()
     await expect.poll(outsideCard).toBe(true)
     expect(await rail.evaluate(element => element.scrollLeft)).toBe(position)
-    await section.getByRole('button', { name: 'Next example', exact: true }).click()
-    await expect.poll(() => rail.evaluate(element => element.scrollLeft)).toBeGreaterThan(position)
+    await section
+      .getByRole('button', { name: 'Next example', exact: true })
+      .click()
+    await expect
+      .poll(() => rail.evaluate(element => element.scrollLeft))
+      .toBeGreaterThan(position)
     const nextPosition = await rail.evaluate(element => element.scrollLeft)
     await page.mouse.move(100, 100)
     await expect.poll(outsideCard).toBe(true)
-    expect(await rail.evaluate(element => element.scrollLeft)).toBe(nextPosition)
+    expect(await rail.evaluate(element => element.scrollLeft)).toBe(
+      nextPosition
+    )
   })
 }
 
@@ -440,8 +569,13 @@ for (const framework of frameworkNames) {
       await page.emulateMedia({ reducedMotion: motion })
       await openJavaScriptPage(page)
       await showFramework(page, framework)
-      await expect(page.locator('html')).toHaveCSS('scroll-behavior', scrollBehaviors[motion])
-      await page.getByRole('link', { name: 'Start building', exact: true }).click()
+      await expect(page.locator('html')).toHaveCSS(
+        'scroll-behavior',
+        scrollBehaviors[motion]
+      )
+      await page
+        .getByRole('link', { name: 'Start building', exact: true })
+        .click()
       await expect(page).toHaveURL(/#usage-title$/)
       await expect(page.locator('#usage-title')).toBeFocused()
       // Native scrolling rounds fractional positions to device pixels.
@@ -449,7 +583,9 @@ for (const framework of frameworkNames) {
         .poll(() =>
           page
             .locator('#usage-title')
-            .evaluate(element => Math.abs(element.getBoundingClientRect().top - 88))
+            .evaluate(element =>
+              Math.abs(element.getBoundingClientRect().top - 88)
+            )
         )
         .toBeLessThanOrEqual(1)
       const heading = (await page.locator('#usage-title').boundingBox())!
@@ -464,30 +600,44 @@ test('the closing action copies the selected installation command', async ({
   context,
   browserName,
 }) => {
-  test.skip(browserName !== 'chromium', 'Clipboard read permission is available in Chromium.')
+  test.skip(
+    browserName !== 'chromium',
+    'Clipboard read permission is available in Chromium.'
+  )
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await openJavaScriptPage(page)
   for (const framework of frameworkNames) {
     await showFramework(page, framework)
-    await page.locator('.hero-install').getByRole('radio', { name: 'pnpm', exact: true }).check()
+    await page
+      .locator('.hero-install')
+      .getByRole('radio', { name: 'pnpm', exact: true })
+      .check()
     const closing = page.getByRole('region', {
       name: 'Add zoom to your project.',
       exact: true,
     })
-    await closing.getByRole('button', { name: 'Copy install command', exact: true }).click()
+    await closing
+      .getByRole('button', { name: 'Copy install command', exact: true })
+      .click()
     expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(
       frameworks[framework].install.pnpm
     )
     await expect(closing.getByRole('status')).toHaveText('Copied to clipboard')
     await closing.getByRole('radio', { name: 'yarn', exact: true }).check()
     await expect(
-      page.locator('.hero-install').getByRole('radio', { name: 'yarn', exact: true })
+      page
+        .locator('.hero-install')
+        .getByRole('radio', { name: 'yarn', exact: true })
     ).toBeChecked()
-    await expect(closing.locator('pre')).toContainText(frameworks[framework].install.yarn)
+    await expect(closing.locator('pre')).toContainText(
+      frameworks[framework].install.yarn
+    )
   }
 })
 
-test('wide rail gradient edges follow resizing immediately', async ({ page }) => {
+test('wide rail gradient edges follow resizing immediately', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1_920, height: 1_080 })
   await openJavaScriptPage(page)
   await page.mouse.move(100, 100)

@@ -23,7 +23,9 @@ try {
       }
     })
   )
-  const errors = results.filter(result => result.status === 'rejected').map(result => result.reason)
+  const errors = results
+    .filter(result => result.status === 'rejected')
+    .map(result => result.reason)
   if (errors.length) {
     throw new AggregateError(errors, 'Standalone example checks failed')
   }
@@ -51,7 +53,11 @@ async function checkExample(name: string) {
         if (code === 0) {
           resolve()
         } else {
-          reject(new Error(`${name}: npm ${args.join(' ')} failed (${signal || code})`))
+          reject(
+            new Error(
+              `${name}: npm ${args.join(' ')} failed (${signal || code})`
+            )
+          )
         }
       })
     })

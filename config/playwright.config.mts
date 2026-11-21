@@ -5,7 +5,8 @@ import { defineConfig, devices } from '@playwright/test'
 import { reserveTestPorts } from './test-ports.mts'
 
 const repositoryRoot = fileURLToPath(new URL('../', import.meta.url))
-const { testUrl, sveltePort, svelteDevUrl, shadcnPort, shadcnDevUrl } = await reserveTestPorts()
+const { testUrl, sveltePort, svelteDevUrl, shadcnPort, shadcnDevUrl } =
+  await reserveTestPorts()
 // Touch devices run the mobile suite and every suite of the composable modal and gallery.
 const mobileSpecs = [
   'mobile',
@@ -26,7 +27,10 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 2 : undefined,
-  reporter: [['list'], ['html', { open: 'never', outputFolder: '../.cache/playwright/report' }]],
+  reporter: [
+    ['list'],
+    ['html', { open: 'never', outputFolder: '../.cache/playwright/report' }],
+  ],
   use: { baseURL: testUrl, trace: 'retain-on-failure' },
   projects: [
     {

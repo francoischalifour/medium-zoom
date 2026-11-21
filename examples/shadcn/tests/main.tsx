@@ -7,7 +7,11 @@ import { Fixture } from './Fixture'
 import './style.css'
 
 const Page = new URLSearchParams(location.search).has('compound')
-  ? () => <CompoundFixture initiallyOpen={new URLSearchParams(location.search).has('open')} />
+  ? () => (
+      <CompoundFixture
+        initiallyOpen={new URLSearchParams(location.search).has('open')}
+      />
+    )
   : Fixture
 
 const root = document.getElementById('root')!

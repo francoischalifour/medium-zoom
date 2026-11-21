@@ -57,7 +57,11 @@ const LEGACY_FALLBACKS = [
 type ModuleFormat = 'esm' | 'cjs' | 'umd'
 
 function moduleFormat(path: string): ModuleFormat {
-  if (path.endsWith('.mjs') || path.endsWith('.esm.js') || path === 'pure/index.js') {
+  if (
+    path.endsWith('.mjs') ||
+    path.endsWith('.esm.js') ||
+    path === 'pure/index.js'
+  ) {
     return 'esm'
   }
   return path.endsWith('.cjs') ? 'cjs' : 'umd'
@@ -89,7 +93,11 @@ function runCommonJs(code: string, file: string) {
 /** Loads a packed script the way its consumers do and checks its primary export. */
 const checkExports: Record<
   ModuleFormat,
-  (code: string, file: string, primaryExport: string | undefined) => Promise<void> | void
+  (
+    code: string,
+    file: string,
+    primaryExport: string | undefined
+  ) => Promise<void> | void
 > = {
   async esm(code, file, primaryExport) {
     const loaded = await import(
@@ -101,7 +109,11 @@ const checkExports: Record<
   },
   cjs(code, file, primaryExport) {
     const exports = runCommonJs(code, file) as Record<string, unknown>
-    assert.equal(typeof (primaryExport ? exports[primaryExport] : exports), 'function', file)
+    assert.equal(
+      typeof (primaryExport ? exports[primaryExport] : exports),
+      'function',
+      file
+    )
   },
   umd(code, file) {
     const context: Record<string, unknown> = {
@@ -111,8 +123,16 @@ const checkExports: Record<
       Map: undefined,
     }
     runInNewContext(code, context)
-    assert.equal(typeof context.mediumZoom, 'function', `${file} browser global`)
-    assert.equal(typeof runCommonJs(code, file), 'function', `${file} CommonJS export`)
+    assert.equal(
+      typeof context.mediumZoom,
+      'function',
+      `${file} browser global`
+    )
+    assert.equal(
+      typeof runCommonJs(code, file),
+      'function',
+      `${file} CommonJS export`
+    )
     let amd: unknown
     const define = (_dependencies: string[], factory: () => unknown) => {
       amd = factory()
@@ -123,7 +143,10 @@ const checkExports: Record<
   },
 }
 
-async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boolean) {
+async function checkPackage(
+  artifact: ReturnType<typeof pack>,
+  experimental: boolean
+) {
   try {
     const packedFiles = readdirSync(artifact.root, {
       recursive: true,
@@ -146,7 +169,9 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
         ? 'all experimental entries + legacy files'
         : 'legacy distributions + declarations/docs',
     ])
-    const metadata = JSON.parse(readFileSync(join(artifact.root, 'package.json'), 'utf8'))
+    const metadata = JSON.parse(
+      readFileSync(join(artifact.root, 'package.json'), 'utf8')
+    )
     assert.equal(metadata.main, 'dist/medium-zoom.min.js')
     assert.equal(metadata.module, 'dist/medium-zoom.esm.js')
     assert.equal(metadata.types, 'dist/medium-zoom.d.ts')
@@ -200,14 +225,18 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
         'The release tarball must not contain private sources, fixtures, or experimental outputs'
       )
       assert.deepEqual(
-        files.filter(path => statSync(join(artifact.root, 'dist', path)).isFile()).sort(),
+        files
+          .filter(path => statSync(join(artifact.root, 'dist', path)).isFile())
+          .sort(),
         releasedFiles.sort(),
         'The npm tarball must contain only the existing v1 distributions'
       )
     }
     const expectedScripts = releasedFiles.filter(path => path.endsWith('.js'))
     if (experimental) {
-      expectedScripts.push(...candidateArtifacts.map(path => path.slice('dist/'.length)))
+      expectedScripts.push(
+        ...candidateArtifacts.map(path => path.slice('dist/'.length))
+      )
     }
     const scripts = files.filter(path => /\.(?:[mc])?js$/.test(path))
     assert.deepEqual([...scripts].sort(), expectedScripts.sort())
@@ -218,18 +247,32 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
       const format = moduleFormat(path)
       // Release artifacts are not in the candidate catalog; they all use the compat profile.
       const profile: Profile =
-        candidateEntries.find(entry => entry.esm === `dist/${path}` || entry.cjs === `dist/${path}`)
-          ?.profile ?? 'compat'
+        candidateEntries.find(
+          entry => entry.esm === `dist/${path}` || entry.cjs === `dist/${path}`
+        )?.profile ?? 'compat'
       const modern = profile === 'modern'
-      parse(code, { ecmaVersion: profileSyntax[profile][format], sourceType: sourceTypes[format] })
+      parse(code, {
+        ecmaVersion: profileSyntax[profile][format],
+        sourceType: sourceTypes[format],
+      })
       // ESM syntax is intentionally retained; its implementation must still be ES5.
       if (format === 'esm' && !modern) {
         parse(code.replace(/export\s*\{[^}]+\};?\s*$/, ''), { ecmaVersion: 5 })
       }
       const banner = `/*! medium-zoom ${metadata.version} | MIT License | https://github.com/francoischalifour/medium-zoom */`
-      assert(code.startsWith(banner + '\n'), `${path} must start with the release banner`)
-      assert.equal(code.split(banner).length - 1, 1, `${path} must contain exactly one banner`)
-      assert(!code.includes('#platform'), `${path} must resolve its platform at build time`)
+      assert(
+        code.startsWith(banner + '\n'),
+        `${path} must start with the release banner`
+      )
+      assert.equal(
+        code.split(banner).length - 1,
+        1,
+        `${path} must contain exactly one banner`
+      )
+      assert(
+        !code.includes('#platform'),
+        `${path} must resolve its platform at build time`
+      )
       for (const fallback of LEGACY_FALLBACKS) {
         assert.equal(
           code.includes(fallback),
@@ -241,11 +284,18 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
         // No browser from the support table runs in CI, so reject the DOM and language
         // APIs that Internet Explorer 10 lacks instead of discovering them there.
         for (const [api, pattern] of Object.entries(LEGACY_UNSUPPORTED_APIS)) {
-          assert(!pattern.test(code), `${path} must not use ${api}: unavailable in IE 10`)
+          assert(
+            !pattern.test(code),
+            `${path} must not use ${api}: unavailable in IE 10`
+          )
         }
       }
       assert(!code.includes('__TEST__'), `${path} must not ship test branches`)
-      await checkExports[format](code, file, entryFunctions[path.split('/')[0]!])
+      await checkExports[format](
+        code,
+        file,
+        entryFunctions[path.split('/')[0]!]
+      )
     }
 
     assert.equal(
@@ -253,7 +303,10 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
       readFileSync(join(artifact.root, 'dist/pure/index.d.ts'), 'utf8')
     )
     assert(
-      !readFileSync(join(artifact.root, 'dist/medium-zoom.d.ts'), 'utf8').includes('trigger?:'),
+      !readFileSync(
+        join(artifact.root, 'dist/medium-zoom.d.ts'),
+        'utf8'
+      ).includes('trigger?:'),
       'Release declarations must not expose modal trigger options'
     )
     const css = readFileSync(join(artifact.root, 'dist/style.css'), 'utf8')
@@ -261,9 +314,15 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
     assert(css.includes('cursor:zoom-out'))
 
     if (experimental) {
-      const modernCss = readFileSync(join(artifact.root, 'dist/modern/style.css'), 'utf8')
+      const modernCss = readFileSync(
+        join(artifact.root, 'dist/modern/style.css'),
+        'utf8'
+      )
       assert(!modernCss.includes('cursor:pointer'))
-      assert(modernCss.includes('cursor:zoom-in') && modernCss.includes('cursor:zoom-out'))
+      assert(
+        modernCss.includes('cursor:zoom-in') &&
+          modernCss.includes('cursor:zoom-out')
+      )
     }
 
     await checkAnalyzers(artifact.archive, experimental)
@@ -285,7 +344,9 @@ assert.equal(
   'Private fixture checks must not mutate release metadata'
 )
 
-console.log('\nPACKAGE CONTENTS · npm download/install cost, not browser bundle cost')
+console.log(
+  '\nPACKAGE CONTENTS · npm download/install cost, not browser bundle cost'
+)
 table(
   [
     'Manifest',

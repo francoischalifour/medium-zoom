@@ -11,10 +11,14 @@ const snippetSources = new Map<string, string>()
 const snippetExtensions = { js: 'ts', tsx: 'tsx' } as const
 type SnippetLanguage = keyof typeof snippetExtensions
 
-for (const file of readdirSync(docsDirectory).filter(file => file.endsWith('.mdx'))) {
+for (const file of readdirSync(docsDirectory).filter(file =>
+  file.endsWith('.mdx')
+)) {
   const text = readFileSync(resolve(docsDirectory, file), 'utf8')
   let snippetIndex = 0
-  for (const [, language, code] of text.matchAll(/^```(js|tsx)\n([\s\S]*?)^```/gm)) {
+  for (const [, language, code] of text.matchAll(
+    /^```(js|tsx)\n([\s\S]*?)^```/gm
+  )) {
     const zoomDeclaration =
       /\bzoom\./.test(code) && !/\bconst zoom\b/.test(code)
         ? "import type { Zoom } from 'medium-zoom'; declare const zoom: Zoom;\n"
@@ -30,7 +34,11 @@ for (const file of readdirSync(docsDirectory).filter(file => file.endsWith('.mdx
 }
 const configPath = resolve('website/tsconfig.json')
 const config = ts.readConfigFile(configPath, file => ts.sys.readFile(file))
-const { options } = ts.parseJsonConfigFileContent(config.config, ts.sys, resolve('website'))
+const { options } = ts.parseJsonConfigFileContent(
+  config.config,
+  ts.sys,
+  resolve('website')
+)
 const host = ts.createCompilerHost(options)
 const readFile = host.readFile.bind(host)
 const fileExists = host.fileExists.bind(host)

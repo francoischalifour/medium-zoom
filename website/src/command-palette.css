@@ -257,7 +257,11 @@ body:has(.command-palette[open]) {
   color: inherit;
   font-weight: inherit;
   text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--command-match) 65%, transparent);
+  text-decoration-color: color-mix(
+    in srgb,
+    var(--command-match) 65%,
+    transparent
+  );
   text-decoration-thickness: 1.5px;
   text-underline-offset: 3px;
 }

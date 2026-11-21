@@ -2,7 +2,12 @@ import { execFileSync } from 'node:child_process'
 
 import { expect, type Page, test } from '@playwright/test'
 
-import { decodeImages, dismissZoom, observeErrors, openImage } from './helpers.ts'
+import {
+  decodeImages,
+  dismissZoom,
+  observeErrors,
+  openImage,
+} from './helpers.ts'
 
 // MEDIUM_ZOOM_SHADCN=composable runs this suite against the component rewritten on the
 // composable entries (core, loaders, viewport, session) instead of the published one.
@@ -20,11 +25,17 @@ async function activate(page: Page, name: string) {
     .evaluate(button => (button as HTMLButtonElement).click())
 }
 
-test('namespace parts hydrate server markup and forward native element refs', async ({ page }) => {
+test('namespace parts hydrate server markup and forward native element refs', async ({
+  page,
+}) => {
   const errors = observeErrors(page)
-  const markup = execFileSync('bun', ['examples/shadcn/tests/ssr.tsx', '--compound'], {
-    encoding: 'utf8',
-  })
+  const markup = execFileSync(
+    'bun',
+    ['examples/shadcn/tests/ssr.tsx', '--compound'],
+    {
+      encoding: 'utf8',
+    }
+  )
   await page.route('**/playground.html?compound', async route => {
     const response = await route.fetch()
     await route.fulfill({
@@ -37,18 +48,26 @@ test('namespace parts hydrate server markup and forward native element refs', as
   })
   await ready(page)
   await page.getByRole('button', { name: 'Inspect part refs' }).click()
-  await expect(page.getByRole('status', { name: 'Part refs' })).toHaveText('BUTTON IMG')
+  await expect(page.getByRole('status', { name: 'Part refs' })).toHaveText(
+    'BUTTON IMG'
+  )
   await page.getByRole('button', { name: oceanName }).focus()
   await page.keyboard.press('Space')
   await expect(page.locator('.medium-zoom-overlay')).toBeVisible()
-  await expect(page.getByRole('status', { name: 'Controlled requests' })).toHaveText('[true]')
+  await expect(
+    page.getByRole('status', { name: 'Controlled requests' })
+  ).toHaveText('[true]')
   await dismissZoom(page)
-  await expect(page.getByRole('status', { name: 'Controlled requests' })).toHaveText('[true,false]')
+  await expect(
+    page.getByRole('status', { name: 'Controlled requests' })
+  ).toHaveText('[true,false]')
   expect(errors).toEqual([])
 })
 
 for (const dismissal of ['Escape', 'click', 'scroll']) {
-  test(`uncontrolled parts report opening and ${dismissal} dismissal once`, async ({ page }) => {
+  test(`uncontrolled parts report opening and ${dismissal} dismissal once`, async ({
+    page,
+  }) => {
     await ready(page)
     const trigger = page.getByRole('button', { name: boardName })
     await openImage(page, trigger.locator('img'), { trigger })
@@ -60,9 +79,9 @@ for (const dismissal of ['Escape', 'click', 'scroll']) {
       await page.mouse.wheel(0, 200)
     }
     await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
-    await expect(page.getByRole('status', { name: 'Uncontrolled changes' })).toHaveText(
-      '[true,false]'
-    )
+    await expect(
+      page.getByRole('status', { name: 'Uncontrolled changes' })
+    ).toHaveText('[true,false]')
   })
 }
 
@@ -75,14 +94,20 @@ test('controlled prop changes do not echo callbacks and user dismissal requests 
     'background-color',
     'rgb(238, 238, 238)'
   )
-  await expect(page.getByRole('status', { name: 'Controlled requests' })).toHaveText('[]')
+  await expect(
+    page.getByRole('status', { name: 'Controlled requests' })
+  ).toHaveText('[]')
   await activate(page, 'Close externally')
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
-  await expect(page.getByRole('status', { name: 'Controlled requests' })).toHaveText('[]')
+  await expect(
+    page.getByRole('status', { name: 'Controlled requests' })
+  ).toHaveText('[]')
   await page.getByRole('button', { name: oceanName }).click()
   await expect(page.locator('.medium-zoom-overlay')).toBeVisible()
   await dismissZoom(page)
-  await expect(page.getByRole('status', { name: 'Controlled requests' })).toHaveText('[true,false]')
+  await expect(
+    page.getByRole('status', { name: 'Controlled requests' })
+  ).toHaveText('[true,false]')
 })
 
 test('controlled requests can be declined and trigger handlers can cancel activation', async ({
@@ -92,16 +117,16 @@ test('controlled requests can be declined and trigger handlers can cancel activa
   await page.getByRole('button', { name: 'Decline requests' }).click()
   for (let count = 1; count <= 3; count++) {
     await page.getByRole('button', { name: oceanName }).click()
-    await expect(page.getByRole('status', { name: 'Controlled requests' })).toHaveText(
-      JSON.stringify(Array(count).fill(true))
-    )
+    await expect(
+      page.getByRole('status', { name: 'Controlled requests' })
+    ).toHaveText(JSON.stringify(Array(count).fill(true)))
     await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
   }
   await page.getByRole('button', { name: 'Cancel trigger' }).click()
   await page.getByRole('button', { name: oceanName }).click()
-  await expect(page.getByRole('status', { name: 'Controlled requests' })).toHaveText(
-    '[true,true,true]'
-  )
+  await expect(
+    page.getByRole('status', { name: 'Controlled requests' })
+  ).toHaveText('[true,true,true]')
 })
 
 test('controlled opening waits for a mounted image', async ({ page }) => {
@@ -124,15 +149,17 @@ for (const control of ['Replace source', 'Toggle disabled', 'Toggle image']) {
     await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
     await expect(page.locator('.medium-zoom-image--opened')).toHaveCount(0)
     if (control !== 'Toggle image') {
-      await expect(page.getByRole('status', { name: 'Controlled requests' })).toHaveText(
-        '[true,false]'
-      )
+      await expect(
+        page.getByRole('status', { name: 'Controlled requests' })
+      ).toHaveText('[true,false]')
     }
     expect(errors).toEqual([])
   })
 }
 
-test('switching composed roots closes the previous controlled root', async ({ page }) => {
+test('switching composed roots closes the previous controlled root', async ({
+  page,
+}) => {
   await ready(page)
   await page.getByRole('button', { name: oceanName }).click()
   await expect(page.locator('.medium-zoom-overlay')).toBeVisible()
@@ -142,11 +169,15 @@ test('switching composed roots closes the previous controlled root', async ({ pa
     'Composed skateboard'
   )
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(1)
-  await expect(page.getByRole('status', { name: 'Controlled requests' })).toHaveText('[true,false]')
+  await expect(
+    page.getByRole('status', { name: 'Controlled requests' })
+  ).toHaveText('[true,false]')
   await dismissZoom(page)
 })
 
-test('cancels an external open queued behind another root closing', async ({ page }) => {
+test('cancels an external open queued behind another root closing', async ({
+  page,
+}) => {
   await ready(page)
   await page.getByRole('button', { name: boardName }).click()
   await expect(page.locator('.medium-zoom-overlay')).toBeVisible()
@@ -155,11 +186,16 @@ test('cancels an external open queued behind another root closing', async ({ pag
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
   await expect(page.locator('body')).not.toHaveClass(/medium-zoom--opened/)
   await page.getByRole('button', { name: oceanName }).click()
-  await expect(page.locator('.medium-zoom-image--opened')).toHaveAttribute('alt', 'Composed ocean')
+  await expect(page.locator('.medium-zoom-image--opened')).toHaveAttribute(
+    'alt',
+    'Composed ocean'
+  )
   await dismissZoom(page)
 })
 
-test('keeps a controlled zoom open when dismissal is declined', async ({ page }) => {
+test('keeps a controlled zoom open when dismissal is declined', async ({
+  page,
+}) => {
   await ready(page)
   await page.getByRole('button', { name: 'Decline requests' }).click()
   const trigger = page.getByRole('button', { name: oceanName })
@@ -174,25 +210,35 @@ test('keeps a controlled zoom open when dismissal is declined', async ({ page })
     )
   })
   await page.keyboard.press('Escape')
-  await expect(page.getByRole('status', { name: 'Controlled requests' })).toHaveText('[false]')
+  await expect(
+    page.getByRole('status', { name: 'Controlled requests' })
+  ).toHaveText('[false]')
   await expect(trigger.locator('img')).toHaveAttribute('data-reopened', 'true')
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(1)
   await activate(page, 'Close externally')
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 })
 
-test('initial controlled open survives Strict Mode effect replay', async ({ page }) => {
+test('initial controlled open survives Strict Mode effect replay', async ({
+  page,
+}) => {
   const errors = observeErrors(page)
   await page.goto(`${demo}&open`)
   await expect(page.locator('.medium-zoom-image--opened')).toBeVisible()
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(1)
-  await expect(page.getByRole('status', { name: 'Controlled requests' })).toHaveText('[]')
+  await expect(
+    page.getByRole('status', { name: 'Controlled requests' })
+  ).toHaveText('[]')
   await dismissZoom(page)
-  await expect(page.getByRole('status', { name: 'Controlled requests' })).toHaveText('[false]')
+  await expect(
+    page.getByRole('status', { name: 'Controlled requests' })
+  ).toHaveText('[false]')
   expect(errors).toEqual([])
 })
 
-test('the default trigger name follows changes to image alt text', async ({ page }) => {
+test('the default trigger name follows changes to image alt text', async ({
+  page,
+}) => {
   await ready(page)
   await page.getByRole('button', { name: 'Rename skateboard' }).click()
   const trigger = page.getByRole('button', {

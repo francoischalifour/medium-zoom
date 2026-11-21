@@ -4,7 +4,9 @@ import type { ZoomInstance } from '../engine/create-zoom'
 // This executes the zoom lifecycle but does not implement promise chaining.
 export const getPromise = (): PromiseConstructor =>
   window.Promise ||
-  (function Promise(executor: (resolve: () => void, reject: () => void) => void) {
+  (function Promise(
+    executor: (resolve: () => void, reject: () => void) => void
+  ) {
     function noop() {}
     executor(noop, noop)
   } as unknown as PromiseConstructor)
@@ -20,10 +22,16 @@ export const createCustomEvent = (
 }
 
 export const getScrollX = (): number =>
-  window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0
+  window.pageXOffset ||
+  document.documentElement.scrollLeft ||
+  document.body.scrollLeft ||
+  0
 
 export const getScrollY = (): number =>
-  window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
+  window.pageYOffset ||
+  document.documentElement.scrollTop ||
+  document.body.scrollTop ||
+  0
 
 export const isEscape = (event: KeyboardEvent): boolean => {
   const key = event.key || event.keyCode

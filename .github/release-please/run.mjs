@@ -35,7 +35,9 @@ if (process.argv.includes('--dry-run')) {
 // Match release-please-action: tag merged release PRs before proposing the next
 // release, then reload the manifest so it sees any release just created.
 const releases = await (await loadManifest(github)).createReleases()
-const release = releases.find(candidate => candidate && (candidate.path || '.') === '.')
+const release = releases.find(
+  candidate => candidate && (candidate.path || '.') === '.'
+)
 appendFileSync(
   process.env.GITHUB_OUTPUT,
   `release_created=${Boolean(release)}\nsha=${release?.sha || ''}\n`

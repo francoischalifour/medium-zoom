@@ -16,7 +16,10 @@ const fontBase64 = readFileSync(
     import.meta.url
   )
 ).toString('base64')
-const brandMark = readFileSync(new URL('brand/mark.svg', publicDirectoryUrl), 'utf8')
+const brandMark = readFileSync(
+  new URL('brand/mark.svg', publicDirectoryUrl),
+  'utf8'
+)
 const brandHeader = `<header>${brandMark}<span>medium-zoom</span></header>`
 const sharedStyles = `
     @font-face { font-family: Geist; src: url(data:font/woff2;base64,${fontBase64}); font-weight: 100 900; }
@@ -64,7 +67,9 @@ ${sharedStyles}
       throw new Error(`OG content overflows: ${doc.path}`)
     }
     await page.screenshot({
-      path: fileURLToPath(new URL(`.${docsOgImagePath(doc.path)}`, publicDirectoryUrl)),
+      path: fileURLToPath(
+        new URL(`.${docsOgImagePath(doc.path)}`, publicDirectoryUrl)
+      ),
       type: 'jpeg',
       quality: 90,
     })
@@ -154,7 +159,9 @@ ${sharedStyles}
     await Promise.all([...document.images].map(image => image.decode()))
   })
   await page.screenshot({
-    path: fileURLToPath(new URL('../.github/social-preview.png', import.meta.url)),
+    path: fileURLToPath(
+      new URL('../.github/social-preview.png', import.meta.url)
+    ),
     type: 'png',
   })
 } finally {

@@ -53,12 +53,19 @@ export default defineConfig(({ command }) =>
         // Package rebuilds temporarily remove dist/; development follows source.
         ...(command === 'serve'
           ? {
-              'medium-zoom': fileURLToPath(new URL('../src/index.ts', import.meta.url)),
-              '#platform': fileURLToPath(new URL('../src/platform/compat.ts', import.meta.url)),
+              'medium-zoom': fileURLToPath(
+                new URL('../src/index.ts', import.meta.url)
+              ),
+              '#platform': fileURLToPath(
+                new URL('../src/platform/compat.ts', import.meta.url)
+              ),
             }
           : {}),
         '@/components/ui/image-zoom': fileURLToPath(
-          new URL('../examples/shadcn/src/components/ui/image-zoom.tsx', import.meta.url)
+          new URL(
+            '../examples/shadcn/src/components/ui/image-zoom.tsx',
+            import.meta.url
+          )
         ),
       },
     },
@@ -69,9 +76,15 @@ export default defineConfig(({ command }) =>
       cssCodeSplit: false,
       rolldownOptions: {
         input: {
-          notFound: fileURLToPath(new URL('../website/404.html', import.meta.url)),
-          index: fileURLToPath(new URL('../website/index.html', import.meta.url)),
-          react: fileURLToPath(new URL('../website/react.html', import.meta.url)),
+          notFound: fileURLToPath(
+            new URL('../website/404.html', import.meta.url)
+          ),
+          index: fileURLToPath(
+            new URL('../website/index.html', import.meta.url)
+          ),
+          react: fileURLToPath(
+            new URL('../website/react.html', import.meta.url)
+          ),
         },
       },
     },

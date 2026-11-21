@@ -1,6 +1,11 @@
 import { connect } from 'node:net'
 
-import { defaultTestPort, serverUrls, testPortCount, testPortEnv } from '../tests/server-urls.ts'
+import {
+  defaultTestPort,
+  serverUrls,
+  testPortCount,
+  testPortEnv,
+} from '../tests/server-urls.ts'
 
 const attempts = 50
 
@@ -16,7 +21,10 @@ function isListening(port: number) {
 }
 
 async function isFreeRange(start: number) {
-  const ports = Array.from({ length: testPortCount }, (_, offset) => start + offset)
+  const ports = Array.from(
+    { length: testPortCount },
+    (_, offset) => start + offset
+  )
   const listening = await Promise.all(ports.map(isListening))
   return !listening.includes(true)
 }

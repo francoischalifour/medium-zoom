@@ -27,7 +27,12 @@ export function Root({
   )
   return (
     <Context.Provider value={{ gallery, state }}>
-      <div {...props} role="group" aria-label="Photo navigation" data-slot="gallery-controls">
+      <div
+        {...props}
+        role="group"
+        aria-label="Photo navigation"
+        data-slot="gallery-controls"
+      >
         {children}
       </div>
     </Context.Provider>
@@ -56,27 +61,28 @@ export const Previous = React.forwardRef<
     />
   )
 })
-export const Next = React.forwardRef<HTMLButtonElement, React.ComponentPropsWithoutRef<'button'>>(
-  function Next({ onClick, disabled, ...props }, ref) {
-    const { gallery, state } = useGallery()
-    return (
-      <button
-        {...props}
-        ref={ref}
-        type="button"
-        disabled={disabled}
-        aria-disabled={!state.canNext}
-        data-slot="gallery-next"
-        onClick={event => {
-          onClick?.(event)
-          if (!event.defaultPrevented && state.canNext) {
-            void gallery.next()
-          }
-        }}
-      />
-    )
-  }
-)
+export const Next = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentPropsWithoutRef<'button'>
+>(function Next({ onClick, disabled, ...props }, ref) {
+  const { gallery, state } = useGallery()
+  return (
+    <button
+      {...props}
+      ref={ref}
+      type="button"
+      disabled={disabled}
+      aria-disabled={!state.canNext}
+      data-slot="gallery-next"
+      onClick={event => {
+        onClick?.(event)
+        if (!event.defaultPrevented && state.canNext) {
+          void gallery.next()
+        }
+      }}
+    />
+  )
+})
 export function Position(props: React.ComponentPropsWithoutRef<'span'>) {
   const { state } = useGallery()
   return (

@@ -13,7 +13,10 @@ test('website development loads library source instead of the built ES module', 
   page,
   browserName,
 }) => {
-  test.skip(browserName !== 'chromium', 'Development module resolution is shared tooling.')
+  test.skip(
+    browserName !== 'chromium',
+    'Development module resolution is shared tooling.'
+  )
   const bundle = resolve('dist/medium-zoom.esm.js')
   const source = resolve('src/index.ts')
   let loadedLibrarySource = false
@@ -29,7 +32,9 @@ test('website development loads library source instead of the built ES module', 
         load(id) {
           const path = id.split('?')[0]
           if (path === bundle) {
-            throw new Error('Website development must not load the built ES module')
+            throw new Error(
+              'Website development must not load the built ES module'
+            )
           }
           if (path === source) {
             loadedLibrarySource = true
@@ -42,9 +47,13 @@ test('website development loads library source instead of the built ES module', 
   page.on('pageerror', error => errors.push(error.message))
   try {
     await server.listen()
-    await page.goto(new URL('docs/guides/styling/', server.resolvedUrls!.local[0]).href)
+    await page.goto(
+      new URL('docs/guides/styling/', server.resolvedUrls!.local[0]).href
+    )
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Styling')
-    const trigger = page.locator('.docs-preview [data-slot="image-zoom-trigger"]')
+    const trigger = page.locator(
+      '.docs-preview [data-slot="image-zoom-trigger"]'
+    )
     await trigger.click()
     await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
     await page.keyboard.press('Escape')
@@ -83,7 +92,9 @@ test('production prerendering preserves a running development site and its hydra
     await promisify(execFile)('bun', ['scripts/build-analytics-fixture.ts'])
     await page.reload()
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-    await expect(page.locator('.monthly-downloads a')).toContainText('monthly downloads on npm')
+    await expect(page.locator('.monthly-downloads a')).toContainText(
+      'monthly downloads on npm'
+    )
     await page.getByRole('button', { name: 'Switch to dark theme' }).click()
     await expect(page.locator('html')).toHaveClass(/dark/)
     expect(errors).toEqual([])

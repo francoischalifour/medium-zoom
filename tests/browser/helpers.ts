@@ -33,7 +33,8 @@ export type Distribution = 'baseline' | 'package'
  * candidate modern preset. A project picks it with `metadata: { preset: 'modern' }`.
  */
 export type Preset = 'release' | 'modern'
-export const projectPreset = (): Preset => test.info().project.metadata.preset ?? 'release'
+export const projectPreset = (): Preset =>
+  test.info().project.metadata.preset ?? 'release'
 
 interface PackageOptions {
   distribution?: Distribution
@@ -57,7 +58,9 @@ interface CandidateEntries {
 declare global {
   interface Window {
     /** Imports a packed candidate entry in the page. `preparePage` installs it. */
-    loadEntry<Name extends keyof CandidateEntries>(name: Name): Promise<CandidateEntries[Name]>
+    loadEntry<Name extends keyof CandidateEntries>(
+      name: Name
+    ): Promise<CandidateEntries[Name]>
     /** The zoom under test in composed-entry specs: `createZoom()` without a renderer. */
     coreZoom: import('../../src/core').Zoom
     /** The zoom under test in composed-entry specs: `createZoom()` with a renderer. */
@@ -94,12 +97,18 @@ export async function preparePage(
 
 export async function loadBundle(
   page: Page,
-  { distribution = 'package', bundle = 'defaultUmd', preset = projectPreset() }: PackageOptions = {}
+  {
+    distribution = 'package',
+    bundle = 'defaultUmd',
+    preset = projectPreset(),
+  }: PackageOptions = {}
 ) {
   if (distribution === 'package' && preset === 'modern') {
     await page.evaluate(async () => {
       const url = '/experimental/dist/modern/index.mjs'
-      const { default: mediumZoom } = (await import(url)) as typeof import('../../src/medium-zoom')
+      const { default: mediumZoom } = (await import(
+        url
+      )) as typeof import('../../src/medium-zoom')
       window.mediumZoom = mediumZoom
     })
     return
@@ -108,7 +117,9 @@ export async function loadBundle(
   const url = `/${distribution}/dist/${file}`
   if (format === 'esm') {
     await page.evaluate(async url => {
-      const { default: mediumZoom } = (await import(url)) as typeof import('medium-zoom')
+      const { default: mediumZoom } = (await import(
+        url
+      )) as typeof import('medium-zoom')
       window.mediumZoom = mediumZoom
     }, url)
   } else {
@@ -116,7 +127,10 @@ export async function loadBundle(
   }
 }
 
-export async function loadZoomFixture(page: Page, options: PackageOptions & PageOptions = {}) {
+export async function loadZoomFixture(
+  page: Page,
+  options: PackageOptions & PageOptions = {}
+) {
   await preparePage(page, options)
   await loadBundle(page, options)
   await page.evaluate(() => {
