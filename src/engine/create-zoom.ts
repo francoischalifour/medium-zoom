@@ -286,10 +286,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
       const target = event.target as HTMLImageElement
       if (__PRESET__ && images.indexOf(target) !== -1) {
         void toggle({ target })
-      } else if (
-        target === overlay ||
-        (active.__mz_frames && active.__mz_frames.indexOf(target) !== -1)
-      ) {
+      } else if (target === overlay) {
         _close()
       }
     }
@@ -545,6 +542,9 @@ export const createEngine = <Options extends CoreZoomOptions>(
         scrollTop = getScrollY()
         const primary = cloneImage(current.__mz_original as HTMLImageElement, stage)
         current.__mz_frames = [primary]
+        // Frames listen directly, as in v1: mobile WebKit and stopped propagation can keep the
+        // click from reaching the document.
+        primary.addEventListener('click', _close)
 
         try {
           if (stage) {
@@ -610,6 +610,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
               content = media
               // An authored load handler may have replaced the copied classes.
               content.classList.add('medium-zoom-image--opened')
+              content.addEventListener('click', _close)
               host.appendChild(content)
               frames.push(content)
             }
