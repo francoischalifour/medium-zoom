@@ -75,12 +75,21 @@ Follow the [React quickstart](https://medium-zoom.francoischalifour.com/docs/rea
 
 The [documentation](https://medium-zoom.francoischalifour.com/docs/) covers HD images, galleries, styling, and the JavaScript and React APIs.
 
-Runnable [examples](examples/) include [plain JavaScript](examples/vanilla), [React](examples/react), [Angular](examples/angular), [Vue](examples/vue), [Svelte](examples/svelte), [Astro](examples/astro), and [VitePress](examples/vitepress). The React example demonstrates using the library directly; [shadcn/ui](examples/shadcn) demonstrates the installable component.
+Try these [runnable examples](examples/):
+
+- [Plain JavaScript](examples/vanilla)
+- [React](examples/react) — use the library directly
+- [shadcn/ui](examples/shadcn) — use the installable React component
+- [Angular](examples/angular)
+- [Vue](examples/vue)
+- [Svelte](examples/svelte)
+- [Astro](examples/astro)
+- [VitePress](examples/vitepress)
 
 ## Contributing
 
-See [Contributing](CONTRIBUTING.md) for setup, development commands, verification, and releases. To work on the website, see its [development guide](website/README.md).
+See the [contributing guide](CONTRIBUTING.md) to get started.
 
 ## License
 
-[MIT](LICENSE) © [François Chalifour](https://francoischalifour.com)
+MIT © [François Chalifour](https://francoischalifour.com)
