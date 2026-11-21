@@ -1,6 +1,9 @@
-import type { CoreZoomOptions, ModalZoom } from 'medium-zoom/core'
+import type {
+  CoreZoomOptions,
+  ModalZoom,
+  ZoomCommander,
+} from 'medium-zoom/core'
 
-import type { ZoomCommander } from './engine/create-zoom'
 import type { ZoomTarget } from './engine/frame'
 
 const bindings = new WeakMap<object, () => void>()
@@ -8,9 +11,11 @@ const interactive =
   'button,a[href],input,select,textarea,summary,label,[role="button"],[role="link"],[role="checkbox"],[role="radio"],[role="switch"],[role="menuitem"],[contenteditable]'
 
 /**
- * Pointer and keyboard activation for bare images, announced as opening a dialog.
- * Native and framework buttons keep their own activation.
- * Pass a session as `commander` to coordinate these requests with other zooms.
+ * Opens the zoom on click, Enter or Space on each attached image, current and future, and
+ * announces it with `role="button"` and `aria-haspopup="dialog"`. Skips images inside
+ * interactive elements, whose own activation is kept. Pass a session as `commander` to
+ * coordinate these requests with other zooms. Returns the unbind function, which restores
+ * the images' attributes.
  */
 export function bindZoomTriggers<Options extends CoreZoomOptions>(
   zoom: ModalZoom<Options>,
@@ -37,7 +42,10 @@ export function bindZoomTriggers<Options extends CoreZoomOptions>(
         tabindex: image.getAttribute('tabindex') || '0',
         'aria-haspopup': 'dialog',
       }
-      const previous = Object.keys(attributes).map(name => [name, image.getAttribute(name)])
+      const previous = Object.keys(attributes).map(name => [
+        name,
+        image.getAttribute(name),
+      ])
       for (const [name, value] of Object.entries(attributes)) {
         image.setAttribute(name, value)
       }
@@ -52,7 +60,10 @@ export function bindZoomTriggers<Options extends CoreZoomOptions>(
         ) {
           event.preventDefault()
           if (!event.repeat) {
-            void commander.open({ target: image as HTMLElement, trigger: image as HTMLElement })
+            void commander.open({
+              target: image as HTMLElement,
+              trigger: image as HTMLElement,
+            })
           }
         }
       }
@@ -67,7 +78,10 @@ export function bindZoomTriggers<Options extends CoreZoomOptions>(
           event.button === 0
         ) {
           event.preventDefault()
-          void commander.open({ target: image as HTMLElement, trigger: image as HTMLElement })
+          void commander.open({
+            target: image as HTMLElement,
+            trigger: image as HTMLElement,
+          })
         }
       }
       const hadClass = image.classList.contains('medium-zoom-image')
@@ -81,7 +95,10 @@ export function bindZoomTriggers<Options extends CoreZoomOptions>(
           image.classList.remove('medium-zoom-image')
         }
         for (const [name, value] of previous) {
-          if (image.getAttribute(name!) !== attributes[name as keyof typeof attributes]) {
+          if (
+            image.getAttribute(name!) !==
+            attributes[name as keyof typeof attributes]
+          ) {
             continue
           }
           if (value === null) {

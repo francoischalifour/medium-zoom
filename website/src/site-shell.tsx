@@ -2,8 +2,18 @@ import * as React from 'react'
 
 import { CommandPalette } from './command-palette'
 import { Icon, SiteLink } from './site-components'
-import { githubStars, githubStarLabel, repositoryUrl, type SitePage } from './site-data'
-import { getTheme, getServerTheme, setTheme, subscribeTheme } from './site-theme'
+import {
+  githubStarLabel,
+  githubStars,
+  repositoryUrl,
+  type SitePage,
+} from './site-data'
+import {
+  getServerTheme,
+  getTheme,
+  setTheme,
+  subscribeTheme,
+} from './site-theme'
 import { JavaScriptIcon, ReactIcon } from './technology-icons'
 
 const siteSections = [
@@ -36,7 +46,11 @@ function SectionLinks({ page }: { page?: SitePage | 'docs' }) {
   return (
     <div className="section-links">
       {siteSections.map(({ id, href, label, icon }) => (
-        <SiteLink key={href} href={href} aria-current={page === id ? 'page' : undefined}>
+        <SiteLink
+          key={href}
+          href={href}
+          aria-current={page === id ? 'page' : undefined}
+        >
           {icon}
           {label}
         </SiteLink>
@@ -73,7 +87,13 @@ function SectionSelect({ current }: { current: SiteSection }) {
 export function BrandLink() {
   return (
     <SiteLink className="brand" href="/" aria-label="medium-zoom home">
-      <img className="brand-mark" src="/brand/mark.svg" alt="" width="24" height="24" />
+      <img
+        className="brand-mark"
+        src="/brand/mark.svg"
+        alt=""
+        width="24"
+        height="24"
+      />
       <span className="brand-name">medium-zoom</span>
     </SiteLink>
   )
@@ -86,7 +106,11 @@ export function SiteHeader({
   page?: SitePage | 'docs'
   searchFramework?: SitePage
 }) {
-  const dark = React.useSyncExternalStore(subscribeTheme, getTheme, getServerTheme)
+  const dark = React.useSyncExternalStore(
+    subscribeTheme,
+    getTheme,
+    getServerTheme
+  )
   const currentSection = siteSections.find(section => section.id === page)
   return (
     <>
@@ -112,7 +136,9 @@ export function SiteHeader({
             </SiteLink>
             <button
               className="icon-button"
-              aria-label={dark ? 'Switch to light theme' : 'Switch to dark theme'}
+              aria-label={
+                dark ? 'Switch to light theme' : 'Switch to dark theme'
+              }
               onClick={() => setTheme(!dark)}
             >
               <Icon name="contrast" />
@@ -139,7 +165,9 @@ export function SiteFooter({ page }: { page?: SitePage | 'docs' }) {
             François Chalifour
           </SiteLink>
           {' · '}
-          <SiteLink href={`https://www.npmjs.com/package/medium-zoom/v/${__MEDIUM_ZOOM_VERSION__}`}>
+          <SiteLink
+            href={`https://www.npmjs.com/package/medium-zoom/v/${__MEDIUM_ZOOM_VERSION__}`}
+          >
             v{__MEDIUM_ZOOM_VERSION__}
           </SiteLink>
         </p>
@@ -150,7 +178,10 @@ export function SiteFooter({ page }: { page?: SitePage | 'docs' }) {
           <ul>
             {siteSections.map(({ id, href, footerLabel }) => (
               <li key={href}>
-                <SiteLink href={href} aria-current={page === id ? 'page' : undefined}>
+                <SiteLink
+                  href={href}
+                  aria-current={page === id ? 'page' : undefined}
+                >
                   {footerLabel}
                 </SiteLink>
               </li>
@@ -164,10 +195,14 @@ export function SiteFooter({ page }: { page?: SitePage | 'docs' }) {
               <SiteLink href={repositoryUrl}>GitHub</SiteLink>
             </li>
             <li>
-              <SiteLink href={`${repositoryUrl}/blob/main/CHANGELOG.md`}>Changelog</SiteLink>
+              <SiteLink href={`${repositoryUrl}/blob/main/CHANGELOG.md`}>
+                Changelog
+              </SiteLink>
             </li>
             <li>
-              <SiteLink href={`${repositoryUrl}/blob/main/LICENSE`}>MIT license</SiteLink>
+              <SiteLink href={`${repositoryUrl}/blob/main/LICENSE`}>
+                MIT license
+              </SiteLink>
             </li>
           </ul>
         </div>

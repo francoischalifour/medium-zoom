@@ -1,18 +1,19 @@
-import type { Zoom } from '../engine/create-zoom'
+import type { ZoomInstance } from '../engine/create-zoom'
 
 export const getPromise = (): PromiseConstructor => Promise
 
 export const createCustomEvent = (
   type: string,
-  detail: { zoom: Zoom }
-): CustomEvent<{ zoom: Zoom }> => {
+  detail: { zoom: ZoomInstance }
+): CustomEvent<{ zoom: ZoomInstance }> => {
   return new CustomEvent(type, { detail })
 }
 
 export const getScrollX = (): number => window.scrollX
 export const getScrollY = (): number => window.scrollY
 
-export const isEscape = (event: KeyboardEvent): boolean => event.key === 'Escape'
+export const isEscape = (event: KeyboardEvent): boolean =>
+  event.key === 'Escape'
 
 export const listenForMotionChange = (
   query: MediaQueryList,

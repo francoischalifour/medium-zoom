@@ -1,14 +1,23 @@
-import { test, expect, type Page } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 
-import { decodeImages, dismissZoom, openImage, observeErrors } from './helpers.ts'
+import {
+  decodeImages,
+  dismissZoom,
+  observeErrors,
+  openImage,
+} from './helpers.ts'
 
 const demo = '/react'
 
 async function ready(page: Page) {
   await page.goto(demo)
-  await expect(page.getByRole('heading', { name: /Bring images closer/ })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: /Bring images closer/ })
+  ).toBeVisible()
   await decodeImages(
-    page.getByRole('article', { name: 'Landscape example', exact: true }).locator('.demo-stage img')
+    page
+      .getByRole('article', { name: 'Landscape example', exact: true })
+      .locator('.demo-stage img')
   )
 }
 
@@ -17,11 +26,20 @@ test('built page hydrates and presents the component without test controls', asy
 }, testInfo) => {
   const errors = observeErrors(page, { includeConsole: true })
   await ready(page)
-  await expect(page.getByRole('button', { name: 'Inspect ref', exact: true })).toHaveCount(0)
-  await expect(page.getByRole('button', { name: 'Hide with Activity', exact: true })).toHaveCount(0)
+  await expect(
+    page.getByRole('button', { name: 'Inspect ref', exact: true })
+  ).toHaveCount(0)
+  await expect(
+    page.getByRole('button', { name: 'Hide with Activity', exact: true })
+  ).toHaveCount(0)
   const install = await page.locator('.hero-install').boundingBox()
-  expect(install!.y + install!.height).toBeLessThanOrEqual(page.viewportSize()!.height)
-  await page.screenshot({ path: testInfo.outputPath('page-light.png'), fullPage: true })
+  expect(install!.y + install!.height).toBeLessThanOrEqual(
+    page.viewportSize()!.height
+  )
+  await page.screenshot({
+    path: testInfo.outputPath('page-light.png'),
+    fullPage: true,
+  })
   const image = page
     .getByRole('article', { name: 'Landscape example', exact: true })
     .locator('.demo-stage img')
@@ -31,7 +49,10 @@ test('built page hydrates and presents the component without test controls', asy
 })
 
 async function presented(page: Page, label: string) {
-  const card = page.getByRole('article', { name: `${label} example`, exact: true })
+  const card = page.getByRole('article', {
+    name: `${label} example`,
+    exact: true,
+  })
   await expect
     .poll(async () => {
       const bounds = await card.boundingBox()
@@ -39,13 +60,18 @@ async function presented(page: Page, label: string) {
         .getByRole('region', { name: 'Image zoom examples', exact: true })
         .locator('.example-rail')
         .boundingBox()
-      return bounds!.x >= rail!.x - 2 && bounds!.x + bounds!.width <= rail!.x + rail!.width + 2
+      return (
+        bounds!.x >= rail!.x - 2 &&
+        bounds!.x + bounds!.width <= rail!.x + rail!.width + 2
+      )
     })
     .toBe(true)
   return card
 }
 
-test('all six cards open and contain their own matching code', async ({ page }) => {
+test('all six cards open and contain their own matching code', async ({
+  page,
+}) => {
   await ready(page)
   for (const [label, alt] of [
     ['Landscape', 'Ocean sunset'],
@@ -96,15 +122,18 @@ test('horizontal examples stop at both ends and retain independent card state', 
   }
   await presented(page, 'Landscape')
   await expect(previous).toBeDisabled()
-  await expect(landscape.getByRole('tab', { name: 'Code', exact: true })).toHaveAttribute(
-    'aria-selected',
-    'true'
-  )
   await expect(
-    page.getByRole('region', { name: 'Image zoom examples', exact: true }).locator('.example-card')
+    landscape.getByRole('tab', { name: 'Code', exact: true })
+  ).toHaveAttribute('aria-selected', 'true')
+  await expect(
+    page
+      .getByRole('region', { name: 'Image zoom examples', exact: true })
+      .locator('.example-card')
   ).toHaveCount(6)
   await expect(
-    page.getByRole('region', { name: 'Image zoom examples', exact: true }).locator('.example-rail')
+    page
+      .getByRole('region', { name: 'Image zoom examples', exact: true })
+      .locator('.example-rail')
   ).toHaveCSS('scrollbar-width', 'none')
   // Native focus scrolling can traverse the finite rail and leave it normally.
   await landscape.getByRole('tab', { name: 'Code', exact: true }).focus()
@@ -125,7 +154,9 @@ test('horizontal examples stop at both ends and retain independent card state', 
   ).toBe(false)
 })
 
-test('keyboard navigation keeps focus at both rail boundaries', async ({ page }) => {
+test('keyboard navigation keeps focus at both rail boundaries', async ({
+  page,
+}) => {
   await ready(page)
   const next = page
     .getByRole('region', { name: 'Image zoom examples', exact: true })
@@ -153,18 +184,27 @@ test('keyboard tabs show code and package managers select the install command', 
   page,
 }) => {
   await ready(page)
-  const landscape = page.getByRole('article', { name: 'Landscape example', exact: true })
+  const landscape = page.getByRole('article', {
+    name: 'Landscape example',
+    exact: true,
+  })
   await landscape.getByRole('tab', { name: 'Preview', exact: true }).focus()
   await page.keyboard.press('ArrowRight')
-  await expect(landscape.getByRole('tab', { name: 'Code', exact: true })).toBeFocused()
-  await expect(landscape.getByRole('tabpanel')).toContainText('import { ImageZoom }')
+  await expect(
+    landscape.getByRole('tab', { name: 'Code', exact: true })
+  ).toBeFocused()
+  await expect(landscape.getByRole('tabpanel')).toContainText(
+    'import { ImageZoom }'
+  )
   await expect(landscape.getByRole('tabpanel')).toContainText(
     'src="https://medium-zoom.francoischalifour.com/assets/images/ocean-sunset.jpg"'
   )
   const installation = page.locator('.hero-install')
   await installation.getByRole('radio', { name: 'npm', exact: true }).focus()
   await page.keyboard.press('ArrowRight')
-  await expect(installation.getByRole('radio', { name: 'pnpm', exact: true })).toBeChecked()
+  await expect(
+    installation.getByRole('radio', { name: 'pnpm', exact: true })
+  ).toBeChecked()
   await expect(installation.locator('pre')).toHaveJSProperty(
     'innerText',
     '$ pnpm dlx shadcn@latest add @medium-zoom/image-zoom'
@@ -192,11 +232,18 @@ test('clipboard denial produces an actionable message', async ({ page }) => {
   ).toBeVisible()
 })
 
-test('dark mode carries into the enlarged image overlay', async ({ page }, testInfo) => {
+test('dark mode carries into the enlarged image overlay', async ({
+  page,
+}, testInfo) => {
   await ready(page)
-  await page.getByRole('button', { name: 'Switch to dark theme', exact: true }).click()
+  await page
+    .getByRole('button', { name: 'Switch to dark theme', exact: true })
+    .click()
   await expect(page.locator('html')).toHaveClass('dark')
-  await page.screenshot({ path: testInfo.outputPath('page-dark.png'), fullPage: true })
+  await page.screenshot({
+    path: testInfo.outputPath('page-dark.png'),
+    fullPage: true,
+  })
   const image = page
     .getByRole('article', { name: 'Landscape example', exact: true })
     .locator('.demo-stage img')
@@ -206,7 +253,9 @@ test('dark mode carries into the enlarged image overlay', async ({ page }, testI
     'rgb(17, 17, 19)'
   )
   await dismissZoom(page)
-  await page.getByRole('button', { name: 'Switch to light theme', exact: true }).click()
+  await page
+    .getByRole('button', { name: 'Switch to light theme', exact: true })
+    .click()
   await expect(page.locator('html')).not.toHaveClass('dark')
 })
 
@@ -216,19 +265,39 @@ test('small screens keep code and the API table inside their scroll containers',
   await page.setViewportSize({ width: 390, height: 844 })
   await ready(page)
   const install = await page.locator('.hero-install').boundingBox()
-  expect(install!.y + install!.height).toBeLessThanOrEqual(page.viewportSize()!.height)
+  expect(install!.y + install!.height).toBeLessThanOrEqual(
+    page.viewportSize()!.height
+  )
   await expect
-    .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+    .poll(() =>
+      page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth
+      )
+    )
     .toBe(true)
-  await page.screenshot({ path: testInfo.outputPath('page-mobile.png'), fullPage: true })
-  const landscape = page.getByRole('article', { name: 'Landscape example', exact: true })
+  await page.screenshot({
+    path: testInfo.outputPath('page-mobile.png'),
+    fullPage: true,
+  })
+  const landscape = page.getByRole('article', {
+    name: 'Landscape example',
+    exact: true,
+  })
   await landscape.getByRole('tab', { name: 'Code', exact: true }).click()
   await expect(landscape.getByRole('tabpanel')).toContainText('<ImageZoom')
   await expect
-    .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+    .poll(() =>
+      page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth
+      )
+    )
     .toBe(true)
   await page.setViewportSize({ width: 320, height: 740 })
   await expect
-    .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+    .poll(() =>
+      page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth
+      )
+    )
     .toBe(true)
 })

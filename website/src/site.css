@@ -12,9 +12,10 @@
   --border-strong: #d4d4d8;
   --ring: #8a8a96;
   --font-sans:
-    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
-    sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
+    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  --font-mono:
+    'IBM Plex Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
   /* Type scale in rem, so every size follows the reader's root font size. */
   --text-2xs: 0.6875rem;
   --text-xs: 0.75rem;
@@ -81,7 +82,8 @@ select {
 button {
   cursor: pointer;
 }
-.site-shell :is(button, summary, .button, .section-links a, .package-switch label) {
+.site-shell
+  :is(button, summary, .button, .section-links a, .package-switch label) {
   -webkit-user-select: none;
   user-select: none;
 }
@@ -449,7 +451,8 @@ h1 {
 @media (min-width: 1280px) {
   .rail-window {
     --rail-inset: calc(
-      max(0px, (100vw - var(--site-width)) / 2 + var(--site-gutter)) * (1 - var(--rail-reveal))
+      max(0px, (100vw - var(--site-width)) / 2 + var(--site-gutter)) *
+        (1 - var(--rail-reveal))
     );
     clip-path: inset(-4px var(--rail-inset));
     transition: --rail-reveal 180ms ease-out;
@@ -468,7 +471,11 @@ h1 {
   align-items: flex-start;
   gap: 24px;
   overflow-x: auto;
-  padding: 0 max(var(--site-gutter), calc((100vw - var(--site-width)) / 2 + var(--site-gutter)));
+  padding: 0
+    max(
+      var(--site-gutter),
+      calc((100vw - var(--site-width)) / 2 + var(--site-gutter))
+    );
   scrollbar-width: none;
   overscroll-behavior-x: contain;
   overflow-anchor: none;
@@ -646,7 +653,10 @@ a.example-kind {
   display: block;
   width: auto;
   /* Size the photo from its dimensions so the trigger keeps its size before the photo loads. */
-  width: calc(var(--preview-max-height) * attr(width type(<number>)) / attr(height type(<number>)));
+  width: calc(
+    var(--preview-max-height) * attr(width type(<number>)) /
+      attr(height type(<number>))
+  );
   height: auto;
   max-width: 100%;
   max-height: var(--preview-max-height);
@@ -684,7 +694,11 @@ kbd {
   min-height: 20px;
   padding: 0 5px;
   border: 1px solid var(--border);
-  border-bottom-color: color-mix(in srgb, var(--foreground) 16%, var(--background));
+  border-bottom-color: color-mix(
+    in srgb,
+    var(--foreground) 16%,
+    var(--background)
+  );
   border-radius: 5px;
   background: linear-gradient(var(--background), var(--surface));
   color: var(--foreground);
@@ -804,7 +818,8 @@ kbd {
 }
 .code-block > .code-caption {
   background: var(--background);
-  border-radius: calc(var(--code-radius) - 1px) calc(var(--code-radius) - 1px) 0 0;
+  border-radius: calc(var(--code-radius) - 1px) calc(var(--code-radius) - 1px) 0
+    0;
   corner-shape: inherit;
 }
 .code-caption {
@@ -1399,7 +1414,11 @@ td code {
   width: min(56vw, 760px);
   height: 360px;
   translate: -50% -50%;
-  background: radial-gradient(closest-side, var(--hero-spotlight), transparent 85%);
+  background: radial-gradient(
+    closest-side,
+    var(--hero-spotlight),
+    transparent 85%
+  );
   pointer-events: none;
 }
 .hero-frame {
@@ -1421,10 +1440,14 @@ td code {
   position: absolute;
   border: var(--mark-width) solid var(--hero-mark-color);
   mask:
-    linear-gradient(#000 0 0) top left / var(--mark-length) var(--mark-length) no-repeat,
-    linear-gradient(#000 0 0) top right / var(--mark-length) var(--mark-length) no-repeat,
-    linear-gradient(#000 0 0) bottom left / var(--mark-length) var(--mark-length) no-repeat,
-    linear-gradient(#000 0 0) bottom right / var(--mark-length) var(--mark-length) no-repeat;
+    linear-gradient(#000 0 0) top left / var(--mark-length) var(--mark-length)
+      no-repeat,
+    linear-gradient(#000 0 0) top right / var(--mark-length) var(--mark-length)
+      no-repeat,
+    linear-gradient(#000 0 0) bottom left / var(--mark-length)
+      var(--mark-length) no-repeat,
+    linear-gradient(#000 0 0) bottom right / var(--mark-length)
+      var(--mark-length) no-repeat;
 }
 .hero-frame::before {
   --mark-width: 1.75px;
@@ -1448,7 +1471,8 @@ td code {
 }
 
 /* The crop opens as the light recedes, leaving the content stationary. */
-@supports (animation-timeline: scroll(root block)) and (animation-range: 0px 300px) {
+@supports (animation-timeline: scroll(root block)) and
+  (animation-range: 0px 300px) {
   @media (prefers-reduced-motion: no-preference) {
     .hero-frame,
     .hero-crop::before {

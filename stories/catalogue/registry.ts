@@ -17,8 +17,16 @@ export function storiesOf(kind: string) {
       options: { notes?: string | { markdown?: string } } = {}
     ) {
       const notes =
-        typeof options.notes === 'string' ? options.notes : options.notes?.markdown || ''
-      stories.push({ id: `${kind}/${name}`, kind, name, render, notes: notes.trim() })
+        typeof options.notes === 'string'
+          ? options.notes
+          : options.notes?.markdown || ''
+      stories.push({
+        id: `${kind}/${name}`,
+        kind,
+        name,
+        render,
+        notes: notes.trim(),
+      })
       return group
     },
   }

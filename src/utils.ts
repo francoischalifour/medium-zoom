@@ -35,7 +35,9 @@ export const getImagesFromSelectors = (
   return images
 }
 
-export const createOverlay = (background: string | undefined): HTMLDivElement => {
+export const createOverlay = (
+  background: string | undefined
+): HTMLDivElement => {
   const overlay = document.createElement('div')
   overlay.classList.add('medium-zoom-overlay')
   overlay.style.background = background || ''

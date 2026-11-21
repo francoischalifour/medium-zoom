@@ -1,6 +1,11 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
-import { decodeImages, dismissZoom, openImage, observeErrors } from '../browser/helpers.ts'
+import {
+  decodeImages,
+  dismissZoom,
+  observeErrors,
+  openImage,
+} from '../browser/helpers.ts'
 
 for (const path of ['/zoom', '/composed']) {
   test(`${path}: a Server Component renders the image in the initial HTML without JavaScript`, async ({
@@ -16,7 +21,9 @@ for (const path of ['/zoom', '/composed']) {
         page.getByRole('heading', { name: 'Rendered by a Server Component' })
       ).toBeVisible()
       await expect(
-        page.getByRole('button', { name: 'Zoom image: Ocean sunset from a Server Component' })
+        page.getByRole('button', {
+          name: 'Zoom image: Ocean sunset from a Server Component',
+        })
       ).toBeVisible()
       await expect(page.locator('img')).toHaveAttribute('width', '1920')
     } finally {
@@ -44,16 +51,23 @@ for (const path of ['/zoom', '/composed']) {
       'background-color',
       'rgb(255, 255, 255)'
     )
-    const bounds = await page.locator('.medium-zoom-image--opened').boundingBox()
+    const bounds = await page
+      .locator('.medium-zoom-image--opened')
+      .boundingBox()
     expect(bounds!.x).toBeGreaterThanOrEqual(31)
     expect(bounds!.y).toBeGreaterThanOrEqual(31)
     await dismissZoom(page)
     await expect(trigger).toBeFocused()
     await page.getByRole('link', { name: 'Back to fixture home' }).click()
-    await expect(page.getByRole('heading', { name: 'Server Components fixture' })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'Server Components fixture' })
+    ).toBeVisible()
     await page
       .getByRole('link', {
-        name: path === '/zoom' ? 'Open the image example' : 'Open the composed example',
+        name:
+          path === '/zoom'
+            ? 'Open the image example'
+            : 'Open the composed example',
       })
       .click()
     await expect(

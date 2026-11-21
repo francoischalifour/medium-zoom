@@ -32,7 +32,10 @@ export function Fixture() {
   const image = (
     <ZoomParts.Root
       disabled={disabled}
-      options={{ margin, container: contained ? galleryRef.current! : undefined }}
+      options={{
+        margin,
+        container: contained ? galleryRef.current! : undefined,
+      }}
     >
       <ZoomParts.Trigger
         aria-label={disabled ? 'Ocean sunset' : 'Zoom image: Ocean sunset'}
@@ -54,41 +57,75 @@ export function Fixture() {
   return (
     <main>
       <header>
-        <a href="https://github.com/francoischalifour/medium-zoom">medium-zoom</a>
+        <a href="https://github.com/francoischalifour/medium-zoom">
+          medium-zoom
+        </a>
         <button onClick={() => setDark(value => !value)}>Toggle theme</button>
       </header>
       <h1>A closer look.</h1>
-      <p>Image zoom for shadcn/ui. Click an image, or focus it and press Enter or Space.</p>
+      <p>
+        Image zoom for shadcn/ui. Click an image, or focus it and press Enter or
+        Space.
+      </p>
       <div className="controls">
-        <button onClick={() => setDisabled(value => !value)} aria-pressed={disabled}>
+        <button
+          onClick={() => setDisabled(value => !value)}
+          aria-pressed={disabled}
+        >
           Disable zoom
         </button>
-        <button onClick={() => setVisible(value => !value)} aria-pressed={!visible}>
+        <button
+          onClick={() => setVisible(value => !value)}
+          aria-pressed={!visible}
+        >
           Hide first image
         </button>
-        <button onClick={() => setCancel(value => !value)} aria-pressed={cancel}>
+        <button
+          onClick={() => setCancel(value => !value)}
+          aria-pressed={cancel}
+        >
           Cancel clicks
         </button>
-        <button onClick={() => setMargin(value => (value === 24 ? 80 : 24))}>Change margin</button>
-        <button onClick={() => setSource(value => (value === ocean ? skateboard : ocean))}>
+        <button onClick={() => setMargin(value => (value === 24 ? 80 : 24))}>
+          Change margin
+        </button>
+        <button
+          onClick={() =>
+            setSource(value => (value === ocean ? skateboard : ocean))
+          }
+        >
           Change source
         </button>
-        <button onClick={() => setPortal(value => !value)} aria-pressed={portal}>
+        <button
+          onClick={() => setPortal(value => !value)}
+          aria-pressed={portal}
+        >
           Render in portal
         </button>
-        <button onClick={() => setActive(value => !value)} aria-pressed={!active}>
+        <button
+          onClick={() => setActive(value => !value)}
+          aria-pressed={!active}
+        >
           Hide with Activity
         </button>
         <button onClick={() => setHd(value => !value)} aria-pressed={hd}>
           Load HD image
         </button>
-        <button onClick={() => setContained(value => !value)} aria-pressed={contained}>
+        <button
+          onClick={() => setContained(value => !value)}
+          aria-pressed={contained}
+        >
           Constrain to gallery
         </button>
-        <button onClick={() => setEmphasized(value => !value)} aria-pressed={emphasized}>
+        <button
+          onClick={() => setEmphasized(value => !value)}
+          aria-pressed={emphasized}
+        >
           Change image style
         </button>
-        <button onClick={() => setRefStatus(imageRef.current?.tagName ?? 'No image')}>
+        <button
+          onClick={() => setRefStatus(imageRef.current?.tagName ?? 'No image')}
+        >
           Inspect ref
         </button>
         <output>{refStatus}</output>
@@ -97,7 +134,12 @@ export function Fixture() {
         <React.Activity mode={active ? 'visible' : 'hidden'}>
           {visible && (portal ? createPortal(image, document.body) : image)}
         </React.Activity>
-        <ImageZoom src={skateboard} alt="Floral skateboard" width={640} height={427} />
+        <ImageZoom
+          src={skateboard}
+          alt="Floral skateboard"
+          width={640}
+          height={427}
+        />
       </div>
       <p className="caption">Escape, scroll, or click again to return.</p>
     </main>

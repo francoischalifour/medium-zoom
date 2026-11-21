@@ -6,11 +6,20 @@ import type { ZoomOptions } from '../medium-zoom'
 import { removeNode } from '../utils'
 
 export interface TemplateOptions {
+  /**
+   * The template element, or its selector, whose content is displayed on zoom.
+   *
+   * @default null
+   */
   template?: string | HTMLTemplateElement | null
 }
 
-const resolveTemplate = (target: string | HTMLTemplateElement): HTMLTemplateElement | null =>
-  typeof target === 'string' ? document.querySelector<HTMLTemplateElement>(target) : target
+const resolveTemplate = (
+  target: string | HTMLTemplateElement
+): HTMLTemplateElement | null =>
+  typeof target === 'string'
+    ? document.querySelector<HTMLTemplateElement>(target)
+    : target
 
 export const updateTemplate = (options: ZoomOptions): void => {
   if (options.template) {
@@ -34,7 +43,9 @@ export const mountTemplate = (
     if (disposed) {
       removeNode(content)
     } else {
-      content.style.transition = parseFloat(window.getComputedStyle(frame).transitionDuration)
+      content.style.transition = parseFloat(
+        window.getComputedStyle(frame).transitionDuration
+      )
         ? 'opacity 150ms'
         : 'none'
       content.style.opacity = '0'
@@ -42,7 +53,10 @@ export const mountTemplate = (
   }
 }
 
-/** Optional renderer content: clone authored markup and remove it on host disposal. */
+/**
+ * Renderer content for `dialog({ content })`: clones the template, or the template matching a
+ * selector, into the renderer host on open and removes it on close.
+ */
 export const templateContent =
   (target: string | HTMLTemplateElement): ZoomContent =>
   ({ element }) => {

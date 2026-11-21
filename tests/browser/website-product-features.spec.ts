@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { gzipSync } from 'node:zlib'
 
 import { version } from '../../package.json'
-import { test, expect } from './website-fixture'
+import { expect, test } from './website-fixture'
 
 test.use({ deviceScaleFactor: 1 })
 
@@ -18,11 +18,17 @@ for (const path of ['/', '/react']) {
         name: path === '/react' ? 'Component features' : 'Library features',
       })
       await expect(
-        page
-          .getByRole('contentinfo')
-          .getByRole('link', { name: `v${version} (opens in a new tab)`, exact: true })
-      ).toHaveAttribute('href', `https://www.npmjs.com/package/medium-zoom/v/${version}`)
-      const gzipBytes = gzipSync(readFileSync('dist/medium-zoom.min.js'), { level: 9 }).length
+        page.getByRole('contentinfo').getByRole('link', {
+          name: `v${version} (opens in a new tab)`,
+          exact: true,
+        })
+      ).toHaveAttribute(
+        'href',
+        `https://www.npmjs.com/package/medium-zoom/v/${version}`
+      )
+      const gzipBytes = gzipSync(readFileSync('dist/medium-zoom.min.js'), {
+        level: 9,
+      }).length
       if (path === '/') {
         await expect(features).toContainText(
           `${(gzipBytes / 1_000).toFixed(0)} kB. Zero dependencies.`
@@ -30,9 +36,10 @@ for (const path of ['/', '/react']) {
         await expect(features).toContainText('TypeScript ready.')
       }
       await expect(
-        page
-          .getByRole('contentinfo')
-          .getByRole('link', { name: 'MIT license (opens in a new tab)', exact: true })
+        page.getByRole('contentinfo').getByRole('link', {
+          name: 'MIT license (opens in a new tab)',
+          exact: true,
+        })
       ).toBeVisible()
       await expect(features.getByRole('heading', { level: 2 })).toHaveCount(3)
     } finally {
@@ -52,7 +59,9 @@ test('mobile previews stay small and load the full-resolution image only on zoom
   const preview = page.locator('.usage-preview .usage-photo')
   await preview.scrollIntoViewIfNeeded()
   await expect
-    .poll(() => preview.evaluate(image => (image as HTMLImageElement).currentSrc))
+    .poll(() =>
+      preview.evaluate(image => (image as HTMLImageElement).currentSrc)
+    )
     .toContain('ocean-sunset-preview-small.webp')
   expect(sources.some(url => url.endsWith('/ocean-sunset.jpg'))).toBe(false)
   await page.locator('.usage-preview').getByRole('button').click()
@@ -64,14 +73,20 @@ test('mobile previews stay small and load the full-resolution image only on zoom
   await expect(page.locator('body')).not.toHaveClass(/medium-zoom--opened/)
 })
 
-test('features remain readable at phone width in both themes', async ({ page }, testInfo) => {
+test('features remain readable at phone width in both themes', async ({
+  page,
+}, testInfo) => {
   await page.setViewportSize({ width: 320, height: 900 })
   await page.goto('/')
   for (const theme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: theme })
     const features = page.getByRole('region', { name: 'Library features' })
     await features.scrollIntoViewIfNeeded()
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320)
-    await features.screenshot({ path: testInfo.outputPath(`product-features-${theme}.png`) })
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth)
+    ).toBe(320)
+    await features.screenshot({
+      path: testInfo.outputPath(`product-features-${theme}.png`),
+    })
   }
 })

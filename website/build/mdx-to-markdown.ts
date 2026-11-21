@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 
-import { parse, parseExpressionAt, type Expression } from 'acorn'
+import { type Expression, parse, parseExpressionAt } from 'acorn'
 import type { List, PhrasingContent, RootContent } from 'mdast'
 import remarkMdx from 'remark-mdx'
 import remarkParse from 'remark-parse'
@@ -10,9 +10,19 @@ import { docsPages } from '../src/docs/pages.ts'
 import { supportedBrowsers } from '../src/docs/supported-browsers.ts'
 import { installCommands } from '../src/install-commands.ts'
 import type { SitePage } from '../src/site-data.ts'
-import { codeBlock, heading, link, list, paragraph, text } from './markdown-nodes.ts'
+import {
+  codeBlock,
+  heading,
+  link,
+  list,
+  paragraph,
+  text,
+} from './markdown-nodes.ts'
 
-type JsxElement = Extract<RootContent, { type: 'mdxJsxFlowElement' | 'mdxJsxTextElement' }>
+type JsxElement = Extract<
+  RootContent,
+  { type: 'mdxJsxFlowElement' | 'mdxJsxTextElement' }
+>
 type Convert<Props> = (
   props: Props,
   element: JsxElement,
@@ -22,7 +32,10 @@ type Convert<Props> = (
 // Converts an authored docs page to plain Markdown. Interactive previews give way to the
 // source they render, and every component needs an explicit mapping so none disappears silently.
 export function mdxToMarkdown(file: URL): RootContent[] {
-  const tree = unified().use(remarkParse).use(remarkMdx).parse(readFileSync(file, 'utf8'))
+  const tree = unified()
+    .use(remarkParse)
+    .use(remarkMdx)
+    .parse(readFileSync(file, 'utf8'))
   const scope = new Map<string, unknown>()
   for (const node of tree.children) {
     if (node.type === 'mdxjsEsm') {
@@ -34,13 +47,19 @@ export function mdxToMarkdown(file: URL): RootContent[] {
 }
 
 // `{'<ImageZoom>'}` keeps literal text out of JSX parsing; it reads as plain text in Markdown.
-function resolveExpressions(node: { children?: unknown[] }, scope: Map<string, unknown>) {
+function resolveExpressions(
+  node: { children?: unknown[] },
+  scope: Map<string, unknown>
+) {
   if (!node.children) {
     return
   }
   node.children = node.children.map(child => {
     const expression = child as RootContent
-    if (expression.type === 'mdxFlowExpression' || expression.type === 'mdxTextExpression') {
+    if (
+      expression.type === 'mdxFlowExpression' ||
+      expression.type === 'mdxTextExpression'
+    ) {
       return text(String(evaluate(parseExpression(expression.value), scope)))
     }
     resolveExpressions(expression as { children?: unknown[] }, scope)
@@ -49,18 +68,34 @@ function resolveExpressions(node: { children?: unknown[] }, scope: Map<string, u
 }
 
 // `import code from './example.tsx?raw'` makes the example's source available to attributes.
-function readRawImports(source: string, file: URL, scope: Map<string, unknown>) {
+function readRawImports(
+  source: string,
+  file: URL,
+  scope: Map<string, unknown>
+) {
   const program = parse(source, { ecmaVersion: 'latest', sourceType: 'module' })
   for (const statement of program.body) {
-    const specifier = statement.type === 'ImportDeclaration' ? String(statement.source.value) : ''
-    const local = statement.type === 'ImportDeclaration' ? statement.specifiers[0]?.local.name : ''
+    const specifier =
+      statement.type === 'ImportDeclaration'
+        ? String(statement.source.value)
+        : ''
+    const local =
+      statement.type === 'ImportDeclaration'
+        ? statement.specifiers[0]?.local.name
+        : ''
     if (local && specifier.endsWith('?raw')) {
-      scope.set(local, readFileSync(new URL(specifier.slice(0, -'?raw'.length), file), 'utf8'))
+      scope.set(
+        local,
+        readFileSync(new URL(specifier.slice(0, -'?raw'.length), file), 'utf8')
+      )
     }
   }
 }
 
-function convertFlow(nodes: readonly RootContent[], scope: Map<string, unknown>): RootContent[] {
+function convertFlow(
+  nodes: readonly RootContent[],
+  scope: Map<string, unknown>
+): RootContent[] {
   return nodes.flatMap((node): RootContent[] => {
     switch (node.type) {
       case 'mdxjsEsm':
@@ -75,7 +110,12 @@ function convertFlow(nodes: readonly RootContent[], scope: Map<string, unknown>)
       case 'list':
       case 'listItem':
       case 'blockquote':
-        return [{ ...node, children: convertFlow(node.children, scope) } as RootContent]
+        return [
+          {
+            ...node,
+            children: convertFlow(node.children, scope),
+          } as RootContent,
+        ]
       default:
         return [node]
     }
@@ -96,14 +136,22 @@ function convertPhrasing(nodes: readonly PhrasingContent[]): PhrasingContent[] {
       case 'emphasis':
       case 'strong':
       case 'link':
-        return [{ ...node, children: convertPhrasing(node.children) } as PhrasingContent]
+        return [
+          {
+            ...node,
+            children: convertPhrasing(node.children),
+          } as PhrasingContent,
+        ]
       default:
         return [node]
     }
   })
 }
 
-function convertElement(element: JsxElement, scope: Map<string, unknown>): RootContent[] {
+function convertElement(
+  element: JsxElement,
+  scope: Map<string, unknown>
+): RootContent[] {
   const convert = element.name ? components[element.name] : undefined
   if (!convert) {
     throw new Error(`No Markdown mapping for <${element.name}>`)
@@ -111,7 +159,9 @@ function convertElement(element: JsxElement, scope: Map<string, unknown>): RootC
   const props: Record<string, unknown> = {}
   for (const attribute of element.attributes) {
     if (attribute.type !== 'mdxJsxAttribute') {
-      throw new Error(`Spread attributes on <${element.name}> have no Markdown mapping`)
+      throw new Error(
+        `Spread attributes on <${element.name}> have no Markdown mapping`
+      )
     }
     const { value } = attribute
     props[attribute.name] =
@@ -141,10 +191,16 @@ const components: Record<string, Convert<never>> = {
     paragraph([{ type: 'image', url: src, alt }]),
   ],
   BrowserSupport: () => [
-    list(supportedBrowsers.map(browser => [text(`${browser.name} ${browser.version}+`)])),
+    list(
+      supportedBrowsers.map(browser => [
+        text(`${browser.name} ${browser.version}+`),
+      ])
+    ),
   ],
   RelatedPages: ({ pages }: { pages: string[] }) => [
-    list(pages.map(path => [pageLink(path), text(`: ${findPage(path).summary}`)])),
+    list(
+      pages.map(path => [pageLink(path), text(`: ${findPage(path).summary}`)])
+    ),
   ],
   EntryPoints: (_, element) => [
     list(
@@ -164,16 +220,25 @@ const components: Record<string, Convert<never>> = {
       ])
     ),
   ],
-  PropertyMeta: ({ type, defaultValue }: { type: string; defaultValue?: string }) => [
-    propertyMeta(type, defaultValue),
-  ],
+  PropertyMeta: ({
+    type,
+    defaultValue,
+  }: {
+    type: string
+    defaultValue?: string
+  }) => [propertyMeta(type, defaultValue)],
   Prop: (
     {
       name,
       type,
       defaultValue,
       required,
-    }: { name: string; type: string; defaultValue?: string; required?: boolean },
+    }: {
+      name: string
+      type: string
+      defaultValue?: string
+      required?: boolean
+    },
     element,
     convertChildren
   ) => [
@@ -237,10 +302,14 @@ function literalAttribute(element: JsxElement, name: string) {
 }
 
 // Finds the outermost descendants with these tag names, in document order.
-function findElements(node: { children?: unknown[] }, ...names: string[]): JsxElement[] {
+function findElements(
+  node: { children?: unknown[] },
+  ...names: string[]
+): JsxElement[] {
   return (node.children ?? []).flatMap(child => {
     const element = child as JsxElement
-    return element.type.startsWith('mdxJsx') && names.includes(element.name ?? '')
+    return element.type.startsWith('mdxJsx') &&
+      names.includes(element.name ?? '')
       ? [element]
       : findElements(element, ...names)
   })
@@ -258,24 +327,37 @@ function textOf(node: { value?: unknown; children?: unknown[] }): string {
 }
 
 // Docs attributes hold literals, arrays, objects, and imported identifiers; anything else is a bug.
-function evaluate(expression: Expression, scope: Map<string, unknown>): unknown {
+function evaluate(
+  expression: Expression,
+  scope: Map<string, unknown>
+): unknown {
   switch (expression.type) {
     case 'Literal':
       return expression.value
     case 'Identifier':
       if (!scope.has(expression.name)) {
-        throw new Error(`Unknown identifier in MDX expression: ${expression.name}`)
+        throw new Error(
+          `Unknown identifier in MDX expression: ${expression.name}`
+        )
       }
       return scope.get(expression.name)
     case 'ArrayExpression':
-      return expression.elements.map(element => evaluate(element as Expression, scope))
+      return expression.elements.map(element =>
+        evaluate(element as Expression, scope)
+      )
     case 'ObjectExpression':
       return Object.fromEntries(
         expression.properties.map(property => {
-          if (property.type !== 'Property' || property.key.type !== 'Identifier') {
+          if (
+            property.type !== 'Property' ||
+            property.key.type !== 'Identifier'
+          ) {
             throw new Error('Unsupported object property in MDX expression')
           }
-          return [property.key.name, evaluate(property.value as Expression, scope)]
+          return [
+            property.key.name,
+            evaluate(property.value as Expression, scope),
+          ]
         })
       )
     default:
@@ -283,12 +365,21 @@ function evaluate(expression: Expression, scope: Map<string, unknown>): unknown 
   }
 }
 
-function propertyMeta(type: string, defaultValue?: string, required = false): List {
+function propertyMeta(
+  type: string,
+  defaultValue?: string,
+  required = false
+): List {
   return list([
     [text('Type: '), { type: 'inlineCode', value: type }],
     ...(defaultValue === undefined
       ? []
-      : [[text('Default: '), { type: 'inlineCode', value: defaultValue }] as PhrasingContent[]]),
+      : [
+          [
+            text('Default: '),
+            { type: 'inlineCode', value: defaultValue },
+          ] as PhrasingContent[],
+        ]),
     ...(required ? [[text('Required')]] : []),
   ])
 }

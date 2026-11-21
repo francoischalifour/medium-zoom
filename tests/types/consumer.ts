@@ -3,7 +3,11 @@ import pureZoom from 'medium-zoom/dist/pure'
 import pureFileZoom from 'medium-zoom/dist/pure/index.js'
 
 const image = document.createElement('img')
-const options: ZoomOptions = { margin: 16, background: '#fff', container: document.body }
+const options: ZoomOptions = {
+  margin: 16,
+  background: '#fff',
+  container: document.body,
+}
 const zoom: Zoom = mediumZoom(image, options)
 const pure: Zoom = pureZoom('img', options)
 const opened: Promise<Zoom> = zoom.open({ target: image })

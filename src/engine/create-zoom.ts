@@ -1,12 +1,31 @@
-import { getPromise, createCustomEvent, getScrollY, isEscape, assign } from '#platform'
+import {
+  assign,
+  createCustomEvent,
+  getPromise,
+  getScrollY,
+  isEscape,
+} from '#platform'
 
-import type { ZoomOptions } from '../medium-zoom'
 import { createOverlay, getImagesFromSelectors, removeNode } from '../utils'
-import { cloneImage, fitImage, isImage, type Frame, type ZoomTarget } from './frame'
+import {
+  cloneImage,
+  fitImage,
+  type Frame,
+  isImage,
+  type ZoomTarget,
+} from './frame'
+import type { ZoomBounds } from './geometry'
 import { waitForTransition } from './transition'
 
-export type ZoomSelector = string | HTMLElement | HTMLElement[] | NodeList | null
+/** The images to zoom: a CSS selector, an element, a list of elements, or `null` for none. */
+export type ZoomSelector =
+  | string
+  | HTMLElement
+  | HTMLElement[]
+  | NodeList
+  | null
 
+/** Options every zoom accepts, in every entry. Change them later with `zoom.update()`. */
 export interface CoreZoomOptions {
   /**
    * The space outside the zoomed image.
@@ -30,80 +49,93 @@ export interface CoreZoomOptions {
   scrollOffset?: number
 }
 
+/** Options for `open()` and `toggle()`. */
 export interface ZoomOpenOptions {
   /**
-   * The target of the zoom.
+   * The attached image to zoom. An image that is not attached is ignored.
    *
-   * If not specified, the target is the first image of the zoom.
-   *
-   * @default null
+   * @default the first attached image
    */
   target?: HTMLElement
+}
 
-  /** The control that opened the zoom; receives focus when a modal renderer closes. */
+/** Open options of a zoom created with a renderer (`createZoom(…, { renderer })`). */
+export interface ModalOpenOptions extends ZoomOpenOptions {
+  /**
+   * The control that opened the zoom. The renderer returns focus to it on close.
+   *
+   * @default document.activeElement
+   */
   trigger?: HTMLElement
 }
 
-export interface Zoom<Options extends CoreZoomOptions = ZoomOptions> {
+/**
+ * A zoom instance: the images it manages, its options and its open/close lifecycle.
+ * Events are dispatched on the images as `medium-zoom:<type>` (`open`, `opened`, `close`,
+ * `closed`, `attach`, `detach`, `update`) with `event.detail.zoom`.
+ */
+export interface ZoomInstance<
+  Options extends CoreZoomOptions = CoreZoomOptions,
+> {
   /**
-   * Opens the zoom.
+   * Opens the zoom. Does nothing while it is already open.
    *
-   * @param options
-   * @returns A promise resolving with the zoom.
+   * @param options - Which image to open.
+   * @returns A promise resolving with the zoom once the opening transition ends.
    */
-  open(options?: ZoomOpenOptions): Promise<Zoom<Options>>
+  open(options?: ZoomOpenOptions): Promise<this>
 
   /**
-   * Closes the zoom.
+   * Closes the zoom. Does nothing while it is already closed.
    *
-   * @returns A promise resolving with the zoom.
+   * @returns A promise resolving with the zoom once the closing transition ends.
    */
-  close(): Promise<Zoom<Options>>
+  close(): Promise<this>
 
   /**
-   * Toggles the zoom.
+   * Closes the zoom when it is open, opens it otherwise.
    *
-   * @param options
-   * @returns A promise resolving with the zoom.
+   * @param options - Which image to open.
+   * @returns A promise resolving with the zoom once the transition ends.
    */
-  toggle(options?: ZoomOpenOptions): Promise<Zoom<Options>>
+  toggle(options?: ZoomOpenOptions): Promise<this>
 
   /**
-   * Attaches the images to the zoom.
+   * Attaches images to the zoom. Images already attached are skipped; non-images are ignored.
    *
-   * @param selectors - The selectors describing the images.
+   * @param selectors - The images to attach.
    * @returns The zoom.
    */
-  attach(...selectors: ZoomSelector[]): Zoom<Options>
+  attach(...selectors: ZoomSelector[]): this
 
   /**
-   * Releases the images from the zoom.
+   * Releases images from the zoom, closing it first when open. Without selectors, releases all.
    *
-   * @param selectors - The selectors describing the images.
+   * @param selectors - The images to release.
    * @returns The zoom.
    */
-  detach(...selectors: ZoomSelector[]): Zoom<Options>
+  detach(...selectors: ZoomSelector[]): this
 
   /**
-   * Updates the options.
+   * Merges options into the current ones.
    *
-   * @param options
+   * @param options - The options to change.
    * @returns The zoom.
    */
-  update(options: Options): Zoom<Options>
+  update(options: Options): this
 
   /**
-   * Extends the zoom with the provided options merged with the current ones.
+   * Creates a new zoom with the current options merged with `options`, and no images.
    *
-   * @param options
-   * @returns The zoom.
+   * @param options - The options to override.
+   * @returns The new zoom.
    */
-  clone(options?: Options): Zoom<Options>
+  clone(options?: Options): this
 
   /**
-   * Registers an event handler on each target of the zoom.
+   * Registers a `medium-zoom:<type>` listener on every image, current and future.
    *
-   * @param type - The event type to listen for.
+   * @param type - The event type without its prefix, such as `opened`.
    * @param listener - The function to execute when the event is triggered.
    * @param options - The event listener options (same as [`addEventListener`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#Parameters))
    * @returns The zoom.
@@ -112,12 +144,12 @@ export interface Zoom<Options extends CoreZoomOptions = ZoomOptions> {
     type: string,
     listener: EventListenerOrEventListenerObject,
     options?: boolean | AddEventListenerOptions
-  ): Zoom<Options>
+  ): this
 
   /**
-   * Unregisters an event handler.
+   * Unregisters a listener registered with `on()`.
    *
-   * @param type - The event type to unregister.
+   * @param type - The event type without its prefix, such as `opened`.
    * @param listener - The function to remove from the event target.
    * @param options - The event listener options (same as [`removeEventListener`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/removeEventListener#Parameters))
    * @returns The zoom.
@@ -126,33 +158,45 @@ export interface Zoom<Options extends CoreZoomOptions = ZoomOptions> {
     type: string,
     listener: EventListenerOrEventListenerObject,
     options?: boolean | AddEventListenerOptions
-  ): Zoom<Options>
+  ): this
 
   /**
-   * Returns the zoom options.
+   * Returns the current options, defaults included.
    *
    * @returns The zoom options.
    */
   getOptions(): Options
 
   /**
-   * Returns the zoom images.
+   * Returns the attached images, in attach order.
    *
    * @returns The zoom images.
    */
   getImages(): HTMLElement[]
 
   /**
-   * Returns the current zoomed image.
+   * Returns the open image.
    *
-   * @returns The current zoomed image.
+   * @returns The current zoomed image, or `null` while the zoom is closed.
    */
-  getZoomedImage(): HTMLElement
+  getZoomedImage(): HTMLElement | null
 }
 
-export interface ZoomFactory<Options extends CoreZoomOptions = ZoomOptions> {
-  (selector?: ZoomSelector, options?: Options): Zoom<Options>
-  (options?: Options): Zoom<Options>
+/**
+ * Creates a zoom on the images matching `selector`. The selector can be omitted:
+ * `factory(options)` creates a zoom without images.
+ */
+export interface ZoomFactory<
+  Options extends CoreZoomOptions = CoreZoomOptions,
+  Instance extends ZoomInstance<Options> = ZoomInstance<Options>,
+> {
+  /**
+   * @param selector - The images to attach.
+   * @param options - The zoom options.
+   */
+  (selector?: ZoomSelector, options?: Options): Instance
+  /** @param options - The zoom options. */
+  (options?: Options): Instance
 }
 
 export type Cleanup = () => void
@@ -170,28 +214,39 @@ export interface Scene {
   __mz_scrollTimer?: ReturnType<typeof setTimeout> | null
 }
 
-export interface Viewport {
-  width: number
-  height: number
-  left: number
-  top: number
-}
-
-/** A loader returns detached media. Adoption, presentation and disposal belong to the engine. */
+/** What a loader works from when a zoom opens. */
 export interface ZoomLoadContext {
-  readonly original: ZoomTarget
-  readonly content: ZoomTarget
+  /** The attached image the zoom opened from. */
+  readonly original: HTMLImageElement
+  /** The frame on screen: a clone of `original`, already presented and animating. */
+  readonly clone: HTMLImageElement
 }
+/**
+ * Supplies a higher-resolution image for an opening zoom. Call `ready()` with a detached,
+ * loaded image to show it over the frame, or without one to keep the frame. Return a cleanup
+ * that cancels loading; the zoom calls it when the opening ends or is cancelled.
+ */
 export type ZoomLoader = (
-  content: ZoomLoadContext,
-  ready: (content?: ZoomTarget) => void
+  context: ZoomLoadContext,
+  ready: (image?: HTMLImageElement) => void
 ) => Cleanup | void
-export type ZoomViewport = (viewport: Viewport, options: Readonly<CoreZoomOptions>) => Viewport
+/**
+ * Measures where the zoomed image fits, at positioning time. Receives the window bounds
+ * minus `margin` and returns the bounds to fit into, in viewport coordinates.
+ */
+export type ZoomViewport = (
+  bounds: ZoomBounds,
+  options: Readonly<CoreZoomOptions>
+) => ZoomBounds
 /** Closed compatibility adapter, not an extension/install API. */
-export interface LegacyAdapter {
-  defaults: Partial<ZoomOptions>
-  update: (options: ZoomOptions, previous: ZoomOptions) => void
-  content: (frame: ZoomTarget, host: HTMLElement, options: ZoomOptions) => LegacyContent | void
+export interface LegacyAdapter<Options extends CoreZoomOptions> {
+  defaults: Partial<Options>
+  update: (options: Options, previous: Options) => void
+  content: (
+    frame: ZoomTarget,
+    host: HTMLElement,
+    options: Options
+  ) => LegacyContent | void
 }
 
 /**
@@ -201,8 +256,7 @@ export interface LegacyAdapter {
  */
 export interface Stage {
   mount(context: {
-    readonly frame: Frame
-    readonly zoom: Zoom
+    readonly zoom: ZoomInstance
     close: Cleanup
     readonly trigger?: HTMLElement
   }): StageView
@@ -226,12 +280,6 @@ export interface StageView {
   dispose(): void
 }
 
-/** Whatever issues open requests for a zoom: the zoom itself, or a session coordinating it. */
-export type ZoomCommander<Options extends CoreZoomOptions = ZoomOptions> = Pick<
-  Zoom<Options>,
-  'open'
->
-
 /**
  * Build constant: true in the fixed presets (`medium-zoom`, pure, compat, modern), which
  * always have the HD loader, container viewport and v1 options, and never a stage.
@@ -244,17 +292,17 @@ declare const __PRESET__: boolean
  * closing. Each argument is an optional capability; an entry that omits one does not
  * ship its code.
  */
-export const createEngine = (
+export const createEngine = <Options extends CoreZoomOptions>(
   loader?: ZoomLoader,
   measureViewport?: ZoomViewport,
   stageOption?: Stage,
-  legacy?: LegacyAdapter,
-  adoptMedia?: (frame: Frame, media: ZoomTarget) => void
-): ZoomFactory => {
+  legacy?: LegacyAdapter<Options>,
+  adoptMedia?: (frame: Frame, media: HTMLImageElement) => void
+): ZoomFactory<Options> => {
   const stage = __PRESET__ ? undefined : stageOption
-  const mediumZoom: ZoomFactory = (
-    selector?: ZoomSelector | ZoomOptions,
-    options: ZoomOptions = {}
+  const mediumZoom = (
+    selector?: ZoomSelector | Options,
+    options = {} as Options
   ) => {
     const Promise = getPromise()
 
@@ -285,7 +333,8 @@ export const createEngine = (
       // Pinching and panning a magnified page must keep the full-size image open.
       if (
         active.__mz_isPinching ||
-        (window.visualViewport && window.visualViewport.scale > active.__mz_viewportScale!)
+        (window.visualViewport &&
+          window.visualViewport.scale > active.__mz_viewportScale!)
       ) {
         scrollTop = currentScroll
         clearTimeout(active.__mz_scrollTimer || undefined)
@@ -325,7 +374,7 @@ export const createEngine = (
       }
     }
 
-    const update = (options: ZoomOptions = {}) => {
+    const update = (options = {} as Options) => {
       const newOptions = options
 
       if (options.background) {
@@ -345,9 +394,10 @@ export const createEngine = (
       return zoom
     }
 
-    const clone = (options?: ZoomOptions) => mediumZoom(assign({}, zoomOptions, options))
+    const clone = (options?: Options) =>
+      mediumZoom(assign({}, zoomOptions, options))
 
-    const attach: Zoom['attach'] = function () {
+    const attach: ZoomInstance<Options>['attach'] = function () {
       const newImages = getImagesFromSelectors(arguments, isImage).filter(
         image => images.indexOf(image) === -1
       )
@@ -370,13 +420,15 @@ export const createEngine = (
       return zoom
     }
 
-    const detach: Zoom['detach'] = function () {
+    const detach: ZoomInstance<Options>['detach'] = function () {
       if (active.__mz_original) {
         void close()
       }
 
       const imagesToDetach =
-        arguments.length > 0 ? getImagesFromSelectors(arguments, isImage) : images
+        arguments.length > 0
+          ? getImagesFromSelectors(arguments, isImage)
+          : images
 
       imagesToDetach.forEach(image => {
         if (__PRESET__) {
@@ -393,11 +445,15 @@ export const createEngine = (
     }
 
     const bindEvents =
-      (add: boolean): Zoom['on'] =>
+      (add: boolean): ZoomInstance<Options>['on'] =>
       (type, listener, options = {}) => {
         const eventType = `medium-zoom:${type}`
         images.forEach(image =>
-          image[add ? 'addEventListener' : 'removeEventListener'](eventType, listener, options)
+          image[add ? 'addEventListener' : 'removeEventListener'](
+            eventType,
+            listener,
+            options
+          )
         )
         if (add) {
           eventListeners.push([eventType, listener, options])
@@ -431,7 +487,9 @@ export const createEngine = (
       window[method]('resize', _close)
     }
 
-    const open = (options: ZoomOpenOptions = {}): Promise<Zoom> => {
+    const open = (
+      options: ModalOpenOptions = {}
+    ): Promise<ZoomInstance<Options>> => {
       const target = options.target
       // With a stage, a request for another image replaces the open scene.
       let previous: Scene | undefined
@@ -446,7 +504,7 @@ export const createEngine = (
       }
       const current: Scene = {}
 
-      return new Promise<Zoom>((resolve, reject) => {
+      return new Promise<ZoomInstance<Options>>((resolve, reject) => {
         if (
           (!previous && active.__mz_original) ||
           (target && images.indexOf(target as ZoomTarget) === -1)
@@ -466,7 +524,10 @@ export const createEngine = (
           clearTimeout(previous.__mz_scrollTimer || undefined)
           previous.__mz_original!.classList.remove('medium-zoom-image--hidden')
           current.__mz_view = previous.__mz_view
-          current.__mz_view!.take(previous.__mz_frames!, previous.__mz_original!)
+          current.__mz_view!.take(
+            previous.__mz_frames!,
+            previous.__mz_original!
+          )
         }
         active = current
 
@@ -516,7 +577,9 @@ export const createEngine = (
           resolve(zoom)
           return
         }
-        current.__mz_viewportScale = window.visualViewport ? window.visualViewport.scale : 1
+        current.__mz_viewportScale = window.visualViewport
+          ? window.visualViewport.scale
+          : 1
         _updateGlobalEvents(true)
         _dispatchEvent(current.__mz_original!, 'open')
         if (!current.__mz_cancelOpen) {
@@ -524,14 +587,17 @@ export const createEngine = (
         }
 
         scrollTop = getScrollY()
-        const primary = cloneImage(current.__mz_original as HTMLImageElement, stage)
+        const primary = cloneImage(
+          current.__mz_original as HTMLImageElement,
+          stage
+        )
         current.__mz_frames = [primary]
 
         try {
           if (stage) {
             current.__mz_view =
               current.__mz_view ||
-              stage.mount({ frame: primary, zoom, close: _close, trigger: options.trigger })
+              stage.mount({ zoom, close: _close, trigger: options.trigger })
             current.__mz_view.enter(primary)
           }
         } catch (error) {
@@ -555,7 +621,11 @@ export const createEngine = (
         }
         try {
           if (__PRESET__) {
-            current.__mz_closeContent = legacy!.content(primary, host, zoomOptions)
+            current.__mz_closeContent = legacy!.content(
+              primary,
+              host,
+              zoomOptions
+            )
           }
         } catch (error) {
           reject(error)
@@ -576,7 +646,7 @@ export const createEngine = (
         primary.classList.add('medium-zoom-image--opened')
 
         let prepared = false
-        const animate = (media?: ZoomTarget) => {
+        const animate = (media?: HTMLImageElement) => {
           if (prepared || !current.__mz_cancelOpen) {
             return
           }
@@ -589,7 +659,7 @@ export const createEngine = (
               if (!__PRESET__ && adoptMedia) {
                 adoptMedia(primary, media)
               }
-              content = media as Frame
+              content = media
               // An authored load handler may have replaced the copied classes.
               content.classList.add('medium-zoom-image--opened')
               host.appendChild(content)
@@ -606,10 +676,15 @@ export const createEngine = (
               content,
               __PRESET__
                 ? measureViewport!(bounds, zoomOptions)
-                : (measureViewport && measureViewport(bounds, zoomOptions)) || bounds
+                : (measureViewport && measureViewport(bounds, zoomOptions)) ||
+                    bounds
             )
             if (stage) {
-              cancelTransition = current.__mz_view!.present(frames, transform, settle)
+              cancelTransition = current.__mz_view!.present(
+                frames,
+                transform,
+                settle
+              )
             }
             if (!cancelTransition) {
               if (transform) {
@@ -630,7 +705,13 @@ export const createEngine = (
 
         try {
           if (__PRESET__ || loader) {
-            cancelImage = loader!({ original: current.__mz_original!, content: primary }, animate)
+            cancelImage = loader!(
+              {
+                original: current.__mz_original as HTMLImageElement,
+                clone: primary,
+              },
+              animate
+            )
             if (!current.__mz_cancelOpen && cancelImage) {
               cancelImage()
             }
@@ -644,12 +725,12 @@ export const createEngine = (
       })
     }
 
-    let closing: Promise<Zoom> | undefined
+    let closing: Promise<ZoomInstance<Options>> | undefined
     const close = () => {
       if (closing) {
         return closing
       }
-      const promise = new Promise<Zoom>((resolve, reject) => {
+      const promise = new Promise<ZoomInstance<Options>>((resolve, reject) => {
         const current = active
         const primary = current.__mz_frames && current.__mz_frames[0]
         if (!current.__mz_original || current.__mz_closing) {
@@ -714,7 +795,7 @@ export const createEngine = (
       return promise
     }
 
-    const toggle = (options: ZoomOpenOptions = {}) => {
+    const toggle = (options: ModalOpenOptions = {}) => {
       if (active.__mz_original) {
         return close()
       }
@@ -735,11 +816,11 @@ export const createEngine = (
       options: boolean | AddEventListenerOptions,
     ][] = []
     let scrollTop = 0
-    let zoomOptions: ZoomOptions = options
+    let zoomOptions: Options = options
     let active: Scene = {}
 
     // Construct the public instance before attach() returns it.
-    const zoom: Zoom = {
+    const zoom: ZoomInstance<Options> = {
       open,
       close,
       toggle,
@@ -750,9 +831,8 @@ export const createEngine = (
       on: bindEvents(true),
       off: bindEvents(false),
       getOptions,
-      getImages: getImages as Zoom['getImages'],
-      // Preserve the legacy declaration; a closed zoom returns null at runtime.
-      getZoomedImage: getZoomedImage as Zoom['getZoomedImage'],
+      getImages: getImages as ZoomInstance<Options>['getImages'],
+      getZoomedImage: getZoomedImage as ZoomInstance<Options>['getZoomedImage'],
     }
 
     const _close = () => {
@@ -761,7 +841,7 @@ export const createEngine = (
 
     // If the selector is omitted, it's replaced by the options
     if (Object.prototype.toString.call(selector) === '[object Object]') {
-      zoomOptions = selector as ZoomOptions
+      zoomOptions = selector as Options
     } else if (
       selector ||
       typeof selector === 'string' // to process empty string as a selector
@@ -781,5 +861,5 @@ export const createEngine = (
     return zoom
   }
 
-  return mediumZoom
+  return mediumZoom as ZoomFactory<Options>
 }

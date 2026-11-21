@@ -2,10 +2,12 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 
 import { exampleNames } from '../../scripts/example-names'
-import { test, expect } from './website-fixture'
+import { expect, test } from './website-fixture'
 
 for (const path of ['/', '/react']) {
-  test(`${path} hydrates without downloading documentation articles`, async ({ page }) => {
+  test(`${path} hydrates without downloading documentation articles`, async ({
+    page,
+  }) => {
     const scripts: string[] = []
     page.on('request', request => {
       if (request.resourceType() === 'script') {
@@ -32,9 +34,14 @@ test('mobile previews use the intermediate image while retaining the full-size z
       await page.goto(path)
       const image = page.locator('.preview-photo[data-zoomable="landscape"]')
       await expect
-        .poll(() => image.evaluate((image: HTMLImageElement) => image.currentSrc))
+        .poll(() =>
+          image.evaluate((image: HTMLImageElement) => image.currentSrc)
+        )
         .toContain('/ocean-sunset-preview-medium.webp')
-      await expect(image).toHaveAttribute('data-zoom-src', '/assets/images/ocean-sunset.jpg')
+      await expect(image).toHaveAttribute(
+        'data-zoom-src',
+        '/assets/images/ocean-sunset.jpg'
+      )
     }
   } finally {
     await context.close()
@@ -56,13 +63,19 @@ test('published documentation shares distinct, readable social cards without Jav
     const page = await context.newPage()
     for (const path of paths) {
       await page.goto(path)
-      const image = (await page.locator('meta[property="og:image"]').getAttribute('content'))!
-      expect(new URL(image).origin).toBe('https://medium-zoom.francoischalifour.com')
-      await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute('content', image)
-      await expect(page.locator('meta[property="og:image:alt"]')).toHaveAttribute(
-        'content',
-        await page.title()
+      const image = (await page
+        .locator('meta[property="og:image"]')
+        .getAttribute('content'))!
+      expect(new URL(image).origin).toBe(
+        'https://medium-zoom.francoischalifour.com'
       )
+      await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute(
+        'content',
+        image
+      )
+      await expect(
+        page.locator('meta[property="og:image:alt"]')
+      ).toHaveAttribute('content', await page.title())
       const url = new URL(new URL(image).pathname, page.url()).href
       const response = await context.request.get(url)
       expect(response.ok()).toBe(true)
@@ -77,7 +90,10 @@ test('published documentation shares distinct, readable social cards without Jav
         .poll(() =>
           page
             .getByRole('img', { name: 'Social card' })
-            .evaluate((image: HTMLImageElement) => [image.naturalWidth, image.naturalHeight])
+            .evaluate((image: HTMLImageElement) => [
+              image.naturalWidth,
+              image.naturalHeight,
+            ])
         )
         .toEqual([1_200, 630])
     }
@@ -87,30 +103,50 @@ test('published documentation shares distinct, readable social cards without Jav
   }
 })
 
-test('demos remain usable but excluded from indexing', async ({ page, request }) => {
+test('demos remain usable but excluded from indexing', async ({
+  page,
+  request,
+}) => {
   const sitemap = await (await request.get('/sitemap.xml')).text()
   for (const name of exampleNames) {
-    const path = name === 'shadcn' ? '/examples/shadcn/playground.html' : `/examples/${name}/`
+    const path =
+      name === 'shadcn'
+        ? '/examples/shadcn/playground.html'
+        : `/examples/${name}/`
     const response = await page.goto(path)
     expect(response!.status()).toBe(200)
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex,follow')
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      'content',
+      'noindex,follow'
+    )
     expect(sitemap).not.toContain(path)
   }
 })
 
-test('unknown URLs serve a useful 404 before JavaScript runs', async ({ browser }) => {
+test('unknown URLs serve a useful 404 before JavaScript runs', async ({
+  browser,
+}) => {
   const context = await browser.newContext({ javaScriptEnabled: false })
   try {
     const page = await context.newPage()
     const response = await page.goto('/docs/unknown-page/')
     expect(response!.status()).toBe(404)
     await expect(page).toHaveTitle('Page not found • medium-zoom')
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Page not found.')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      'Page not found.'
+    )
     await expect(page.locator('.eyebrow')).toHaveText('404 · Out of frame')
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex')
-    await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible()
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      'content',
+      'noindex'
+    )
+    await expect(
+      page.getByRole('navigation', { name: 'Main navigation' })
+    ).toBeVisible()
     const recovery = page.locator('.not-found-recovery')
-    await expect(recovery.getByRole('heading', { level: 2 })).toHaveText('Find your way back.')
+    await expect(recovery.getByRole('heading', { level: 2 })).toHaveText(
+      'Find your way back.'
+    )
     await expect(recovery.getByRole('link')).toHaveCount(2)
     for (const link of await recovery.getByRole('link').all()) {
       const href = await link.getAttribute('href')
@@ -124,14 +160,20 @@ test('unknown URLs serve a useful 404 before JavaScript runs', async ({ browser 
   }
 })
 
-test('404 search opens the existing documentation search with an empty query', async ({ page }) => {
+test('404 search opens the existing documentation search with an empty query', async ({
+  page,
+}) => {
   await page.goto('/missing-page/')
   await page.getByRole('link', { name: 'Search docs', exact: true }).click()
-  await expect(page.getByRole('dialog', { name: 'Search documentation' })).toBeVisible()
+  await expect(
+    page.getByRole('dialog', { name: 'Search documentation' })
+  ).toBeVisible()
   await expect(page.getByRole('combobox')).toBeFocused()
   await expect(page.getByRole('combobox')).toHaveValue('')
   await page.getByRole('combobox').fill('galleries')
-  await expect(page.getByRole('option').first()).toContainText('Multiple images')
+  await expect(page.getByRole('option').first()).toContainText(
+    'Multiple images'
+  )
 })
 
 test('immutable caching applies only to fingerprinted build output', () => {
@@ -142,7 +184,9 @@ test('immutable caching applies only to fingerprinted build output', () => {
   for (const rule of immutable) {
     const [path, policy] = rule.split('\n')
     expect(path).toMatch(/^\/assets\/[^/]+-[\w-]{8}\.[^.]+$/)
-    expect(policy.trim()).toBe('Cache-Control: public, max-age=31536000, immutable')
+    expect(policy.trim()).toBe(
+      'Cache-Control: public, max-age=31536000, immutable'
+    )
   }
   expect(headers).not.toContain('/assets/*')
   expect(headers).not.toContain('/assets/images/')

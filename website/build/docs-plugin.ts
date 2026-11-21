@@ -1,4 +1,4 @@
-import { readFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -33,8 +33,11 @@ function getSearchText(source: string) {
           if (!literal) {
             return ' '
           }
-          const expression = parseExpressionAt(literal, 0, { ecmaVersion: 'latest' })
-          return expression.type === 'Literal' && typeof expression.value === 'string'
+          const expression = parseExpressionAt(literal, 0, {
+            ecmaVersion: 'latest',
+          })
+          return expression.type === 'Literal' &&
+            typeof expression.value === 'string'
             ? expression.value
             : ''
         }
@@ -47,7 +50,10 @@ function getSearchText(source: string) {
   )
 }
 
-function getSearchEntries(source: string, page: (typeof docsPages)[number]): SearchEntry[] {
+function getSearchEntries(
+  source: string,
+  page: (typeof docsPages)[number]
+): SearchEntry[] {
   const prose = source.replace(/^```[^\n]*\n[\s\S]*?^```/gm, '')
   const [introduction, ...sections] = prose.split(/^## (.+)$/gm)
   return [
@@ -86,12 +92,16 @@ export function docsPlugin(): Plugin {
         return
       }
       const entries = docsPages.flatMap(page => {
-        const file = fileURLToPath(new URL(`../src/docs/${page.source}`, import.meta.url))
+        const file = fileURLToPath(
+          new URL(`../src/docs/${page.source}`, import.meta.url)
+        )
         this.addWatchFile(file)
         const source = readFileSync(file, 'utf8')
         return getSearchEntries(source, page)
       })
-      const searchModule = fileURLToPath(new URL('../src/docs-search-index.ts', import.meta.url))
+      const searchModule = fileURLToPath(
+        new URL('../src/docs-search-index.ts', import.meta.url)
+      )
       return `import { createDocsSearch } from ${JSON.stringify(searchModule)};\nexport default createDocsSearch(${JSON.stringify(entries)})`
     },
     handleHotUpdate({ file, server }) {
@@ -105,7 +115,10 @@ export function docsPlugin(): Plugin {
       server.ws.send({ type: 'full-reload' })
     },
     config() {
-      const template = readFileSync(new URL('./docs-template.html', import.meta.url), 'utf8')
+      const template = readFileSync(
+        new URL('./docs-template.html', import.meta.url),
+        'utf8'
+      )
       const entries: Record<string, string> = {}
       const escapeHtml = (value: string) =>
         value.replace(
@@ -150,8 +163,15 @@ export function docsPlugin(): Plugin {
                         item: `${siteOrigin}/docs/`,
                       },
                     ]),
-                { name: page.path === '/docs/' ? 'Documentation' : page.title, item: url },
-              ].map((item, index) => ({ '@type': 'ListItem', position: index + 1, ...item })),
+                {
+                  name: page.path === '/docs/' ? 'Documentation' : page.title,
+                  item: url,
+                },
+              ].map((item, index) => ({
+                '@type': 'ListItem',
+                position: index + 1,
+                ...item,
+              })),
             },
           },
           isPartOf: {
@@ -166,8 +186,13 @@ export function docsPlugin(): Plugin {
           .replaceAll('__DOC_URL__', escapeHtml(url))
           .replaceAll('__DOC_MARKDOWN__', markdownPath(page.path))
           .replaceAll('__DOC_IMAGE__', siteOrigin + docsOgImagePath(page.path))
-          .replace('"__DOC_SCHEMA__"', JSON.stringify(schema).replaceAll('<', '\\u003c'))
-        const file = fileURLToPath(new URL(`..${page.path}index.html`, import.meta.url))
+          .replace(
+            '"__DOC_SCHEMA__"',
+            JSON.stringify(schema).replaceAll('<', '\\u003c')
+          )
+        const file = fileURLToPath(
+          new URL(`..${page.path}index.html`, import.meta.url)
+        )
         mkdirSync(dirname(file), { recursive: true })
         if (!existsSync(file) || readFileSync(file, 'utf8') !== html) {
           writeFileSync(file, html)

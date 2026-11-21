@@ -19,33 +19,32 @@ import { gzipSync } from 'node:zlib'
 import { build } from 'tsdown'
 
 import {
-  candidateManifest,
   candidateEntries,
-  releaseEntries,
+  candidateManifest,
   extensionEntries,
   profileEntries,
+  releaseEntries,
 } from '../config/package.config.mts'
 import budgets from '../config/size.config.mts'
-import { bytes, table } from './size-report'
+import { bytes, change, table } from './size-report'
 
 interface Baseline {
   revision: string
   consumers: Record<string, { js: number; css: number }>
   artifacts: Record<string, number>
-  packages: Record<'release' | 'candidate', { files: number; tarball: number; unpacked: number }>
+  packages: Record<
+    'release' | 'candidate',
+    { files: number; tarball: number; unpacked: number }
+  >
 }
 
-const baselinePath = fileURLToPath(new URL('../config/size-baseline.json', import.meta.url))
+const baselinePath = fileURLToPath(
+  new URL('../config/size-baseline.json', import.meta.url)
+)
 const baseline: Baseline = JSON.parse(readFileSync(baselinePath, 'utf8'))
 const updating = process.argv.includes('--update-baseline')
 const gzip = (code: string | Uint8Array) => gzipSync(code, { level: 9 }).length
 const fileSize = (path: string) => gzip(readFileSync(path))
-const change = (current: number, before: number | undefined) =>
-  before === undefined
-    ? 'new'
-    : current === before
-      ? '—'
-      : `${current > before ? '+' : '−'}${bytes(Math.abs(current - before))}`
 
 /** Capabilities a composed consumer imports next to `medium-zoom/core`. */
 interface Composition {
@@ -69,7 +68,11 @@ const compositions: Record<string, Composition> = {
   'core + dialog + template': { dialog: true, content: true },
   'core + dialog + triggers': { dialog: true, triggers: true },
   'core + dialog + gallery': { dialog: true, gallery: true },
-  'core + dialog + gallery + session': { dialog: true, gallery: true, session: true },
+  'core + dialog + gallery + session': {
+    dialog: true,
+    gallery: true,
+    session: true,
+  },
   'core + dialog + gallery + session + keyboard': {
     dialog: true,
     gallery: true,
@@ -96,15 +99,28 @@ const compositions: Record<string, Composition> = {
 /** Fixed presets: one import, with the stylesheet injected or shipped next to it. */
 const presets: Record<string, { entry: string; css?: string }> = {
   'medium-zoom': { entry: 'dist/medium-zoom.esm.js' },
-  'medium-zoom/dist/pure': { entry: 'dist/pure/index.js', css: 'dist/style.css' },
+  'medium-zoom/dist/pure': {
+    entry: 'dist/pure/index.js',
+    css: 'dist/style.css',
+  },
   'medium-zoom/modern': { entry: 'dist/modern/index.mjs' },
 }
 
-const entry = (name: string) => JSON.stringify(resolve(`dist/${name}/index.mjs`))
+const entry = (name: string) =>
+  JSON.stringify(resolve(`dist/${name}/index.mjs`))
 
 function compositionSource(composition: Composition): string {
-  const { loader, viewport, content, triggers, dialog, session, gallery, keyboard, transition } =
-    composition
+  const {
+    loader,
+    viewport,
+    content,
+    triggers,
+    dialog,
+    session,
+    gallery,
+    keyboard,
+    transition,
+  } = composition
   const contents = [
     content && 'templateContent("#caption")(view)',
     keyboard && 'bindGalleryKeyboard(view.element, createGallery(view.zoom))',
@@ -146,7 +162,11 @@ function compositionSource(composition: Composition): string {
 }
 
 /** Each capability must only appear in the bundles that import it. */
-function assertIsolation(name: string, code: string, composition: Composition | undefined) {
+function assertIsolation(
+  name: string,
+  code: string,
+  composition: Composition | undefined
+) {
   const preset = !composition
   const expected: [marker: string, present: boolean, capability: string][] = [
     ['showModal', !!composition?.dialog, 'dialog'],
@@ -155,12 +175,24 @@ function assertIsolation(name: string, code: string, composition: Composition | 
     ['AbortController', !!composition?.transition, 'transition runner'],
     ['.repeat', !!composition?.triggers, 'triggers'],
     ['data-zoom-src', preset || !!composition?.loader, 'HD loader'],
-    ['.content.cloneNode', preset || !!composition?.content, 'template content'],
-    ['right:0,bottom:0', preset || !!composition?.viewport, 'container viewport'],
+    [
+      '.content.cloneNode',
+      preset || !!composition?.content,
+      'template content',
+    ],
+    [
+      'right:0,bottom:0',
+      preset || !!composition?.viewport,
+      'container viewport',
+    ],
     ['opacity 150ms', preset, 'v1 template fade'],
   ]
   for (const [marker, present, capability] of expected) {
-    assert.equal(code.includes(marker), present, `${name}: ${capability} isolation`)
+    assert.equal(
+      code.includes(marker),
+      present,
+      `${name}: ${capability} isolation`
+    )
   }
 }
 
@@ -169,26 +201,28 @@ async function measureConsumers() {
   const results: Record<string, { js: number; css: number }> = {}
   const modernCss = fileSize('dist/modern/style.css')
   try {
-    const sources: [name: string, source: string, css: number, composition?: Composition][] = [
-      ...Object.entries(presets).map(
-        ([name, preset]) =>
-          [
-            name,
-            `import zoom from ${JSON.stringify(resolve(preset.entry))}\nglobalThis.zoom = zoom('img')`,
-            preset.css ? fileSize(preset.css) : 0,
-          ] as [string, string, number]
-      ),
-      ...Object.entries(compositions).map(
-        ([name, composition]) =>
-          [name, compositionSource(composition), modernCss, composition] as [
-            string,
-            string,
-            number,
-            Composition,
-          ]
-      ),
+    const inputs: {
+      name: string
+      source: string
+      css: number
+      composition?: Composition
+    }[] = [
+      ...Object.entries(presets).map(([name, preset]) => ({
+        name,
+        source: `import zoom from ${JSON.stringify(resolve(preset.entry))}\nglobalThis.zoom = zoom('img')`,
+        css: preset.css ? fileSize(preset.css) : 0,
+      })),
+      ...Object.entries(compositions).map(([name, composition]) => ({
+        name,
+        source: compositionSource(composition),
+        css: modernCss,
+        composition,
+      })),
     ]
-    for (const [index, [name, source, css, composition]] of sources.entries()) {
+    for (const [
+      index,
+      { name, source, css, composition },
+    ] of inputs.entries()) {
       const input = join(directory, `${index}.ts`)
       const output = join(directory, `output-${index}`)
       writeFileSync(input, source)
@@ -219,7 +253,8 @@ function assertCatalog() {
   const release = JSON.parse(readFileSync('package.json', 'utf8'))
   const candidate = candidateManifest()
   assert.equal(candidate.private, true)
-  const sourcePaths = JSON.parse(readFileSync('tsconfig.json', 'utf8')).compilerOptions.paths
+  const sourcePaths = JSON.parse(readFileSync('tsconfig.json', 'utf8'))
+    .compilerOptions.paths
   for (const entry of candidateEntries) {
     assert.deepEqual(
       sourcePaths[entry.path],
@@ -227,8 +262,14 @@ function assertCatalog() {
       `${entry.path}: source alias drift`
     )
   }
-  for (const entry of [...releaseEntries, ...extensionEntries, ...profileEntries]) {
-    for (const path of [entry.esm, entry.cjs, entry.umd, entry.css].filter(Boolean) as string[]) {
+  for (const entry of [
+    ...releaseEntries,
+    ...extensionEntries,
+    ...profileEntries,
+  ]) {
+    for (const path of [entry.esm, entry.cjs, entry.umd, entry.css].filter(
+      Boolean
+    ) as string[]) {
       assert(
         budgets.some(budget => budget.path === path),
         `${entry.path}: missing artifact budget for ${path}`
@@ -243,16 +284,25 @@ function assertCatalog() {
       candidate.exports[`./${entry.path.slice('medium-zoom/'.length)}`],
       `${entry.path}: missing candidate export`
     )
-    assert(!release.files.includes(entry.esm), `${entry.path}: unexpectedly in release package`)
+    assert(
+      !release.files.includes(entry.esm),
+      `${entry.path}: unexpectedly in release package`
+    )
   }
 }
 
 const consumers = await measureConsumers()
-const artifacts = Object.fromEntries(budgets.map(({ path }) => [path, fileSize(path)]))
+const artifacts = Object.fromEntries(
+  budgets.map(({ path }) => [path, fileSize(path)])
+)
 
 if (updating) {
-  const revision = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { encoding: 'utf8' })
-  const dirty = !!execFileSync('git', ['status', '--porcelain'], { encoding: 'utf8' }).trim()
+  const revision = execFileSync('git', ['rev-parse', '--short', 'HEAD'], {
+    encoding: 'utf8',
+  })
+  const dirty = !!execFileSync('git', ['status', '--porcelain'], {
+    encoding: 'utf8',
+  }).trim()
   const next: Baseline = {
     revision: `${revision.trim()}${dirty ? ' + local changes' : ''}`,
     consumers,
@@ -260,10 +310,14 @@ if (updating) {
     packages: baseline.packages,
   }
   writeFileSync(baselinePath, `${JSON.stringify(next, null, 2)}\n`)
-  console.log(`Recorded ${next.revision} as the size baseline in config/size-baseline.json.`)
+  console.log(
+    `Recorded ${next.revision} as the size baseline in config/size-baseline.json.`
+  )
 } else {
   assertCatalog()
-  console.log(`medium-zoom size · gzip level 9 · compared with ${baseline.revision}\n`)
+  console.log(
+    `medium-zoom size · gzip level 9 · compared with ${baseline.revision}\n`
+  )
   console.log('CONSUMERS · what a bundler ships for these imports')
   table(
     ['Imports', 'JS', 'CSS', 'Total', 'Baseline', 'Change'],
@@ -289,13 +343,17 @@ if (updating) {
         path,
         bytes(size),
         bytes(maxBytes),
-        size > maxBytes ? `OVER by ${bytes(size - maxBytes)}` : bytes(maxBytes - size),
+        size > maxBytes
+          ? `OVER by ${bytes(size - maxBytes)}`
+          : bytes(maxBytes - size),
         before === undefined ? '—' : bytes(before),
         change(size, before),
       ]
     })
   )
-  const over = budgets.filter(({ path, maxBytes }) => artifacts[path]! > maxBytes)
+  const over = budgets.filter(
+    ({ path, maxBytes }) => artifacts[path]! > maxBytes
+  )
   assert.equal(
     over.length,
     0,

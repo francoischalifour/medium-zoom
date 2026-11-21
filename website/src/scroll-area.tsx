@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { type ReactNode, useEffect, useRef } from 'react'
 
 import './scroll-area.css'
 
@@ -59,8 +59,10 @@ export function revealInScrollArea(element: Element, anchor?: Element) {
   }
   const style = getComputedStyle(viewport)
   const bounds = viewport.getBoundingClientRect()
-  const visibleTop = bounds.top + (Number.parseFloat(style.scrollPaddingTop) || 0)
-  const visibleBottom = bounds.bottom - (Number.parseFloat(style.scrollPaddingBottom) || 0)
+  const visibleTop =
+    bounds.top + (Number.parseFloat(style.scrollPaddingTop) || 0)
+  const visibleBottom =
+    bounds.bottom - (Number.parseFloat(style.scrollPaddingBottom) || 0)
   let target = element.getBoundingClientRect()
   if (anchor && target.height > visibleBottom - visibleTop) {
     target = anchor.getBoundingClientRect()

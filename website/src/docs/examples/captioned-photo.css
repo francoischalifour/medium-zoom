@@ -1,5 +1,9 @@
 :root {
-  --photo-zoom-background: radial-gradient(ellipse at 50% 0%, #363044, #16171c 70%);
+  --photo-zoom-background: radial-gradient(
+    ellipse at 50% 0%,
+    #363044,
+    #16171c 70%
+  );
 }
 
 .captioned-photo {

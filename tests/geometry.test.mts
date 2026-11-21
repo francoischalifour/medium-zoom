@@ -16,20 +16,28 @@ test('fit preserves v1 raster positioning across viewport, source, and intrinsic
           const box = { left, top, width, height }
           const viewport = { left: 24, top: 36, width: 960, height: 640 }
           const intrinsic = { width: 1_200, height: 800 }
-          const fitted = fitBox(box, intrinsic.width, intrinsic.height, viewport)!
+          const fitted = fitBox(
+            box,
+            intrinsic.width,
+            intrinsic.height,
+            viewport
+          )!
           const scale = Math.min(
             Math.min(Math.max(width, intrinsic.width), viewport.width) / width,
-            Math.min(Math.max(height, intrinsic.height), viewport.height) / height
+            Math.min(Math.max(height, intrinsic.height), viewport.height) /
+              height
           )
           assert(Math.abs(fitted.scale - scale) < 1e-9)
           assert(
             Math.abs(
-              fitted.translateX - (-left + (viewport.width - width) / 2 + viewport.left) / scale
+              fitted.translateX -
+                (-left + (viewport.width - width) / 2 + viewport.left) / scale
             ) < 1e-9
           )
           assert(
             Math.abs(
-              fitted.translateY - (-top + (viewport.height - height) / 2 + viewport.top) / scale
+              fitted.translateY -
+                (-top + (viewport.height - height) / 2 + viewport.top) / scale
             ) < 1e-9
           )
         }
@@ -45,13 +53,20 @@ test('a zero-size box has no geometry and missing intrinsic dimensions stay fini
   assert.equal(fitBox({ ...box, height: 0 }, 0, 0, viewport), null)
   const fitted = fitBox(box, 0, 0, viewport)!
   assert.equal(fitted.scale, 5)
-  assert(Number.isFinite(fitted.translateX) && Number.isFinite(fitted.translateY))
+  assert(
+    Number.isFinite(fitted.translateX) && Number.isFinite(fitted.translateY)
+  )
 })
 
 test('the transform applies exactly the fitted geometry, including fractional bounds', () => {
   for (const size of [80, 160.25, 800]) {
     for (const natural of [0, 400, 1_200]) {
-      const layout = { left: -75.125, top: 36.75, width: size, height: size / 1.6 }
+      const layout = {
+        left: -75.125,
+        top: 36.75,
+        width: size,
+        height: size / 1.6,
+      }
       const viewport = { left: 24, top: 36, width: 960, height: 640 }
       const fitted = fitBox(layout, natural, natural / 1.6, viewport)!
       const match = fitted.transform.match(

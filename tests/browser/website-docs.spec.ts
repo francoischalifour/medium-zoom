@@ -1,47 +1,108 @@
 import AxeBuilder from '@axe-core/playwright'
 
 import { observeErrors } from './helpers'
-import { test, expect } from './website-fixture'
+import { expect, test } from './website-fixture'
 
 const origin = 'https://medium-zoom.francoischalifour.com'
 const pages = [
   ['/docs/', 'Overview', 'Documentation • medium-zoom'],
-  ['/docs/javascript/', 'JavaScript quickstart', 'JavaScript quickstart • medium-zoom'],
+  [
+    '/docs/javascript/',
+    'JavaScript quickstart',
+    'JavaScript quickstart • medium-zoom',
+  ],
   ['/docs/react/', 'React quickstart', 'React quickstart • medium-zoom'],
-  ['/docs/guides/hd-images/', 'HD images', 'High-resolution images • medium-zoom'],
-  ['/docs/guides/multiple-images/', 'Multiple images', 'Multiple images • medium-zoom'],
+  [
+    '/docs/guides/hd-images/',
+    'HD images',
+    'High-resolution images • medium-zoom',
+  ],
+  [
+    '/docs/guides/multiple-images/',
+    'Multiple images',
+    'Multiple images • medium-zoom',
+  ],
   ['/docs/guides/styling/', 'Styling', 'Image zoom styling • medium-zoom'],
-  ['/docs/guides/generated-svg/', 'Generated SVGs', 'Generated SVGs • medium-zoom'],
+  [
+    '/docs/guides/generated-svg/',
+    'Generated SVGs',
+    'Generated SVGs • medium-zoom',
+  ],
   ['/docs/guides/video/', 'Video playback', 'Video playback • medium-zoom'],
-  ['/docs/guides/custom-react-triggers/', 'Custom triggers', 'Custom React triggers • medium-zoom'],
-  ['/docs/guides/controlled-state/', 'Controlled state', 'Controlled React zoom • medium-zoom'],
+  [
+    '/docs/guides/custom-react-triggers/',
+    'Custom triggers',
+    'Custom React triggers • medium-zoom',
+  ],
+  [
+    '/docs/guides/controlled-state/',
+    'Controlled state',
+    'Controlled React zoom • medium-zoom',
+  ],
   [
     '/docs/guides/server-rendering/',
     'Server rendering',
     'React SSR and Server Components • medium-zoom',
   ],
-  ['/docs/reference/javascript/medium-zoom/', 'mediumZoom()', 'mediumZoom() API • medium-zoom'],
-  ['/docs/reference/javascript/options/', 'Options', 'JavaScript options • medium-zoom'],
-  ['/docs/reference/javascript/methods/', 'Methods', 'JavaScript methods • medium-zoom'],
-  ['/docs/reference/javascript/events/', 'Events', 'JavaScript events • medium-zoom'],
-  ['/docs/reference/react/image-zoom/', '<ImageZoom>', 'React ImageZoom API • medium-zoom'],
-  ['/docs/reference/react/composition/', 'Composition', 'React composition API • medium-zoom'],
-  ['/docs/integrations/angular/', 'Angular', 'Angular image zoom • medium-zoom'],
+  [
+    '/docs/reference/javascript/medium-zoom/',
+    'mediumZoom()',
+    'mediumZoom() API • medium-zoom',
+  ],
+  [
+    '/docs/reference/javascript/options/',
+    'Options',
+    'JavaScript options • medium-zoom',
+  ],
+  [
+    '/docs/reference/javascript/methods/',
+    'Methods',
+    'JavaScript methods • medium-zoom',
+  ],
+  [
+    '/docs/reference/javascript/events/',
+    'Events',
+    'JavaScript events • medium-zoom',
+  ],
+  [
+    '/docs/reference/react/image-zoom/',
+    '<ImageZoom>',
+    'React ImageZoom API • medium-zoom',
+  ],
+  [
+    '/docs/reference/react/composition/',
+    'Composition',
+    'React composition API • medium-zoom',
+  ],
+  [
+    '/docs/integrations/angular/',
+    'Angular',
+    'Angular image zoom • medium-zoom',
+  ],
   ['/docs/integrations/vue/', 'Vue', 'Vue image zoom • medium-zoom'],
   ['/docs/integrations/svelte/', 'Svelte', 'Svelte image zoom • medium-zoom'],
   ['/docs/integrations/solid/', 'Solid', 'Solid image zoom • medium-zoom'],
   ['/docs/integrations/astro/', 'Astro', 'Astro image zoom • medium-zoom'],
-  ['/docs/integrations/vitepress/', 'VitePress', 'VitePress image zoom • medium-zoom'],
+  [
+    '/docs/integrations/vitepress/',
+    'VitePress',
+    'VitePress image zoom • medium-zoom',
+  ],
 ] as const
 
 test('collapsed docs navigation stays inside the article column on phones and tablets', async ({
   page,
 }) => {
   await page.goto('/docs/javascript/')
-  const outlineButton = page.getByRole('button', { name: 'On this page', exact: true })
+  const outlineButton = page.getByRole('button', {
+    name: 'On this page',
+    exact: true,
+  })
   for (const width of [390, 1_024]) {
     await page.setViewportSize({ width, height: 900 })
-    const sheetButton = page.getByRole('button', { name: 'Open documentation navigation' })
+    const sheetButton = page.getByRole('button', {
+      name: 'Open documentation navigation',
+    })
     if (width === 390) {
       await expect(sheetButton).toBeVisible()
     } else {
@@ -52,7 +113,9 @@ test('collapsed docs navigation stays inside the article column on phones and ta
       'Get started',
       'JavaScript quickstart',
     ])
-    await expect(breadcrumb.locator('[aria-current="page"]')).toHaveText('JavaScript quickstart')
+    await expect(breadcrumb.locator('[aria-current="page"]')).toHaveText(
+      'JavaScript quickstart'
+    )
     await expect(outlineButton).toBeVisible()
   }
   await page.setViewportSize({ width: 1_440, height: 900 })
@@ -62,12 +125,18 @@ test('collapsed docs navigation stays inside the article column on phones and ta
   await expect(outlineButton).toHaveCount(0)
 })
 
-test('the sidebar and outline keep their active entries in view', async ({ page }) => {
+test('the sidebar and outline keep their active entries in view', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1_440, height: 600 })
   await page.goto('/docs/integrations/vitepress/')
-  await expect(page.locator('.docs-sidebar [aria-current="page"]')).toBeInViewport({ ratio: 1 })
+  await expect(
+    page.locator('.docs-sidebar [aria-current="page"]')
+  ).toBeInViewport({ ratio: 1 })
   await page.goto('/docs/reference/javascript/methods/')
-  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+  await page.evaluate(() =>
+    window.scrollTo(0, document.documentElement.scrollHeight)
+  )
   const active = page.locator('.docs-outline [aria-current="location"]')
   await expect(active).toHaveText('getZoomedImage()')
   await expect(active).toBeInViewport({ ratio: 1 })
@@ -85,7 +154,11 @@ test('the active outline section uses text without a rail marker, fill, or under
   await link.hover()
   await expect(link).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
   await expect(link).toHaveCSS('text-decoration-line', 'none')
-  expect(await link.evaluate(element => getComputedStyle(element, '::before').content)).toBe('none')
+  expect(
+    await link.evaluate(
+      element => getComputedStyle(element, '::before').content
+    )
+  ).toBe('none')
 })
 
 for (const theme of ['light', 'dark'] as const) {
@@ -95,13 +168,21 @@ for (const theme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: theme })
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/docs/guides/hd-images/')
-    const trigger = page.getByRole('button', { name: 'Open documentation navigation' })
+    const trigger = page.getByRole('button', {
+      name: 'Open documentation navigation',
+    })
     await trigger.click()
-    const area = page.getByRole('dialog', { name: 'Documentation' }).locator('.scroll-area')
+    const area = page
+      .getByRole('dialog', { name: 'Documentation' })
+      .locator('.scroll-area')
     const viewport = area.locator('.scroll-area-viewport')
     await expect(area).not.toHaveAttribute('data-scroll-above')
     await expect(area).toHaveAttribute('data-scroll-below', '')
-    expect(await area.evaluate(element => getComputedStyle(element, '::after').opacity)).toBe('1')
+    expect(
+      await area.evaluate(
+        element => getComputedStyle(element, '::after').opacity
+      )
+    ).toBe('1')
     await viewport.evaluate(element => {
       element.scrollTop = (element.scrollHeight - element.clientHeight) / 2
     })
@@ -110,19 +191,30 @@ for (const theme of ['light', 'dark'] as const) {
     await area.getByRole('link', { name: 'VitePress', exact: true }).focus()
     await expect(area).toHaveAttribute('data-scroll-above', '')
     await expect(area).not.toHaveAttribute('data-scroll-below')
-    expect(await area.evaluate(element => getComputedStyle(element, '::after').opacity)).toBe('0')
+    expect(
+      await area.evaluate(
+        element => getComputedStyle(element, '::after').opacity
+      )
+    ).toBe('0')
     await page.keyboard.press('Escape')
     await trigger.click()
     await expect(area).toHaveAttribute('data-scroll-above', '')
     await page.keyboard.press('Escape')
-    await page.getByRole('button', { name: 'On this page', exact: true }).click()
+    await page
+      .getByRole('button', { name: 'On this page', exact: true })
+      .click()
     const contents = page.locator('.docs-outline-menu .scroll-area')
     await expect(contents).not.toHaveAttribute('data-scroll-above')
     await expect(contents).not.toHaveAttribute('data-scroll-below')
     await page.setViewportSize({ width: 1_440, height: 600 })
-    await expect(page.locator('.docs-sidebar')).toHaveAttribute('data-scroll-below', '')
+    await expect(page.locator('.docs-sidebar')).toHaveAttribute(
+      'data-scroll-below',
+      ''
+    )
     await page.setViewportSize({ width: 1_440, height: 1_500 })
-    await expect(page.locator('.docs-sidebar')).not.toHaveAttribute('data-scroll-below')
+    await expect(page.locator('.docs-sidebar')).not.toHaveAttribute(
+      'data-scroll-below'
+    )
   })
 }
 
@@ -138,7 +230,9 @@ test('anchor arrival waits for scrolling, fades away, and repeats for the same d
   await expect(heading).toBeInViewport()
   await expect(link).toHaveAttribute('aria-current', 'location')
   const position = await page.evaluate(() => window.scrollY)
-  await expect(heading).not.toHaveAttribute('data-anchor-arrival', '', { timeout: 3_000 })
+  await expect(heading).not.toHaveAttribute('data-anchor-arrival', '', {
+    timeout: 3_000,
+  })
   expect(await page.evaluate(() => window.scrollY)).toBe(position)
   await link.click()
   await expect(heading).toHaveAttribute('data-anchor-arrival', '')
@@ -164,7 +258,10 @@ test('the breadcrumb outline menu closes before landing and transfers keyboard f
   await expect(menu).toBeHidden()
   await expect(button).toBeFocused()
   await page.keyboard.press('Enter')
-  const link = menu.getByRole('link', { name: 'Style the trigger', exact: true })
+  const link = menu.getByRole('link', {
+    name: 'Style the trigger',
+    exact: true,
+  })
   await link.focus()
   await page.keyboard.press('Enter')
   await expect(button).toHaveAttribute('aria-expanded', 'false')
@@ -172,7 +269,9 @@ test('the breadcrumb outline menu closes before landing and transfers keyboard f
   await expect(heading).toHaveAttribute('data-anchor-arrival', '')
   await expect(heading).toBeFocused()
   await expect(heading).toBeInViewport()
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
+    390
+  )
 })
 
 test('deep links and compatibility markers show static arrival feedback with reduced motion', async ({
@@ -183,46 +282,70 @@ test('deep links and compatibility markers show static arrival feedback with red
   const heading = page.locator('#add-an-image')
   await expect(heading).toHaveAttribute('data-anchor-arrival', '')
   expect(
-    await heading.evaluate(element => getComputedStyle(element, '::before').animationName)
+    await heading.evaluate(
+      element => getComputedStyle(element, '::before').animationName
+    )
   ).toBe('none')
-  await expect(heading).not.toHaveAttribute('data-anchor-arrival', '', { timeout: 3_000 })
+  await expect(heading).not.toHaveAttribute('data-anchor-arrival', '', {
+    timeout: 3_000,
+  })
   await page.goto('/docs/guides/hd-images/#data-zoom-src')
   await expect(page.locator('[data-anchor-arrival]')).toBeVisible()
-  await expect(page.locator('#data-zoom-src')).not.toHaveAttribute('data-anchor-arrival', '')
+  await expect(page.locator('#data-zoom-src')).not.toHaveAttribute(
+    'data-anchor-arrival',
+    ''
+  )
   await page.goto('/docs/javascript/#%E0%A4%A')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
 })
 
 for (const [path, title, documentTitle] of pages) {
-  test(`${title} ships complete HTML, anchors and metadata`, async ({ browser }) => {
+  test(`${title} ships complete HTML, anchors and metadata`, async ({
+    browser,
+  }) => {
     const context = await browser.newContext({ javaScriptEnabled: false })
     const page = await context.newPage()
     try {
       const response = await page.goto(path)
       expect(response?.status()).toBe(200)
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(title)
-      await expect(page.getByRole('heading', { level: 1 })).toHaveCSS('font-weight', '550')
+      await expect(page.getByRole('heading', { level: 1 })).toHaveCSS(
+        'font-weight',
+        '550'
+      )
       await expect(page).toHaveTitle(documentTitle)
       await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
         'content',
         documentTitle
       )
-      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', origin + path)
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+        'href',
+        origin + path
+      )
       await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
         'content',
         origin + path
       )
-      await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /\S.{40}/)
-      await expect(page.locator('meta[property="og:description"]')).toHaveAttribute(
+      await expect(page.locator('meta[name="description"]')).toHaveAttribute(
         'content',
-        (await page.locator('meta[name="description"]').getAttribute('content')) || ''
+        /\S.{40}/
+      )
+      await expect(
+        page.locator('meta[property="og:description"]')
+      ).toHaveAttribute(
+        'content',
+        (await page
+          .locator('meta[name="description"]')
+          .getAttribute('content')) || ''
       )
       await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute(
         'content',
         documentTitle
       )
       const schema = JSON.parse(
-        (await page.locator('script[type="application/ld+json"]').textContent()) || '{}'
+        (await page
+          .locator('script[type="application/ld+json"]')
+          .textContent()) || '{}'
       )
       expect(schema['@type']).toBe('TechArticle')
       expect(schema.url).toBe(origin + path)
@@ -237,7 +360,9 @@ for (const [path, title, documentTitle] of pages) {
         Date.parse(schema.datePublished)
       )
       expect(Date.parse(schema.dateModified)).toBeLessThanOrEqual(Date.now())
-      await expect(page.locator('article')).not.toContainText('By François Chalifour')
+      await expect(page.locator('article')).not.toContainText(
+        'By François Chalifour'
+      )
       const breadcrumb = schema.mainEntityOfPage.breadcrumb
       expect(breadcrumb['@type']).toBe('BreadcrumbList')
       expect(breadcrumb.itemListElement.at(-1).item).toBe(origin + path)
@@ -246,14 +371,18 @@ for (const [path, title, documentTitle] of pages) {
         const pathname = new URL(item.item).pathname
         expect((await context.request.get(pathname)).status()).toBe(200)
       }
-      expect((await context.request.get(new URL(schema.image).pathname)).ok()).toBe(true)
+      expect(
+        (await context.request.get(new URL(schema.image).pathname)).ok()
+      ).toBe(true)
       const ids = await page
         .locator('[id]')
         .evaluateAll(elements => elements.map(element => element.id))
       expect(new Set(ids).size).toBe(ids.length)
       const links = await page
         .locator('a[href]')
-        .evaluateAll(elements => elements.map(element => element.getAttribute('href')!))
+        .evaluateAll(elements =>
+          elements.map(element => element.getAttribute('href')!)
+        )
       for (const href of new Set(links)) {
         if (href.startsWith('#')) {
           await expect(page.locator(href)).toHaveCount(1)
@@ -269,7 +398,9 @@ for (const [path, title, documentTitle] of pages) {
       }
       if (path !== '/docs/') {
         await expect(page.locator('article pre code').first()).not.toBeEmpty()
-        await expect(page.locator('article pre code span[style]').first()).toBeAttached()
+        await expect(
+          page.locator('article pre code span[style]').first()
+        ).toBeAttached()
       }
       const sitemap = await (await context.request.get('/sitemap.xml')).text()
       expect(sitemap).toContain(`<loc>${origin}${path}</loc>`)
@@ -300,7 +431,9 @@ test('documentation navigation preserves package manager and theme preferences',
     .getByRole('radio', { name: 'bun', exact: true })
   await bun.click()
   await expect(bun).toBeChecked()
-  await expect(page.locator('#javascript-installation')).toContainText('bun add medium-zoom')
+  await expect(page.locator('#javascript-installation')).toContainText(
+    'bun add medium-zoom'
+  )
   await page
     .getByRole('navigation', { name: 'Main navigation', exact: true })
     .locator('a[href="/docs/"]')
@@ -310,10 +443,14 @@ test('documentation navigation preserves package manager and theme preferences',
     .getByRole('link', { name: /React quickstart/ })
     .click()
   await expect(
-    page.locator('#react-installation').getByRole('radio', { name: 'bun', exact: true })
+    page
+      .locator('#react-installation')
+      .getByRole('radio', { name: 'bun', exact: true })
   ).toBeChecked()
   await page.getByRole('button', { name: 'Switch to dark theme' }).click()
-  await page.locator('.docs-sidebar a[href="/docs/reference/javascript/options/"]').click()
+  await page
+    .locator('.docs-sidebar a[href="/docs/reference/javascript/options/"]')
+    .click()
   await expect(page.locator('html')).toHaveClass(/dark/)
   await page
     .getByRole('navigation', { name: 'Documentation pages' })
@@ -327,7 +464,9 @@ test('documentation navigation preserves package manager and theme preferences',
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Options')
   await page.locator('.docs-sidebar a[href="/docs/javascript/"]').click()
   await expect(
-    page.locator('#javascript-installation').getByRole('radio', { name: 'bun', exact: true })
+    page
+      .locator('#javascript-installation')
+      .getByRole('radio', { name: 'bun', exact: true })
   ).toBeChecked()
   expect(errors).toEqual([])
 })
@@ -343,19 +482,25 @@ test('the HD guide loads the preview before requesting the full-size zoom image'
   })
   await page.goto('/docs/guides/hd-images/')
   const trigger = page.locator('.docs-preview [data-slot="image-zoom-trigger"]')
-  await trigger.locator('img').evaluate(image => (image as HTMLImageElement).decode())
+  await trigger
+    .locator('img')
+    .evaluate(image => (image as HTMLImageElement).decode())
   expect(images).toContain('/assets/images/ocean-sunset-preview.webp')
   expect(images).not.toContain('/assets/images/ocean-sunset.jpg')
   await trigger.click()
   await expect(
-    page.locator('.medium-zoom-image--opened[src="/assets/images/ocean-sunset.jpg"]')
+    page.locator(
+      '.medium-zoom-image--opened[src="/assets/images/ocean-sunset.jpg"]'
+    )
   ).toBeVisible()
   expect(images).toContain('/assets/images/ocean-sunset.jpg')
   await page.keyboard.press('Escape')
   await expect(page.locator('body')).not.toHaveClass(/medium-zoom--opened/)
 })
 
-test('keyboard zoom survives interaction before hydration finishes loading', async ({ page }) => {
+test('keyboard zoom survives interaction before hydration finishes loading', async ({
+  page,
+}) => {
   let resume!: () => void
   const hydration = new Promise<void>(resolve => {
     resume = resolve
@@ -381,7 +526,9 @@ test('keyboard zoom survives interaction before hydration finishes loading', asy
   await expect(trigger).toBeFocused()
 })
 
-test('live examples support keyboard zoom and controlled close requests', async ({ page }) => {
+test('live examples support keyboard zoom and controlled close requests', async ({
+  page,
+}) => {
   const examples = [
     '/docs/react/',
     '/docs/guides/custom-react-triggers/',
@@ -389,7 +536,9 @@ test('live examples support keyboard zoom and controlled close requests', async 
   ]
   for (const [index, example] of examples.entries()) {
     await page.goto(example)
-    const trigger = page.locator('.docs-preview [data-slot="image-zoom-trigger"]')
+    const trigger = page.locator(
+      '.docs-preview [data-slot="image-zoom-trigger"]'
+    )
     await page
       .locator('.docs-preview [data-slot="image-zoom"]')
       .evaluate(image => (image as HTMLImageElement).decode())
@@ -397,47 +546,76 @@ test('live examples support keyboard zoom and controlled close requests', async 
     await page.keyboard.press(index === 1 ? 'Space' : 'Enter')
     await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
     if (index === 2) {
-      await expect(page.locator('.docs-preview').getByRole('status')).toHaveText('Preview open')
+      await expect(
+        page.locator('.docs-preview').getByRole('status')
+      ).toHaveText('Preview open')
     }
     await page.keyboard.press('Escape')
     await expect(page.locator('body')).not.toHaveClass(/medium-zoom--opened/)
     await expect(trigger).toBeFocused()
   }
-  await expect(page.locator('.docs-preview').getByRole('status')).toHaveText('Ready to inspect')
+  await expect(page.locator('.docs-preview').getByRole('status')).toHaveText(
+    'Ready to inspect'
+  )
   await page.getByRole('button', { name: 'Inspect photo', exact: true }).click()
   await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
   await page.keyboard.press('Escape')
-  await expect(page.locator('.docs-preview').getByRole('status')).toHaveText('Ready to inspect')
+  await expect(page.locator('.docs-preview').getByRole('status')).toHaveText(
+    'Ready to inspect'
+  )
   await page.goto('/docs/javascript/')
-  await page.getByRole('button', { name: 'Enlarge ocean sunset', exact: true }).focus()
+  await page
+    .getByRole('button', { name: 'Enlarge ocean sunset', exact: true })
+    .focus()
   await page.keyboard.press('Enter')
   await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
   await page.keyboard.press('Escape')
   await expect(page.locator('body')).not.toHaveClass(/medium-zoom--opened/)
 })
 
-test('code copy uses the displayed TypeScript example', async ({ page, context, browserName }) => {
-  test.skip(browserName !== 'chromium', 'Clipboard read permission is available in Chromium.')
+test('code copy uses the displayed TypeScript example', async ({
+  page,
+  context,
+  browserName,
+}) => {
+  test.skip(
+    browserName !== 'chromium',
+    'Clipboard read permission is available in Chromium.'
+  )
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.goto('/docs/guides/controlled-state/')
   await page.getByRole('tab', { name: 'Code', exact: true }).click()
-  await page.getByRole('button', { name: 'Copy photo-inspector.tsx', exact: true }).click()
+  await page
+    .getByRole('button', { name: 'Copy photo-inspector.tsx', exact: true })
+    .click()
   const copied = await page.evaluate(() => navigator.clipboard.readText())
   expect(copied).toContain('open={open} onOpenChange={setOpen}')
-  expect(copied).toContain("import * as ImageZoom from '@/components/ui/image-zoom'")
+  expect(copied).toContain(
+    "import * as ImageZoom from '@/components/ui/image-zoom'"
+  )
   expect(copied).not.toContain('--hls-dark:')
-  await expect(page.getByRole('status').filter({ hasText: 'Copied to clipboard' })).toBeVisible()
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Copied to clipboard' })
+  ).toBeVisible()
 })
 
-test('mobile navigation and outline work without horizontal page overflow', async ({ page }) => {
+test('mobile navigation and outline work without horizontal page overflow', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/docs/')
-  await page.getByRole('button', { name: 'Open documentation navigation' }).focus()
+  await page
+    .getByRole('button', { name: 'Open documentation navigation' })
+    .focus()
   await page.keyboard.press('Enter')
   const sheet = page.getByRole('dialog', { name: 'Documentation' })
   await expect(sheet).toBeVisible()
-  await sheet.getByRole('link', { name: 'Controlled state', exact: true }).click()
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Controlled state')
+  await sheet
+    .getByRole('link', { name: 'Controlled state', exact: true })
+    .click()
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'Controlled state'
+  )
   await page.getByRole('button', { name: 'On this page', exact: true }).click()
   await page
     .getByRole('navigation', { name: 'On this page' })
@@ -447,7 +625,11 @@ test('mobile navigation and outline work without horizontal page overflow', asyn
   await expect(page.locator('#control-the-zoom')).toBeInViewport()
   for (const [path] of pages) {
     await page.goto(path)
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth
+      )
+    ).toBe(true)
   }
   await page.setViewportSize({ width: 1_024, height: 800 })
   await expect(page.locator('.docs-outline')).toBeHidden()
@@ -456,17 +638,30 @@ test('mobile navigation and outline work without horizontal page overflow', asyn
 
 for (const theme of ['light', 'dark'] as const) {
   for (const [path] of pages) {
-    test(`${path} is accessible in ${theme} theme on desktop and mobile`, async ({ page }) => {
+    test(`${path} is accessible in ${theme} theme on desktop and mobile`, async ({
+      page,
+    }) => {
       await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' })
       await page.goto(path)
       for (const width of [1_440, 390]) {
         await page.setViewportSize({ width, height: 900 })
         if (width === 390) {
-          await page.getByRole('button', { name: 'Open documentation navigation' }).click()
-          await expect(page.getByRole('dialog', { name: 'Documentation' })).toBeVisible()
+          await page
+            .getByRole('button', { name: 'Open documentation navigation' })
+            .click()
+          await expect(
+            page.getByRole('dialog', { name: 'Documentation' })
+          ).toBeVisible()
         }
         const result = await new AxeBuilder({ page })
-          .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
+          .withTags([
+            'wcag2a',
+            'wcag2aa',
+            'wcag21a',
+            'wcag21aa',
+            'wcag22aa',
+            'best-practice',
+          ])
           .analyze()
         expect(result.violations).toEqual([])
       }
@@ -474,7 +669,9 @@ for (const theme of ['light', 'dark'] as const) {
   }
 }
 
-test('section links and sticky navigation clear the header', async ({ page }) => {
+test('section links and sticky navigation clear the header', async ({
+  page,
+}) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   for (const width of [1_440, 1_024, 390]) {
     await page.setViewportSize({ width, height: 900 })
@@ -489,14 +686,16 @@ test('section links and sticky navigation clear the header', async ({ page }) =>
         const bounds = await navigation.boundingBox()
         // The column starts at the header (its bottom border overlaps by a pixel) and its
         // scrolled-to-top content clears it, whichever entry the column has revealed.
-        const contentTop = await navigation.locator('.scroll-area-viewport').evaluate(viewport => {
-          const firstEntry = viewport.querySelector('nav > *')!
-          return (
-            firstEntry.getBoundingClientRect().top -
-            viewport.getBoundingClientRect().top +
-            viewport.scrollTop
-          )
-        })
+        const contentTop = await navigation
+          .locator('.scroll-area-viewport')
+          .evaluate(viewport => {
+            const firstEntry = viewport.querySelector('nav > *')!
+            return (
+              firstEntry.getBoundingClientRect().top -
+              viewport.getBoundingClientRect().top +
+              viewport.scrollTop
+            )
+          })
         expect(bounds!.y).toBeCloseTo(header!.y + header!.height, -0.5)
         expect(contentTop).toBeGreaterThanOrEqual(24)
       }
@@ -519,48 +718,71 @@ test('code fits the article and single-line copy controls stay beside scrolling 
         .evaluateAll(
           blocks =>
             blocks.filter(
-              block => !block.closest('.code-row') && block.scrollWidth > block.clientWidth + 1
+              block =>
+                !block.closest('.code-row') &&
+                block.scrollWidth > block.clientWidth + 1
             ).length
         )
       expect(overflowing).toBe(0)
-      const overlappingRows = await page.locator('.docs-article .code-row').evaluateAll(
-        rows =>
-          rows.filter(row => {
-            const code = row.querySelector('pre')!.getBoundingClientRect()
-            const button = row.querySelector('button')!.getBoundingClientRect()
-            const article = row.closest('.docs-article')!.getBoundingClientRect()
-            return code.right > button.left + 1 || button.right > article.right + 1
-          }).length
-      )
+      const overlappingRows = await page
+        .locator('.docs-article .code-row')
+        .evaluateAll(
+          rows =>
+            rows.filter(row => {
+              const code = row.querySelector('pre')!.getBoundingClientRect()
+              const button = row
+                .querySelector('button')!
+                .getBoundingClientRect()
+              const article = row
+                .closest('.docs-article')!
+                .getBoundingClientRect()
+              return (
+                code.right > button.left + 1 || button.right > article.right + 1
+              )
+            }).length
+        )
       expect(overlappingRows).toBe(0)
-      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
-        width
-      )
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth)
+      ).toBeLessThanOrEqual(width)
     }
   }
 })
 
-test('each quickstart includes installation and a working image', async ({ page }) => {
+test('each quickstart includes installation and a working image', async ({
+  page,
+}) => {
   for (const language of ['JavaScript', 'React']) {
     await page.goto('/docs/')
     await page
       .getByRole('navigation', { name: 'Choose your setup' })
       .getByRole('link', { name: new RegExp(`${language} quickstart`) })
       .click()
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(`${language} quickstart`)
-    await expect(page.getByRole('button', { name: 'Copy install command' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      `${language} quickstart`
+    )
+    await expect(
+      page.getByRole('button', { name: 'Copy install command' })
+    ).toBeVisible()
     await expect(page.locator('.docs-preview img')).toBeVisible()
-    await expect(page.getByRole('navigation', { name: 'Documentation pages' })).toHaveCount(1)
+    await expect(
+      page.getByRole('navigation', { name: 'Documentation pages' })
+    ).toHaveCount(1)
   }
 })
 
-test('sidebar and reference links use distinct hover treatments', async ({ page }) => {
+test('sidebar and reference links use distinct hover treatments', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1_440, height: 900 })
   await page.goto('/docs/')
   const sidebarLink = page.locator('.docs-sidebar a[href="/docs/javascript/"]')
   await sidebarLink.hover()
   await expect(sidebarLink).toHaveCSS('text-decoration-line', 'none')
-  await expect(sidebarLink).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+  await expect(sidebarLink).not.toHaveCSS(
+    'background-color',
+    'rgba(0, 0, 0, 0)'
+  )
 
   const referenceLink = page.locator('.docs-reference-links a').first()
   await expect(referenceLink).toHaveCSS('text-decoration-line', 'none')
@@ -574,7 +796,9 @@ test('sidebar and reference links use distinct hover treatments', async ({ page 
   await articleLink.hover()
   await expect(articleLink).toHaveCSS('text-decoration-line', 'underline')
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.getByRole('button', { name: 'Open documentation navigation' }).click()
+  await page
+    .getByRole('button', { name: 'Open documentation navigation' })
+    .click()
   const mobileLink = page
     .getByRole('dialog', { name: 'Documentation' })
     .locator('a[href="/docs/javascript/"]')
@@ -599,10 +823,13 @@ for (const theme of ['light', 'dark'] as const) {
               .slice(0, 3)
               .map(value => {
                 const channel = value / 255
-                return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4
+                return channel <= 0.04045
+                  ? channel / 12.92
+                  : ((channel + 0.055) / 1.055) ** 2.4
               })
               .reduce(
-                (total, channel, index) => total + channel * [0.2126, 0.7152, 0.0722][index],
+                (total, channel, index) =>
+                  total + channel * [0.2126, 0.7152, 0.0722][index],
                 0
               )
           const contrast = (first: number[], second: number[]) => {
@@ -634,7 +861,9 @@ for (const theme of ['light', 'dark'] as const) {
         })
       expect(values.length).toBeGreaterThan(0)
       for (const value of values) {
-        expect(value.text, `${path}: ${value.label}`).toBeGreaterThanOrEqual(4.5)
+        expect(value.text, `${path}: ${value.label}`).toBeGreaterThanOrEqual(
+          4.5
+        )
         if (value.selected) {
           expect(value.shadow).toBe('none')
           expect(value.fill, `${path}: ${value.label}`).toBeGreaterThan(1)
@@ -645,14 +874,19 @@ for (const theme of ['light', 'dark'] as const) {
 }
 
 for (const theme of ['light', 'dark'] as const) {
-  test(`article links use clearer underlines in ${theme} mode`, async ({ page }) => {
+  test(`article links use clearer underlines in ${theme} mode`, async ({
+    page,
+  }) => {
     await page.emulateMedia({ colorScheme: theme })
     await page.goto('/docs/javascript/')
-    const link = page.locator('article').getByRole('link', { name: 'open()', exact: true })
+    const link = page
+      .locator('article')
+      .getByRole('link', { name: 'open()', exact: true })
     const colors = await link.evaluate(element => ({
       underline: getComputedStyle(element).textDecorationColor,
       foreground: getComputedStyle(element).color,
-      border: getComputedStyle(document.querySelector('.code-block')!).borderTopColor,
+      border: getComputedStyle(document.querySelector('.code-block')!)
+        .borderTopColor,
     }))
     expect(colors.underline).not.toBe(colors.foreground)
     expect(colors.underline).not.toBe(colors.border)
@@ -664,24 +898,32 @@ for (const theme of ['light', 'dark'] as const) {
   })
 }
 
-test('image preview triggers follow the image bounds and corner radius', async ({ page }) => {
+test('image preview triggers follow the image bounds and corner radius', async ({
+  page,
+}) => {
   for (const width of [1_440, 390]) {
     await page.setViewportSize({ width, height: 900 })
     for (const path of ['/docs/react/', '/docs/guides/controlled-state/']) {
       await page.goto(path)
-      const trigger = page.locator('.docs-preview [data-slot="image-zoom-trigger"]')
+      const trigger = page.locator(
+        '.docs-preview [data-slot="image-zoom-trigger"]'
+      )
       const image = trigger.locator('img')
       await image.evaluate(element => (element as HTMLImageElement).decode())
       const triggerBounds = await trigger.boundingBox()
       const imageBounds = await image.boundingBox()
       expect(triggerBounds).toEqual(imageBounds)
-      const radius = await image.evaluate(element => getComputedStyle(element).borderRadius)
+      const radius = await image.evaluate(
+        element => getComputedStyle(element).borderRadius
+      )
       await expect(trigger).toHaveCSS('border-radius', radius)
     }
   }
 })
 
-test('Documentation shares the section navigation across desktop and mobile', async ({ page }) => {
+test('Documentation shares the section navigation across desktop and mobile', async ({
+  page,
+}) => {
   for (const width of [1_440, 740, 390, 320]) {
     await page.setViewportSize({ width, height: 900 })
     for (const [path, current] of [
@@ -690,45 +932,65 @@ test('Documentation shares the section navigation across desktop and mobile', as
       ['/docs/', 'Docs'],
     ]) {
       await page.goto(path)
-      const bar = page.getByRole('navigation', { name: 'Main navigation', exact: true })
+      const bar = page.getByRole('navigation', {
+        name: 'Main navigation',
+        exact: true,
+      })
       if (width <= 680) {
-        const section = bar.getByRole('combobox', { name: 'Section', exact: true })
+        const section = bar.getByRole('combobox', {
+          name: 'Section',
+          exact: true,
+        })
         await expect(section).toBeInViewport({ ratio: 1 })
-        await expect(section.getByRole('option')).toHaveText(['JavaScript', 'React', 'Docs'])
+        await expect(section.getByRole('option')).toHaveText([
+          'JavaScript',
+          'React',
+          'Docs',
+        ])
         await expect(section.locator('option:checked')).toHaveText(current)
       } else {
         const sections = bar.locator('.section-links')
         for (const label of ['JavaScript', 'React', 'Docs']) {
-          await expect(sections.getByRole('link', { name: label, exact: true })).toBeInViewport({
+          await expect(
+            sections.getByRole('link', { name: label, exact: true })
+          ).toBeInViewport({
             ratio: 1,
           })
         }
-        await expect(sections.getByRole('link', { name: current, exact: true })).toHaveAttribute(
-          'aria-current',
-          'page'
-        )
+        await expect(
+          sections.getByRole('link', { name: current, exact: true })
+        ).toHaveAttribute('aria-current', 'page')
       }
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
-        true
-      )
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth
+        )
+      ).toBe(true)
     }
   }
 })
 
 test('named reference links use background hover states', async ({ page }) => {
   await page.goto('/docs/reference/javascript/options/')
-  const navigation = page.getByRole('navigation', { name: 'Documentation pages', exact: true })
+  const navigation = page.getByRole('navigation', {
+    name: 'Documentation pages',
+    exact: true,
+  })
   for (const name of ['mediumZoom()', 'Methods']) {
     const link = navigation.getByRole('link', { name })
     await link.hover()
     await expect(link).toHaveCSS('text-decoration-line', 'none')
     await expect(link).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
   }
-  await navigation.locator('a[href="/docs/reference/javascript/methods/"]').click()
+  await navigation
+    .locator('a[href="/docs/reference/javascript/methods/"]')
+    .click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Methods')
 })
 
-test('documentation code headers are compact with usable copy buttons', async ({ page }) => {
+test('documentation code headers are compact with usable copy buttons', async ({
+  page,
+}) => {
   await page.goto('/docs/reference/javascript/medium-zoom/')
   for (const block of await page.locator('.docs-code').all()) {
     const caption = block.locator('.code-caption')
@@ -747,7 +1009,9 @@ test('documentation code headers are compact with usable copy buttons', async ({
 })
 
 for (const theme of ['light', 'dark'] as const) {
-  test(`code headers use the page background in ${theme} mode`, async ({ page }) => {
+  test(`code headers use the page background in ${theme} mode`, async ({
+    page,
+  }) => {
     await page.emulateMedia({ colorScheme: theme })
     for (const path of [
       '/docs/javascript/',
@@ -772,8 +1036,13 @@ test('the JavaScript preview opens on a pointer click and closes on the enlarged
   page,
 }) => {
   await page.goto('/docs/javascript/')
-  const trigger = page.getByRole('button', { name: 'Enlarge ocean sunset', exact: true })
-  await trigger.locator('img').evaluate(image => (image as HTMLImageElement).decode())
+  const trigger = page.getByRole('button', {
+    name: 'Enlarge ocean sunset',
+    exact: true,
+  })
+  await trigger
+    .locator('img')
+    .evaluate(image => (image as HTMLImageElement).decode())
   await trigger.click()
   await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
   const enlargedImage = page.locator('.medium-zoom-image--opened')
@@ -788,11 +1057,15 @@ test('the JavaScript preview opens on a pointer click and closes on the enlarged
   await expect(page.locator('body')).not.toHaveClass(/medium-zoom--opened/)
 })
 
-test('the gallery shows four independently zoomable images in two rows', async ({ page }) => {
+test('the gallery shows four independently zoomable images in two rows', async ({
+  page,
+}) => {
   for (const width of [1_440, 390]) {
     await page.setViewportSize({ width, height: 900 })
     await page.goto('/docs/guides/multiple-images/')
-    const triggers = page.locator('.docs-preview .photo-gallery [data-slot="image-zoom-trigger"]')
+    const triggers = page.locator(
+      '.docs-preview .photo-gallery [data-slot="image-zoom-trigger"]'
+    )
     await expect(triggers).toHaveCount(4)
     for (const trigger of await triggers.all()) {
       const image = trigger.locator('img')
@@ -806,7 +1079,9 @@ test('the gallery shows four independently zoomable images in two rows', async (
       await expect(enlarged).toHaveCount(0)
     }
     const bounds = await Promise.all(
-      (await triggers.all()).map(async trigger => (await trigger.boundingBox())!)
+      (await triggers.all()).map(
+        async trigger => (await trigger.boundingBox())!
+      )
     )
     expect(Math.abs(bounds[0].y - bounds[1].y)).toBeLessThan(1)
     expect(Math.abs(bounds[2].y - bounds[3].y)).toBeLessThan(1)
@@ -822,12 +1097,18 @@ test('option and prop metadata separates types, defaults, and required values', 
   await page.goto('/docs/reference/javascript/options/')
   const background = page.locator('#background + p + .docs-property-meta')
   await expect(background.getByRole('term')).toHaveText(['Type', 'Default'])
-  await expect(background.getByRole('definition')).toHaveText(['string', "'#fff'"])
+  await expect(background.getByRole('definition')).toHaveText([
+    'string',
+    "'#fff'",
+  ])
   await page.goto('/docs/reference/react/image-zoom/')
   const disabled = page.locator('.docs-prop').filter({
     has: page.getByRole('heading', { level: 3, name: 'disabled', exact: true }),
   })
-  await expect(disabled.getByRole('definition')).toHaveText(['boolean', 'false'])
+  await expect(disabled.getByRole('definition')).toHaveText([
+    'boolean',
+    'false',
+  ])
   const alt = page.locator('.docs-prop').filter({
     has: page.getByRole('heading', { level: 3, name: 'alt', exact: true }),
   })
@@ -853,10 +1134,17 @@ test('every live photo preview explains how to zoom', async ({ page }) => {
   ]) {
     await page.goto(path)
     const preview = page.locator('.docs-preview')
-    await expect(preview.getByText('Click to zoom', { exact: true })).toBeVisible()
-    await expect(preview.getByText('Click, Esc or scroll to close', { exact: true })).toBeVisible()
+    await expect(
+      preview.getByText('Click to zoom', { exact: true })
+    ).toBeVisible()
+    await expect(
+      preview.getByText('Click, Esc or scroll to close', { exact: true })
+    ).toBeVisible()
     await expect(preview.locator('.zoom-controls kbd')).toHaveText('Esc')
-    await expect(preview.getByRole('button').first()).toHaveCSS('cursor', 'zoom-in')
+    await expect(preview.getByRole('button').first()).toHaveCSS(
+      'cursor',
+      'zoom-in'
+    )
   }
 })
 
@@ -868,12 +1156,20 @@ test('example tabs expose copyable code and preserve the working preview', async
   const example = page.locator('.docs-example')
   await example.getByRole('tab', { name: 'Preview', exact: true }).focus()
   await page.keyboard.press('ArrowRight')
-  await expect(example.getByRole('tab', { name: 'Code', exact: true })).toBeFocused()
   await expect(
-    example.getByRole('button', { name: 'Copy multiple-images.tsx', exact: true })
+    example.getByRole('tab', { name: 'Code', exact: true })
+  ).toBeFocused()
+  await expect(
+    example.getByRole('button', {
+      name: 'Copy multiple-images.tsx',
+      exact: true,
+    })
   ).toBeVisible()
   await expect(
-    example.getByRole('button', { name: 'Copy multiple-images.css', exact: true })
+    example.getByRole('button', {
+      name: 'Copy multiple-images.css',
+      exact: true,
+    })
   ).toBeVisible()
   await expect(example.locator('.docs-preview')).toBeHidden()
   await page.keyboard.press('Home')
@@ -887,13 +1183,17 @@ test('example tabs expose copyable code and preserve the working preview', async
     const staticPage = await context.newPage()
     await staticPage.goto('/docs/guides/multiple-images/')
     await expect(staticPage.locator('.docs-example-code')).toBeVisible()
-    await expect(staticPage.locator('.docs-example pre').first()).toContainText('ImageZoom')
+    await expect(staticPage.locator('.docs-example pre').first()).toContainText(
+      'ImageZoom'
+    )
   } finally {
     await context.close()
   }
 })
 
-test('quickstart disclosures work with JavaScript disabled', async ({ browser }) => {
+test('quickstart disclosures work with JavaScript disabled', async ({
+  browser,
+}) => {
   const context = await browser.newContext({ javaScriptEnabled: false })
   try {
     const page = await context.newPage()
@@ -918,9 +1218,14 @@ test('quickstarts separate browser requirements and render keyboard keys semanti
   await page.goto('/docs/javascript/')
   await expect(page.locator('article > p kbd')).toHaveText(['Esc'])
   await expect(page.locator('article > p kbd')).toHaveAccessibleName('Escape')
-  const firstImage = page.locator('.docs-code').filter({ hasText: 'data-zoomable' }).first()
+  const firstImage = page
+    .locator('.docs-code')
+    .filter({ hasText: 'data-zoomable' })
+    .first()
   await expect(firstImage).not.toContainText(/width=|height=|style=/)
-  await expect(page.getByRole('heading', { name: 'Set the image size', exact: true })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: 'Set the image size', exact: true })
+  ).toBeVisible()
   const support = page.getByLabel('Minimum browser versions')
   await expect(support.locator('dt')).toHaveText([
     'Chrome',
@@ -929,23 +1234,43 @@ test('quickstarts separate browser requirements and render keyboard keys semanti
     'Edge',
     'Internet Explorer',
   ])
-  await expect(support.locator('dd')).toHaveText(['36+', '34+', '9+', '12+', '10+'])
-  await expect(page.locator('article')).not.toContainText('Automated browser tests')
+  await expect(support.locator('dd')).toHaveText([
+    '36+',
+    '34+',
+    '9+',
+    '12+',
+    '10+',
+  ])
+  await expect(page.locator('article')).not.toContainText(
+    'Automated browser tests'
+  )
   await page.goto('/docs/react/')
-  await expect(page.locator('article > p kbd')).toHaveText(['Enter', 'Space', 'Esc'])
+  await expect(page.locator('article > p kbd')).toHaveText([
+    'Enter',
+    'Space',
+    'Esc',
+  ])
   await expect(page.locator('article')).toContainText(
     'browser requirements of your React application'
   )
 })
 
-test('external website links have one decorative destination icon', async ({ page }) => {
-  for (const path of ['/', '/react', '/docs/javascript/', '/docs/guides/generated-svg/']) {
+test('external website links have one decorative destination icon', async ({
+  page,
+}) => {
+  for (const path of [
+    '/',
+    '/react',
+    '/docs/javascript/',
+    '/docs/guides/generated-svg/',
+  ]) {
     await page.goto(path)
     const links = await page.locator('a[href]').all()
     for (const link of links) {
       const href = await link.getAttribute('href')
       const url = new URL(href!, origin)
-      const external = ['http:', 'https:'].includes(url.protocol) && url.origin !== origin
+      const external =
+        ['http:', 'https:'].includes(url.protocol) && url.origin !== origin
       if (external) {
         await expect(link.locator('.external-link-icon'), href!).toHaveCount(
           (await link.evaluate(link =>
@@ -957,7 +1282,10 @@ test('external website links have one decorative destination icon', async ({ pag
             : 1
         )
         if (await link.locator('.external-link-icon').count()) {
-          await expect(link.locator('.external-link-icon')).toHaveAttribute('aria-hidden', 'true')
+          await expect(link.locator('.external-link-icon')).toHaveAttribute(
+            'aria-hidden',
+            'true'
+          )
         }
         await expect(link).toHaveAttribute('target', '_blank')
         if (await link.isVisible()) {
@@ -972,26 +1300,39 @@ test('external website links have one decorative destination icon', async ({ pag
   }
 })
 
-test('related topics use compact links separate from directional navigation', async ({ page }) => {
+test('related topics use compact links separate from directional navigation', async ({
+  page,
+}) => {
   await page.goto('/docs/guides/hd-images/')
-  const related = page.getByRole('navigation', { name: 'Related pages', exact: true })
+  const related = page.getByRole('navigation', {
+    name: 'Related pages',
+    exact: true,
+  })
   await expect(related.getByRole('listitem')).toHaveCount(2)
   const gallery = related.getByRole('link', { name: /^Multiple images/ })
   await expect(gallery).toHaveText('Multiple images')
-  await expect(gallery.locator('..')).toContainText('Attach zoom behavior to several images')
+  await expect(gallery.locator('..')).toContainText(
+    'Attach zoom behavior to several images'
+  )
   await expect(related.locator('svg, .docs-pagination')).toHaveCount(0)
   await expect(page.locator('.docs-pagination svg')).toHaveCount(2)
   await gallery.click()
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Multiple images')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'Multiple images'
+  )
 })
 
 test('documentation source links open a separate tab without replacing the guide', async ({
   page,
   context,
 }) => {
-  const source = 'https://github.com/francoischalifour/medium-zoom/tree/main/examples/svg-data-url'
+  const source =
+    'https://github.com/francoischalifour/medium-zoom/tree/main/examples/svg-data-url'
   await context.route(source, route =>
-    route.fulfill({ contentType: 'text/html', body: '<title>Example source</title>' })
+    route.fulfill({
+      contentType: 'text/html',
+      body: '<title>Example source</title>',
+    })
   )
   await page.goto('/docs/guides/generated-svg/')
   const opened = context.waitForEvent('page')
@@ -1007,27 +1348,37 @@ test('styling preview resolves its CSS-variable overlay and keeps the caption in
   page,
 }) => {
   await page.goto('/docs/guides/styling/')
-  const trigger = page.locator('.captioned-photo [data-slot="image-zoom-trigger"]')
+  const trigger = page.locator(
+    '.captioned-photo [data-slot="image-zoom-trigger"]'
+  )
   await trigger.click()
   await expect(page.locator('.medium-zoom-overlay')).toHaveCSS(
     'background-image',
     'radial-gradient(at 50% 0%, rgb(54, 48, 68), rgb(22, 23, 28) 70%)'
   )
-  await expect(page.locator('.captioned-photo figcaption')).toHaveText('Last light over the ocean.')
+  await expect(page.locator('.captioned-photo figcaption')).toHaveText(
+    'Last light over the ocean.'
+  )
   await page.keyboard.press('Escape')
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 })
 
-test('custom triggers sit outside the image and remain keyboard accessible', async ({ page }) => {
+test('custom triggers sit outside the image and remain keyboard accessible', async ({
+  page,
+}) => {
   await page.goto('/docs/guides/custom-react-triggers/')
   const example = page.locator('.custom-trigger-example')
   const image = example.locator('img')
-  const trigger = example.getByRole('button', { name: 'View photo: ocean sunset' })
+  const trigger = example.getByRole('button', {
+    name: 'View photo: ocean sunset',
+  })
   await image.evaluate(image => (image as HTMLImageElement).decode())
   await expect(trigger.locator('img')).toHaveCount(0)
   const imageBounds = (await image.boundingBox())!
   const triggerBounds = (await trigger.boundingBox())!
-  expect(triggerBounds.y).toBeGreaterThanOrEqual(imageBounds.y + imageBounds.height)
+  expect(triggerBounds.y).toBeGreaterThanOrEqual(
+    imageBounds.y + imageBounds.height
+  )
   await trigger.focus()
   await page.keyboard.press('Enter')
   await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
@@ -1040,43 +1391,65 @@ test('the parent inspector opens and closes its preview from external controls',
   page,
 }) => {
   await page.goto('/docs/guides/controlled-state/')
-  const inspect = page.getByRole('button', { name: 'Inspect photo', exact: true })
+  const inspect = page.getByRole('button', {
+    name: 'Inspect photo',
+    exact: true,
+  })
   await inspect.click()
-  const toolbar = page.getByRole('toolbar', { name: 'Photo inspection', exact: true })
+  const toolbar = page.getByRole('toolbar', {
+    name: 'Photo inspection',
+    exact: true,
+  })
   await expect(toolbar).toBeVisible()
-  await expect(page.locator('.asset-inspector [role="status"]')).toHaveText('Preview open')
-  await toolbar.getByRole('button', { name: 'Close preview', exact: true }).click()
+  await expect(page.locator('.asset-inspector [role="status"]')).toHaveText(
+    'Preview open'
+  )
+  await toolbar
+    .getByRole('button', { name: 'Close preview', exact: true })
+    .click()
   await expect(page.locator('body')).not.toHaveClass(/medium-zoom--opened/)
   await expect(toolbar).toHaveCount(0)
   await expect(inspect).toBeFocused()
   await inspect.click()
   await page.keyboard.press('Escape')
-  await expect(page.locator('.asset-inspector [role="status"]')).toHaveText('Ready to inspect')
+  await expect(page.locator('.asset-inspector [role="status"]')).toHaveText(
+    'Ready to inspect'
+  )
   await expect(toolbar).toHaveCount(0)
 })
 
-test('the video guide loads playback on activation and cleans up on close', async ({ page }) => {
+test('the video guide loads playback on activation and cleans up on close', async ({
+  page,
+}) => {
   const requests: string[] = []
   page.on('request', request => requests.push(request.url()))
   await page.goto('/docs/guides/video/')
   expect(requests.some(url => url.includes('.mp4'))).toBe(false)
-  const trigger = page.getByRole('button', { name: 'Play video: A pink flower opening' })
+  const trigger = page.getByRole('button', {
+    name: 'Play video: A pink flower opening',
+  })
   await trigger.focus()
   await page.keyboard.press('Enter')
   const video = page.locator('video.zoom-video-player')
   await expect(video).toHaveCount(1)
   await expect(video).toBeVisible()
   await expect
-    .poll(() => video.evaluate(video => (video as HTMLVideoElement).currentTime))
+    .poll(() =>
+      video.evaluate(video => (video as HTMLVideoElement).currentTime)
+    )
     .toBeGreaterThan(0)
-  const imageBounds = (await page.locator('.medium-zoom-image--opened').boundingBox())!
+  const imageBounds = (await page
+    .locator('.medium-zoom-image--opened')
+    .boundingBox())!
   const videoBounds = (await video.boundingBox())!
   expect(Math.abs(videoBounds.width - imageBounds.width)).toBeLessThan(2)
   expect(Math.abs(videoBounds.height - imageBounds.height)).toBeLessThan(2)
   await page.evaluate(() => window.scrollBy(0, 20))
   await expect
     .poll(async () => {
-      const poster = (await page.locator('.medium-zoom-image--opened').boundingBox())!
+      const poster = (await page
+        .locator('.medium-zoom-image--opened')
+        .boundingBox())!
       const player = (await video.boundingBox())!
       return Math.abs(player.y - poster.y)
     })
@@ -1093,24 +1466,32 @@ test('the video guide loads playback on activation and cleans up on close', asyn
   await expect(page.locator('.medium-zoom-image--opened')).toHaveCount(0)
 })
 
-test('generated SVG diagrams zoom from data URLs and expose their source', async ({ page }) => {
+test('generated SVG diagrams zoom from data URLs and expose their source', async ({
+  page,
+}) => {
   await page.goto('/docs/guides/generated-svg/')
   const example = page.locator('.docs-example')
   const trigger = example.getByRole('button', { name: /Publishing workflow/ })
   const image = trigger.locator('img')
   await expect(image).toHaveAttribute('src', /^data:image\/svg\+xml/)
   await image.evaluate(image => (image as HTMLImageElement).decode())
-  expect(await image.evaluate(image => (image as HTMLImageElement).naturalWidth)).toBe(1_440)
+  expect(
+    await image.evaluate(image => (image as HTMLImageElement).naturalWidth)
+  ).toBe(1_440)
   const preview = (await image.boundingBox())!
   await trigger.focus()
   await page.keyboard.press('Enter')
   const zoomed = page.locator('.medium-zoom-image--opened')
   await expect(zoomed).toBeVisible()
-  await expect.poll(async () => (await zoomed.boundingBox())!.width).toBeGreaterThan(preview.width)
+  await expect
+    .poll(async () => (await zoomed.boundingBox())!.width)
+    .toBeGreaterThan(preview.width)
   await page.keyboard.press('Escape')
   await expect(zoomed).toHaveCount(0)
   await expect(trigger).toBeFocused()
   await example.getByRole('tab', { name: 'Code', exact: true }).click()
   await expect(example.locator('pre').first()).toContainText('const svg =')
-  await expect(page.getByRole('heading', { name: 'React', exact: true })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: 'React', exact: true })
+  ).toBeVisible()
 })

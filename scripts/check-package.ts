@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -8,8 +8,8 @@ import { runInNewContext } from 'node:vm'
 import { parse } from 'acorn'
 
 import {
-  candidateEntries,
   candidateArtifacts,
+  candidateEntries,
   extensionEntries,
 } from '../config/package.config.mts'
 import baseline from '../config/size-baseline.json' with { type: 'json' }
@@ -17,7 +17,7 @@ import { checkAnalyzers } from './check-package-analyzers.ts'
 import { checkConsumers } from './check-package-consumers.ts'
 import { packExperimental } from './pack-experimental.ts'
 import { pack } from './pack.ts'
-import { bytes, table } from './size-report'
+import { bytes, change, table } from './size-report'
 
 const packageRows: string[][] = []
 const entryFunctions = Object.fromEntries(
@@ -45,12 +45,106 @@ const LEGACY_UNSUPPORTED_APIS: Record<string, RegExp> = {
   AbortController: /\bAbortController\b/,
   'MediaQueryList.addEventListener()': /matchMedia\([^)]*\)\.addEventListener/,
 }
+// Legacy builds keep these fallbacks; modern builds must drop them.
+const LEGACY_FALLBACKS = [
+  'initCustomEvent',
+  '.keyCode',
+  '.addListener(',
+  'documentElement.scrollTop',
+]
 
-async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boolean) {
-  try {
-    const packedFiles = readdirSync(artifact.root, { recursive: true, encoding: 'utf8' }).filter(
-      path => statSync(join(artifact.root, path)).isFile()
+type ModuleFormat = 'esm' | 'cjs' | 'umd'
+
+function moduleFormat(path: string): ModuleFormat {
+  if (
+    path.endsWith('.mjs') ||
+    path.endsWith('.esm.js') ||
+    path === 'pure/index.js'
+  ) {
+    return 'esm'
+  }
+  return path.endsWith('.cjs') ? 'cjs' : 'umd'
+}
+
+// Modern files may use ES2020. Legacy ESM keeps ES2015 module syntax around an ES5 body.
+const legacyEcmaVersion: Record<ModuleFormat, 5 | 2_015> = {
+  esm: 2_015,
+  cjs: 5,
+  umd: 5,
+}
+
+function runCommonJs(code: string, file: string) {
+  const commonjs = { exports: {} as unknown }
+  runInNewContext(code, {
+    module: commonjs,
+    exports: commonjs.exports,
+    require: createRequire(file),
+  })
+  return commonjs.exports
+}
+
+/** Loads a packed script the way its consumers do and checks its primary export. */
+const checkExports: Record<
+  ModuleFormat,
+  (
+    code: string,
+    file: string,
+    primaryExport: string | undefined
+  ) => Promise<void> | void
+> = {
+  async esm(code, file, primaryExport) {
+    const loaded = await import(
+      file.endsWith('.mjs')
+        ? pathToFileURL(file).href
+        : `data:text/javascript;base64,${Buffer.from(code).toString('base64')}`
     )
+    assert.equal(typeof loaded[primaryExport ?? 'default'], 'function', file)
+  },
+  cjs(code, file, primaryExport) {
+    const exports = runCommonJs(code, file) as Record<string, unknown>
+    assert.equal(
+      typeof (primaryExport ? exports[primaryExport] : exports),
+      'function',
+      file
+    )
+  },
+  umd(code, file) {
+    const context: Record<string, unknown> = {
+      Promise: undefined,
+      Symbol: undefined,
+      Set: undefined,
+      Map: undefined,
+    }
+    runInNewContext(code, context)
+    assert.equal(
+      typeof context.mediumZoom,
+      'function',
+      `${file} browser global`
+    )
+    assert.equal(
+      typeof runCommonJs(code, file),
+      'function',
+      `${file} CommonJS export`
+    )
+    let amd: unknown
+    const define = (_dependencies: string[], factory: () => unknown) => {
+      amd = factory()
+    }
+    define.amd = true
+    runInNewContext(code, { define })
+    assert.equal(typeof amd, 'function', `${file} AMD export`)
+  },
+}
+
+async function checkPackage(
+  artifact: ReturnType<typeof pack>,
+  experimental: boolean
+) {
+  try {
+    const packedFiles = readdirSync(artifact.root, {
+      recursive: true,
+      encoding: 'utf8',
+    }).filter(path => statSync(join(artifact.root, path)).isFile())
     const before = baseline.packages[experimental ? 'candidate' : 'release']
     const tarball = statSync(artifact.archive).size
     const unpacked = packedFiles.reduce(
@@ -62,13 +156,15 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
       String(packedFiles.length),
       bytes(tarball),
       bytes(unpacked),
-      `${tarball - before.tarball >= 0 ? '+' : '−'}${bytes(Math.abs(tarball - before.tarball))}`,
-      `${unpacked - before.unpacked >= 0 ? '+' : '−'}${bytes(Math.abs(unpacked - before.unpacked))}`,
+      change(tarball, before.tarball),
+      change(unpacked, before.unpacked),
       experimental
         ? 'all experimental entries + legacy files'
         : 'legacy distributions + declarations/docs',
     ])
-    const metadata = JSON.parse(readFileSync(join(artifact.root, 'package.json'), 'utf8'))
+    const metadata = JSON.parse(
+      readFileSync(join(artifact.root, 'package.json'), 'utf8')
+    )
     assert.equal(metadata.main, 'dist/medium-zoom.min.js')
     assert.equal(metadata.module, 'dist/medium-zoom.esm.js')
     assert.equal(metadata.types, 'dist/medium-zoom.d.ts')
@@ -90,7 +186,10 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
       'The npm tarball must include the complete changelog'
     )
 
-    const files = readdirSync(join(artifact.root, 'dist'), { recursive: true, encoding: 'utf8' })
+    const files = readdirSync(join(artifact.root, 'dist'), {
+      recursive: true,
+      encoding: 'utf8',
+    })
     const releasedFiles = [
       'medium-zoom.d.ts',
       'medium-zoom.esm.js',
@@ -107,9 +206,6 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
       'The runtime package must not contain built-in controls or their stylesheet'
     )
     if (!experimental) {
-      const packedFiles = readdirSync(artifact.root, { recursive: true, encoding: 'utf8' }).filter(
-        path => statSync(join(artifact.root, path)).isFile()
-      )
       assert.deepEqual(
         packedFiles.sort(),
         [
@@ -122,111 +218,76 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
         'The release tarball must not contain private sources, fixtures, or experimental outputs'
       )
       assert.deepEqual(
-        files.filter(path => statSync(join(artifact.root, 'dist', path)).isFile()).sort(),
+        files
+          .filter(path => statSync(join(artifact.root, 'dist', path)).isFile())
+          .sort(),
         releasedFiles.sort(),
         'The npm tarball must contain only the existing v1 distributions'
       )
     }
     const expectedScripts = releasedFiles.filter(path => path.endsWith('.js'))
     if (experimental) {
-      expectedScripts.push(...candidateArtifacts.map(path => path.slice('dist/'.length)))
+      expectedScripts.push(
+        ...candidateArtifacts.map(path => path.slice('dist/'.length))
+      )
     }
-    assert.deepEqual(
-      files.filter(path => /\.(?:[mc])?js$/.test(path)).sort(),
-      expectedScripts.sort()
-    )
+    const scripts = files.filter(path => /\.(?:[mc])?js$/.test(path))
+    assert.deepEqual([...scripts].sort(), expectedScripts.sort())
 
-    for (const path of files.filter(path => /\.(?:[mc])?js$/.test(path))) {
-      const code = readFileSync(join(artifact.root, 'dist', path), 'utf8')
-      const esm = path.endsWith('.mjs') || path.endsWith('.esm.js') || path === 'pure/index.js'
+    for (const path of scripts) {
+      const file = join(artifact.root, 'dist', path)
+      const code = readFileSync(file, 'utf8')
+      const format = moduleFormat(path)
       const modern = candidateEntries.some(
         entry =>
           entry.profile === 'modern' &&
           (entry.esm === `dist/${path}` || entry.cjs === `dist/${path}`)
       )
       parse(code, {
-        ecmaVersion: modern ? 2_020 : esm ? 2_015 : 5,
-        sourceType: esm ? 'module' : 'script',
+        ecmaVersion: modern ? 2_020 : legacyEcmaVersion[format],
+        sourceType: format === 'esm' ? 'module' : 'script',
       })
       // ESM syntax is intentionally retained; its implementation must still be ES5.
-      if (esm && !modern) {
+      if (format === 'esm' && !modern) {
         parse(code.replace(/export\s*\{[^}]+\};?\s*$/, ''), { ecmaVersion: 5 })
       }
       const banner = `/*! medium-zoom ${metadata.version} | MIT License | https://github.com/francoischalifour/medium-zoom */`
-      assert(code.startsWith(banner + '\n'), `${path} must start with the release banner`)
-      assert.equal(code.split(banner).length - 1, 1, `${path} must contain exactly one banner`)
-      assert(!code.includes('#platform'), `${path} must resolve its platform at build time`)
-      if (!modern) {
-        for (const fallback of [
-          'initCustomEvent',
-          '.keyCode',
-          '.addListener(',
-          'documentElement.scrollTop',
-        ]) {
-          assert(code.includes(fallback), `${path} must retain ${fallback}`)
-        }
+      assert(
+        code.startsWith(banner + '\n'),
+        `${path} must start with the release banner`
+      )
+      assert.equal(
+        code.split(banner).length - 1,
+        1,
+        `${path} must contain exactly one banner`
+      )
+      assert(
+        !code.includes('#platform'),
+        `${path} must resolve its platform at build time`
+      )
+      for (const fallback of LEGACY_FALLBACKS) {
+        assert.equal(
+          code.includes(fallback),
+          !modern,
+          `${path} must ${modern ? 'not ship' : 'retain'} ${fallback}`
+        )
       }
       if (!modern) {
         // No browser from the support table runs in CI, so reject the DOM and language
         // APIs that Internet Explorer 10 lacks instead of discovering them there.
         for (const [api, pattern] of Object.entries(LEGACY_UNSUPPORTED_APIS)) {
-          assert(!pattern.test(code), `${path} must not use ${api}: unavailable in IE 10`)
-        }
-      }
-      if (modern) {
-        for (const fallback of [
-          'initCustomEvent',
-          '.keyCode',
-          '.addListener(',
-          'documentElement.scrollTop',
-        ]) {
-          assert(!code.includes(fallback), `${path} must not ship ${fallback}`)
+          assert(
+            !pattern.test(code),
+            `${path} must not use ${api}: unavailable in IE 10`
+          )
         }
       }
       assert(!code.includes('__TEST__'), `${path} must not ship test branches`)
-      if (esm) {
-        const loaded = await import(
-          path.endsWith('.mjs')
-            ? pathToFileURL(join(artifact.root, 'dist', path)).href
-            : `data:text/javascript;base64,${Buffer.from(code).toString('base64')}`
-        )
-        const name = entryFunctions[path.split('/')[0]!]
-        assert.equal(typeof (name ? loaded[name] : loaded.default), 'function')
-        continue
-      }
-      if (path.endsWith('.cjs')) {
-        const commonjs = { exports: {} as Record<string, unknown> }
-        runInNewContext(code, {
-          module: commonjs,
-          exports: commonjs.exports,
-          require: createRequire(join(artifact.root, 'dist', path)),
-        })
-        const name = entryFunctions[path.split('/')[0]!]
-        assert.equal(typeof (name ? commonjs.exports[name] : commonjs.exports), 'function')
-        continue
-      }
-      const context: Record<string, unknown> = {
-        Promise: undefined,
-        Symbol: undefined,
-        Set: undefined,
-        Map: undefined,
-      }
-      runInNewContext(code, context)
-      assert.equal(typeof context.mediumZoom, 'function', `${path} browser global`)
-      const commonjs = { exports: {} }
-      runInNewContext(code, {
-        module: commonjs,
-        exports: commonjs.exports,
-        require: createRequire(join(artifact.root, 'dist', path)),
-      })
-      assert.equal(typeof commonjs.exports, 'function', `${path} CommonJS export`)
-      let amd: unknown
-      const define = (_dependencies: string[], factory: () => unknown) => {
-        amd = factory()
-      }
-      define.amd = true
-      runInNewContext(code, { define })
-      assert.equal(typeof amd, 'function', `${path} AMD export`)
+      await checkExports[format](
+        code,
+        file,
+        entryFunctions[path.split('/')[0]!]
+      )
     }
 
     assert.equal(
@@ -234,7 +295,10 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
       readFileSync(join(artifact.root, 'dist/pure/index.d.ts'), 'utf8')
     )
     assert(
-      !readFileSync(join(artifact.root, 'dist/medium-zoom.d.ts'), 'utf8').includes('trigger?:'),
+      !readFileSync(
+        join(artifact.root, 'dist/medium-zoom.d.ts'),
+        'utf8'
+      ).includes('trigger?:'),
       'Release declarations must not expose modal trigger options'
     )
     const css = readFileSync(join(artifact.root, 'dist/style.css'), 'utf8')
@@ -242,9 +306,15 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
     assert(css.includes('cursor:zoom-out'))
 
     if (experimental) {
-      const modernCss = readFileSync(join(artifact.root, 'dist/modern/style.css'), 'utf8')
+      const modernCss = readFileSync(
+        join(artifact.root, 'dist/modern/style.css'),
+        'utf8'
+      )
       assert(!modernCss.includes('cursor:pointer'))
-      assert(modernCss.includes('cursor:zoom-in') && modernCss.includes('cursor:zoom-out'))
+      assert(
+        modernCss.includes('cursor:zoom-in') &&
+          modernCss.includes('cursor:zoom-out')
+      )
     }
 
     await checkAnalyzers(artifact.archive, experimental)
@@ -266,7 +336,9 @@ assert.equal(
   'Private fixture checks must not mutate release metadata'
 )
 
-console.log('\nPACKAGE CONTENTS · npm download/install cost, not browser bundle cost')
+console.log(
+  '\nPACKAGE CONTENTS · npm download/install cost, not browser bundle cost'
+)
 table(
   [
     'Manifest',

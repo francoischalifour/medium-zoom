@@ -1,17 +1,22 @@
 import AxeBuilder from '@axe-core/playwright'
 
 import snapshot from '../../website/src/npm-downloads.json'
-import { test, expect } from './website-fixture'
+import { expect, test } from './website-fixture'
 
 const format = (value: number) => new Intl.NumberFormat('en-US').format(value)
 const compact = (value: number) =>
-  new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value)
+  new Intl.NumberFormat('en-US', {
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).format(value)
 const nextDate = new Date(`${snapshot.end}T00:00:00Z`)
 nextDate.setUTCDate(nextDate.getUTCDate() + 1)
 const nextDay = nextDate.toISOString().slice(0, 10)
 
 for (const path of ['/', '/react']) {
-  test(`${path} serves the reported downloads without JavaScript`, async ({ browser }) => {
+  test(`${path} serves the reported downloads without JavaScript`, async ({
+    browser,
+  }) => {
     const context = await browser.newContext({ javaScriptEnabled: false })
     try {
       const page = await context.newPage()
@@ -40,7 +45,9 @@ test('new npm reports refresh the monthly count', async ({ page }) => {
       json: {
         package: 'medium-zoom',
         downloads: 420_000,
-        start: new Date(Date.parse(nextDay) - 29 * 86_400_000).toISOString().slice(0, 10),
+        start: new Date(Date.parse(nextDay) - 29 * 86_400_000)
+          .toISOString()
+          .slice(0, 10),
         end: nextDay,
       },
       headers: { 'Access-Control-Allow-Origin': '*' },
@@ -54,25 +61,33 @@ test('new npm reports refresh the monthly count', async ({ page }) => {
   await expect(stats).toContainText('420K monthly downloads on npm')
 })
 
-test('the count stays hidden in its reserved line until npm answers', async ({ page }) => {
+test('the count stays hidden in its reserved line until npm answers', async ({
+  page,
+}) => {
   const clock = new Date(`${nextDay}T12:00:00Z`)
   clock.setUTCDate(clock.getUTCDate() + 1)
   await page.clock.setFixedTime(clock)
   let releaseResponse = () => {}
-  const responseReleased = new Promise<void>(resolve => (releaseResponse = resolve))
+  const responseReleased = new Promise<void>(
+    resolve => (releaseResponse = resolve)
+  )
   await page.route('https://api.npmjs.org/downloads/point/**', async route => {
     await responseReleased
     await route.fulfill({
       json: {
         package: 'medium-zoom',
         downloads: 420_000,
-        start: new Date(Date.parse(nextDay) - 29 * 86_400_000).toISOString().slice(0, 10),
+        start: new Date(Date.parse(nextDay) - 29 * 86_400_000)
+          .toISOString()
+          .slice(0, 10),
         end: nextDay,
       },
       headers: { 'Access-Control-Allow-Origin': '*' },
     })
   })
-  const requested = page.waitForRequest('https://api.npmjs.org/downloads/point/**')
+  const requested = page.waitForRequest(
+    'https://api.npmjs.org/downloads/point/**'
+  )
   await page.goto('/')
   await requested
   const stats = page.locator('.monthly-downloads')
@@ -88,7 +103,9 @@ test('the count stays hidden in its reserved line until npm answers', async ({ p
 })
 
 for (const failure of ['unavailable', 'incomplete', 'older'] as const) {
-  test(`an ${failure} npm report preserves the verified count`, async ({ page }) => {
+  test(`an ${failure} npm report preserves the verified count`, async ({
+    page,
+  }) => {
     const clock = new Date(`${nextDay}T12:00:00Z`)
     clock.setUTCDate(clock.getUTCDate() + 1)
     await page.clock.setFixedTime(clock)
@@ -100,7 +117,9 @@ for (const failure of ['unavailable', 'incomplete', 'older'] as const) {
         json: {
           package: 'medium-zoom',
           downloads: failure === 'incomplete' ? null : 420_000,
-          start: new Date(Date.parse(nextDay) - 29 * 86_400_000).toISOString().slice(0, 10),
+          start: new Date(Date.parse(nextDay) - 29 * 86_400_000)
+            .toISOString()
+            .slice(0, 10),
           end: failure === 'older' ? '2016-07-26' : nextDay,
         },
         headers: { 'Access-Control-Allow-Origin': '*' },
@@ -111,21 +130,35 @@ for (const failure of ['unavailable', 'incomplete', 'older'] as const) {
     await expect(stats.getByRole('link')).toHaveAccessibleName(
       `${compact(snapshot.monthly)} monthly downloads on npm (opens in a new tab)`
     )
-    await expect(stats).toContainText(`${compact(snapshot.monthly)} monthly downloads on npm`)
-    await page.getByRole('link', { name: 'Start building', exact: true }).click()
+    await expect(stats).toContainText(
+      `${compact(snapshot.monthly)} monthly downloads on npm`
+    )
+    await page
+      .getByRole('link', { name: 'Start building', exact: true })
+      .click()
     await expect(page.locator('#usage-title')).toBeFocused()
   })
 }
 
 for (const theme of ['light', 'dark'] as const) {
-  test(`download statistics remain accessible on mobile in ${theme} mode`, async ({ page }) => {
+  test(`download statistics remain accessible on mobile in ${theme} mode`, async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' })
     await page.goto('/')
     await page.locator('.monthly-downloads').scrollIntoViewIfNeeded()
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-    const result = await new AxeBuilder({ page }).include('.monthly-downloads').analyze()
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth
+      )
+    ).toBe(true)
+    const result = await new AxeBuilder({ page })
+      .include('.monthly-downloads')
+      .analyze()
     expect(result.violations).toEqual([])
-    await page.screenshot({ path: `/tmp/medium-zoom-downloads-mobile-${theme}.png` })
+    await page.screenshot({
+      path: `/tmp/medium-zoom-downloads-mobile-${theme}.png`,
+    })
   })
 }

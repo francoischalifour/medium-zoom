@@ -1,34 +1,57 @@
 // Branded types must come from the core entry itself, not a copy bundled into this one.
-import type { ModalZoom } from 'medium-zoom/core'
+import type {
+  CoreZoomOptions,
+  ModalZoom,
+  Zoom,
+  ZoomCommander,
+  ZoomSelector,
+} from 'medium-zoom/core'
 
-import type { CoreZoomOptions, Zoom, ZoomCommander, ZoomSelector } from './engine/create-zoom'
-import type { ZoomOptions } from './medium-zoom'
-
+/** An immutable view of the gallery; a new object whenever anything in it changes. */
 export interface GallerySnapshot {
+  /** The zoom's images, in attach order. */
   readonly images: readonly HTMLElement[]
+  /** The open image, or `null` while the zoom is closed. */
   readonly current: HTMLElement | null
+  /** The index of `current` in `images`, or `-1` while the zoom is closed. */
   readonly index: number
+  /** Whether `previous()` would open an image. */
   readonly canPrevious: boolean
+  /** Whether `next()` would open an image. */
   readonly canNext: boolean
 }
 
-export interface GalleryController<Options extends CoreZoomOptions = ZoomOptions> {
+/**
+ * Headless traversal state and commands; compatible with React's `useSyncExternalStore`.
+ * Navigation resolves without opening when there is nothing to open.
+ */
+export interface GalleryController<
+  Options extends CoreZoomOptions = CoreZoomOptions,
+> {
+  /** Returns the current snapshot; the same object until something changes. */
   getSnapshot(this: void): GallerySnapshot
+  /** Calls `listener` after every change. Returns the unsubscribe function. */
   subscribe(this: void, listener: () => void): () => void
+  /** Opens the previous image. */
   previous(): Promise<Zoom<Options>>
+  /** Opens the next image. */
   next(): Promise<Zoom<Options>>
+  /** Opens the image at `index`; an index out of range resolves without opening. */
   select(index: number): Promise<Zoom<Options>>
+  /** Attaches images to the zoom, after the current ones. */
   attach(...selectors: ZoomSelector[]): void
+  /** Releases images from the zoom. */
   detach(...selectors: ZoomSelector[]): void
-  /** Release subscriptions. The caller retains ownership of the zoom/session. */
+  /** Removes listeners and subscriptions. Does not close or detach the zoom. */
   dispose(): void
 }
 
 const galleries = new WeakMap<object, unknown>()
 
 /**
- * Headless traversal over a rendered zoom's attached images. No UI. Pass a session as
- * `commander` to coordinate the gallery's requests with other zooms.
+ * Headless traversal over a rendered zoom's attached images, in attach order. Creates no UI.
+ * Returns the zoom's existing gallery when it has one. Pass a session as `commander` to
+ * coordinate the gallery's requests with other zooms.
  */
 export function createGallery<Options extends CoreZoomOptions>(
   zoom: ModalZoom<Options>,
@@ -72,7 +95,9 @@ export function createGallery<Options extends CoreZoomOptions>(
   }
   const choose = (index: number) => {
     const target = getSnapshot().images[index]
-    return !disposed && target ? commander.open({ target }) : Promise.resolve(zoom)
+    return !disposed && target
+      ? commander.open({ target })
+      : Promise.resolve(zoom)
   }
   let queued = false
   const collectionChanged = () => {
@@ -103,10 +128,14 @@ export function createGallery<Options extends CoreZoomOptions>(
       return () => listeners.delete(listener)
     },
     previous() {
-      return getSnapshot().canPrevious ? choose(snapshot.index - 1) : Promise.resolve(zoom)
+      return getSnapshot().canPrevious
+        ? choose(snapshot.index - 1)
+        : Promise.resolve(zoom)
     },
     next() {
-      return getSnapshot().canNext ? choose(snapshot.index + 1) : Promise.resolve(zoom)
+      return getSnapshot().canNext
+        ? choose(snapshot.index + 1)
+        : Promise.resolve(zoom)
     },
     select: choose,
     attach(...selectors) {

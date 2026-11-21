@@ -1,4 +1,8 @@
-import { altertable, type Altertable, type EventProperties } from '@altertable/altertable-js'
+import {
+  type Altertable,
+  altertable,
+  type EventProperties,
+} from '@altertable/altertable-js'
 
 import { getPackageManager } from './package-manager'
 import { getSitePage } from './site-data'
@@ -25,7 +29,8 @@ function getClient() {
       trackingConsent: 'granted',
       transformEvent(event) {
         const url = event.properties?.$url
-        const path = new URL(typeof url === 'string' ? url : location.href).pathname
+        const path = new URL(typeof url === 'string' ? url : location.href)
+          .pathname
         const page = getSitePage(path)
         if (!page) {
           return null
@@ -62,7 +67,10 @@ type SiteEvent =
   | 'Image Zoomed'
   | 'Outbound Click'
   | 'Searched'
-export function trackSiteEvent(event: SiteEvent, properties: EventProperties = {}) {
+export function trackSiteEvent(
+  event: SiteEvent,
+  properties: EventProperties = {}
+) {
   if (!enabled) {
     return
   }
@@ -74,7 +82,9 @@ export function trackSiteEvent(event: SiteEvent, properties: EventProperties = {
 }
 
 export function trackInstallCopied() {
-  trackSiteEvent('Install Command Copied', { package_manager: getPackageManager() })
+  trackSiteEvent('Install Command Copied', {
+    package_manager: getPackageManager(),
+  })
 }
 
 export function initSiteAnalytics() {
@@ -102,7 +112,8 @@ export function initSiteAnalytics() {
       }
       trackSiteEvent('Image Zoomed', {
         image: image.dataset.zoomable,
-        rail: image.closest<HTMLElement>('[data-example-rail]')?.dataset.exampleRail,
+        rail: image.closest<HTMLElement>('[data-example-rail]')?.dataset
+          .exampleRail,
       })
     },
     true
@@ -116,12 +127,19 @@ export function initSiteAnalytics() {
       return
     }
     const url = new URL(link.href)
-    if (!['https:', 'http:'].includes(url.protocol) || url.origin === location.origin) {
+    if (
+      !['https:', 'http:'].includes(url.protocol) ||
+      url.origin === location.origin
+    ) {
       return
     }
     trackSiteEvent('Outbound Click', {
       destination: `${url.origin}${url.pathname}`,
-      placement: link.closest('header') ? 'header' : link.closest('footer') ? 'footer' : 'content',
+      placement: link.closest('header')
+        ? 'header'
+        : link.closest('footer')
+          ? 'footer'
+          : 'content',
     })
     // Start the SDK's keepalive delivery before a same-tab navigation unloads the page.
     void getClient()

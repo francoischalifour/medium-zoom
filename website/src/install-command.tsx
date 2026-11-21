@@ -1,9 +1,13 @@
 import { useId } from 'react'
 
 import { installCommands } from './install-commands'
-import { usePackageManager, setPackageManager, packageManagers } from './package-manager'
+import {
+  packageManagers,
+  setPackageManager,
+  usePackageManager,
+} from './package-manager'
 import { trackInstallCopied } from './site-analytics'
-import { CopyButton, CodeTokens } from './site-components'
+import { CodeTokens, CopyButton } from './site-components'
 import type { SitePage } from './site-data'
 
 export function InstallCommand({
@@ -20,7 +24,11 @@ export function InstallCommand({
   const commands = installCommands[page]
   const command = commands[manager]
   return (
-    <div className={`code-block install-block ${className}`} id={id} aria-label="Installation">
+    <div
+      className={`code-block install-block ${className}`}
+      id={id}
+      aria-label="Installation"
+    >
       <div className="code-caption">
         <fieldset className="package-switch">
           <legend className="sr-only">Package manager</legend>

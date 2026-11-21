@@ -1,18 +1,20 @@
-import type { Zoom } from '../engine/create-zoom'
+import type { ZoomInstance } from '../engine/create-zoom'
 
 // Preserve v1's no-Promise behavior without installing a global polyfill.
 // This executes the zoom lifecycle but does not implement promise chaining.
 export const getPromise = (): PromiseConstructor =>
   window.Promise ||
-  (function Promise(executor: (resolve: () => void, reject: () => void) => void) {
+  (function Promise(
+    executor: (resolve: () => void, reject: () => void) => void
+  ) {
     function noop() {}
     executor(noop, noop)
   } as unknown as PromiseConstructor)
 
 export const createCustomEvent = (
   type: string,
-  detail: { zoom: Zoom }
-): CustomEvent<{ zoom: Zoom }> => {
+  detail: { zoom: ZoomInstance }
+): CustomEvent<{ zoom: ZoomInstance }> => {
   // One DOM event path works with and without a constructible CustomEvent (including IE10).
   const event = document.createEvent('CustomEvent')
   event.initCustomEvent(type, false, false, detail)
@@ -20,10 +22,16 @@ export const createCustomEvent = (
 }
 
 export const getScrollX = (): number =>
-  window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0
+  window.pageXOffset ||
+  document.documentElement.scrollLeft ||
+  document.body.scrollLeft ||
+  0
 
 export const getScrollY = (): number =>
-  window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
+  window.pageYOffset ||
+  document.documentElement.scrollTop ||
+  document.body.scrollTop ||
+  0
 
 export const isEscape = (event: KeyboardEvent): boolean => {
   const key = event.key || event.keyCode

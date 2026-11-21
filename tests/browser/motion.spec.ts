@@ -1,9 +1,11 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 import { loadZoomFixture } from './helpers.ts'
 
 for (const reducedMotion of ['reduce', 'no-preference'] as const) {
-  test(`${reducedMotion}: lifecycle, template, and repeated zooms complete`, async ({ page }) => {
+  test(`${reducedMotion}: lifecycle, template, and repeated zooms complete`, async ({
+    page,
+  }) => {
     await page.emulateMedia({ reducedMotion })
     await loadZoomFixture(page, {
       body: `<img id="image" src="/images/image-1.jpg" width="160" alt="Zoom fixture">
@@ -22,7 +24,8 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
       const templateDurations: string[] = []
       zoom.on('close', () => {
         templateDurations.push(
-          getComputedStyle(document.querySelector('#dismiss')!.parentElement!).transitionDuration
+          getComputedStyle(document.querySelector('#dismiss')!.parentElement!)
+            .transitionDuration
         )
       })
       const returned: boolean[] = []
@@ -34,9 +37,17 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
         returned.push((await zoom.close()) === zoom)
       }
       await new Promise(requestAnimationFrame)
-      return { events, returned, transitions, templateDurations, active: zoom.getZoomedImage() }
+      return {
+        events,
+        returned,
+        transitions,
+        templateDurations,
+        active: zoom.getZoomedImage(),
+      }
     })
-    expect(result.events).toEqual(Array(2).fill(['open', 'opened', 'close', 'closed']).flat())
+    expect(result.events).toEqual(
+      Array(2).fill(['open', 'opened', 'close', 'closed']).flat()
+    )
     expect(result.returned).toEqual([true, true, true, true])
     expect(result.active).toBeNull()
     expect(result.templateDurations).toEqual(
@@ -45,7 +56,9 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
     if (reducedMotion === 'reduce') {
       expect(result.transitions).toEqual([])
     } else {
-      expect(result.transitions.some(name => name.includes('medium-zoom-image'))).toBe(true)
+      expect(
+        result.transitions.some(name => name.includes('medium-zoom-image'))
+      ).toBe(true)
     }
     await expect(
       page.locator('.medium-zoom-overlay, .medium-zoom-image--opened, #dismiss')
@@ -56,7 +69,9 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
 }
 
 for (const phase of ['opening', 'closing'] as const) {
-  test(`switching to reduced motion during ${phase} completes exactly once`, async ({ page }) => {
+  test(`switching to reduced motion during ${phase} completes exactly once`, async ({
+    page,
+  }) => {
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     await loadZoomFixture(page)
     await page.addStyleTag({
@@ -68,7 +83,9 @@ for (const phase of ['opening', 'closing'] as const) {
       for (const type of ['open', 'opened', 'close', 'closed']) {
         zoom.on(type, () => {
           const key = `motion${type}`
-          document.body.dataset[key] = String(Number(document.body.dataset[key] || 0) + 1)
+          document.body.dataset[key] = String(
+            Number(document.body.dataset[key] || 0) + 1
+          )
         })
       }
     })
@@ -78,7 +95,9 @@ for (const phase of ['opening', 'closing'] as const) {
       await page.emulateMedia({ reducedMotion: 'no-preference' })
     }
     await page.evaluate(phase => {
-      void (phase === 'opening' ? window.zoom.open() : window.zoom.close()).then(() => {
+      void (
+        phase === 'opening' ? window.zoom.open() : window.zoom.close()
+      ).then(() => {
         document.body.dataset.completed = 'true'
       })
     }, phase)
@@ -100,9 +119,14 @@ for (const phase of ['opening', 'closing'] as const) {
     if (phase === 'opening') {
       await page.evaluate(() => window.zoom.close())
     }
-    await expect(page.locator('.medium-zoom-overlay, .medium-zoom-image--opened')).toHaveCount(0)
+    await expect(
+      page.locator('.medium-zoom-overlay, .medium-zoom-image--opened')
+    ).toHaveCount(0)
     for (const type of ['open', 'opened', 'close', 'closed']) {
-      await expect(page.locator('body')).toHaveAttribute(`data-motion${type}`, '1')
+      await expect(page.locator('body')).toHaveAttribute(
+        `data-motion${type}`,
+        '1'
+      )
     }
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     await page.addStyleTag({
@@ -116,14 +140,20 @@ for (const phase of ['opening', 'closing'] as const) {
   })
 }
 
-test('zero-duration custom styles complete without transition events', async ({ page }) => {
+test('zero-duration custom styles complete without transition events', async ({
+  page,
+}) => {
   await loadZoomFixture(page)
-  await page.addStyleTag({ content: '.medium-zoom-image { transition: none !important }' })
+  await page.addStyleTag({
+    content: '.medium-zoom-image { transition: none !important }',
+  })
   await page.evaluate(async () => {
     await window.zoom.open()
     await window.zoom.close()
   })
-  await expect(page.locator('.medium-zoom-overlay, .medium-zoom-image--opened')).toHaveCount(0)
+  await expect(
+    page.locator('.medium-zoom-overlay, .medium-zoom-image--opened')
+  ).toHaveCount(0)
   await expect(page.locator('body')).not.toHaveClass(/medium-zoom--opened/)
 })
 
@@ -131,16 +161,22 @@ test('an unchanged transform completes even when a transition duration is set', 
   page,
 }) => {
   await loadZoomFixture(page)
-  await page.addStyleTag({ content: '.medium-zoom-image { transform: none !important }' })
+  await page.addStyleTag({
+    content: '.medium-zoom-image { transform: none !important }',
+  })
   await page.evaluate(async () => {
     await window.zoom.open()
     await window.zoom.close()
   })
-  await expect(page.locator('.medium-zoom-overlay, .medium-zoom-image--opened')).toHaveCount(0)
+  await expect(
+    page.locator('.medium-zoom-overlay, .medium-zoom-image--opened')
+  ).toHaveCount(0)
 })
 
 for (const source of ['data-zoom-src', 'srcset'] as const) {
-  test(`reduced motion completes ${source} loading and template dismissal`, async ({ page }) => {
+  test(`reduced motion completes ${source} loading and template dismissal`, async ({
+    page,
+  }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await loadZoomFixture(page, {
       body: `<img id="image" src="/images/image-1.jpg" width="160" alt="Zoom fixture"
@@ -164,10 +200,14 @@ for (const source of ['data-zoom-src', 'srcset'] as const) {
   })
 }
 
-test('closing during opening waits for the reverse transition', async ({ page }) => {
+test('closing during opening waits for the reverse transition', async ({
+  page,
+}) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' })
   await loadZoomFixture(page)
-  await page.addStyleTag({ content: '.medium-zoom-image { transition-duration: 1s !important }' })
+  await page.addStyleTag({
+    content: '.medium-zoom-image { transition-duration: 1s !important }',
+  })
   await page.evaluate(() => {
     document.body.dataset.motionEvents = ''
     let started = false
@@ -175,7 +215,9 @@ test('closing during opening waits for the reverse transition', async ({ page })
       if (
         !started &&
         event.propertyName === 'transform' &&
-        (event.target as Element).classList.contains('medium-zoom-image--opened')
+        (event.target as Element).classList.contains(
+          'medium-zoom-image--opened'
+        )
       ) {
         started = true
         // Reverse a running transition rather than cancelling before its first frame.
@@ -199,7 +241,10 @@ test('closing during opening waits for the reverse transition', async ({ page })
     })
   })
   await expect(page.locator('body')).toHaveAttribute('data-completed', 'true')
-  await expect(page.locator('body')).toHaveAttribute('data-motion-events', 'transitionend,closed,')
+  await expect(page.locator('body')).toHaveAttribute(
+    'data-motion-events',
+    'transitionend,closed,'
+  )
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 })
 
@@ -213,7 +258,9 @@ test('lifecycle completion has a fallback when animation frames are suspended', 
     window.requestAnimationFrame = () => 0
     try {
       const opened = await window.zoom.open()
-      const openedClass = document.body.classList.contains('medium-zoom--opened')
+      const openedClass = document.body.classList.contains(
+        'medium-zoom--opened'
+      )
       const overlayOpacity = getComputedStyle(
         document.querySelector('.medium-zoom-overlay')!
       ).opacity
@@ -227,7 +274,13 @@ test('lifecycle completion has a fallback when animation frames are suspended', 
       window.requestAnimationFrame = requestFrame
     }
   })
-  expect(result).toEqual({ fluent: true, openedClass: true, overlayOpacity: '1' })
-  await expect(page.locator('.medium-zoom-overlay, .medium-zoom-image--opened')).toHaveCount(0)
+  expect(result).toEqual({
+    fluent: true,
+    openedClass: true,
+    overlayOpacity: '1',
+  })
+  await expect(
+    page.locator('.medium-zoom-overlay, .medium-zoom-image--opened')
+  ).toHaveCount(0)
   await expect(page.locator('#image')).toBeVisible()
 })

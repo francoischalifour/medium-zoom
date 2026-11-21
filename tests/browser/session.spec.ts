@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 
 import type { ZoomSession } from '../../src/session'
 import { loadZoomFixture } from './helpers'
@@ -18,8 +18,7 @@ async function fixture(page: Page) {
   `,
   })
   await page.evaluate(async () => {
-    const path = '/experimental/dist/session/index.mjs'
-    const { createZoomSession } = (await import(path)) as typeof import('../../src/session')
+    const { createZoomSession } = await window.loadEntry('session')
     window.zoomSessions = [
       window.zoom,
       window.mediumZoom('#second'),
@@ -37,12 +36,18 @@ test('standalone sessions serialize legacy instances and the latest request wins
       const [first, second, third] = window.zoomSessions
       await first!.open()
       await Promise.all([second!.open(), third!.open()])
-      return window.zoomSessions.map(session => session.zoom.getZoomedImage()?.id || null)
+      return window.zoomSessions.map(
+        session => session.zoom.getZoomedImage()?.id || null
+      )
     })
   ).toEqual([null, null, 'third'])
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(1)
-  await page.evaluate(() => Promise.all(window.zoomSessions.map(session => session.dispose())))
-  await expect(page.locator('.medium-zoom-image, .medium-zoom-overlay')).toHaveCount(0)
+  await page.evaluate(() =>
+    Promise.all(window.zoomSessions.map(session => session.dispose()))
+  )
+  await expect(
+    page.locator('.medium-zoom-image, .medium-zoom-overlay')
+  ).toHaveCount(0)
 })
 
 test('closing coalesces, and the same session can reopen after an in-flight close', async ({
@@ -70,7 +75,9 @@ test('closing coalesces, and the same session can reopen after an in-flight clos
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 })
 
-test('disposal cancels a queued opening and makes later openings inert', async ({ page }) => {
+test('disposal cancels a queued opening and makes later openings inert', async ({
+  page,
+}) => {
   await fixture(page)
   expect(
     await page.evaluate(async () => {
@@ -86,7 +93,9 @@ test('disposal cancels a queued opening and makes later openings inert', async (
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 })
 
-test('close waits for an Escape close already started inside legacy core', async ({ page }) => {
+test('close waits for an Escape close already started inside legacy core', async ({
+  page,
+}) => {
   await fixture(page)
   await page.evaluate(() => window.zoomSessions[0]!.open())
   await page.keyboard.press('Escape')
@@ -103,19 +112,14 @@ test('explicit sessions coordinate keyboard adapters and standalone consumers', 
 }) => {
   await fixture(page)
   await page.evaluate(async () => {
-    const core = '/experimental/dist/core/index.mjs'
-    const triggers = '/experimental/dist/triggers/index.mjs'
-    const renderers = '/experimental/dist/renderers/index.mjs'
-    const { createZoom } = (await import(core)) as typeof import('../../src/core')
-    const { bindZoomTriggers } = (await import(triggers)) as typeof import('../../src/triggers')
-    const { dialog } = (await import(renderers)) as typeof import('../../src/renderers')
+    const { createZoom } = await window.loadEntry('core')
+    const { bindZoomTriggers } = await window.loadEntry('triggers')
+    const { dialog } = await window.loadEntry('renderers')
     await window.zoomSessions[0]!.open()
     const zoom = createZoom('#second', { renderer: dialog() })
     bindZoomTriggers(zoom)
     const session = (window.zoomSessions[1] = (
-      (await import(
-        String('/experimental/dist/session/index.mjs')
-      )) as typeof import('../../src/session')
+      await window.loadEntry('session')
     ).createZoomSession(zoom))
     await session.open()
     if (window.zoomSessions[0]!.zoom.getZoomedImage()) {
@@ -133,8 +137,7 @@ test('coordination keeps command identities stable and releases a reusable zoom'
   await fixture(page)
   expect(
     await page.evaluate(async () => {
-      const path = '/experimental/dist/session/index.mjs'
-      const { createZoomSession } = (await import(path)) as typeof import('../../src/session')
+      const { createZoomSession } = await window.loadEntry('session')
       const zoom = window.zoom
       // oxlint-disable-next-line typescript/unbound-method -- Identity comparison only.
       const commands = [zoom.open, zoom.close, zoom.toggle, zoom.detach]
@@ -151,8 +154,9 @@ test('coordination keeps command identities stable and releases a reusable zoom'
         fresh: next !== old,
         current: zoom.getZoomedImage()?.id,
         stable: commands.every(
-          // oxlint-disable-next-line typescript/unbound-method -- Identity comparison only.
-          (command, index) => command === [zoom.open, zoom.close, zoom.toggle, zoom.detach][index]
+          (command, index) =>
+            // oxlint-disable-next-line typescript/unbound-method -- Identity comparison only.
+            command === [zoom.open, zoom.close, zoom.toggle, zoom.detach][index]
         ),
       }
       await next.dispose()
@@ -161,11 +165,17 @@ test('coordination keeps command identities stable and releases a reusable zoom'
   ).toEqual({ fresh: true, current: 'image', stable: true })
 })
 
-test('compat pointer activation survives repeated detach and reattach', async ({ page }) => {
+test('compat pointer activation survives repeated detach and reattach', async ({
+  page,
+}) => {
   await fixture(page)
   await page.evaluate(async () => {
     await Promise.all(window.zoomSessions.map(session => session.dispose()))
-    window.zoom.attach('#image').detach('#image').detach('#image').attach('#image')
+    window.zoom
+      .attach('#image')
+      .detach('#image')
+      .detach('#image')
+      .attach('#image')
   })
   await page.locator('#image').click()
   await expect(page.locator('.medium-zoom-image--opened')).toHaveCount(1)

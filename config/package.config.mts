@@ -65,7 +65,10 @@ function preset(
     profile,
     injected,
     emitsCss: injected,
-    source: { ...entry.source, cjs: `src/${pure ? 'pure' : 'index'}-commonjs.ts` },
+    source: {
+      ...entry.source,
+      cjs: `src/${pure ? 'pure' : 'index'}-commonjs.ts`,
+    },
   }
 }
 export const releaseEntries: PackageEntry[] = [
@@ -170,19 +173,30 @@ export const profileEntries: CandidateEntry[] = [
   preset('pure', 'compat', false, [3_320, 3_320]),
 ]
 export const candidateEntries = [...extensionEntries, ...profileEntries]
-export const candidateArtifacts = candidateEntries.flatMap(entry => [entry.esm, entry.cjs])
+export const candidateArtifacts = candidateEntries.flatMap(entry => [
+  entry.esm,
+  entry.cjs,
+])
 export const candidateBudgets = candidateEntries.flatMap(entry => [
   { path: entry.esm, maxBytes: entry.budgets[0] },
   { path: entry.cjs, maxBytes: entry.budgets[1] },
 ])
 export function candidateManifest() {
   const exports: Record<string, unknown> = { ...legacyFixture.exports }
-  const types: Record<string, string[]> = { ...legacyFixture.typesVersions['*'] }
+  const types: Record<string, string[]> = {
+    ...legacyFixture.typesVersions['*'],
+  }
   const sideEffects = [...legacyFixture.sideEffects]
   for (const entry of candidateEntries) {
     exports[`./${entry.name}`] = {
-      import: { types: `./dist/${entry.name}/index.d.mts`, default: `./${entry.esm}` },
-      require: { types: `./dist/${entry.name}/index.d.cts`, default: `./${entry.cjs}` },
+      import: {
+        types: `./dist/${entry.name}/index.d.mts`,
+        default: `./${entry.esm}`,
+      },
+      require: {
+        types: `./dist/${entry.name}/index.d.cts`,
+        default: `./${entry.cjs}`,
+      },
     }
     types[entry.name] = [
       `dist/${entry.name}/index.d.${entry.primaryExport === 'default' ? 'mts' : 'cts'}`,
@@ -191,5 +205,10 @@ export function candidateManifest() {
       sideEffects.push(`./${entry.esm}`, `./${entry.cjs}`)
     }
   }
-  return { ...legacyFixture, exports, typesVersions: { '*': types }, sideEffects }
+  return {
+    ...legacyFixture,
+    exports,
+    typesVersions: { '*': types },
+    sideEffects,
+  }
 }

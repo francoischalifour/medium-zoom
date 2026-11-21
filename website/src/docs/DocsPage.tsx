@@ -1,8 +1,14 @@
-import { Children, isValidElement, useEffect, useRef, type ReactNode } from 'react'
+import {
+  Children,
+  isValidElement,
+  type ReactNode,
+  useEffect,
+  useRef,
+} from 'react'
 
-import { ScrollArea, revealInScrollArea } from '../scroll-area'
+import { revealInScrollArea, ScrollArea } from '../scroll-area'
 import { Icon, SiteLink } from '../site-components'
-import { BrandLink, SiteHeader, SiteFooter } from '../site-shell'
+import { BrandLink, SiteFooter, SiteHeader } from '../site-shell'
 import { CodeFence } from './doc-components'
 import { DocsOutline, DocsOutlineMenu } from './docs-outline'
 import { docsPages, headingId } from './pages'
@@ -10,7 +16,10 @@ import { useDocsNavigation } from './use-docs-navigation'
 
 import './docs.css'
 
-const pageContent = import.meta.glob<typeof import('./overview.mdx')>('./*.mdx', { eager: true })
+const pageContent = import.meta.glob<typeof import('./overview.mdx')>(
+  './*.mdx',
+  { eager: true }
+)
 
 function getHeadingText(children: ReactNode): string {
   return Children.toArray(children)
@@ -61,7 +70,10 @@ function DocsNavigationSheet({ children }: { children: ReactNode }) {
         aria-label="Documentation"
         onClick={event => {
           // Close on backdrop clicks and on links that load another page.
-          if (event.target === event.currentTarget || (event.target as Element).closest('a')) {
+          if (
+            event.target === event.currentTarget ||
+            (event.target as Element).closest('a')
+          ) {
             dialog.current?.close()
           }
         }}
@@ -113,7 +125,13 @@ type DocsPageEntry = (typeof docsPages)[number]
 
 const paginationLabels = { prev: 'Previous', next: 'Next' } as const
 
-function DocsPaginationLink({ rel, page }: { rel: 'prev' | 'next'; page: DocsPageEntry }) {
+function DocsPaginationLink({
+  rel,
+  page,
+}: {
+  rel: 'prev' | 'next'
+  page: DocsPageEntry
+}) {
   return (
     <a href={page.path} rel={rel}>
       <span>
@@ -125,7 +143,13 @@ function DocsPaginationLink({ rel, page }: { rel: 'prev' | 'next'; page: DocsPag
   )
 }
 
-function DocsPagination({ previous, next }: { previous?: DocsPageEntry; next?: DocsPageEntry }) {
+function DocsPagination({
+  previous,
+  next,
+}: {
+  previous?: DocsPageEntry
+  next?: DocsPageEntry
+}) {
   if (!previous && !next) {
     return null
   }
@@ -176,11 +200,15 @@ export function DocsPage({ path }: { path: string }) {
     </nav>
   )
   return (
-    <div className={`site-shell docs-shell${isOverview ? ' docs-overview' : ''}`}>
+    <div
+      className={`site-shell docs-shell${isOverview ? ' docs-overview' : ''}`}
+    >
       <SiteHeader
         page="docs"
         searchFramework={
-          page.group.includes('React') || page.path === '/docs/react/' ? 'react' : 'javascript'
+          page.group.includes('React') || page.path === '/docs/react/'
+            ? 'react'
+            : 'javascript'
         }
       />
       <noscript>
@@ -196,11 +224,18 @@ export function DocsPage({ path }: { path: string }) {
           <article ref={articleRef} className="docs-article">
             <header className="docs-heading">
               <DocsBreadcrumb page={page} navigation={navigation}>
-                {!isOverview && <DocsOutlineMenu outline={outline} activeId={activeHeadingId} />}
+                {!isOverview && (
+                  <DocsOutlineMenu
+                    outline={outline}
+                    activeId={activeHeadingId}
+                  />
+                )}
               </DocsBreadcrumb>
               <h1>{page.title}</h1>
             </header>
-            <Content components={{ h2: ArticleHeading, pre: CodeFence, a: SiteLink }} />
+            <Content
+              components={{ h2: ArticleHeading, pre: CodeFence, a: SiteLink }}
+            />
           </article>
           <DocsPagination previous={previous} next={next} />
         </main>

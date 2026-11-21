@@ -1,7 +1,12 @@
-import type { CoreZoomOptions } from '../engine/create-zoom'
+import type { CoreZoomOptions } from 'medium-zoom/core'
+
 import type { GalleryController } from '../gallery'
 
-/** Opt-in arrow-key binding for application-owned galleries. Creates no UI. */
+/**
+ * Opens the previous or next image on ArrowLeft and ArrowRight pressed inside `element`.
+ * Ignores keys with modifiers and keys aimed at form fields, media, sliders and comboboxes.
+ * Creates no UI. Returns the unbind function.
+ */
 export function bindGalleryKeyboard<Options extends CoreZoomOptions>(
   element: HTMLElement,
   gallery: GalleryController<Options>

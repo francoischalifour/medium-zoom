@@ -1,5 +1,9 @@
 import { createZoom } from 'medium-zoom/core'
-import { bindGalleryKeyboard, createGallery, type GalleryController } from 'medium-zoom/gallery'
+import {
+  bindGalleryKeyboard,
+  createGallery,
+  type GalleryController,
+} from 'medium-zoom/gallery'
 import { loadHdImage } from 'medium-zoom/loaders'
 import { dialog } from 'medium-zoom/renderers'
 import { createZoomSession, type ZoomSession } from 'medium-zoom/session'
@@ -36,7 +40,10 @@ function Example() {
                 <button className="photo-close" autoFocus onClick={close}>
                   Close image
                 </button>
-                <GalleryControls.Root gallery={gallery} className="photo-toolbar">
+                <GalleryControls.Root
+                  gallery={gallery}
+                  className="photo-toolbar"
+                >
                   <GalleryControls.Previous aria-label="Previous photograph">
                     ← Back
                   </GalleryControls.Previous>
@@ -87,10 +94,18 @@ function Example() {
           disabled={!owner}
           onClick={event => {
             const trigger = event.currentTarget
-            void owner?.session.open({ target: trigger.querySelector('img')!, trigger })
+            void owner?.session.open({
+              target: trigger.querySelector('img')!,
+              trigger,
+            })
           }}
         >
-          <img src={`/images/${source}`} alt={alt} aria-hidden="true" width={640} />
+          <img
+            src={`/images/${source}`}
+            alt={alt}
+            aria-hidden="true"
+            width={640}
+          />
           <span>{alt}</span>
         </button>
       ))}
@@ -108,8 +123,8 @@ function App() {
         Your own controls.
       </h1>
       <p className="intro">
-        React owns this toolbar. Sessions coordinate ownership, and the modal renderer owns focus
-        and image replacement.
+        React owns this toolbar. Sessions coordinate ownership, and the modal
+        renderer owns focus and image replacement.
       </p>
       <button className="toggle" onClick={() => setMounted(value => !value)}>
         {mounted ? 'Unmount gallery' : 'Mount gallery'}

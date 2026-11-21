@@ -1,7 +1,7 @@
-import { test, expect, type Page } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 
 import type { GalleryController } from '../../src/gallery'
-import { preparePage } from './helpers'
+import { addModernStyles, preparePage } from './helpers'
 
 declare global {
   interface Window {
@@ -12,20 +12,16 @@ async function fixture(page: Page) {
   await preparePage(page, {
     body: '<img id="first" src="/images/image-1.jpg" width="160" alt="Sunset"><img id="second" src="/images/image-2.jpg" width="160" alt="Skateboard">',
   })
-  await page.addStyleTag({ url: '/experimental/dist/modern/style.css' })
+  await addModernStyles(page)
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.evaluate(async () => {
-    const core = '/experimental/dist/core/index.mjs',
-      sessions = '/experimental/dist/session/index.mjs',
-      galleries = '/experimental/dist/gallery/index.mjs',
-      renderers = '/experimental/dist/renderers/index.mjs'
-    const { createZoom } = (await import(core)) as typeof import('../../src/core')
-    const { createZoomSession } = (await import(sessions)) as typeof import('../../src/session')
-    const { createGallery } = (await import(galleries)) as typeof import('../../src/gallery')
-    const { dialog } = (await import(renderers)) as typeof import('../../src/renderers')
-    window.zoom = createZoom('img', { renderer: dialog() })
-    createZoomSession(window.zoom)
-    window.galleryController = createGallery(window.zoom as import('../../src/core').ModalZoom)
+    const { createZoom } = await window.loadEntry('core')
+    const { createZoomSession } = await window.loadEntry('session')
+    const { createGallery } = await window.loadEntry('gallery')
+    const { dialog } = await window.loadEntry('renderers')
+    window.modalZoom = createZoom('img', { renderer: dialog() })
+    createZoomSession(window.modalZoom)
+    window.galleryController = createGallery(window.modalZoom)
   })
 }
 
@@ -40,9 +36,12 @@ test('headless traversal creates no controls, retains modal focus and publishes 
       throw new Error('Snapshot identity changed without a state change')
     }
     const indexes: number[] = []
-    const unsubscribe = gallery.subscribe(() => indexes.push(gallery.getSnapshot().index))
-    await window.zoom.open()
-    const focusContained = document.activeElement === document.querySelector('dialog')
+    const unsubscribe = gallery.subscribe(() =>
+      indexes.push(gallery.getSnapshot().index)
+    )
+    await window.modalZoom.open()
+    const focusContained =
+      document.activeElement === document.querySelector('dialog')
     await gallery.next()
     const controls = document.querySelectorAll(
       'dialog button, dialog input, dialog [role="button"]'
@@ -51,7 +50,7 @@ test('headless traversal creates no controls, retains modal focus and publishes 
     await gallery.next()
     const bounded = gallery.getSnapshot() === selected
     await gallery.previous()
-    await window.zoom.close()
+    await window.modalZoom.close()
     unsubscribe()
     return {
       indexes,
@@ -70,50 +69,52 @@ test('headless traversal creates no controls, retains modal focus and publishes 
   })
 })
 
-test('controller owns dynamic collection bounds and releases subscriptions', async ({ page }) => {
+test('controller owns dynamic collection bounds and releases subscriptions', async ({
+  page,
+}) => {
   await fixture(page)
   expect(
     await page.evaluate(async () => {
       const gallery = window.galleryController
-      const extra = document.querySelector('#first')!.cloneNode() as HTMLImageElement
+      const extra = document
+        .querySelector('#first')!
+        .cloneNode() as HTMLImageElement
       extra.id = 'third'
       document.body.append(extra)
       gallery.attach(extra)
       await gallery.select(2)
       const count = gallery.getSnapshot().images.length
       gallery.detach(extra)
-      await window.zoom.close()
+      await window.modalZoom.close()
       let notified = 0
       gallery.subscribe(() => notified++)
       gallery.dispose()
-      await window.zoom.open()
+      await window.modalZoom.open()
       await gallery.next()
-      return { count, index: window.zoom.getZoomedImage()?.id, notified }
+      return { count, index: window.modalZoom.getZoomedImage()?.id, notified }
     })
   ).toEqual({ count: 3, index: 'first', notified: 0 })
-  await page.evaluate(() => window.zoom.close())
+  await page.evaluate(() => window.modalZoom.close())
 })
 
-test('sessions and gallery traversal are independent and idempotent', async ({ page }) => {
+test('sessions and gallery traversal are independent and idempotent', async ({
+  page,
+}) => {
   await fixture(page)
   expect(
     await page.evaluate(async () => {
-      const galleries = '/experimental/dist/gallery/index.mjs',
-        sessions = '/experimental/dist/session/index.mjs'
-      const { createGallery } = (await import(galleries)) as typeof import('../../src/gallery')
-      const { createZoomSession } = (await import(sessions)) as typeof import('../../src/session')
-      const first = createZoomSession(window.zoom)
-      const second = createZoomSession(window.zoom)
-      const same =
-        createGallery(window.zoom as import('../../src/core').ModalZoom) ===
-        window.galleryController
+      const { createGallery } = await window.loadEntry('gallery')
+      const { createZoomSession } = await window.loadEntry('session')
+      const first = createZoomSession(window.modalZoom)
+      const second = createZoomSession(window.modalZoom)
+      const same = createGallery(window.modalZoom) === window.galleryController
       await first.open()
       await window.galleryController.next()
       await second.close()
       return {
         sameSession: first === second,
         sameController: same,
-        closed: !window.zoom.getZoomedImage(),
+        closed: !window.modalZoom.getZoomedImage(),
       }
     })
   ).toEqual({ sameSession: true, sameController: true, closed: true })
@@ -125,31 +126,29 @@ test('direct instance mutations publish settled collection state and stale dispo
   await fixture(page)
   expect(
     await page.evaluate(async () => {
-      const { createGallery } = (await import(
-        String('/experimental/dist/gallery/index.mjs')
-      )) as typeof import('../../src/gallery')
+      const { createGallery } = await window.loadEntry('gallery')
       const old = window.galleryController
       old.dispose()
-      const gallery = createGallery(window.zoom as import('../../src/core').ModalZoom)
+      const gallery = createGallery(window.modalZoom)
       old.dispose()
       const counts: number[] = []
       gallery.subscribe(() => counts.push(gallery.getSnapshot().images.length))
       const extra = document.createElement('img')
       extra.src = '/images/image-1.jpg'
       document.body.append(extra)
-      window.zoom.attach(extra)
+      window.modalZoom.attach(extra)
       await Promise.resolve()
-      window.zoom.detach(extra)
+      window.modalZoom.detach(extra)
       await Promise.resolve()
       gallery.dispose()
       gallery.subscribe(() => {
         throw Error('Disposed subscription retained')
       })
-      window.zoom.attach(extra)
+      window.modalZoom.attach(extra)
       await Promise.resolve()
       return {
         counts,
-        stable: createGallery(window.zoom as import('../../src/core').ModalZoom) !== gallery,
+        stable: createGallery(window.modalZoom) !== gallery,
       }
     })
   ).toEqual({ counts: [3, 2], stable: true })

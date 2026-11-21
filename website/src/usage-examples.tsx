@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import { ImageZoom } from '../../examples/shadcn/src/components/ui/image-zoom'
 import * as ImageZoomParts from '../../examples/shadcn/src/components/ui/image-zoom'
-import { photos, getPreviewImageProps } from './gallery'
+import { getPreviewImageProps, photos } from './gallery'
 import { trackSiteEvent } from './site-analytics'
 import { CopyButton, HighlightedCode } from './site-components'
 import { TabList } from './site-tabs'
@@ -20,13 +20,20 @@ export function UsageExamples() {
         id={id}
         label="React examples"
         className="usage-tabs"
-        items={usageExamples.map(item => ({ value: item.id, label: item.label }))}
+        items={usageExamples.map(item => ({
+          value: item.id,
+          label: item.label,
+        }))}
         value={example.id}
         onValueChange={value => {
           setExample(usageExamples.find(item => item.id === value)!)
         }}
       />
-      <div id={`${id}-panel`} role="tabpanel" aria-labelledby={`${id}-${example.id}`}>
+      <div
+        id={`${id}-panel`}
+        role="tabpanel"
+        aria-labelledby={`${id}-${example.id}`}
+      >
         <p className="usage-description">{example.description}</p>
         <div className="usage-example">
           <div className="usage-code">
@@ -37,7 +44,10 @@ export function UsageExamples() {
                   text={example.code}
                   label="Copy usage code"
                   onCopied={() =>
-                    trackSiteEvent('Code Copied', { snippet: 'usage', example: example.id })
+                    trackSiteEvent('Code Copied', {
+                      snippet: 'usage',
+                      example: example.id,
+                    })
                   }
                 />
               </div>
@@ -57,8 +67,13 @@ function UsagePreview({ exampleId }: { exampleId: UsageExample['id'] }) {
   const ocean = photos.ocean
   const denali = photos.denali
   const image = exampleId === 'basic' ? ocean : denali
-  const imageProps = getPreviewImageProps(image, '(max-width: 440px) calc(100vw - 90px), 360px')
-  const photo = <ImageZoom {...imageProps} className="usage-photo" loading="lazy" />
+  const imageProps = getPreviewImageProps(
+    image,
+    '(max-width: 440px) calc(100vw - 90px), 360px'
+  )
+  const photo = (
+    <ImageZoom {...imageProps} className="usage-photo" loading="lazy" />
+  )
 
   let content = photo
   if (exampleId === 'composed' || exampleId === 'controlled') {
@@ -73,12 +88,21 @@ function UsagePreview({ exampleId }: { exampleId: UsageExample['id'] }) {
             className="usage-trigger"
             aria-label={`${exampleId === 'composed' ? 'View photo:' : 'Enlarge'} ${image.alt}`}
           >
-            <ImageZoomParts.Image {...imageProps} className="usage-photo" loading="lazy" />
-            {exampleId === 'composed' && <span className="usage-badge">View photo</span>}
+            <ImageZoomParts.Image
+              {...imageProps}
+              className="usage-photo"
+              loading="lazy"
+            />
+            {exampleId === 'composed' && (
+              <span className="usage-badge">View photo</span>
+            )}
           </ImageZoomParts.Trigger>
         </ImageZoomParts.Root>
         {exampleId === 'controlled' && (
-          <button className="button button-secondary" onClick={() => setOpen(true)}>
+          <button
+            className="button button-secondary"
+            onClick={() => setOpen(true)}
+          >
             Open image
           </button>
         )}

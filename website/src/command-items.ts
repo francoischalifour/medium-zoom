@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react'
 
 import { getChatLinks } from './chat-links'
-import { getSearchTerms, type DocsSearch } from './docs-search'
+import { type DocsSearch, getSearchTerms } from './docs-search'
 import { componentCommands, javascriptCommands } from './install-commands'
 import type { PackageManager } from './package-manager'
 import type { Icon } from './site-components'
@@ -21,7 +21,12 @@ export type CommandItem = {
   | { kind: 'theme'; dark: boolean }
 )
 
-export const commandVerbs = { navigate: 'Open', chat: 'Ask', copy: 'Copy', theme: 'Switch' }
+export const commandVerbs = {
+  navigate: 'Open',
+  chat: 'Ask',
+  copy: 'Copy',
+  theme: 'Switch',
+}
 
 export function getCommandGroups({
   search,
@@ -90,15 +95,18 @@ export function getCommandGroups({
     return queryTerms.every(term => text.includes(term))
   })
   const referencePath =
-    matchingDocs[0]?.path ?? (framework === 'react' ? '/docs/react/' : '/docs/javascript/')
-  const chat: CommandItem[] = getChatLinks(searchQuery, referencePath).map(provider => ({
-    id: provider.key,
-    kind: 'chat',
-    title: provider.title,
-    detail: searchQuery,
-    url: provider.url,
-    icon: 'chat',
-  }))
+    matchingDocs[0]?.path ??
+    (framework === 'react' ? '/docs/react/' : '/docs/javascript/')
+  const chat: CommandItem[] = getChatLinks(searchQuery, referencePath).map(
+    provider => ({
+      id: provider.key,
+      kind: 'chat',
+      title: provider.title,
+      detail: searchQuery,
+      url: provider.url,
+      icon: 'chat',
+    })
+  )
   const groups = searching
     ? [
         { title: 'Actions', items: actions },

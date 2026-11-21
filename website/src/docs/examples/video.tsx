@@ -1,7 +1,7 @@
 'use client'
 
 import mediumZoom, { type Zoom } from 'medium-zoom'
-import { useEffect, useRef, type ComponentPropsWithoutRef } from 'react'
+import { type ComponentPropsWithoutRef, useEffect, useRef } from 'react'
 
 import './video.css'
 

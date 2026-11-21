@@ -73,7 +73,7 @@
   "scripts": {
     "start": "bun run dev",
     "dev": "tsdown --config config/tsdown.config.mts --watch",
-    "dev:website": "bun run build:registry && vite --config config/vite.website.config.mts --host 127.0.0.1",
+    "dev:website": "bun run build && bun run build:registry && vite --config config/vite.website.config.mts --host 127.0.0.1",
     "stories": "bun run build && vite --config config/vite.stories.config.mts --host 127.0.0.1 --port 9001",
     "examples": "bun run build:website && vite preview --config config/vite.website.config.mts --host 127.0.0.1 --port 4173",
     "clean": "bun scripts/clean.ts",
@@ -84,10 +84,10 @@
     "build:demo": "bun run build:registry && bun run --cwd website build && bun run build:stories && bun run build:examples",
     "build:stories": "vite build --config config/vite.stories.config.mts",
     "build:examples": "bun scripts/build-examples.ts",
-    "format": "oxfmt --write .",
-    "format:check": "oxfmt --check .",
+    "format": "bun fmt .",
+    "format:check": "bun fmt --check .",
     "lint": "oxlint --deny-warnings src scripts tests stories/catalogue config website/worker.ts website/src website/build *.mts",
-    "typecheck": "tsc --noEmit -p tsconfig.json && bun run --cwd website typecheck && bun scripts/check-docs.ts && bun run typecheck:examples && bun run typecheck:registry",
+    "typecheck": "bun check --no-script -p tsconfig.json && bun run --cwd website typecheck && bun scripts/check-docs.ts && bun run typecheck:examples && bun run typecheck:registry",
     "typecheck:examples": "bun run --filter \"@medium-zoom/*-example\" typecheck",
     "test": "bun run test:browser",
     "test:browser": "playwright test --config config/playwright.config.mts",
@@ -98,9 +98,8 @@
     "test:package": "bun scripts/check-package.ts",
     "size": "bun scripts/size.ts",
     "size:baseline": "bun scripts/size.ts --update-baseline",
-    "test:size": "bun run size",
     "check": "bun run check:library && bun run build:demo && bun run test:examples && bun run test:browser && bun run test:rsc && bun run test:analytics && bun run test:registry",
-    "check:library": "bun run check:source && bun run test:size && bun run test:package && bun run test:geometry",
+    "check:library": "bun run check:source && bun run size && bun run test:package && bun run test:geometry",
     "check:source": "bun run format:check && bun run build && bun run lint && bun run typecheck",
     "prepublishOnly": "bun run check",
     "dev:example": "bun scripts/dev-example.ts",
@@ -113,10 +112,9 @@
     "test:a11y": "bun run test:browser website-accessibility.spec.ts --project=chromium",
     "test:rsc": "playwright test --config config/playwright.rsc.config.mts",
     "test:docs": "bun scripts/check-docs.ts && bun run test:browser website-docs.spec.ts website-hierarchy.spec.ts",
-    "typecheck:registry": "mkdir -p .cache && wrangler types .cache/worker-types.d.ts --config config/wrangler.jsonc && tsc --noEmit -p config/tsconfig.worker.json",
+    "typecheck:registry": "mkdir -p .cache && wrangler types .cache/worker-types.d.ts --config config/wrangler.jsonc && bun check --no-script -p config/tsconfig.worker.json",
     "test:registry": "node --experimental-strip-types --test tests/registry-downloads.test.mts",
-    "test:geometry": "node --experimental-strip-types --test tests/geometry.test.mts",
-    "check:core": "bun scripts/check-context.ts && bun run build && bun run test:size && bun run test:package && bun run test:geometry"
+    "test:geometry": "node --experimental-strip-types --test tests/geometry.test.mts"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
@@ -132,7 +130,6 @@
     "acorn": "8.19.0",
     "lightningcss": "1.33.0",
     "medium-zoom-baseline": "npm:medium-zoom@1.1.1",
-    "oxfmt": "0.75.0",
     "oxlint": "1.90.0",
     "oxlint-tsgolint": "7.0.2005",
     "publint": "0.3.25",
@@ -151,5 +148,5 @@
   "overrides": {
     "@emnapi/runtime": "1.11.3"
   },
-  "packageManager": "bun@1.4.4"
+  "packageManager": "bun@1.4.5"
 }

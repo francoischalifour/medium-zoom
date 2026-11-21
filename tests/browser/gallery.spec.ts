@@ -1,6 +1,16 @@
-import { test, expect, type Page } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 
-import { preparePage } from './helpers'
+import { addModernStyles, preparePage } from './helpers'
+
+declare global {
+  interface Window {
+    /** A composed gallery zoom whose open requests all go through a session. */
+    createGalleryZoom(
+      selector?: import('../../src/core').ZoomSelector,
+      options?: import('../../src/medium-zoom').ZoomOptions
+    ): import('../../src/core').ModalZoom
+  }
+}
 
 async function fixture(page: Page, order = false) {
   await preparePage(page, {
@@ -16,39 +26,25 @@ async function fixture(page: Page, order = false) {
   })
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.evaluate(
-    () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+    () =>
+      new Promise(resolve =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve))
+      )
   )
-  await page.addStyleTag({ url: '/experimental/dist/modern/style.css' })
+  await addModernStyles(page)
   await page.addStyleTag({ url: '/experiments/gallery-controls.css' })
   await page.evaluate(async sessionFirst => {
-    const { createZoom } = (await import(
-      String('/experimental/dist/core/index.mjs')
-    )) as typeof import('../../src/core')
-    const { loadHdImage } = (await import(
-      String('/experimental/dist/loaders/index.mjs')
-    )) as typeof import('../../src/loaders')
-    const { bindZoomTriggers } = (await import(
-      String('/experimental/dist/triggers/index.mjs')
-    )) as typeof import('../../src/triggers')
-    const { templateContent } = (await import(
-      String('/experimental/dist/content/index.mjs')
-    )) as typeof import('../../src/content')
-    const { createGallery } = (await import(
-      String('/experimental/dist/gallery/index.mjs')
-    )) as typeof import('../../src/gallery')
-    const { dialog } = (await import(
-      String('/experimental/dist/renderers/index.mjs')
-    )) as typeof import('../../src/renderers')
+    const { createZoom } = await window.loadEntry('core')
+    const { loadHdImage } = await window.loadEntry('loaders')
+    const { bindZoomTriggers } = await window.loadEntry('triggers')
+    const { templateContent } = await window.loadEntry('content')
+    const { createGallery } = await window.loadEntry('gallery')
+    const { dialog } = await window.loadEntry('renderers')
     const { mountExampleControls, mountCloseControl } = (await import(
       String('/experiments/gallery-controls.mjs')
     )) as typeof import('../experimental/gallery-controls.mjs')
-    const { createZoomSession } = (await import(
-      String('/experimental/dist/session/index.mjs')
-    )) as typeof import('../../src/session')
-    window.mediumZoom = ((
-      selector?: import('../../src/engine/create-zoom').ZoomSelector,
-      { template, ...options }: import('../../src/medium-zoom').ZoomOptions = {}
-    ) => {
+    const { createZoomSession } = await window.loadEntry('session')
+    window.createGalleryZoom = (selector, { template, ...options } = {}) => {
       const zoom = createZoom(selector, {
         ...options,
         loader: loadHdImage,
@@ -59,7 +55,9 @@ async function fixture(page: Page, order = false) {
               view.element,
               createGallery(view.zoom, createZoomSession(view.zoom))
             )
-            const content = template ? templateContent(template)(view) : undefined
+            const content = template
+              ? templateContent(template)(view)
+              : undefined
             return () => {
               content?.()
               controls()
@@ -73,15 +71,19 @@ async function fixture(page: Page, order = false) {
       if (sessionFirst) {
         bindZoomTriggers(zoom, session)
       } else {
-        bindZoomTriggers(zoom, { open: options => createZoomSession(zoom).open(options) })
+        bindZoomTriggers(zoom, {
+          open: options => createZoomSession(zoom).open(options),
+        })
       }
       return Object.assign(Object.create(zoom), {
         open: session.open,
         close: session.close,
         toggle: session.toggle,
       })
-    }) as import('../../src/engine/create-zoom').ZoomFactory
-    window.zoom = window.mediumZoom('#first, #second, #third', { template: '#caption' })
+    }
+    window.modalZoom = window.createGalleryZoom('#first, #second, #third', {
+      template: '#caption',
+    })
   }, order)
 }
 
@@ -95,12 +97,13 @@ for (const reverse of [false, true]) {
     const modal = page.getByRole('dialog', { name: 'Mountain' })
     await expect(modal).toBeVisible()
     await expect(modal.getByRole('img')).toHaveAttribute('alt', 'Mountain')
-    await expect(page.getByRole('button', { name: 'Close image' })).toBeFocused()
+    await expect(
+      page.getByRole('button', { name: 'Close image' })
+    ).toBeFocused()
     await expect(modal.getByRole('status')).toHaveText('1 of 3')
-    await expect(modal.getByRole('button', { name: 'Previous image' })).toHaveAttribute(
-      'aria-disabled',
-      'true'
-    )
+    await expect(
+      modal.getByRole('button', { name: 'Previous image' })
+    ).toHaveAttribute('aria-disabled', 'true')
     await page.evaluate(() => {
       document.querySelector('dialog')!.dataset.identity = 'retained'
     })
@@ -109,16 +112,19 @@ for (const reverse of [false, true]) {
     await expect(nextModal).toHaveAttribute('data-identity', 'retained')
     await expect(nextModal.getByRole('status')).toHaveText('2 of 3')
     await expect(nextModal.getByRole('img')).toHaveAttribute('alt', 'Forest')
-    await expect(nextModal.getByRole('textbox', { name: 'Caption' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Close image' })).toBeFocused()
+    await expect(
+      nextModal.getByRole('textbox', { name: 'Caption' })
+    ).toBeVisible()
+    await expect(
+      page.getByRole('button', { name: 'Close image' })
+    ).toBeFocused()
     await nextModal.getByRole('button', { name: 'Next image' }).focus()
     await page.keyboard.press('Enter')
     await expect(page.getByRole('status')).toHaveText('3 of 3')
     await expect(page.getByRole('button', { name: 'Next image' })).toBeFocused()
-    await expect(page.getByRole('button', { name: 'Next image' })).toHaveAttribute(
-      'aria-disabled',
-      'true'
-    )
+    await expect(
+      page.getByRole('button', { name: 'Next image' })
+    ).toHaveAttribute('aria-disabled', 'true')
     await page.keyboard.press('ArrowRight')
     await expect(page.getByRole('status')).toHaveText('3 of 3')
     await page.keyboard.press('ArrowLeft')
@@ -135,10 +141,12 @@ test('bare keyboard triggers restore attributes and listeners after detach and r
 }) => {
   await fixture(page)
   await page.evaluate(() => {
-    window.zoom.detach('#third')
+    window.modalZoom.detach('#third')
     document.querySelector('#third')!.setAttribute('tabindex', '3')
-    document.querySelector('#third')!.setAttribute('aria-label', 'Authored label')
-    window.zoom.attach('#third')
+    document
+      .querySelector('#third')!
+      .setAttribute('aria-label', 'Authored label')
+    window.modalZoom.attach('#third')
   })
   await expect(page.locator('#third')).toHaveAttribute('role', 'button')
   await expect(page.locator('#third')).toHaveAttribute('tabindex', '3')
@@ -146,16 +154,19 @@ test('bare keyboard triggers restore attributes and listeners after detach and r
   await page.keyboard.press('Space')
   await expect(page.getByRole('dialog', { name: 'Ocean' })).toBeVisible()
   await expect(page.getByRole('dialog').getByRole('img')).toHaveCount(1)
-  await page.evaluate(() => window.zoom.detach())
+  await page.evaluate(() => window.modalZoom.detach())
   await expect(page.locator('dialog')).toHaveCount(0)
   await expect(page.locator('#third')).not.toHaveAttribute('role')
   await expect(page.locator('#third')).toHaveAttribute('tabindex', '3')
-  await expect(page.locator('#third')).toHaveAttribute('aria-label', 'Authored label')
+  await expect(page.locator('#third')).toHaveAttribute(
+    'aria-label',
+    'Authored label'
+  )
   await expect(page.locator('#first')).not.toHaveAttribute('tabindex')
   await page.locator('#third').focus()
   await page.keyboard.press('Enter')
   await expect(page.locator('dialog')).toHaveCount(0)
-  await page.evaluate(() => window.zoom.attach('#first'))
+  await page.evaluate(() => window.modalZoom.attach('#first'))
   await page.locator('#first').focus()
   await page.keyboard.press('Space')
   await expect(page.getByRole('dialog')).toBeVisible()
@@ -166,10 +177,10 @@ test('native wrappers keep authored activation and prevented clicks do not open'
 }) => {
   await fixture(page)
   await page.evaluate(() => {
-    window.zoom.attach('#linked', '#wrapped')
+    window.modalZoom.attach('#linked', '#wrapped')
     document.querySelector('#native')!.addEventListener('click', event => {
       if (!event.defaultPrevented) {
-        void window.zoom.open({
+        void window.modalZoom.open({
           target: document.querySelector('#wrapped')!,
           trigger: event.currentTarget as HTMLElement,
         })
@@ -187,7 +198,9 @@ test('native wrappers keep authored activation and prevented clicks do not open'
   await page.keyboard.press('Escape')
   await expect(page.locator('#native')).toBeFocused()
   await page.evaluate(() =>
-    document.querySelector('#first')!.addEventListener('click', event => event.preventDefault())
+    document
+      .querySelector('#first')!
+      .addEventListener('click', event => event.preventDefault())
   )
   await page.locator('#first').click()
   await expect(page.locator('dialog')).toHaveCount(0)
@@ -201,13 +214,17 @@ test('gallery keys leave editable template controls alone and background stays i
   await page.getByRole('textbox', { name: 'Caption' }).focus()
   await page.keyboard.press('ArrowRight')
   await expect(page.getByRole('status')).toHaveText('1 of 3')
-  await page.evaluate(() => (document.querySelector('#before') as HTMLElement).focus())
+  await page.evaluate(() =>
+    (document.querySelector('#before') as HTMLElement).focus()
+  )
   await expect(page.getByRole('textbox', { name: 'Caption' })).toBeFocused()
   for (let index = 0; index < 8; index++) {
     await page.keyboard.press('Tab')
-    expect(await page.locator('#before').evaluate(node => node === document.activeElement)).toBe(
-      false
-    )
+    expect(
+      await page
+        .locator('#before')
+        .evaluate(node => node === document.activeElement)
+    ).toBe(false)
   }
   await page.keyboard.press('Escape')
   await expect(page.locator('dialog')).toHaveCount(0)
@@ -223,10 +240,15 @@ test('navigation cancels stale HD loading while retaining one modal and one acce
   })
   await page.route('**/slow-image.jpg', async route => {
     await gate
-    await route.fulfill({ path: 'stories/images/image-2.jpg', contentType: 'image/jpeg' })
+    await route.fulfill({
+      path: 'stories/images/image-2.jpg',
+      contentType: 'image/jpeg',
+    })
   })
   await page.evaluate(() =>
-    document.querySelector('#first')!.setAttribute('data-zoom-src', '/slow-image.jpg')
+    document
+      .querySelector('#first')!
+      .setAttribute('data-zoom-src', '/slow-image.jpg')
   )
   await page.locator('#first').focus()
   await page.keyboard.press('Enter')
@@ -236,7 +258,10 @@ test('navigation cancels stale HD loading while retaining one modal and one acce
   release()
   await page.unrouteAll({ behavior: 'wait' })
   await expect(page.getByRole('dialog').getByRole('img')).toHaveCount(1)
-  await expect(page.getByRole('dialog').getByRole('img')).toHaveAttribute('alt', 'Forest')
+  await expect(page.getByRole('dialog').getByRole('img')).toHaveAttribute(
+    'alt',
+    'Forest'
+  )
   await page.keyboard.press('Escape')
   await expect(page.locator('dialog')).toHaveCount(0)
   await expect(page.locator('.medium-zoom-image--hidden')).toHaveCount(0)
@@ -247,35 +272,33 @@ test('clones retain rendering strategies with explicit bindings and independent 
 }) => {
   await fixture(page)
   await page.evaluate(async () => {
-    const { bindZoomTriggers } = (await import(
-      String('/experimental/dist/triggers/index.mjs')
-    )) as typeof import('../../src/triggers')
-    const { createZoomSession } = (await import(
-      String('/experimental/dist/session/index.mjs')
-    )) as typeof import('../../src/session')
-    const clone = (window.zoom as import('../../src/core').ModalZoom).clone().attach('#linked')
-    window.zoom.detach()
+    const { bindZoomTriggers } = await window.loadEntry('triggers')
+    const { createZoomSession } = await window.loadEntry('session')
+    const clone = window.modalZoom.clone().attach('#linked')
+    window.modalZoom.detach()
     clone.attach('#first', '#second', '#third')
     bindZoomTriggers(clone, createZoomSession(clone))
-    window.zoom = clone
+    window.modalZoom = clone
   })
   await page.locator('#second').focus()
   await page.keyboard.press('Enter')
   await expect(page.getByRole('dialog', { name: 'Forest' })).toBeVisible()
   await page.keyboard.press('ArrowRight')
   await expect(page.getByRole('status')).toHaveText('4 of 4')
-  await page.evaluate(() => window.zoom.detach())
+  await page.evaluate(() => window.modalZoom.detach())
   await expect(page.locator('dialog')).toHaveCount(0)
   await expect(page.locator('#second')).not.toHaveAttribute('role')
 })
 
 for (const cancel of ['close', 'detach', 'toggle'] as const) {
-  test(`${cancel} cancels queued handoff between accessible instances`, async ({ page }) => {
+  test(`${cancel} cancels queued handoff between accessible instances`, async ({
+    page,
+  }) => {
     await fixture(page)
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     const result = await page.evaluate(async cancel => {
-      await window.zoom.open()
-      const second = window.mediumZoom('#second')
+      await window.modalZoom.open()
+      const second = window.createGalleryZoom('#second')
       const opening = second.open()
       if (cancel === 'close') {
         void second.close()
@@ -287,7 +310,7 @@ for (const cancel of ['close', 'detach', 'toggle'] as const) {
         void second.toggle()
       }
       await opening
-      return [window.zoom.getZoomedImage(), second.getZoomedImage()]
+      return [window.modalZoom.getZoomedImage(), second.getZoomedImage()]
     }, cancel)
     expect(result).toEqual([null, null])
     await expect(page.locator('dialog')).toHaveCount(0)
@@ -302,10 +325,10 @@ test('independent instances hand off to one modal and coalesce closing promises'
 }) => {
   await fixture(page)
   await page.evaluate(async () => {
-    await window.zoom.open()
-    const second = window.mediumZoom('#linked')
+    await window.modalZoom.open()
+    const second = window.createGalleryZoom('#linked')
     await second.open()
-    if (window.zoom.getZoomedImage()) {
+    if (window.modalZoom.getZoomedImage()) {
       throw new Error('Previous modal remained active')
     }
     if (document.querySelectorAll('dialog').length !== 1) {
@@ -319,14 +342,16 @@ test('independent instances hand off to one modal and coalesce closing promises'
   await expect(page.locator('dialog')).toHaveCount(0)
 })
 
-test('canceling a gallery open event disposes the retained host', async ({ page }) => {
+test('canceling a gallery open event disposes the retained host', async ({
+  page,
+}) => {
   await fixture(page)
   await page.locator('#first').click()
   await page.evaluate(() =>
-    window.zoom.on(
+    window.modalZoom.on(
       'open',
       () => {
-        void window.zoom.close()
+        void window.modalZoom.close()
       },
       { once: true }
     )
@@ -336,13 +361,15 @@ test('canceling a gallery open event disposes the retained host', async ({ page 
   await expect(page.locator('.medium-zoom-image--hidden')).toHaveCount(0)
 })
 
-test('only the latest of three concurrent modal requests opens', async ({ page }) => {
+test('only the latest of three concurrent modal requests opens', async ({
+  page,
+}) => {
   await fixture(page)
   await page.emulateMedia({ reducedMotion: 'no-preference' })
   await page.evaluate(async () => {
-    await window.zoom.open()
-    const second = window.mediumZoom('#linked')
-    const third = window.mediumZoom('#wrapped')
+    await window.modalZoom.open()
+    const second = window.createGalleryZoom('#linked')
+    const third = window.createGalleryZoom('#wrapped')
     await Promise.all([second.open(), third.open()])
     if (second.getZoomedImage()) {
       throw new Error('Superseded request opened a modal')
@@ -360,13 +387,13 @@ test('only the latest of three concurrent modal requests opens', async ({ page }
 test('an invalid target leaves the active instance alone', async ({ page }) => {
   await fixture(page)
   await page.evaluate(async () => {
-    await window.zoom.open()
-    const second = window.mediumZoom('#linked')
+    await window.modalZoom.open()
+    const second = window.createGalleryZoom('#linked')
     await second.open({ target: document.querySelector('#third')! })
-    if (!window.zoom.getZoomedImage() || second.getZoomedImage()) {
+    if (!window.modalZoom.getZoomedImage() || second.getZoomedImage()) {
       throw new Error('Invalid target changed the active modal')
     }
-    await window.zoom.close()
+    await window.modalZoom.close()
   })
 })
 
@@ -383,13 +410,15 @@ test('rapid gallery navigation interrupts animation and cleanup still resolves',
   await expect(page.getByRole('status')).toHaveText('3 of 3')
   await page.keyboard.press('Escape')
   await expect(page.locator('dialog')).toHaveCount(0)
-  await expect(page.locator('.medium-zoom-image--hidden, .medium-zoom-image--opened')).toHaveCount(
-    0
-  )
+  await expect(
+    page.locator('.medium-zoom-image--hidden, .medium-zoom-image--opened')
+  ).toHaveCount(0)
   await expect(page.locator('#first')).toBeFocused()
 })
 
-test('the combined modal has no automated accessibility violations', async ({ page }) => {
+test('the combined modal has no automated accessibility violations', async ({
+  page,
+}) => {
   const { default: AxeBuilder } = await import('@axe-core/playwright')
   await fixture(page)
   await page.locator('#first').focus()
@@ -399,26 +428,32 @@ test('the combined modal has no automated accessibility violations', async ({ pa
   expect(results.violations).toEqual([])
 })
 
-test('authored image labels survive trigger enhancement and cloning', async ({ page }) => {
+test('authored image labels survive trigger enhancement and cloning', async ({
+  page,
+}) => {
   await fixture(page)
   await page.evaluate(() => {
-    window.zoom.detach('#first')
+    window.modalZoom.detach('#first')
     const image = document.querySelector('#first')!
     image.setAttribute('alt', '')
     image.setAttribute('aria-label', 'Sunset over the ocean')
-    window.zoom.attach('#first')
+    window.modalZoom.attach('#first')
   })
   await page.locator('#first').focus()
   await page.keyboard.press('Enter')
   const modal = page.getByRole('dialog', { name: 'Sunset over the ocean' })
   await expect(modal).toBeVisible()
-  await expect(modal.getByRole('img', { name: 'Sunset over the ocean' })).toHaveCount(1)
+  await expect(
+    modal.getByRole('img', { name: 'Sunset over the ocean' })
+  ).toHaveCount(1)
 })
 
-test('pointer navigation switches fitted images without an animation', async ({ page }) => {
+test('pointer navigation switches fitted images without an animation', async ({
+  page,
+}) => {
   await fixture(page)
   await page.emulateMedia({ reducedMotion: 'no-preference' })
-  await page.evaluate(() => window.zoom.open())
+  await page.evaluate(() => window.modalZoom.open())
   await page.getByRole('button', { name: 'Next image' }).click()
   await expect(page.locator('dialog img')).toHaveCount(1)
   const state = await page.evaluate(() => {
@@ -436,13 +471,17 @@ test('pointer navigation switches fitted images without an animation', async ({ 
   expect(state.animations).toBe(0)
   expect(state.center[0]).toBeCloseTo(state.viewport[0]!, 0)
   expect(state.center[1]).toBeCloseTo(state.viewport[1]!, 0)
-  await expect(page.getByRole('dialog').getByRole('img', { name: 'Forest' })).toHaveCount(1)
+  await expect(
+    page.getByRole('dialog').getByRole('img', { name: 'Forest' })
+  ).toHaveCount(1)
 })
 
-test('keyboard navigation commits fitted bounds without a gallery animation', async ({ page }) => {
+test('keyboard navigation commits fitted bounds without a gallery animation', async ({
+  page,
+}) => {
   await fixture(page)
   await page.emulateMedia({ reducedMotion: 'no-preference' })
-  await page.evaluate(() => window.zoom.open())
+  await page.evaluate(() => window.modalZoom.open())
   await page.keyboard.press('ArrowRight')
   await expect(page.locator('dialog img')).toHaveCount(1)
   expect(
@@ -450,44 +489,54 @@ test('keyboard navigation commits fitted bounds without a gallery animation', as
       () =>
         // The backdrop fade from opening can still be finishing; only frames must not animate.
         Array.from(document.querySelectorAll('dialog img')).flatMap(frame =>
-          frame.getAnimations().filter(animation => animation.playState === 'running')
+          frame
+            .getAnimations()
+            .filter(animation => animation.playState === 'running')
         ).length
     )
   ).toBe(0)
 })
 
-test('a framework-hidden source becomes accessible in the modal', async ({ page }) => {
+test('a framework-hidden source becomes accessible in the modal', async ({
+  page,
+}) => {
   await fixture(page)
-  await page.evaluate(() => document.querySelector('#second')!.setAttribute('aria-hidden', 'true'))
-  await page.evaluate(() => window.zoom.open())
+  await page.evaluate(() =>
+    document.querySelector('#second')!.setAttribute('aria-hidden', 'true')
+  )
+  await page.evaluate(() => window.modalZoom.open())
   await page.keyboard.press('ArrowRight')
-  await expect(page.getByRole('dialog').getByRole('img', { name: 'Forest' })).toHaveCount(1)
+  await expect(
+    page.getByRole('dialog').getByRole('img', { name: 'Forest' })
+  ).toHaveCount(1)
   await expect(page.locator('#second')).toHaveAttribute('aria-hidden', 'true')
 })
 
-test('disposing after pointer navigation hands ownership to a fresh session', async ({ page }) => {
+test('disposing after pointer navigation hands ownership to a fresh session', async ({
+  page,
+}) => {
   await fixture(page)
   await page.emulateMedia({ reducedMotion: 'no-preference' })
   await page.evaluate(async () => {
-    window.zoom.detach()
-    const core = '/experimental/dist/core/index.mjs'
-    const renderers = '/experimental/dist/renderers/index.mjs'
-    const sessions = '/experimental/dist/session/index.mjs'
-    const { createZoom } = (await import(core)) as typeof import('../../src/core')
-    const { createGallery } = (await import(
-      String('/experimental/dist/gallery/index.mjs')
-    )) as typeof import('../../src/gallery')
+    window.modalZoom.detach()
+    const { createZoom } = await window.loadEntry('core')
+    const { createGallery } = await window.loadEntry('gallery')
     const { mountExampleControls, mountCloseControl } = (await import(
       String('/experiments/gallery-controls.mjs')
     )) as typeof import('../experimental/gallery-controls.mjs')
-    const { dialog } = (await import(renderers)) as typeof import('../../src/renderers')
-    const { createZoomSession } = (await import(sessions)) as typeof import('../../src/session')
-    const factory = (selector: import('../../src/engine/create-zoom').ZoomSelector) =>
+    const { dialog } = await window.loadEntry('renderers')
+    const { createZoomSession } = await window.loadEntry('session')
+    const factory = (
+      selector: import('../../src/engine/create-zoom').ZoomSelector
+    ) =>
       createZoom(selector, {
         renderer: dialog({
           content: view => {
             const close = mountCloseControl(view)
-            const controls = mountExampleControls(view.element, createGallery(view.zoom))
+            const controls = mountExampleControls(
+              view.element,
+              createGallery(view.zoom)
+            )
             return () => {
               controls()
               close()
@@ -513,7 +562,9 @@ test('disposing after pointer navigation hands ownership to a fresh session', as
     await second.dispose()
   })
   await expect(
-    page.locator('dialog, .medium-zoom-image--opened, .medium-zoom-image--hidden')
+    page.locator(
+      'dialog, .medium-zoom-image--opened, .medium-zoom-image--hidden'
+    )
   ).toHaveCount(0)
 })
 
@@ -522,7 +573,7 @@ test('ARIA interactive wrappers retain their own pointer and keyboard activation
 }) => {
   await fixture(page)
   await page.evaluate(() => {
-    window.zoom.detach('#third')
+    window.modalZoom.detach('#third')
     const image = document.querySelector('#third')!
     const wrapper = document.createElement('div')
     wrapper.id = 'checkbox'
@@ -530,11 +581,16 @@ test('ARIA interactive wrappers retain their own pointer and keyboard activation
     wrapper.setAttribute('aria-checked', 'false')
     image.before(wrapper)
     wrapper.append(image)
-    wrapper.addEventListener('click', () => wrapper.setAttribute('aria-checked', 'true'))
-    window.zoom.attach('#third')
+    wrapper.addEventListener('click', () =>
+      wrapper.setAttribute('aria-checked', 'true')
+    )
+    window.modalZoom.attach('#third')
   })
   await expect(page.locator('#third')).not.toHaveAttribute('tabindex')
   await page.locator('#third').click()
-  await expect(page.getByRole('checkbox')).toHaveAttribute('aria-checked', 'true')
+  await expect(page.getByRole('checkbox')).toHaveAttribute(
+    'aria-checked',
+    'true'
+  )
   await expect(page.locator('dialog')).toHaveCount(0)
 })

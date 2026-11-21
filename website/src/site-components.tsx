@@ -147,25 +147,37 @@ export function SiteLink({
 }: React.ComponentProps<'a'> & { externalIcon?: boolean }) {
   const url = new URL(href || '', siteOrigin)
   const external =
-    (url.protocol === 'https:' || url.protocol === 'http:') && url.origin !== siteOrigin
+    (url.protocol === 'https:' || url.protocol === 'http:') &&
+    url.origin !== siteOrigin
   const linkTarget = target ?? (external ? '_blank' : undefined)
   const safeRel =
     linkTarget === '_blank'
-      ? [...new Set(`${rel || ''} noopener noreferrer`.split(/\s+/).filter(Boolean))].join(' ')
+      ? [
+          ...new Set(
+            `${rel || ''} noopener noreferrer`.split(/\s+/).filter(Boolean)
+          ),
+        ].join(' ')
       : rel
   return (
     <a
       {...props}
       href={href}
-      className={[className, external && 'external-link'].filter(Boolean).join(' ') || undefined}
+      className={
+        [className, external && 'external-link'].filter(Boolean).join(' ') ||
+        undefined
+      }
       target={linkTarget}
       rel={safeRel}
       aria-label={
-        ariaLabel && linkTarget === '_blank' ? `${ariaLabel} (opens in a new tab)` : ariaLabel
+        ariaLabel && linkTarget === '_blank'
+          ? `${ariaLabel} (opens in a new tab)`
+          : ariaLabel
       }
     >
       {children}
-      {external && externalIcon && <Icon name="external" className="external-link-icon" />}
+      {external && externalIcon && (
+        <Icon name="external" className="external-link-icon" />
+      )}
       {linkTarget === '_blank' && !ariaLabel && (
         <span className="sr-only"> (opens in a new tab)</span>
       )}
@@ -182,7 +194,9 @@ export function CopyButton({
   label: string
   onCopied?: () => void
 }) {
-  const [status, setStatus] = React.useState<'idle' | 'copied' | 'failed'>('idle')
+  const [status, setStatus] = React.useState<'idle' | 'copied' | 'failed'>(
+    'idle'
+  )
   React.useEffect(() => {
     if (status === 'idle') {
       return
@@ -201,10 +215,18 @@ export function CopyButton({
   }
   return (
     <span className="copy-control">
-      <button className="icon-button" aria-label={label} title={label} onClick={() => void copy()}>
+      <button
+        className="icon-button"
+        aria-label={label}
+        title={label}
+        onClick={() => void copy()}
+      >
         <Icon name={status === 'copied' ? 'check' : 'copy'} />
       </button>
-      <span role="status" className={`copy-status ${status !== 'idle' ? 'is-visible' : ''}`}>
+      <span
+        role="status"
+        className={`copy-status ${status !== 'idle' ? 'is-visible' : ''}`}
+      >
         {status === 'copied'
           ? 'Copied to clipboard'
           : status === 'failed'

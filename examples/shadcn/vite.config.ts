@@ -12,7 +12,9 @@ export default defineConfig({
     rolldownOptions: {
       input: {
         index: fileURLToPath(new URL('./index.html', import.meta.url)),
-        playground: fileURLToPath(new URL('./playground.html', import.meta.url)),
+        playground: fileURLToPath(
+          new URL('./playground.html', import.meta.url)
+        ),
       },
     },
   },

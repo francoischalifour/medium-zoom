@@ -1,34 +1,49 @@
-import { readGeometry, type FrameGeometry } from './engine/geometry'
-import type { SceneTransition } from './renderers'
+import type { SceneTransition } from 'medium-zoom/renderers'
 
+import { type FrameGeometry, readGeometry } from './engine/geometry'
+
+export type { FrameGeometry } from './engine/geometry'
+
+/** A frame on stage, fitted to the viewport. */
 export interface PreparedFrame {
+  /** The positioned frame element to animate. */
   readonly element: HTMLElement
-  readonly content: HTMLElement
+  /** The frame's fitted transform, decomposed. */
   readonly geometry: FrameGeometry
 }
+/** The frames leaving and entering the dialog, and the gallery direction. */
 export interface PreparedTransition {
   readonly outgoing: readonly PreparedFrame[]
   readonly incoming: readonly PreparedFrame[]
-  readonly direction: -1 | 0 | 1
+  /** `1` when the incoming image comes after the outgoing one in attach order, else `-1`. */
+  readonly direction: -1 | 1
 }
 /** Prepared frame references are a lease: they become stale when the signal aborts. */
 export interface GalleryTransitionContext extends PreparedTransition {
+  /** Aborts when another navigation, a close or reduced motion interrupts the effect. */
   readonly signal: AbortSignal
 }
-export type GalleryTransition = (context: GalleryTransitionContext) => void | PromiseLike<void>
+/**
+ * An application effect, such as Web Animations on the frames. Settle the returned promise
+ * when it ends; the runner cancels the frames' animations afterwards.
+ */
+export type GalleryTransition = (
+  context: GalleryTransitionContext
+) => void | PromiseLike<void>
 
 /**
- * Turn an application effect into a transition for `dialog({ transition })`. The dialog
- * keeps ownership of frame removal and completion; this runner owns cancellation,
- * reduced motion and clearing the effect's animations.
+ * Turns an application effect into a transition for `dialog({ transition })`. The dialog
+ * keeps ownership of frame removal and completion; this runner owns cancellation, reduced
+ * motion (it skips the effect) and clearing the effect's animations.
  */
-export function galleryTransition(strategy: GalleryTransition): SceneTransition {
+export function galleryTransition(
+  strategy: GalleryTransition
+): SceneTransition {
   return (change, done) => {
     // Narrow the runtime objects as well as their types before crossing into application code.
     const prepare = (frames: typeof change.incoming): PreparedFrame[] =>
       frames.map(({ element, transform }) => ({
         element,
-        content: element,
         geometry: readGeometry(transform),
       }))
     const controller = new AbortController()
@@ -36,7 +51,9 @@ export function galleryTransition(strategy: GalleryTransition): SceneTransition 
     let settled = false
     const clearEffects = () =>
       [...change.outgoing, ...change.incoming].forEach(({ element }) =>
-        element.getAnimations?.({ subtree: true }).forEach(animation => animation.cancel())
+        element
+          .getAnimations?.({ subtree: true })
+          .forEach(animation => animation.cancel())
       )
     const finish = (error?: unknown) => {
       if (settled) {

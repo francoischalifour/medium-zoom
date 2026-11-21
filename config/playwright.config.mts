@@ -5,7 +5,20 @@ import { defineConfig, devices } from '@playwright/test'
 import { reserveTestPorts } from './test-ports.mts'
 
 const repositoryRoot = fileURLToPath(new URL('../', import.meta.url))
-const { testUrl, sveltePort, svelteDevUrl, shadcnPort, shadcnDevUrl } = await reserveTestPorts()
+const { testUrl, sveltePort, svelteDevUrl, shadcnPort, shadcnDevUrl } =
+  await reserveTestPorts()
+// Touch devices run the mobile suite and every suite of the composable modal and gallery.
+const mobileSpecs = [
+  'mobile',
+  'dialog',
+  'gallery',
+  'gallery-composition',
+  'gallery-controller',
+  'gallery-transitions',
+  'frames',
+  'strategies',
+  'triggers',
+].map(name => `**/${name}.spec.ts`)
 
 export default defineConfig({
   testDir: '../tests/browser',
@@ -14,46 +27,41 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 2 : undefined,
-  reporter: [['list'], ['html', { open: 'never', outputFolder: '../.cache/playwright/report' }]],
+  reporter: [
+    ['list'],
+    ['html', { open: 'never', outputFolder: '../.cache/playwright/report' }],
+  ],
   use: { baseURL: testUrl, trace: 'retain-on-failure' },
   projects: [
-    { name: 'chromium', testIgnore: '**/mobile.spec.ts', use: { ...devices['Desktop Chrome'] } },
+    {
+      name: 'chromium',
+      testIgnore: '**/mobile.spec.ts',
+      use: { ...devices['Desktop Chrome'] },
+    },
     {
       name: 'modern-chromium',
       testMatch: ['**/api.spec.ts', '**/loading.spec.ts', '**/motion.spec.ts'],
-      metadata: { modernFull: true },
+      metadata: { preset: 'modern' },
       use: { ...devices['Desktop Chrome'] },
     },
-    { name: 'firefox', testIgnore: '**/mobile.spec.ts', use: { ...devices['Desktop Firefox'] } },
-    { name: 'webkit', testIgnore: '**/mobile.spec.ts', use: { ...devices['Desktop Safari'] } },
+    {
+      name: 'firefox',
+      testIgnore: '**/mobile.spec.ts',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      testIgnore: '**/mobile.spec.ts',
+      use: { ...devices['Desktop Safari'] },
+    },
     {
       name: 'mobile-chromium',
-      testMatch: [
-        '**/mobile.spec.ts',
-        '**/dialog.spec.ts',
-        '**/gallery.spec.ts',
-        '**/gallery-composition.spec.ts',
-        '**/gallery-controller.spec.ts',
-        '**/gallery-transitions.spec.ts',
-        '**/frames.spec.ts',
-        '**/strategies.spec.ts',
-        '**/triggers.spec.ts',
-      ],
+      testMatch: mobileSpecs,
       use: { ...devices['Pixel 7'] },
     },
     {
       name: 'mobile-webkit',
-      testMatch: [
-        '**/mobile.spec.ts',
-        '**/dialog.spec.ts',
-        '**/gallery.spec.ts',
-        '**/gallery-composition.spec.ts',
-        '**/gallery-controller.spec.ts',
-        '**/gallery-transitions.spec.ts',
-        '**/frames.spec.ts',
-        '**/strategies.spec.ts',
-        '**/triggers.spec.ts',
-      ],
+      testMatch: mobileSpecs,
       use: { ...devices['iPhone 13'] },
     },
   ],

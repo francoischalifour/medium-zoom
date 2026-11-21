@@ -1,6 +1,11 @@
-import { test, expect, type Page } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 
-import { preparePage, openImage, finishAnimations } from './helpers'
+import {
+  addModernStyles,
+  finishAnimations,
+  openImage,
+  preparePage,
+} from './helpers'
 
 const profiles = {
   compat: 'compat/index.mjs',
@@ -17,7 +22,10 @@ async function loadProfile(page: Page, file: string, withoutAssign = false) {
     async ({ file, withoutAssign }) => {
       const nativeAssign = Object.assign
       if (withoutAssign) {
-        Object.defineProperty(Object, 'assign', { value: undefined, configurable: true })
+        Object.defineProperty(Object, 'assign', {
+          value: undefined,
+          configurable: true,
+        })
       }
       try {
         const url = `/${file === 'medium-zoom.esm.js' ? 'package' : 'experimental'}/dist/${file}`
@@ -26,11 +34,17 @@ async function loadProfile(page: Page, file: string, withoutAssign = false) {
             const commonjs = { exports: {} as unknown }
             const source = await (await fetch(url)).text()
             // oxlint-disable-next-line typescript/no-implied-eval -- Execute our packed CJS artifact in its module scope.
-            new Function('module', 'exports', source)(commonjs, commonjs.exports)
+            new Function('module', 'exports', source)(
+              commonjs,
+              commonjs.exports
+            )
             return commonjs.exports
           }
           if (file === 'core/index.cjs') {
-            const core = (await loadCommonJS(url)) as typeof import('../../src/core')
+            const core = (await loadCommonJS(
+              url
+            )) as typeof import('../../src/core')
+            // Drive core through the shared v1 scenario; only the declared null-ness differs.
             window.mediumZoom = ((
               selector?: import('../../src/engine/create-zoom').ZoomSelector,
               options?: import('../../src/medium-zoom').ZoomOptions
@@ -38,33 +52,43 @@ async function loadProfile(page: Page, file: string, withoutAssign = false) {
               core.createZoom(
                 selector,
                 options
-              )) as import('../../src/engine/create-zoom').ZoomFactory
+              )) as unknown as typeof window.mediumZoom
           } else {
-            window.mediumZoom = (await loadCommonJS(url)) as typeof window.mediumZoom
+            window.mediumZoom = (await loadCommonJS(
+              url
+            )) as typeof window.mediumZoom
           }
         } else {
           window.mediumZoom = (await import(url)).default
         }
       } finally {
-        Object.defineProperty(Object, 'assign', { value: nativeAssign, configurable: true })
+        Object.defineProperty(Object, 'assign', {
+          value: nativeAssign,
+          configurable: true,
+        })
       }
     },
     { file, withoutAssign }
   )
   if (file === 'core/index.cjs') {
-    await page.addStyleTag({ url: '/experimental/dist/modern/style.css' })
+    await addModernStyles(page)
   }
 }
 
 for (const [profile, file] of Object.entries(profiles)) {
   if (profile.startsWith('compat')) {
-    test(`${profile}: option copying works without native Object.assign`, async ({ page }) => {
+    test(`${profile}: option copying works without native Object.assign`, async ({
+      page,
+    }) => {
       await preparePage(page)
       await loadProfile(page, file, true)
       const result = await page.evaluate(async () => {
         const options = Object.create({ inherited: true })
         options.container = { width: 600 }
-        Object.defineProperty(options, 'margin', { value: 99, enumerable: false })
+        Object.defineProperty(options, 'margin', {
+          value: 99,
+          enumerable: false,
+        })
         const zoom = window.mediumZoom('#image', options)
         zoom.update({ container: { top: 12 } })
         const clone = zoom.clone({ margin: 16 })
@@ -102,7 +126,10 @@ for (const [profile, file] of Object.entries(profiles)) {
     const result = await page.evaluate(() => {
       const mediumZoom = window.mediumZoom
       const native = window.Promise
-      Object.defineProperty(window, 'Promise', { value: undefined, configurable: true })
+      Object.defineProperty(window, 'Promise', {
+        value: undefined,
+        configurable: true,
+      })
       try {
         const zoom = mediumZoom('#image')
         try {
@@ -114,10 +141,16 @@ for (const [profile, file] of Object.entries(profiles)) {
             untouched: window.Promise === undefined,
           }
         } catch (error) {
-          return { error: (error as Error).name, untouched: window.Promise === undefined }
+          return {
+            error: (error as Error).name,
+            untouched: window.Promise === undefined,
+          }
         }
       } finally {
-        Object.defineProperty(window, 'Promise', { value: native, configurable: true })
+        Object.defineProperty(window, 'Promise', {
+          value: native,
+          configurable: true,
+        })
       }
     })
     expect(result).toEqual(
@@ -127,7 +160,9 @@ for (const [profile, file] of Object.entries(profiles)) {
     )
   })
 
-  test(`${profile}: CustomEvent compatibility stays isolated`, async ({ page }) => {
+  test(`${profile}: CustomEvent compatibility stays isolated`, async ({
+    page,
+  }) => {
     await preparePage(page)
     await loadProfile(page, file)
     const result = await page.evaluate(() => {
@@ -138,22 +173,32 @@ for (const [profile, file] of Object.entries(profiles)) {
       zoom.on('update', event => {
         observed = (event as CustomEvent).detail.zoom === zoom
       })
-      Object.defineProperty(window, 'CustomEvent', { value: undefined, configurable: true })
+      Object.defineProperty(window, 'CustomEvent', {
+        value: undefined,
+        configurable: true,
+      })
       try {
         zoom.update({ margin: 12 })
         return { observed }
       } catch (error) {
         return { error: (error as Error).name }
       } finally {
-        Object.defineProperty(window, 'CustomEvent', { value: native, configurable: true })
+        Object.defineProperty(window, 'CustomEvent', {
+          value: native,
+          configurable: true,
+        })
       }
     })
     expect(result).toEqual(
-      !profile.startsWith('modern') ? { observed: true } : { error: 'TypeError' }
+      !profile.startsWith('modern')
+        ? { observed: true }
+        : { error: 'TypeError' }
     )
   })
 
-  test(`${profile}: frozen update options retain strict-mode semantics`, async ({ page }) => {
+  test(`${profile}: frozen update options retain strict-mode semantics`, async ({
+    page,
+  }) => {
     await preparePage(page)
     await loadProfile(page, file)
     const result = await page.evaluate(() => {
@@ -169,7 +214,9 @@ for (const [profile, file] of Object.entries(profiles)) {
   })
 
   for (const legacy of ['Esc', 'keyCode'] as const) {
-    test(`${profile}: ${legacy} keyboard handling is profile-specific`, async ({ page }) => {
+    test(`${profile}: ${legacy} keyboard handling is profile-specific`, async ({
+      page,
+    }) => {
       await preparePage(page)
       await loadProfile(page, file)
       await page.evaluate(async () => {
@@ -179,7 +226,10 @@ for (const [profile, file] of Object.entries(profiles)) {
       await page.evaluate(
         legacy =>
           document.dispatchEvent(
-            new KeyboardEvent('keyup', legacy === 'Esc' ? { key: 'Esc' } : { keyCode: 27 })
+            new KeyboardEvent(
+              'keyup',
+              legacy === 'Esc' ? { key: 'Esc' } : { keyCode: 27 }
+            )
           ),
         legacy
       )

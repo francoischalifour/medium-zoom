@@ -15,7 +15,10 @@ export async function buildGalleryExample() {
     plugins: [react()],
     resolve: {
       alias: [
-        ...extensionEntries.map(entry => ({ find: entry.path, replacement: resolve(entry.esm) })),
+        ...extensionEntries.map(entry => ({
+          find: entry.path,
+          replacement: resolve(entry.esm),
+        })),
         // Run the published component's playground against its composable rewrite.
         {
           find: /^.*\/src\/components\/ui\/image-zoom$/,
@@ -27,7 +30,10 @@ export async function buildGalleryExample() {
       outDir: resolve('.cache/gallery-composition'),
       emptyOutDir: true,
       rolldownOptions: {
-        input: { index: resolve(root, 'index.html'), playground: resolve(root, 'playground.html') },
+        input: {
+          index: resolve(root, 'index.html'),
+          playground: resolve(root, 'playground.html'),
+        },
       },
     },
   })

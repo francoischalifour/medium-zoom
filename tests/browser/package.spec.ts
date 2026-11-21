@@ -1,25 +1,29 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 import {
-  bundles,
-  loadZoomFixture,
-  loadBundle,
-  openImage,
-  dismissZoom,
-  finishAnimations,
   type BundleName,
+  bundles,
+  dismissZoom,
   type Distribution,
+  finishAnimations,
+  loadBundle,
+  loadZoomFixture,
+  openImage,
 } from './helpers.ts'
 
 const distributions: Distribution[] = ['baseline', 'package']
 const bundleNames = Object.keys(bundles) as BundleName[]
 
 for (const bundle of bundleNames) {
-  test(`${bundle} preserves published rendering and dismissal`, async ({ page }) => {
+  test(`${bundle} preserves published rendering and dismissal`, async ({
+    page,
+  }) => {
     const screenshots = []
     for (const distribution of distributions) {
       await loadZoomFixture(page, { distribution, bundle })
-      await expect(page.locator('style')).toHaveCount(bundles[bundle].injectsStyles ? 1 : 0)
+      await expect(page.locator('style')).toHaveCount(
+        bundles[bundle].injectsStyles ? 1 : 0
+      )
       if (!bundles[bundle].injectsStyles) {
         await page.addStyleTag({ url: `/${distribution}/dist/style.css` })
       }
@@ -36,7 +40,9 @@ for (const bundle of bundleNames) {
   })
 }
 
-test('default injects styles once; pure has no stylesheet side effect', async ({ page }) => {
+test('default injects styles once; pure has no stylesheet side effect', async ({
+  page,
+}) => {
   await page.goto('/fixture.html')
   await loadBundle(page, { bundle: 'pureUmd' })
   await expect(page.locator('style')).toHaveCount(0)
@@ -44,12 +50,15 @@ test('default injects styles once; pure has no stylesheet side effect', async ({
   await expect(page.locator('style')).toHaveCount(1)
 })
 
-test('DOM container updates preserve the element identity', async ({ page }) => {
+test('DOM container updates preserve the element identity', async ({
+  page,
+}) => {
   await loadZoomFixture(page)
   expect(
     await page.evaluate(
       () =>
-        window.zoom.update({ container: document.body }).getOptions().container === document.body
+        window.zoom.update({ container: document.body }).getOptions()
+          .container === document.body
     )
   ).toBe(true)
 })

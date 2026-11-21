@@ -1,4 +1,4 @@
-import type { ModalZoom, ZoomRenderer, ZoomContent } from 'medium-zoom/core'
+import type { ModalZoom, ZoomContent, ZoomRenderer } from 'medium-zoom/core'
 
 import type { Stage } from './engine/create-zoom'
 import type { Frame } from './engine/frame'
@@ -6,12 +6,16 @@ import type { Frame } from './engine/frame'
 /** A frame on stage with the transform that fits it. */
 export interface StagedFrame {
   readonly element: HTMLElement
+  /** The CSS transform that fits the frame, already applied. */
   readonly transform: string
 }
 /** One scene replacing another inside the dialog. */
 export interface SceneChange {
+  /** The frames of the replaced image; the dialog removes them once the change settles. */
   readonly outgoing: readonly StagedFrame[]
+  /** The frames of the new image. */
   readonly incoming: readonly StagedFrame[]
+  /** `1` when the new image comes after the replaced one in attach order, else `-1`. */
   readonly direction: -1 | 1
 }
 /**
@@ -19,30 +23,53 @@ export interface SceneChange {
  * Build one from an application effect with `galleryTransition` from
  * `medium-zoom/transitions`.
  */
-export type SceneTransition = (change: SceneChange, done: (error?: unknown) => void) => () => void
+export type SceneTransition = (
+  change: SceneChange,
+  done: (error?: unknown) => void
+) => () => void
 
 const frameLabel = (frame: Frame) =>
   frame.alt.trim() || frame.getAttribute('aria-label')?.trim() || ''
 
+/** Options of `dialog()`. */
 export interface DialogOptions {
-  /** Accessible dialog name. Defaults to the image alt text, then "Zoomed image". */
+  /**
+   * The accessible dialog name.
+   *
+   * @default the image's alt text or aria-label, then "Zoomed image"
+   */
   label?: string
-  /** How one image replaces another while the dialog stays open. Default: instant. */
+  /**
+   * How one image replaces another while the dialog stays open, such as
+   * `galleryTransition()` from `medium-zoom/transitions`.
+   *
+   * @default instant
+   */
   transition?: SceneTransition
-  /** Mount application-owned content inside the modal; return its cleanup. */
+  /** Mounts application-owned content inside the modal, such as `templateContent()`. */
   content?: ZoomContent
 }
 
-/** A native modal host. Requires HTMLDialogElement.showModal; no polyfill is installed. */
-export function dialog({ label, content, transition }: DialogOptions = {}): ZoomRenderer {
+/**
+ * Presents the zoom in a native modal `<dialog>`: focus stays inside, Escape and `method="dialog"`
+ * forms close it, and focus returns to the trigger on close. Pass it to `createZoom(…, { renderer })`.
+ * Requires `HTMLDialogElement.showModal()`; opening throws without it, and no polyfill is installed.
+ */
+export function dialog({
+  label,
+  content,
+  transition,
+}: DialogOptions = {}): ZoomRenderer {
   const stage: Stage = {
-    mount({ frame, zoom, close, trigger = document.activeElement as HTMLElement }) {
+    mount({ zoom, close, trigger = document.activeElement as HTMLElement }) {
       const element = document.createElement('dialog')
       if (typeof element.showModal !== 'function') {
-        throw new Error('Medium Zoom dialog renderer requires HTMLDialogElement.showModal()')
+        throw new Error(
+          'Medium Zoom dialog renderer requires HTMLDialogElement.showModal()'
+        )
       }
       element.className = 'medium-zoom-dialog'
-      element.setAttribute('aria-label', label?.trim() || frameLabel(frame) || 'Zoomed image')
+      // enter() names the dialog after the frame.
       // Viewport coordinates keep the top-layer host independent of document scroll.
       element.style.cssText =
         'position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;color:inherit;overflow:hidden;'
@@ -52,8 +79,12 @@ export function dialog({ label, content, transition }: DialogOptions = {}): Zoom
       let disposed = false
       element.addEventListener('submit', event => {
         const form = event.target as HTMLFormElement
-        const submitter = (event as SubmitEvent).submitter as HTMLButtonElement | null
-        if (!event.defaultPrevented && (submitter?.formMethod || form.method) === 'dialog') {
+        const submitter = (event as SubmitEvent)
+          .submitter as HTMLButtonElement | null
+        if (
+          !event.defaultPrevented &&
+          (submitter?.formMethod || form.method) === 'dialog'
+        ) {
           event.preventDefault()
           close()
         }
@@ -97,12 +128,20 @@ export function dialog({ label, content, transition }: DialogOptions = {}): Zoom
         if (previous) {
           previous.setAttribute('aria-hidden', 'true')
         }
-        for (const name of ['aria-hidden', 'role', 'tabindex', 'aria-haspopup']) {
+        for (const name of [
+          'aria-hidden',
+          'role',
+          'tabindex',
+          'aria-haspopup',
+        ]) {
           next.removeAttribute(name)
         }
         element.setAttribute(
           'aria-label',
-          label?.trim() || frameLabel(next) || (previous && frameLabel(previous)) || 'Zoomed image'
+          label?.trim() ||
+            frameLabel(next) ||
+            (previous && frameLabel(previous)) ||
+            'Zoomed image'
         )
       }
       return {
@@ -151,13 +190,17 @@ export function dialog({ label, content, transition }: DialogOptions = {}): Zoom
             const staged = (elements: readonly Frame[]) =>
               elements
                 .filter(element => transforms.has(element))
-                .map(element => ({ element, transform: transforms.get(element)! }))
+                .map(element => ({
+                  element,
+                  transform: transforms.get(element)!,
+                }))
             cancel = transition(
               {
                 outgoing: staged(outgoing),
                 incoming: staged(frames),
                 direction:
-                  images.indexOf(zoom.getZoomedImage()) > images.indexOf(source as HTMLElement)
+                  images.indexOf(zoom.getZoomedImage()!) >
+                  images.indexOf(source as HTMLElement)
                     ? 1
                     : -1,
               },
@@ -190,7 +233,10 @@ export function dialog({ label, content, transition }: DialogOptions = {}): Zoom
 }
 
 /** Scene replacement commits fitted geometry without replaying the thumbnail motion. */
-const commitFrame = (frame: Frame, transform: string | undefined | null): void => {
+const commitFrame = (
+  frame: Frame,
+  transform: string | undefined | null
+): void => {
   if (!transform) {
     return
   }

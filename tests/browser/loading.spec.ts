@@ -1,15 +1,22 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 import { loadZoomFixture, observeErrors } from './helpers.ts'
 
 for (const source of ['srcset', 'data-zoom-src'] as const) {
-  test(`${source} load failure falls back and remains dismissible`, async ({ page }) => {
+  test(`${source} load failure falls back and remains dismissible`, async ({
+    page,
+  }) => {
     const errors = observeErrors(page)
     await loadZoomFixture(page)
-    await page.route('**/broken.jpg', route => route.fulfill({ status: 404, body: '' }))
+    await page.route('**/broken.jpg', route =>
+      route.fulfill({ status: 404, body: '' })
+    )
     const events = await page.evaluate(async source => {
       const image = document.querySelector<HTMLImageElement>('#image')!
-      image.setAttribute(source, source === 'srcset' ? '/broken.jpg 2000w' : '/broken.jpg')
+      image.setAttribute(
+        source,
+        source === 'srcset' ? '/broken.jpg 2000w' : '/broken.jpg'
+      )
       const events: string[] = []
       for (const type of ['open', 'opened', 'close', 'closed']) {
         window.zoom.on(type, () => events.push(type))
@@ -39,12 +46,18 @@ for (const source of ['srcset', 'data-zoom-src'] as const) {
       })
       await page.route('**/slow.jpg', async route => {
         await pending
-        await route.fulfill({ path: 'stories/images/image-2.jpg', contentType: 'image/jpeg' })
+        await route.fulfill({
+          path: 'stories/images/image-2.jpg',
+          contentType: 'image/jpeg',
+        })
         completed()
       })
       await page.evaluate(source => {
         const image = document.querySelector<HTMLImageElement>('#image')!
-        image.setAttribute(source, source === 'srcset' ? '/slow.jpg 2000w' : '/slow.jpg')
+        image.setAttribute(
+          source,
+          source === 'srcset' ? '/slow.jpg 2000w' : '/slow.jpg'
+        )
         document.documentElement.dataset.events = ''
         for (const type of ['open', 'opened', 'close', 'closed']) {
           window.zoom.on(type, () => {
@@ -52,12 +65,16 @@ for (const source of ['srcset', 'data-zoom-src'] as const) {
           })
         }
         void window.zoom.open().then(result => {
-          document.documentElement.dataset.settled = String(result === window.zoom)
+          document.documentElement.dataset.settled = String(
+            result === window.zoom
+          )
         })
       }, source)
       await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
       if (dismiss === 'overlay') {
-        await page.locator('.medium-zoom-overlay').click({ position: { x: 4, y: 4 }, force: true })
+        await page
+          .locator('.medium-zoom-overlay')
+          .click({ position: { x: 4, y: 4 }, force: true })
       } else if (dismiss === 'Escape') {
         await page.keyboard.press('Escape')
       } else {
@@ -65,8 +82,13 @@ for (const source of ['srcset', 'data-zoom-src'] as const) {
       }
       await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
       await expect(page.locator('html')).toHaveAttribute('data-settled', 'true')
-      await expect(page.locator('html')).toHaveAttribute('data-events', 'open,close,closed,')
-      await expect(page.locator('#image')).not.toHaveClass(/medium-zoom-image--hidden/)
+      await expect(page.locator('html')).toHaveAttribute(
+        'data-events',
+        'open,close,closed,'
+      )
+      await expect(page.locator('#image')).not.toHaveClass(
+        /medium-zoom-image--hidden/
+      )
       await page.evaluate(async source => {
         document.querySelector('#image')!.removeAttribute(source)
         await window.zoom.open()
@@ -83,19 +105,25 @@ for (const source of ['srcset', 'data-zoom-src'] as const) {
     })
   }
 
-  test(`${source} cached HD loads support repeated open and close`, async ({ page }) => {
+  test(`${source} cached HD loads support repeated open and close`, async ({
+    page,
+  }) => {
     await loadZoomFixture(page)
     const events = await page.evaluate(async source => {
       const image = document.querySelector<HTMLImageElement>('#image')!
       image.setAttribute(
         source,
-        source === 'srcset' ? '/images/image-1.jpg 2000w' : '/images/image-1.jpg'
+        source === 'srcset'
+          ? '/images/image-1.jpg 2000w'
+          : '/images/image-1.jpg'
       )
       const events: string[] = []
       window.zoom.on('opened', () => events.push('opened'))
       for (let i = 0; i < 3; i++) {
         await window.zoom.open()
-        if (document.querySelectorAll('.medium-zoom-image--opened').length !== 2) {
+        if (
+          document.querySelectorAll('.medium-zoom-image--opened').length !== 2
+        ) {
           throw new Error('Missing HD clone')
         }
         await window.zoom.close()
@@ -108,7 +136,9 @@ for (const source of ['srcset', 'data-zoom-src'] as const) {
 }
 
 for (const dismiss of ['overlay', 'Escape', 'API'] as const) {
-  test(`opening transition can be cancelled by ${dismiss}`, async ({ page }) => {
+  test(`opening transition can be cancelled by ${dismiss}`, async ({
+    page,
+  }) => {
     await loadZoomFixture(page)
     await page.evaluate(() => {
       document.documentElement.dataset.events = ''
@@ -123,8 +153,12 @@ for (const dismiss of ['overlay', 'Escape', 'API'] as const) {
     })
     if (dismiss === 'overlay') {
       // WebKit can hit-test the body until the new overlay has been laid out once.
-      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(resolve)))
-      await page.locator('.medium-zoom-overlay').click({ position: { x: 4, y: 4 }, force: true })
+      await page.evaluate(
+        () => new Promise(resolve => requestAnimationFrame(resolve))
+      )
+      await page
+        .locator('.medium-zoom-overlay')
+        .click({ position: { x: 4, y: 4 }, force: true })
     } else if (dismiss === 'Escape') {
       await page.keyboard.press('Escape')
     } else {
@@ -132,7 +166,10 @@ for (const dismiss of ['overlay', 'Escape', 'API'] as const) {
     }
     await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
     await expect(page.locator('html')).toHaveAttribute('data-settled', 'true')
-    await expect(page.locator('html')).toHaveAttribute('data-events', 'open,close,closed,')
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-events',
+      'open,close,closed,'
+    )
   })
 }
 
@@ -161,11 +198,21 @@ test('open listeners can cancel synchronously and closed listeners can reopen', 
       { once: true }
     )
     await window.zoom.open()
-    await new Promise<void>(resolve => window.zoom.on('opened', () => resolve(), { once: true }))
+    await new Promise<void>(resolve =>
+      window.zoom.on('opened', () => resolve(), { once: true })
+    )
     await window.zoom.close()
     return events
   })
-  expect(events).toEqual(['open', 'close', 'closed', 'open', 'opened', 'close', 'closed'])
+  expect(events).toEqual([
+    'open',
+    'close',
+    'closed',
+    'open',
+    'opened',
+    'close',
+    'closed',
+  ])
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
   expect(errors).toEqual([])
 })
@@ -174,7 +221,9 @@ test('a zero-sized broken srcset image settles without a transform transition', 
   page,
 }) => {
   await loadZoomFixture(page)
-  await page.route('**/broken.jpg', route => route.fulfill({ status: 404, body: '' }))
+  await page.route('**/broken.jpg', route =>
+    route.fulfill({ status: 404, body: '' })
+  )
   const result = await page.evaluate(async () => {
     const image = document.querySelector<HTMLImageElement>('#image')!
     image.style.width = '0px'
@@ -188,7 +237,9 @@ test('a zero-sized broken srcset image settles without a transform transition', 
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 })
 
-test('detach cancels a pending HD load and removes its template', async ({ page }) => {
+test('detach cancels a pending HD load and removes its template', async ({
+  page,
+}) => {
   const errors = observeErrors(page)
   await loadZoomFixture(page)
   await page.route('**/pending.jpg', () => {})
@@ -197,7 +248,9 @@ test('detach cancels a pending HD load and removes its template', async ({ page 
       'beforeend',
       '<template id="template"><p id="content">Zoom</p></template>'
     )
-    document.querySelector('#image')!.setAttribute('data-zoom-src', '/pending.jpg')
+    document
+      .querySelector('#image')!
+      .setAttribute('data-zoom-src', '/pending.jpg')
     window.zoom.update({ template: '#template' })
     const opening = window.zoom.open()
     window.zoom.detach()
@@ -209,7 +262,9 @@ test('detach cancels a pending HD load and removes its template', async ({ page 
   expect(errors).toEqual([])
 })
 
-test('srcset waits for the larger candidate after removing sizes', async ({ page }) => {
+test('srcset waits for the larger candidate after removing sizes', async ({
+  page,
+}) => {
   await loadZoomFixture(page)
   let release!: () => void
   const pending = new Promise<void>(resolve => {
@@ -217,7 +272,10 @@ test('srcset waits for the larger candidate after removing sizes', async ({ page
   })
   await page.route('**/large.jpg', async route => {
     await pending
-    await route.fulfill({ path: 'stories/images/image-2.jpg', contentType: 'image/jpeg' })
+    await route.fulfill({
+      path: 'stories/images/image-2.jpg',
+      contentType: 'image/jpeg',
+    })
   })
   await page.evaluate(async () => {
     const image = document.querySelector<HTMLImageElement>('#image')!
@@ -233,15 +291,21 @@ test('srcset waits for the larger candidate after removing sizes', async ({ page
   release()
   await expect(page.locator('html')).toHaveAttribute('data-settled', 'true')
   const hd = page.locator('.medium-zoom-image--opened').last()
-  expect(await hd.evaluate(image => (image as HTMLImageElement).currentSrc)).toContain('/large.jpg')
+  expect(
+    await hd.evaluate(image => (image as HTMLImageElement).currentSrc)
+  ).toContain('/large.jpg')
   await page.evaluate(() => window.zoom.close())
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 })
 
-test('a broken srcset-only image can open and close (#226)', async ({ page }) => {
+test('a broken srcset-only image can open and close (#226)', async ({
+  page,
+}) => {
   const errors = observeErrors(page)
   await loadZoomFixture(page)
-  await page.route('**/missing-*.jpg', route => route.fulfill({ status: 404, body: '' }))
+  await page.route('**/missing-*.jpg', route =>
+    route.fulfill({ status: 404, body: '' })
+  )
   const result = await page.evaluate(async () => {
     const image = document.createElement('img')
     image.srcset = '/missing-300.jpg 300w, /missing-600.jpg 600w'
@@ -249,7 +313,9 @@ test('a broken srcset-only image can open and close (#226)', async ({ page }) =>
     await image.decode().catch(() => {})
     const zoom = window.mediumZoom(image)
     const opened = await zoom.open()
-    const clones = document.querySelectorAll('.medium-zoom-image--opened').length
+    const clones = document.querySelectorAll(
+      '.medium-zoom-image--opened'
+    ).length
     const closed = await zoom.close()
     return {
       clones,
@@ -258,13 +324,20 @@ test('a broken srcset-only image can open and close (#226)', async ({ page }) =>
       active: zoom.getZoomedImage(),
     }
   })
-  expect(result).toEqual({ clones: 1, opened: true, closed: true, active: null })
+  expect(result).toEqual({
+    clones: 1,
+    opened: true,
+    closed: true,
+    active: null,
+  })
   await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
   await expect(page.locator('.medium-zoom-image--hidden')).toHaveCount(0)
   expect(errors).toEqual([])
 })
 
-test('open listeners configure the current geometry, template, and HD source', async ({ page }) => {
+test('open listeners configure the current geometry, template, and HD source', async ({
+  page,
+}) => {
   await loadZoomFixture(page)
   await page.evaluate(() => {
     document.body.insertAdjacentHTML(
@@ -273,16 +346,20 @@ test('open listeners configure the current geometry, template, and HD source', a
     )
     window.zoom.on('open', () => {
       window.zoom.update({ margin: 300, template: '#template' })
-      document.querySelector('#image')!.setAttribute('data-zoom-src', '/images/image-2.jpg')
+      document
+        .querySelector('#image')!
+        .setAttribute('data-zoom-src', '/images/image-2.jpg')
     })
   })
   await page.evaluate(() => window.zoom.open())
   await expect(page.locator('#content')).toBeVisible()
   const clones = page.locator('.medium-zoom-image--opened')
   await expect(clones).toHaveCount(2)
-  expect(await clones.last().evaluate(image => (image as HTMLImageElement).currentSrc)).toContain(
-    '/images/image-2.jpg'
-  )
+  expect(
+    await clones
+      .last()
+      .evaluate(image => (image as HTMLImageElement).currentSrc)
+  ).toContain('/images/image-2.jpg')
   const bounds = await clones.first().boundingBox()
   const viewport = page.viewportSize()!
   expect(bounds!.width).toBeLessThanOrEqual(viewport.width - 600 + 1)
@@ -291,7 +368,9 @@ test('open listeners configure the current geometry, template, and HD source', a
   await expect(page.locator('#content')).toHaveCount(0)
 })
 
-test('continuous scrolling dismisses without waiting for scrolling to stop', async ({ page }) => {
+test('continuous scrolling dismisses without waiting for scrolling to stop', async ({
+  page,
+}) => {
   await loadZoomFixture(page)
   await page.evaluate(() => window.zoom.open())
   // Keep scrolling longer than the dismissal delay and closing animation together.
@@ -326,7 +405,9 @@ test('HD adoption restores the opened class after an authored load handler repla
     await window.zoom.open()
   })
   await expect(page.locator('.medium-zoom-image--opened')).toHaveCount(2)
-  await expect(page.locator('img[src*="hd-fixture"]')).toHaveClass(/photo-loaded/)
+  await expect(page.locator('img[src*="hd-fixture"]')).toHaveClass(
+    /photo-loaded/
+  )
   await page.evaluate(() => window.zoom.close())
   await expect(page.locator('.medium-zoom-image--opened')).toHaveCount(0)
   await expect(page.locator('img[src*="hd-fixture"]')).toHaveCount(0)

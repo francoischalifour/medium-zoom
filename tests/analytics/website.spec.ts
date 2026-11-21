@@ -1,4 +1,4 @@
-import { test, expect, type Page, type BrowserContext } from '@playwright/test'
+import { type BrowserContext, expect, type Page, test } from '@playwright/test'
 
 import { testUrl } from '../server-urls.ts'
 
@@ -9,7 +9,12 @@ type Event = {
 }
 
 function expectAudienceEvent(event: Event) {
-  expect(Object.keys(event).sort()).toEqual(['event', 'mode', 'properties', 'timestamp'])
+  expect(Object.keys(event).sort()).toEqual([
+    'event',
+    'mode',
+    'properties',
+    'timestamp',
+  ])
   expect(event).toMatchObject({ mode: 'audience' })
 }
 
@@ -17,7 +22,9 @@ async function intercept(page: Page) {
   const events: Event[] = []
   await page.context().route('https://api.altertable.ai/**', async route => {
     if (route.request().method() === 'POST') {
-      expect(new URL(route.request().url()).searchParams.get('apiKey')).toBe('website-test-key')
+      expect(new URL(route.request().url()).searchParams.get('apiKey')).toBe(
+        'website-test-key'
+      )
       events.push(...route.request().postDataJSON())
     }
     await route.fulfill({
@@ -31,7 +38,9 @@ async function intercept(page: Page) {
   })
   await page.route(`${origin}/**`, async route => {
     const url = new URL(route.request().url())
-    const response = await page.request.get(`${testUrl}/analytics${url.pathname}${url.search}`)
+    const response = await page.request.get(
+      `${testUrl}/analytics${url.pathname}${url.search}`
+    )
     await route.fulfill({ response })
   })
   return events
@@ -67,7 +76,9 @@ for (const path of ['/', '/react']) {
     page.on('pageerror', error => errors.push(error.message))
     const events = await intercept(page)
     await page.goto(`${origin}${path}`)
-    await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(1)
+    await expect
+      .poll(() => events.filter(event => event.event === '$pageview').length)
+      .toBe(1)
     expect(await page.context().cookies()).toEqual([])
     await clipboardPermission(context, page, 'granted')
     await page
@@ -79,18 +90,27 @@ for (const path of ['/', '/react']) {
       .getByRole('button', { name: 'Copy install command', exact: true })
       .click()
     await expect
-      .poll(() => events.filter(event => event.event === 'Install Command Copied').length)
+      .poll(
+        () =>
+          events.filter(event => event.event === 'Install Command Copied')
+            .length
+      )
       .toBe(1)
     expect(
-      events.find(event => event.event === 'Install Command Copied')!.properties.package_manager
+      events.find(event => event.event === 'Install Command Copied')!.properties
+        .package_manager
     ).toBe('pnpm')
 
     const image = page
       .getByRole('region', { name: 'Image zoom examples', exact: true })
       .getByRole('button', { name: 'Zoom image: Ocean sunset', exact: true })
     await image.click()
-    await expect.poll(() => events.filter(event => event.event === 'Image Zoomed').length).toBe(1)
-    expect(events.find(event => event.event === 'Image Zoomed')!.properties).toMatchObject({
+    await expect
+      .poll(() => events.filter(event => event.event === 'Image Zoomed').length)
+      .toBe(1)
+    expect(
+      events.find(event => event.event === 'Image Zoomed')!.properties
+    ).toMatchObject({
       image: 'landscape',
       rail: 'primary',
     })
@@ -104,25 +124,39 @@ for (const path of ['/', '/react']) {
       .getByRole('article', { name: 'Mountains example', exact: true })
       .getByRole('tab', { name: 'Code', exact: true })
       .click()
-    await page.getByRole('button', { name: 'Copy denali code', exact: true }).click()
-    await expect.poll(() => events.filter(event => event.event === 'Code Copied').length).toBe(1)
-    expect(events.find(event => event.event === 'Code Copied')!.properties).toMatchObject({
+    await page
+      .getByRole('button', { name: 'Copy denali code', exact: true })
+      .click()
+    await expect
+      .poll(() => events.filter(event => event.event === 'Code Copied').length)
+      .toBe(1)
+    expect(
+      events.find(event => event.event === 'Code Copied')!.properties
+    ).toMatchObject({
       snippet: 'example',
       example: 'denali',
       rail: 'primary',
     })
 
     await clipboardPermission(context, page, 'denied')
-    await page.getByRole('button', { name: 'Copy usage code', exact: true }).click()
+    await page
+      .getByRole('button', { name: 'Copy usage code', exact: true })
+      .click()
     await expect(
       page.getByRole('status').filter({ hasText: 'Select the text to copy.' })
     ).toBeVisible()
     await clipboardPermission(context, page, 'granted')
-    await page.getByRole('button', { name: 'Copy usage code', exact: true }).click()
-    await expect.poll(() => events.filter(event => event.event === 'Code Copied').length).toBe(2)
+    await page
+      .getByRole('button', { name: 'Copy usage code', exact: true })
+      .click()
+    await expect
+      .poll(() => events.filter(event => event.event === 'Code Copied').length)
+      .toBe(2)
 
     // An in-page anchor is not another pageview.
-    await page.getByRole('link', { name: 'Start building', exact: true }).click()
+    await page
+      .getByRole('link', { name: 'Start building', exact: true })
+      .click()
     await page.route('https://github.com/**', route =>
       route.fulfill({ body: '<title>External destination</title>' })
     )
@@ -130,8 +164,14 @@ for (const path of ['/', '/react']) {
       .getByRole('navigation')
       .getByRole('link', { name: /^GitHub repository/ })
       .click()
-    await expect.poll(() => events.filter(event => event.event === 'Outbound Click').length).toBe(1)
-    expect(events.find(event => event.event === 'Outbound Click')!.properties).toMatchObject({
+    await expect
+      .poll(
+        () => events.filter(event => event.event === 'Outbound Click').length
+      )
+      .toBe(1)
+    expect(
+      events.find(event => event.event === 'Outbound Click')!.properties
+    ).toMatchObject({
       destination: 'https://github.com/francoischalifour/medium-zoom',
       placement: 'header',
     })
@@ -146,8 +186,8 @@ for (const path of ['/', '/react']) {
     }
     expect(
       await page.evaluate(() =>
-        [...Object.keys(localStorage), ...Object.keys(sessionStorage)].filter(key =>
-          key.startsWith('atbl')
+        [...Object.keys(localStorage), ...Object.keys(sessionStorage)].filter(
+          key => key.startsWith('atbl')
         )
       )
     ).toEqual([])
@@ -155,14 +195,18 @@ for (const path of ['/', '/react']) {
   })
 }
 
-test('local and preview hosts never send events even with a configured key', async ({ page }) => {
+test('local and preview hosts never send events even with a configured key', async ({
+  page,
+}) => {
   const requests: string[] = []
   page.on('request', request => {
     if (request.url().includes('api.altertable.ai')) {
       requests.push(request.url())
     }
   })
-  await page.context().route('https://api.altertable.ai/**', route => route.abort())
+  await page
+    .context()
+    .route('https://api.altertable.ai/**', route => route.abort())
   await page.route(`${testUrl}/**`, async route => {
     const response = await page.request.get(
       `${testUrl}/analytics${new URL(route.request().url()).pathname}`
@@ -196,14 +240,18 @@ test('analytics delivery failures do not break zoom or clipboard feedback', asyn
   context,
 }) => {
   await intercept(page)
-  await page.context().route('https://api.altertable.ai/**', route => route.abort())
+  await page
+    .context()
+    .route('https://api.altertable.ai/**', route => route.abort())
   await page.goto(`${origin}/react`)
   await clipboardPermission(context, page, 'granted')
   await page
     .locator('.hero-install')
     .getByRole('button', { name: 'Copy install command', exact: true })
     .click()
-  await expect(page.getByRole('status').filter({ hasText: 'Copied to clipboard' })).toBeVisible()
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Copied to clipboard' })
+  ).toBeVisible()
   await page
     .getByRole('region', { name: 'Image zoom examples', exact: true })
     .getByRole('button', { name: 'Zoom image: Ocean sunset', exact: true })
@@ -225,19 +273,29 @@ test('an immediate outbound navigation delivers the click without waiting for id
     .getByRole('navigation')
     .getByRole('link', { name: /^GitHub repository/ })
     .click()
-  await expect.poll(() => events.filter(event => event.event === 'Outbound Click').length).toBe(1)
-  expect(events.find(event => event.event === 'Outbound Click')!.properties).toMatchObject({
+  await expect
+    .poll(() => events.filter(event => event.event === 'Outbound Click').length)
+    .toBe(1)
+  expect(
+    events.find(event => event.event === 'Outbound Click')!.properties
+  ).toMatchObject({
     site: 'medium-zoom',
     page: 'javascript',
     placement: 'header',
   })
 })
 
-test('documentation pageviews retain the shared website context', async ({ page }) => {
+test('documentation pageviews retain the shared website context', async ({
+  page,
+}) => {
   const events = await intercept(page)
   await page.goto(`${origin}/docs/react/`)
-  await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(1)
-  expect(events.find(event => event.event === '$pageview')!.properties).toMatchObject({
+  await expect
+    .poll(() => events.filter(event => event.event === '$pageview').length)
+    .toBe(1)
+  expect(
+    events.find(event => event.event === '$pageview')!.properties
+  ).toMatchObject({
     site: 'medium-zoom',
     page: 'docs',
     path: '/docs/react/',
@@ -250,7 +308,9 @@ test('settled searches record search events without typing, dismissal, or anchor
   const events = await intercept(page)
   const searches = () => events.filter(event => event.event === 'Searched')
   await page.goto(`${origin}/docs/javascript/`)
-  await expect.poll(() => events.filter(event => event.event === '$pageview').length).toBe(1)
+  await expect
+    .poll(() => events.filter(event => event.event === '$pageview').length)
+    .toBe(1)
   await page.getByRole('button', { name: /Search docs/ }).click()
   const search = page.getByRole('combobox')
   await search.pressSequentially('margin', { delay: 30 })
@@ -284,7 +344,9 @@ test('settled searches record search events without typing, dismissal, or anchor
   }
 })
 
-test('a search opened from a shared link is recorded once', async ({ page }) => {
+test('a search opened from a shared link is recorded once', async ({
+  page,
+}) => {
   const events = await intercept(page)
   const searches = () => events.filter(event => event.event === 'Searched')
   await page.goto(`${origin}/docs/?q=margin`)
@@ -292,7 +354,10 @@ test('a search opened from a shared link is recorded once', async ({ page }) => 
   await page.getByRole('combobox').fill('margin ')
   await page.getByRole('combobox').fill('galleries')
   await expect.poll(() => searches().length).toBe(2)
-  expect(searches().map(event => event.properties.search_term)).toEqual(['margin', 'galleries'])
+  expect(searches().map(event => event.properties.search_term)).toEqual([
+    'margin',
+    'galleries',
+  ])
   expect(events.filter(event => event.event === '$pageview')).toHaveLength(1)
 })
 
@@ -308,10 +373,13 @@ test('chat handoffs use the same outbound tracking as other external links', asy
   const popupPromise = page.waitForEvent('popup')
   await page.getByRole('option', { name: /^Ask ChatGPT/ }).click()
   const popup = await popupPromise
-  await expect.poll(() => events.filter(event => event.event === 'Outbound Click').length).toBe(1)
-  expect(events.find(event => event.event === 'Outbound Click')!.properties.destination).toBe(
-    'https://chatgpt.com/'
-  )
+  await expect
+    .poll(() => events.filter(event => event.event === 'Outbound Click').length)
+    .toBe(1)
+  expect(
+    events.find(event => event.event === 'Outbound Click')!.properties
+      .destination
+  ).toBe('https://chatgpt.com/')
   await popup.close()
 })
 
@@ -320,7 +388,9 @@ test('palette install actions respect package selection and clipboard permission
   context,
 }) => {
   const events = await intercept(page)
-  await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin })
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'], {
+    origin,
+  })
   await page.goto(`${origin}/docs/react/`)
   await page.bringToFront()
   await page.getByRole('radio', { name: 'pnpm', exact: true }).check()
@@ -332,12 +402,17 @@ test('palette install actions respect package selection and clipboard permission
     'pnpm dlx shadcn@latest add @medium-zoom/image-zoom'
   )
   await expect
-    .poll(() => events.filter(event => event.event === 'Install Command Copied').length)
+    .poll(
+      () =>
+        events.filter(event => event.event === 'Install Command Copied').length
+    )
     .toBe(1)
   await clipboardPermission(context, page, 'denied')
   await page.getByRole('button', { name: /Search docs/ }).click()
   await page.getByRole('combobox').fill('copy react')
   await page.getByRole('option', { name: /Copy React install command/ }).click()
   await expect(page.getByRole('dialog')).not.toBeVisible()
-  expect(events.filter(event => event.event === 'Install Command Copied')).toHaveLength(1)
+  expect(
+    events.filter(event => event.event === 'Install Command Copied')
+  ).toHaveLength(1)
 })

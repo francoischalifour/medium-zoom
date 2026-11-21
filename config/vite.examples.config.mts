@@ -1,7 +1,12 @@
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { loadConfigFromFile, mergeConfig, type ConfigEnv, type UserConfig } from 'vite'
+import {
+  type ConfigEnv,
+  loadConfigFromFile,
+  mergeConfig,
+  type UserConfig,
+} from 'vite'
 
 import { libraryConfig } from './vite.shared.config.mts'
 
@@ -14,7 +19,11 @@ export async function localExampleConfig({
 }): Promise<UserConfig> {
   const root = fileURLToPath(new URL(`../examples/${name}/`, import.meta.url))
   const mode = { build: 'production', serve: 'development' }[command]
-  const loaded = await loadConfigFromFile({ command, mode }, resolve(root, 'vite.config.ts'), root)
+  const loaded = await loadConfigFromFile(
+    { command, mode },
+    resolve(root, 'vite.config.ts'),
+    root
+  )
   if (!loaded) {
     throw new Error(`Missing Vite config for ${name}`)
   }
@@ -43,14 +52,18 @@ export async function localExampleConfig({
     base: `/examples/${name}/`,
     server: { host: '127.0.0.1' },
     build: {
-      outDir: fileURLToPath(new URL(`../website/dist/examples/${name}/`, import.meta.url)),
+      outDir: fileURLToPath(
+        new URL(`../website/dist/examples/${name}/`, import.meta.url)
+      ),
       emptyOutDir: true,
     },
   })
   if (name === 'shadcn' && command === 'build') {
     // The website owns the public React integration page. This build adds its component fixture.
     managed.build!.emptyOutDir = false
-    managed.build!.rolldownOptions!.input = { playground: resolve(root, 'playground.html') }
+    managed.build!.rolldownOptions!.input = {
+      playground: resolve(root, 'playground.html'),
+    }
   }
   return managed
 }

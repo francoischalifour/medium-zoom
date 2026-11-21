@@ -1,10 +1,14 @@
+import type { ZoomBounds, ZoomViewport } from 'medium-zoom/core'
+
 import { assign } from '#platform'
 
-import type { ZoomViewport } from '../core'
-import type { Viewport } from '../engine/create-zoom'
 import type { ZoomOptions } from '../medium-zoom'
 import { isNode } from '../utils'
 
+/**
+ * Explicit bounds to fit the zoomed image in, in viewport pixels. `width` and `height`
+ * default to the window's; `top`, `right`, `bottom` and `left` inset them.
+ */
 export interface ZoomContainer {
   width?: number
   height?: number
@@ -15,16 +19,31 @@ export interface ZoomContainer {
 }
 
 export interface ContainerOptions {
+  /**
+   * The element, selector, or bounds the zoomed image fits in.
+   *
+   * @default null
+   */
   container?: string | HTMLElement | ZoomContainer | null
 }
 
-export const updateContainer = (options: ZoomOptions, previous: ZoomOptions): void => {
-  if (options.container && options.container instanceof Object && !isNode(options.container)) {
+export const updateContainer = (
+  options: ZoomOptions,
+  previous: ZoomOptions
+): void => {
+  if (
+    options.container &&
+    options.container instanceof Object &&
+    !isNode(options.container)
+  ) {
     options.container = assign({}, previous.container, options.container)
   }
 }
 
-export const getContainerViewport = (viewport: Viewport, options: ZoomOptions): Viewport => {
+export const getContainerViewport = (
+  viewport: ZoomBounds,
+  options: ZoomOptions
+): ZoomBounds => {
   const target = options.container
   if (!target) {
     return viewport
@@ -43,13 +62,18 @@ export const getContainerViewport = (viewport: Viewport, options: ZoomOptions): 
       target
     )
     return {
-      width: box.width - box.left - box.right - margin * 2 || box.width - margin * 2,
-      height: box.height - box.top - box.bottom - margin * 2 || box.height - margin * 2,
+      width:
+        box.width - box.left - box.right - margin * 2 || box.width - margin * 2,
+      height:
+        box.height - box.top - box.bottom - margin * 2 ||
+        box.height - margin * 2,
       left: box.left + margin,
       top: box.top + margin,
     }
   }
-  const element = isNode(target) ? target : document.querySelector<HTMLElement>(target)!
+  const element = isNode(target)
+    ? target
+    : document.querySelector<HTMLElement>(target)!
   const { width, height, left, top } = element.getBoundingClientRect()
   return {
     width: width - margin * 2,
@@ -59,7 +83,14 @@ export const getContainerViewport = (viewport: Viewport, options: ZoomOptions): 
   }
 }
 
-/** Measure the target at positioning time; bounds are strategy input, not zoom options. */
-export function containerBounds(target: string | HTMLElement | ZoomContainer | null): ZoomViewport {
-  return (viewport, options) => getContainerViewport(viewport, { ...options, container: target })
+/**
+ * Fits the zoomed image in an element, the first element matching a selector, or explicit
+ * bounds, measured each time the zoom is positioned. Replaces the v1 `container` option:
+ * `createZoom(images, { viewport: containerBounds('#stage') })`.
+ */
+export function containerBounds(
+  target: string | HTMLElement | ZoomContainer | null
+): ZoomViewport {
+  return (viewport, options) =>
+    getContainerViewport(viewport, { ...options, container: target })
 }

@@ -1,23 +1,41 @@
-import type { CoreZoomOptions, Zoom, ZoomOpenOptions } from './engine/create-zoom'
-import type { ZoomOptions } from './medium-zoom'
+import type { CoreZoomOptions, ModalOpenOptions, Zoom } from 'medium-zoom/core'
 
-export interface ZoomSession<Options extends CoreZoomOptions = ZoomOptions> {
+/**
+ * Coordinated access to one zoom. Methods never read `this`: pass them around freely, or
+ * pass the session as the `commander` of `bindZoomTriggers()` and `createGallery()`.
+ */
+export interface ZoomSession<
+  Options extends CoreZoomOptions = CoreZoomOptions,
+> {
+  /** The coordinated zoom. Requests made on it directly are not coordinated. */
   readonly zoom: Zoom<Options>
-  // Methods never read `this`: pass them around freely.
-  open(this: void, options?: ZoomOpenOptions): Promise<Zoom<Options>>
+  /**
+   * Opens the zoom once the document's previously open zoom has closed. Superseded
+   * requests resolve without opening. `trigger` applies to zooms created with a renderer.
+   */
+  open(this: void, options?: ModalOpenOptions): Promise<Zoom<Options>>
+  /** Closes the zoom and cancels its pending open request. */
   close(this: void): Promise<Zoom<Options>>
-  toggle(this: void, options?: ZoomOpenOptions): Promise<Zoom<Options>>
-  /** Close, detach and stop coordinating. The zoom can be reattached and coordinated again. */
+  /** Closes the zoom when it is open or opening, opens it otherwise. */
+  toggle(this: void, options?: ModalOpenOptions): Promise<Zoom<Options>>
+  /**
+   * Closes and detaches the zoom, then stops coordinating it. The zoom can be reattached
+   * and coordinated again with a new session.
+   */
   dispose(this: void): Promise<void>
 }
 
 const sessions = new WeakMap<object, unknown>()
-const active = new WeakMap<Document, { owner: object; close: () => Promise<unknown> }>()
+const active = new WeakMap<
+  Document,
+  { owner: object; close: () => Promise<unknown> }
+>()
 
 /**
- * One open zoom per document. Requests made through a session wait for the document's
- * previous zoom to finish closing; requests made on the zoom itself are not coordinated.
- * Hand the session to whatever opens the zoom: triggers, a gallery, or your own controls.
+ * Coordinates zooms so only one is open per document: opening through a session first closes
+ * the document's other session-owned zoom and waits for it. Returns the zoom's existing
+ * session when it has one. Hand the session to whatever opens the zoom: triggers, a gallery,
+ * or your own controls.
  */
 export function createZoomSession<Options extends CoreZoomOptions>(
   zoom: Zoom<Options>
@@ -155,7 +173,9 @@ export function createZoomSession<Options extends CoreZoomOptions>(
       return task
     },
     toggle(options) {
-      return pending || zoom.getZoomedImage() ? session.close() : session.open(options)
+      return pending || zoom.getZoomedImage()
+        ? session.close()
+        : session.open(options)
     },
     dispose() {
       if (disposal) {

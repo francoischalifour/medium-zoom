@@ -23,7 +23,9 @@ try {
       }
     })
   )
-  const errors = results.filter(result => result.status === 'rejected').map(result => result.reason)
+  const errors = results
+    .filter(result => result.status === 'rejected')
+    .map(result => result.reason)
   if (errors.length) {
     throw new AggregateError(errors, 'Standalone example checks failed')
   }
@@ -39,7 +41,9 @@ async function checkExample(name: string) {
     filter: path => !['node_modules', 'dist'].includes(basename(path)),
   })
   if (name === 'shadcn') {
-    cpSync(resolve('assets/images'), join(root, 'public/assets/images'), { recursive: true })
+    cpSync(resolve('assets/images'), join(root, 'public/assets/images'), {
+      recursive: true,
+    })
   }
   const run = (args: string[]) =>
     new Promise<void>((resolve, reject) => {
@@ -49,7 +53,11 @@ async function checkExample(name: string) {
         if (code === 0) {
           resolve()
         } else {
-          reject(new Error(`${name}: npm ${args.join(' ')} failed (${signal || code})`))
+          reject(
+            new Error(
+              `${name}: npm ${args.join(' ')} failed (${signal || code})`
+            )
+          )
         }
       })
     })

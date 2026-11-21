@@ -1,5 +1,5 @@
 import { HeroCrop } from './site-components'
-import { SiteHeader, SiteFooter } from './site-shell'
+import { SiteFooter, SiteHeader } from './site-shell'
 import { JavaScriptIcon, ReactIcon } from './technology-icons'
 
 import './not-found.css'
@@ -13,7 +13,9 @@ export function NotFoundPage() {
           <span className="eyebrow">404 · Out of frame</span>
           <HeroCrop>
             <h1 id="page-title">Page not found.</h1>
-            <p>This page may have moved. Search the docs or choose a quickstart.</p>
+            <p>
+              This page may have moved. Search the docs or choose a quickstart.
+            </p>
           </HeroCrop>
           <div className="hero-actions">
             <a className="button button-primary" href="/docs/?q=">
@@ -24,7 +26,10 @@ export function NotFoundPage() {
             </a>
           </div>
         </section>
-        <section className="not-found-recovery" aria-labelledby="quickstarts-title">
+        <section
+          className="not-found-recovery"
+          aria-labelledby="quickstarts-title"
+        >
           <div className="section-heading">
             <h2 id="quickstarts-title">Find your way back.</h2>
             <p>Continue with the JavaScript library or React component.</p>

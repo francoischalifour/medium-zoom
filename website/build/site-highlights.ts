@@ -1,12 +1,18 @@
-import { readFileSync, readdirSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
 import { codeToHtml } from '@pierre/highlights'
-import { githubLightDefault, githubDarkDefault } from '@pierre/highlights/themes'
+import {
+  githubDarkDefault,
+  githubLightDefault,
+} from '@pierre/highlights/themes'
 import type { Plugin } from 'vite'
 
-import { photos, usageCode, javascriptUsageCode } from '../src/gallery.ts'
-import { javascriptCommands, componentCommands } from '../src/install-commands.ts'
+import { javascriptUsageCode, photos, usageCode } from '../src/gallery.ts'
+import {
+  componentCommands,
+  javascriptCommands,
+} from '../src/install-commands.ts'
 import { usageExamples } from '../src/usage-snippets.ts'
 
 type HighlightLanguage =
@@ -23,7 +29,10 @@ type HighlightLanguage =
   | 'css'
 
 // Fence names label code blocks; some highlight with another grammar.
-const fenceGrammars: Record<string, HighlightLanguage> = { solid: 'tsx', angular: 'angular-ts' }
+const fenceGrammars: Record<string, HighlightLanguage> = {
+  solid: 'tsx',
+  angular: 'angular-ts',
+}
 
 function highlight(code: string, lang: HighlightLanguage) {
   const html = new TextDecoder().decode(

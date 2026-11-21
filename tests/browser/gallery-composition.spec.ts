@@ -1,11 +1,21 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
-import { decodeImages, observeErrors, finishAnimations, openImage } from './helpers'
+import {
+  decodeImages,
+  finishAnimations,
+  observeErrors,
+  openImage,
+} from './helpers'
 
-test('shadcn compound controls reuse the headless model without stock UI', async ({ page }) => {
+test('shadcn compound controls reuse the headless model without stock UI', async ({
+  page,
+}) => {
   const errors = observeErrors(page)
   await page.goto('/composition/')
-  const trigger = page.getByRole('button', { name: 'Open Ocean sunset', exact: true })
+  const trigger = page.getByRole('button', {
+    name: 'Open Ocean sunset',
+    exact: true,
+  })
   await expect(trigger).toBeEnabled()
   await decodeImages(page.locator('.photos img'))
   await openImage(page, trigger.locator('img'), { via: 'keyboard', trigger })
@@ -20,10 +30,9 @@ test('shadcn compound controls reuse the headless model without stock UI', async
   expect(host).toBe('react-owned')
   await page.getByRole('button', { name: 'Next photograph' }).click()
   await expect(page.getByRole('status')).toHaveText('2 / 3')
-  await expect(page.getByRole('dialog', { name: 'Floral skateboard' })).toHaveAttribute(
-    'data-identity',
-    'react-owned'
-  )
+  await expect(
+    page.getByRole('dialog', { name: 'Floral skateboard' })
+  ).toHaveAttribute('data-identity', 'react-owned')
   await expect(page.getByRole('dialog').getByRole('img')).toHaveCount(1)
   expect(
     await page
@@ -49,7 +58,10 @@ test('Strict Mode and unmounting release the React view and session before remou
 }) => {
   const errors = observeErrors(page)
   await page.goto('/composition/')
-  const trigger = page.getByRole('button', { name: 'Open Ocean sunset', exact: true })
+  const trigger = page.getByRole('button', {
+    name: 'Open Ocean sunset',
+    exact: true,
+  })
   await expect(trigger).toBeEnabled()
   await decodeImages(page.locator('.photos img'))
   await trigger.click()
@@ -57,7 +69,9 @@ test('Strict Mode and unmounting release the React view and session before remou
   await page
     .getByRole('button', { name: 'Unmount gallery' })
     .evaluate(button => (button as HTMLButtonElement).click())
-  await expect(page.locator('dialog,.photo-toolbar,.medium-zoom-image--opened')).toHaveCount(0)
+  await expect(
+    page.locator('dialog,.photo-toolbar,.medium-zoom-image--opened')
+  ).toHaveCount(0)
   await page.getByRole('button', { name: 'Mount gallery' }).click()
   await expect(trigger).toBeEnabled()
   await trigger.click()

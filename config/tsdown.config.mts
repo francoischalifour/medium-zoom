@@ -14,7 +14,7 @@ import { candidateEntries, type CandidateEntry } from './package.config.mts'
 
 const banner = `/*! ${pkg.name} ${pkg.version} | ${pkg.license} License | https://github.com/${pkg.repository} */`
 const stylesheetPath = new URL('../src/medium-zoom.css', import.meta.url)
-// Mangle local scene state. Stable cross-entry __mz$ bridge names stay descriptive; preserve public options and DOM APIs.
+// Mangle the engine's private scene state; preserve public options and DOM APIs.
 const privateProperties = /^__mz_/
 
 type Profile = 'modern' | 'compat'
@@ -40,7 +40,10 @@ function stylesheet(profile: Profile): TsdownPlugin {
         filename: stylesheetPath.pathname,
         code: Buffer.from(
           profile === 'compat'
-            ? source.replace(/cursor: (zoom-(?:in|out));/g, 'cursor: pointer;\n  cursor: $1;')
+            ? source.replace(
+                /cursor: (zoom-(?:in|out));/g,
+                'cursor: pointer;\n  cursor: $1;'
+              )
             : source
         ),
         minify: true,
@@ -74,12 +77,9 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
           continue
         }
         declaration.code = declaration.code.replace(
-          /\n[ \t]*\/\*\* The control that opened the zoom;[^\n]*\*\/\n[ \t]*trigger\?: HTMLElement;/,
-          ''
-        )
-        declaration.code = declaration.code.replace(
           /export \{([^}]+)\}/g,
-          (_match, names: string) => `export {${names.replace(/\btype\s+/g, '')}}`
+          (_match, names: string) =>
+            `export {${names.replace(/\btype\s+/g, '')}}`
         )
       }
     },
@@ -87,10 +87,6 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
       if (chunk.name.endsWith('.d')) {
         return
       }
-      source = source.replace(
-        /(['"])medium-zoom\/session\1/g,
-        JSON.stringify(`../session/index.${options.format === 'cjs' ? 'cjs' : 'mjs'}`)
-      )
       const result =
         profile === 'compat'
           ? transformSync(source, {
@@ -106,7 +102,10 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
                 setSpreadProperties: true,
               },
               presets: [
-                ['@babel/preset-env', { modules: false, exclude: ['transform-typeof-symbol'] }],
+                [
+                  '@babel/preset-env',
+                  { modules: false, exclude: ['transform-typeof-symbol'] },
+                ],
               ],
               compact: minify,
               minified: minify,
@@ -131,13 +130,14 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
               // CJS bindings are module-local, just like ESM bindings.
               ...(options.format === 'cjs' && { toplevel: true }),
               mangle: { properties: { regex: privateProperties } },
-              // Core and session are bundled independently: the command gate's private keys must agree.
+              // No source property uses these keys. Reserving their short names shifts the mangled
+              // scene keys to a sequence that gzips 1-3 B smaller in the fixed presets (`bun run size`).
               nameCache: {
                 props: {
                   props: {
-                    $__mz_gate: 'w',
-                    $__mz_current: 'u',
-                    $__mz_owner: 'y',
+                    $__mz_reserved1: 'w',
+                    $__mz_reserved2: 'u',
+                    $__mz_reserved3: 'y',
                   },
                 },
               },
@@ -189,7 +189,9 @@ function browserBundle(
     tsconfig: false,
     target: profile === 'compat' ? 'esnext' : 'es2020',
     alias: {
-      '#platform': fileURLToPath(new URL(`../src/platform/${profile}.ts`, import.meta.url)),
+      '#platform': fileURLToPath(
+        new URL(`../src/platform/${profile}.ts`, import.meta.url)
+      ),
     },
     dts: false,
     clean: false,
@@ -233,20 +235,29 @@ function entryBundle(entry: CandidateEntry, format: 'esm' | 'cjs'): UserConfig {
       full
     ),
     entry: { [`${name}/index`]: source },
-    // Keep shared strategy/controller types on the core declaration entry.
-    deps: { neverBundle: ['medium-zoom/core', 'medium-zoom/session'] },
+    // Declarations reference shared contracts from their owning entry instead of copying them.
+    // Source imports of these entries are type-only, so runtime bundles never import them.
+    deps: { neverBundle: ['medium-zoom/core', 'medium-zoom/renderers'] },
     dts: {
       generator: 'oxc',
       tsconfig: fileURLToPath(new URL('../tsconfig.json', import.meta.url)),
       cjsDefault: full && format === 'cjs',
     },
-    plugins: [...(entry.emitsCss ? [stylesheet(profile)] : []), browserSyntax(profile, true)],
+    plugins: [
+      ...(entry.emitsCss ? [stylesheet(profile)] : []),
+      browserSyntax(profile, true),
+    ],
     ...(full &&
       format === 'cjs' && {
         onSuccess(config) {
           // CJS declarations are emitted in a separate pipeline without runtime plugins.
           const path = join(config.outDir, `${name}/index.d.cts`)
-          const names = ['ZoomOptions', 'ZoomSelector', 'ZoomContainer', 'ZoomOpenOptions']
+          const names = [
+            'ZoomOptions',
+            'ZoomSelector',
+            'ZoomContainer',
+            'ZoomOpenOptions',
+          ]
           const aliases = names
             .map(name => `type ${name} = import('medium-zoom').${name};`)
             .join('\n')
@@ -286,5 +297,8 @@ export default defineConfig([
   },
   browserBundle('src/pure.ts', 'pure/medium-zoom.umd.js', 'umd', false),
   browserBundle('src/pure.ts', 'pure/medium-zoom.min.umd.js', 'umd'),
-  ...candidateEntries.flatMap(entry => [entryBundle(entry, 'esm'), entryBundle(entry, 'cjs')]),
+  ...candidateEntries.flatMap(entry => [
+    entryBundle(entry, 'esm'),
+    entryBundle(entry, 'cjs'),
+  ]),
 ])

@@ -2,7 +2,9 @@ import packageJson from '../package.json' with { type: 'json' }
 import registry from '../registry.json' with { type: 'json' }
 import { siteOrigin } from './src/site-url.ts'
 
-const componentPaths = new Map(registry.items.map(item => [`/r/${item.name}.json`, item.name]))
+const componentPaths = new Map(
+  registry.items.map(item => [`/r/${item.name}.json`, item.name])
+)
 
 async function trackDownload(apiKey: string, component: string, path: string) {
   try {
@@ -28,7 +30,9 @@ async function trackDownload(apiKey: string, component: string, path: string) {
     })
     await response.body?.cancel()
     if (!response.ok) {
-      console.warn('Registry analytics delivery failed', { status: response.status })
+      console.warn('Registry analytics delivery failed', {
+        status: response.status,
+      })
     }
   } catch {
     console.warn('Registry analytics delivery failed')
@@ -36,7 +40,11 @@ async function trackDownload(apiKey: string, component: string, path: string) {
 }
 
 export default {
-  async fetch(request: Request, env: Env, ctx: Pick<ExecutionContext, 'waitUntil'>) {
+  async fetch(
+    request: Request,
+    env: Env,
+    ctx: Pick<ExecutionContext, 'waitUntil'>
+  ) {
     const response = await env.ASSETS.fetch(request)
     const url = new URL(request.url)
     const component = componentPaths.get(url.pathname)
@@ -47,7 +55,9 @@ export default {
       response.status === 200 &&
       env.ALTERTABLE_API_KEY
     ) {
-      ctx.waitUntil(trackDownload(env.ALTERTABLE_API_KEY, component, url.pathname))
+      ctx.waitUntil(
+        trackDownload(env.ALTERTABLE_API_KEY, component, url.pathname)
+      )
     }
     return response
   },

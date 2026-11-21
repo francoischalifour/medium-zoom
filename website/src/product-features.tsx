@@ -1,13 +1,20 @@
 import type { ReactNode } from 'react'
 
-import { productFeatures, productPages, type FeatureIcon } from './product-pages'
+import {
+  type FeatureIcon,
+  productFeatures,
+  productPages,
+} from './product-pages'
 import { Icon } from './site-components'
 import type { SitePage } from './site-data'
 import { TypeScriptIcon } from './technology-icons'
 
 export function ProductFeatures({ page }: { page: SitePage }) {
   return (
-    <section className="details-strip" aria-label={productPages[page].featuresLabel}>
+    <section
+      className="details-strip"
+      aria-label={productPages[page].featuresLabel}
+    >
       {productFeatures(page, __MEDIUM_ZOOM_GZIP_BYTES__).map(feature => (
         <div key={feature.title}>
           {featureIcons[feature.icon]}

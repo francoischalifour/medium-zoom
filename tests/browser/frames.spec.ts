@@ -1,6 +1,6 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
-import { preparePage, loadBundle } from './helpers'
+import { addModernStyles, loadBundle, preparePage } from './helpers'
 
 for (const modal of [false, true]) {
   test(`${modal ? 'modal' : 'body'} frames retain source coordinates, clone attributes and cleanup`, async ({
@@ -9,22 +9,26 @@ for (const modal of [false, true]) {
     await preparePage(page, {
       body: '<div style="margin-top:500px"><img id="image" src="/images/image-1.jpg" width="200" alt="Sunset" data-author="retained" style="transform:scale(.8)"></div>',
     })
-    await page.addStyleTag({ url: '/experimental/dist/modern/style.css' })
+    await addModernStyles(page)
     const result = await page.evaluate(async modal => {
-      const core = '/experimental/dist/core/index.mjs',
-        renderers = '/experimental/dist/renderers/index.mjs'
-      const { createZoom } = (await import(core)) as typeof import('../../src/core')
-      const { dialog } = (await import(renderers)) as typeof import('../../src/renderers')
+      const { createZoom } = await window.loadEntry('core')
+      const { dialog } = await window.loadEntry('renderers')
       const source = document.querySelector<HTMLImageElement>('#image')!
       window.scrollTo(0, 350)
       const before = source.getBoundingClientRect().toJSON()
-      window.zoom = createZoom(source, modal ? { renderer: dialog() } : {})
-      const opening = window.zoom.open()
-      const clone = document.querySelector<HTMLImageElement>('.medium-zoom-image--opened')!
+      window.coreZoom = createZoom(source, modal ? { renderer: dialog() } : {})
+      const opening = window.coreZoom.open()
+      const clone = document.querySelector<HTMLImageElement>(
+        '.medium-zoom-image--opened'
+      )!
       const initial = clone.getBoundingClientRect().toJSON()
-      const attributes = { id: clone.id, author: clone.dataset.author, alt: clone.alt }
+      const attributes = {
+        id: clone.id,
+        author: clone.dataset.author,
+        alt: clone.alt,
+      }
       await opening
-      await window.zoom.close()
+      await window.coreZoom.close()
       return {
         before,
         initial,
@@ -36,7 +40,11 @@ for (const modal of [false, true]) {
     expect(result.initial.x).toBeCloseTo(result.before.x, 0)
     expect(result.initial.y).toBeCloseTo(result.before.y, 0)
     expect(result.initial.width).toBeCloseTo(result.before.width, 0)
-    expect(result.attributes).toEqual({ id: '', author: 'retained', alt: 'Sunset' })
+    expect(result.attributes).toEqual({
+      id: '',
+      author: 'retained',
+      alt: 'Sunset',
+    })
     expect(result.transform).toBe('scale(0.8)')
     expect(result.removed).toBe(true)
   })
@@ -54,7 +62,9 @@ test('picture source resolution stays with the adapter and leaves the original s
       const source = document.querySelector<HTMLImageElement>('#image')!
       window.zoom = window.mediumZoom(source)
       await window.zoom.open()
-      const clone = document.querySelector<HTMLImageElement>('.medium-zoom-image--opened')!
+      const clone = document.querySelector<HTMLImageElement>(
+        '.medium-zoom-image--opened'
+      )!
       const result = {
         selected: source.currentSrc,
         cloned: clone.src,
@@ -71,7 +81,9 @@ test('picture source resolution stays with the adapter and leaves the original s
 })
 
 for (const format of ['file', 'data'] as const) {
-  test(`existing SVG ${format} images remain image-adapter targets`, async ({ page }) => {
+  test(`existing SVG ${format} images remain image-adapter targets`, async ({
+    page,
+  }) => {
     const source =
       format === 'file'
         ? '/images/crab.svg'
@@ -89,7 +101,10 @@ for (const format of ['file', 'data'] as const) {
     })
     await expect(page.locator('.medium-zoom-image--opened')).toHaveCount(1)
     await expect(page.locator('#inline')).not.toHaveClass(/medium-zoom-image/)
-    await expect(page.locator('.medium-zoom-image--opened')).toHaveCSS('transform', /matrix/)
+    await expect(page.locator('.medium-zoom-image--opened')).toHaveCSS(
+      'transform',
+      /matrix/
+    )
     await page.evaluate(() => window.zoom.close())
     await expect(page.locator('.medium-zoom-image--opened')).toHaveCount(0)
   })

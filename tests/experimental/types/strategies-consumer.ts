@@ -1,12 +1,12 @@
 import { templateContent } from 'medium-zoom/content'
 import {
-  createZoom,
   type CoreZoomOptions,
+  createZoom,
   type Zoom,
   type ZoomLoader,
   type ZoomViewport,
 } from 'medium-zoom/core'
-import { createGallery, bindGalleryKeyboard } from 'medium-zoom/gallery'
+import { bindGalleryKeyboard, createGallery } from 'medium-zoom/gallery'
 import { loadHdImage } from 'medium-zoom/loaders'
 import { dialog } from 'medium-zoom/renderers'
 import { createZoomSession } from 'medium-zoom/session'

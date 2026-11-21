@@ -1,16 +1,20 @@
 import { writeFile } from 'node:fs/promises'
 
-import { test, expect, type Page } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 
 import {
-  openImage,
-  dismissZoom,
+  acceptAlerts,
   decodeImages,
+  dismissZoom,
   finishAnimations,
   observeErrors,
-  acceptAlerts,
+  openImage,
 } from './helpers.ts'
-import { readStories, observeStoryEvents, captureStory } from './stories.helpers.ts'
+import {
+  captureStory,
+  observeStoryEvents,
+  readStories,
+} from './stories.helpers.ts'
 
 const unattachedStories = new Set([
   'detach()/with multiple selectors',
@@ -24,11 +28,18 @@ const storyGroups = 8
 
 // Small groups can run concurrently and retry without repeating the entire catalogue.
 for (let group = 0; group < storyGroups; group++) {
-  test(`API stories (group ${group + 1}/${storyGroups})`, async ({ page }, testInfo) => {
+  test(`API stories (group ${group + 1}/${storyGroups})`, async ({
+    page,
+  }, testInfo) => {
     test.setTimeout(60_000)
     const errors = observeErrors(page)
     const alerts = acceptAlerts(page)
-    const evidence: { id: string; before: string; after: string; action: string }[] = []
+    const evidence: {
+      id: string
+      before: string
+      after: string
+      action: string
+    }[] = []
     await observeStoryEvents(page)
     const stories = await readStories(page)
     expect(stories).toHaveLength(43)
@@ -43,9 +54,17 @@ for (let group = 0; group < storyGroups; group++) {
         await page.goto(story.url)
         await expect(page.locator('html')).toHaveAttribute('data-ready', 'true')
         await assertInitialState(page, story.id)
-        const before = await captureStory(page, testInfo, { story, index, state: 'before' })
+        const before = await captureStory(page, testInfo, {
+          story,
+          index,
+          state: 'before',
+        })
         await demonstrateStory(page, story.id)
-        const after = await captureStory(page, testInfo, { story, index, state: 'after' })
+        const after = await captureStory(page, testInfo, {
+          story,
+          index,
+          state: 'after',
+        })
         await dismissStory(page, story.id)
         expect(alerts).toEqual(expectedAlerts(story.id))
         expect(errors).toEqual([])
@@ -55,7 +74,10 @@ for (let group = 0; group < storyGroups; group++) {
         evidence.push({ id: story.id, before, after, action })
       })
     }
-    await writeFile(testInfo.outputPath('stories.json'), JSON.stringify(evidence, null, 2))
+    await writeFile(
+      testInfo.outputPath('stories.json'),
+      JSON.stringify(evidence, null, 2)
+    )
   })
 }
 
@@ -68,9 +90,13 @@ async function assertInitialState(page: Page, id: string) {
       .toBe(automaticClose ? 'closed' : 'opened')
     const events = await page.evaluate(() => window.storyEvents)
     expect(events.map(event => event.type)).toEqual(
-      automaticClose ? ['open', 'opened', 'close', 'closed'] : ['open', 'opened']
+      automaticClose
+        ? ['open', 'opened', 'close', 'closed']
+        : ['open', 'opened']
     )
-    expect(events[0].target).toBe(id.endsWith('/with target') ? 'image-2' : 'image-1')
+    expect(events[0].target).toBe(
+      id.endsWith('/with target') ? 'image-2' : 'image-1'
+    )
   }
   if (automaticOpen) {
     await page.evaluate(() => window.zoom.close())
@@ -107,7 +133,9 @@ async function demonstrateStory(page: Page, id: string) {
     await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
     return
   }
-  const images = page.locator('.medium-zoom-image:not(.medium-zoom-image--opened)')
+  const images = page.locator(
+    '.medium-zoom-image:not(.medium-zoom-image--opened)'
+  )
   if (id.startsWith('detach()/')) {
     await expect(page.locator('#image-1')).not.toHaveClass(/medium-zoom-image/)
     await expect(images).toHaveCount(1)
@@ -118,12 +146,20 @@ async function demonstrateStory(page: Page, id: string) {
   await expect(page.locator('.medium-zoom-overlay')).toHaveCSS('opacity', '1')
   if (id === 'getZoomedImage()/default') {
     expect(
-      await page.evaluate(() => window.zoom.getZoomedImage() === document.querySelector('img'))
+      await page.evaluate(
+        () => window.zoom.getZoomedImage() === document.querySelector('img')
+      )
     ).toBe(true)
   }
   if (id === 'clone()/with margin') {
-    await expect(page.locator('.medium-zoom-overlay')).toHaveCSS('background-color', 'rgb(0, 0, 0)')
-    const bounds = await page.locator('.medium-zoom-image--opened').first().boundingBox()
+    await expect(page.locator('.medium-zoom-overlay')).toHaveCSS(
+      'background-color',
+      'rgb(0, 0, 0)'
+    )
+    const bounds = await page
+      .locator('.medium-zoom-image--opened')
+      .first()
+      .boundingBox()
     expect(bounds!.y).toBeGreaterThanOrEqual(99)
   }
 }
@@ -133,7 +169,11 @@ async function dismissStory(page: Page, id: string) {
     return
   }
   const template = await page.locator('svg[data-zoom-close]').count()
-  const via = template ? 'template' : id === 'options/scrollOffset' ? 'scroll' : 'keyboard'
+  const via = template
+    ? 'template'
+    : id === 'options/scrollOffset'
+      ? 'scroll'
+      : 'keyboard'
   await dismissZoom(page, { via })
   if (id === 'on()/open only once') {
     await openImage(page, page.locator('.medium-zoom-image').first())
