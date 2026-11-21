@@ -369,7 +369,7 @@ test('clone retains the renderer and owns independent sessions; detach cleans up
   })
 })
 
-test('touch controls and viewport dismissal clean up the modal', async ({
+test('touch controls clean up the modal, and rotating refits the open image', async ({
   page,
   isMobile,
 }) => {
@@ -389,6 +389,22 @@ test('touch controls and viewport dismissal clean up the modal', async ({
   )
   const viewport = page.viewportSize()!
   await page.setViewportSize({ width: viewport.height, height: viewport.width })
+  // The zoom follows the window instead of closing: centred in the new one, inside it.
+  await expect(page.locator('dialog')).toHaveCount(1)
+  await expect
+    .poll(() =>
+      page.locator('dialog img').evaluate(frame => {
+        const box = frame.getBoundingClientRect()
+        return (
+          box.right <= innerWidth + 1 &&
+          box.bottom <= innerHeight + 1 &&
+          Math.abs(box.left + box.width / 2 - innerWidth / 2) <= 1 &&
+          Math.abs(box.top + box.height / 2 - innerHeight / 2) <= 1
+        )
+      })
+    )
+    .toBe(true)
+  await page.getByRole('button', { name: 'Close image' }).tap()
   await expect(page.locator('dialog')).toHaveCount(0)
   await expect(page.locator('#image')).toBeVisible()
 })

@@ -124,7 +124,7 @@ export const extensionEntries: CandidateEntry[] = [
     'createZoom',
     'instance API',
     'engine/contracts; strategies imported separately',
-    [3_370, 3_370],
+    [3_470, 3_470],
     'dist/modern/style.css'
   ),
   optional(
@@ -200,7 +200,7 @@ export const extensionEntries: CandidateEntry[] = [
       'headless controller',
       'headless controller + keyboard/gestures; optional stock controls',
       // Gestures are about 3 KB of it, shaken out by consumers that do not bind them.
-      [5_280, 5_280]
+      [5_300, 5_300]
     ),
     [
       {

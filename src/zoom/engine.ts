@@ -216,6 +216,8 @@ export interface Scene {
   __mz_viewportScale?: number
   __mz_isPinching?: boolean
   __mz_scrollTimer?: ReturnType<typeof setTimeout>
+  /** Fits the presented scene to the window again. */
+  __mz_refit?: () => void
   /** Cancels a high-resolution upgrade still scheduled or loading. */
   __mz_release?: () => void
   /** When the scene was requested, to tell stepping from browsing. */
@@ -483,7 +485,8 @@ export const createEngine = <Options extends CoreZoomOptions>(
       ;['touchstart', 'touchend', 'touchcancel'].forEach(type =>
         document[method](type, _handleTouch as EventListener, touchOptions)
       )
-      window[method]('resize', _close)
+      // Composed zooms follow the window; the presets close, as v1 did.
+      window[method]('resize', __PRESET__ ? _close : _refit)
     }
 
     const open = (
@@ -707,6 +710,8 @@ export const createEngine = <Options extends CoreZoomOptions>(
           current.__mz_frames!.push(media)
         }
         let prepared = false
+        // Presented at the size of its high-resolution image, before knowing that size.
+        let filled: boolean | undefined
         // `fill` presents the frame at the size its high-resolution image will have, so that
         // image later appears in place instead of growing out of a smaller preview.
         const animate = (media?: HTMLImageElement, fill?: boolean) => {
@@ -714,6 +719,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
             return
           }
           prepared = true
+          filled = fill
           try {
             const frames = current.__mz_frames!
             const content = media || primary
@@ -763,7 +769,9 @@ export const createEngine = <Options extends CoreZoomOptions>(
           const shown = [style.transform, style.translate, style.scale]
           style.setProperty('transition', 'none', 'important')
           style.transform = style.translate = style.scale = ''
-          const transform = fit(content)
+          // A size once shown is kept: a smaller high-resolution image fills the preview's box
+          // rather than shrinking it.
+          const transform = fit(content, filled)
           ;[style.transform, style.translate, style.scale] = shown
           content.getBoundingClientRect()
           content.style.removeProperty('transition')
@@ -775,6 +783,31 @@ export const createEngine = <Options extends CoreZoomOptions>(
             frames.forEach(frame => {
               frame.style.transform = transform
             })
+          }
+        }
+
+        if (!__PRESET__) {
+          // Follows the window at once: the page may have reflowed, so the frames zoom from
+          // and back to where the image is now, and a gesture's zoom is dropped.
+          current.__mz_refit = () => {
+            if (prepared) {
+              const { left, top, width, height } = cloneImage(
+                current.__mz_original as HTMLImageElement,
+                stage
+              ).style
+              const frames = current.__mz_frames!
+              frames.forEach(({ style }) => {
+                style.setProperty('transition', 'none', 'important')
+                style.translate = style.scale = ''
+                assign(style, { left, top, width, height, transform: '' })
+              })
+              const transform = fit(primary, filled) || ''
+              frames.forEach(({ style }) => {
+                style.transform = transform
+                primary.getBoundingClientRect()
+                style.removeProperty('transition')
+              })
+            }
           }
         }
 
@@ -968,6 +1001,12 @@ export const createEngine = <Options extends CoreZoomOptions>(
 
     const _close = () => {
       void close()
+    }
+
+    const _refit = () => {
+      if (active.__mz_refit) {
+        active.__mz_refit()
+      }
     }
 
     if (!__PRESET__) {

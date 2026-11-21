@@ -724,6 +724,48 @@ test('a quick step keeps the previous image on screen until the next one is deco
   await expect(page.getByRole('dialog', { name: 'Forest' })).toBeVisible()
 })
 
+test('a high-resolution image smaller than the window keeps the size already shown', async ({
+  page,
+}) => {
+  await preparePage(page, {
+    body: '<img src="/images/image-1.thumbnail.jpg" data-zoom-src="/images/image-1x300.jpg" width="150" alt="Small">',
+  })
+  await addModernStyles(page)
+  await page.evaluate(async () => {
+    const { createZoom } = await window.loadEntry('core')
+    const { loadHdImage } = await window.loadEntry('loaders')
+    const { dialog } = await window.loadEntry('renderers')
+    window.modalZoom = createZoom('img', {
+      loader: loadHdImage,
+      margin: 24,
+      renderer: dialog(),
+    })
+    await window.modalZoom.open()
+  })
+  const sharp = page.locator('dialog img[src$="image-1x300.jpg"]')
+  await expect(sharp).toHaveCount(1)
+  // Measured once any transition the sharpening started has ended.
+  await page.waitForFunction(() =>
+    [...document.querySelectorAll('dialog img')].every(
+      frame => !frame.getAnimations().length
+    )
+  )
+  const boxes = await page
+    .locator('dialog img')
+    .evaluateAll(frames =>
+      frames.map(frame => Math.round(frame.getBoundingClientRect().width))
+    )
+  // Neither shrinks to the image's own 300 pixels: both fill the window less the margin.
+  const width = await page.evaluate(
+    () => document.documentElement.clientWidth - 48
+  )
+  for (const box of boxes) {
+    expect(box).toBeGreaterThan(300)
+    expect(box).toBeLessThanOrEqual(width)
+  }
+  expect(new Set(boxes).size).toBe(1)
+})
+
 test('stock controls hide navigation for a single image', async ({ page }) => {
   await stockFixture(
     page,

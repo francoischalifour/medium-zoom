@@ -763,8 +763,18 @@ export function bindGalleryGestures({
       passive: false,
     })
   }
+  // The engine refits the image to a resized window: the gesture's zoom goes with it.
+  const resized = () => {
+    if (!closing) {
+      hold()
+      ;[x, y, k] = rest
+      apply()
+    }
+  }
+  addEventListener('resize', resized)
   zoom.on('close', closed)
   return () => {
+    removeEventListener('resize', resized)
     stop()
     clearTimeout(tapTimer)
     drop()
