@@ -1,9 +1,8 @@
 import type { ZoomContent } from 'medium-zoom/core'
 
-import type { LegacyContent } from '../engine/create-zoom'
-import type { ZoomTarget } from '../engine/frame'
-import type { ZoomOptions } from '../medium-zoom'
-import { removeNode } from '../utils'
+import { removeNode } from './dom'
+import type { LegacyContent } from './engine'
+import type { ZoomTarget } from './frame'
 
 export interface TemplateOptions {
   /**
@@ -21,7 +20,7 @@ const resolveTemplate = (
     ? document.querySelector<HTMLTemplateElement>(target)
     : target
 
-export const updateTemplate = (options: ZoomOptions): void => {
+export const updateTemplate = (options: TemplateOptions): void => {
   if (options.template) {
     options.template = resolveTemplate(options.template)
   }
@@ -30,7 +29,7 @@ export const updateTemplate = (options: ZoomOptions): void => {
 export const mountTemplate = (
   frame: ZoomTarget,
   host: HTMLElement,
-  options: ZoomOptions
+  options: TemplateOptions
 ): LegacyContent | undefined => {
   if (!options.template) {
     return

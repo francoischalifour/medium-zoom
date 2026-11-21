@@ -1,5 +1,5 @@
 import type { GalleryController } from '../../src/gallery'
-import type { DialogOptions } from '../../src/renderers'
+import type { DialogOptions } from '../../src/zoom/dialog'
 export function mountCloseControl(
   view: Parameters<NonNullable<DialogOptions['content']>>[0]
 ): () => void

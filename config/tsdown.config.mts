@@ -22,7 +22,7 @@ import {
 } from './package.config.mts'
 
 const banner = `/*! ${pkg.name} ${pkg.version} | ${pkg.license} License | https://github.com/${pkg.repository} */`
-const stylesheetPath = new URL('../src/medium-zoom.css', import.meta.url)
+const stylesheetPath = new URL('../src/zoom/medium-zoom.css', import.meta.url)
 // Mangle the engine's private scene state; preserve public options and DOM APIs.
 const privateProperties = /^__mz_/
 
@@ -148,7 +148,7 @@ function stylesheet(profile: Profile): TsdownPlugin {
   return {
     name: 'medium-zoom-stylesheet',
     resolveId(source) {
-      if (source === './medium-zoom.css') {
+      if (source === '../zoom/medium-zoom.css') {
         return '\0medium-zoom-stylesheet'
       }
     },
@@ -370,23 +370,23 @@ function entryBundle(
 
 export default defineConfig([
   {
-    ...browserBundle('src/index.ts', 'medium-zoom.esm.js', 'esm'),
+    ...browserBundle('src/preset/index.ts', 'medium-zoom.esm.js', 'esm'),
     dts: {
       generator: 'oxc',
       tsconfig: fileURLToPath(new URL('../tsconfig.json', import.meta.url)),
     },
   },
-  browserBundle('src/index.ts', 'medium-zoom.js', 'umd', false),
-  browserBundle('src/index.ts', 'medium-zoom.min.js', 'umd'),
+  browserBundle('src/preset/index.ts', 'medium-zoom.js', 'umd', false),
+  browserBundle('src/preset/index.ts', 'medium-zoom.min.js', 'umd'),
   {
-    ...browserBundle('src/pure.ts', 'pure/index.js', 'esm'),
+    ...browserBundle('src/preset/pure.ts', 'pure/index.js', 'esm'),
     dts: {
       generator: 'oxc',
       tsconfig: fileURLToPath(new URL('../tsconfig.json', import.meta.url)),
     },
   },
-  browserBundle('src/pure.ts', 'pure/medium-zoom.umd.js', 'umd', false),
-  browserBundle('src/pure.ts', 'pure/medium-zoom.min.umd.js', 'umd'),
+  browserBundle('src/preset/pure.ts', 'pure/medium-zoom.umd.js', 'umd', false),
+  browserBundle('src/preset/pure.ts', 'pure/medium-zoom.min.umd.js', 'umd'),
   ...candidateEntries.flatMap(entry => [
     entryBundle(entry, 'esm'),
     entryBundle(entry, 'cjs'),

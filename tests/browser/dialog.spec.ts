@@ -4,7 +4,9 @@ import { addModernStyles, preparePage } from './helpers'
 
 declare global {
   interface Window {
-    configureDialog(options: import('../../src/medium-zoom').ZoomOptions): void
+    configureDialog(
+      options: import('../../src/preset/medium-zoom').ZoomOptions
+    ): void
   }
 }
 
@@ -32,7 +34,7 @@ async function fixture(page: Page, hd = false) {
     const { mountCloseControl } = await import(
       String('/experiments/gallery-controls.mjs')
     )
-    let selected: import('../../src/medium-zoom').ZoomOptions = {}
+    let selected: import('../../src/preset/medium-zoom').ZoomOptions = {}
     window.modalZoom = createZoom('#image', {
       renderer: dialog({
         content: view => {

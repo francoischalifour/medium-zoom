@@ -15,10 +15,10 @@
       "@/components/ui/image-zoom": [
         "../examples/shadcn/src/components/ui/image-zoom.tsx"
       ],
-      "medium-zoom": ["../src/medium-zoom.ts"],
-      "medium-zoom/dist/pure": ["../src/medium-zoom.ts"],
-      "medium-zoom/dist/pure/index.js": ["../src/medium-zoom.ts"],
-      "medium-zoom/core": ["../src/core.ts"],
+      "medium-zoom": ["../src/preset/medium-zoom.ts"],
+      "medium-zoom/dist/pure": ["../src/preset/medium-zoom.ts"],
+      "medium-zoom/dist/pure/index.js": ["../src/preset/medium-zoom.ts"],
+      "medium-zoom/core": ["../src/zoom/index.ts"],
       "#platform": ["../src/platform/compat.ts"]
     },
     "skipLibCheck": true,

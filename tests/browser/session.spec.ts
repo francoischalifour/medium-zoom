@@ -1,6 +1,6 @@
 import { expect, type Page, test } from '@playwright/test'
 
-import type { ZoomSession } from '../../src/session'
+import type { ZoomSession } from '../../src/zoom/session'
 import { loadZoomFixture } from './helpers'
 
 declare global {

@@ -44,14 +44,14 @@ interface PackageOptions {
 
 /** Candidate entries of the private package fixture, by `medium-zoom/<name>` subpath. */
 interface CandidateEntries {
-  core: typeof import('../../src/core')
-  loaders: typeof import('../../src/loaders')
-  viewport: typeof import('../../src/viewport')
-  content: typeof import('../../src/content')
-  triggers: typeof import('../../src/triggers')
-  renderers: typeof import('../../src/renderers')
-  session: typeof import('../../src/session')
-  transitions: typeof import('../../src/transitions')
+  core: typeof import('../../src/zoom')
+  loaders: typeof import('../../src/zoom/hd-image')
+  viewport: typeof import('../../src/zoom/viewport')
+  content: typeof import('../../src/zoom/content')
+  triggers: typeof import('../../src/zoom/triggers')
+  renderers: typeof import('../../src/zoom/dialog')
+  session: typeof import('../../src/zoom/session')
+  transitions: typeof import('../../src/gallery/transition')
   gallery: typeof import('../../src/gallery')
 }
 
@@ -62,9 +62,9 @@ declare global {
       name: Name
     ): Promise<CandidateEntries[Name]>
     /** The zoom under test in composed-entry specs: `createZoom()` without a renderer. */
-    coreZoom: import('../../src/core').Zoom
+    coreZoom: import('../../src/zoom').Zoom
     /** The zoom under test in composed-entry specs: `createZoom()` with a renderer. */
-    modalZoom: import('../../src/core').ModalZoom
+    modalZoom: import('../../src/zoom').ModalZoom
   }
 }
 
@@ -108,7 +108,7 @@ export async function loadBundle(
       const url = '/experimental/dist/modern/index.mjs'
       const { default: mediumZoom } = (await import(
         url
-      )) as typeof import('../../src/medium-zoom')
+      )) as typeof import('../../src/preset/medium-zoom')
       window.mediumZoom = mediumZoom
     })
     return

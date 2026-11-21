@@ -1,6 +1,6 @@
 import mediumZoom from './medium-zoom'
 
-import './medium-zoom.css'
+import '../zoom/medium-zoom.css'
 
 export default mediumZoom
 

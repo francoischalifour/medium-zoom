@@ -13,7 +13,7 @@ const read = path => readFile(new URL(path, root), 'utf8')
 const versions = JSON.parse(await read('.github/.release-please-manifest.json'))
 const baseline = versions['.']
 const [major, minor, patch] = baseline.split('.').map(Number)
-const commit = (message, files = ['src/core.ts']) => ({
+const commit = (message, files = ['src/zoom/index.ts']) => ({
   sha: 'a'.repeat(40),
   message,
   files,
