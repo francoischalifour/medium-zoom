@@ -1,6 +1,7 @@
 // Import the branded types from core so consumers of both entries share the same type identity.
 import type {
   CoreZoomOptions,
+  ModalOpenOptions,
   ModalZoom,
   Zoom,
   ZoomCommander,
@@ -33,11 +34,18 @@ export interface GalleryController<
   /** Calls `listener` after every change. Returns the unsubscribe function. */
   subscribe(this: void, listener: () => void): () => void
   /** Opens the previous image. */
-  previous(): Promise<Zoom<Options>>
+  previous(this: void): Promise<Zoom<Options>>
   /** Opens the next image. */
-  next(): Promise<Zoom<Options>>
-  /** Opens the image at `index`; an index out of range resolves without opening. */
-  select(index: number): Promise<Zoom<Options>>
+  next(this: void): Promise<Zoom<Options>>
+  /**
+   * Opens the image at `index`; an index out of range resolves without opening. Pass
+   * `{ instant: true }` when a gesture already shows the image in place.
+   */
+  select(
+    this: void,
+    index: number,
+    options?: Omit<ModalOpenOptions, 'target'>
+  ): Promise<Zoom<Options>>
   /** Attaches images to the zoom, after the current ones. */
   attach(...selectors: ZoomSelector[]): void
   /** Releases images from the zoom. */
@@ -46,16 +54,26 @@ export interface GalleryController<
   dispose(): void
 }
 
+/** Options of `createGallery()`. */
+export interface GalleryOptions<Options extends CoreZoomOptions> {
+  /**
+   * What opens the gallery's images, such as a session coordinating them with other zooms.
+   *
+   * @default the zoom
+   */
+  commander?: ZoomCommander<Options>
+}
+
 const galleries = new WeakMap<object, unknown>()
 
 /**
  * Headless traversal over a rendered zoom's attached images, in attach order. Creates no UI.
- * Returns the zoom's existing gallery when it has one. Pass a session as `commander` to
- * coordinate the gallery's requests with other zooms.
+ * Returns the zoom's existing gallery when it has one, with the commander it was created
+ * with: create it with a session before mounting `galleryControls()` to coordinate them.
  */
 export function createGallery<Options extends CoreZoomOptions>(
   zoom: ModalZoom<Options>,
-  commander: ZoomCommander<Options> = zoom
+  { commander = zoom }: GalleryOptions<Options> = {}
 ): GalleryController<Options> {
   const existing = galleries.get(zoom) as GalleryController<Options> | undefined
   if (existing) {
@@ -72,7 +90,7 @@ export function createGallery<Options extends CoreZoomOptions>(
   }
   const getSnapshot = () => {
     const images = zoom.getImages()
-    const current = zoom.getZoomedImage() || null
+    const current = zoom.getZoomedImage()
     if (
       current !== snapshot.current ||
       images.length !== snapshot.images.length ||
@@ -89,14 +107,28 @@ export function createGallery<Options extends CoreZoomOptions>(
     }
     return snapshot
   }
+  let preloading: ReturnType<typeof setTimeout> | undefined
   const notify = () => {
+    clearTimeout(preloading)
     getSnapshot()
     listeners.forEach(listener => listener())
   }
-  const choose = (index: number) => {
+  // Once the user pauses on an image, both neighbours load ahead so they open sharp. Not
+  // while stepping, so images passed on the way are never downloaded.
+  const preload = () => {
+    preloading = setTimeout(() => {
+      const { images, index } = getSnapshot()
+      for (const image of [images[index + 1], images[index - 1]]) {
+        if (image) {
+          zoom.preload(image)
+        }
+      }
+    }, 300)
+  }
+  const choose = (index: number, options?: ModalOpenOptions) => {
     const target = getSnapshot().images[index]
     return !disposed && target
-      ? commander.open({ target })
+      ? commander.open({ ...options, target })
       : Promise.resolve(zoom)
   }
   let queued = false
@@ -115,6 +147,7 @@ export function createGallery<Options extends CoreZoomOptions>(
   }
   zoom
     .on('open', notify)
+    .on('opened', preload)
     .on('closed', notify)
     .on('attach', collectionChanged)
     .on('detach', collectionChanged)
@@ -153,8 +186,10 @@ export function createGallery<Options extends CoreZoomOptions>(
         return
       }
       disposed = true
+      clearTimeout(preloading)
       zoom
         .off('open', notify)
+        .off('opened', preload)
         .off('closed', notify)
         .off('attach', collectionChanged)
         .off('detach', collectionChanged)
@@ -167,3 +202,5 @@ export function createGallery<Options extends CoreZoomOptions>(
 }
 
 export { bindGalleryKeyboard } from './keyboard'
+export { bindGalleryGestures, type GalleryGestureView } from './gestures'
+export { galleryControls, type GalleryControlsOptions } from './controls'

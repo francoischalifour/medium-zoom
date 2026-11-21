@@ -59,13 +59,18 @@ declare global {
     loadEntry<Name extends keyof CandidateEntries>(
       name: Name
     ): Promise<CandidateEntries[Name]>
+    /** The zoom under test in strategy specs. */
     coreZoom: import('../../src/zoom').Zoom
+    /** The zoom under test in composed-entry specs: `createZoom()` with a renderer. */
     modalZoom: import('../../src/zoom').ModalZoom
   }
 }
 
+/** The stylesheets that candidate entries leave to the application. */
 export async function addModernStyles(page: Page) {
-  await page.addStyleTag({ url: '/experimental/dist/modern/style.css' })
+  for (const entry of ['modern', 'renderers', 'gallery']) {
+    await page.addStyleTag({ url: `/experimental/dist/${entry}/style.css` })
+  }
 }
 
 interface PageOptions {

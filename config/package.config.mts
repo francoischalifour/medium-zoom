@@ -27,6 +27,24 @@ export interface CandidateEntry extends PackageEntry {
   emitsCss: boolean
   budgets: readonly [number, number]
   cjs: string
+  /** Stylesheets the entry ships for the application to import. */
+  stylesheets?: readonly Stylesheet[]
+}
+/**
+ * A stylesheet built from its sources, inlined in order, published as
+ * `medium-zoom/<fileName>` and emitted as `dist/<fileName>`.
+ */
+export interface Stylesheet {
+  fileName: string
+  sources: readonly string[]
+  maxBytes: number
+}
+/** An entry whose styles the application imports; the first one is the entry's own. */
+function styled(
+  entry: CandidateEntry,
+  stylesheets: readonly Stylesheet[]
+): CandidateEntry {
+  return { ...entry, stylesheets, css: `dist/${stylesheets[0]!.fileName}` }
 }
 function optional(
   name: string,
@@ -106,7 +124,7 @@ export const extensionEntries: CandidateEntry[] = [
     'createZoom',
     'instance API',
     'engine/contracts; strategies imported separately',
-    [2_960, 2_960],
+    [3_370, 3_370],
     'dist/modern/style.css'
   ),
   optional(
@@ -115,7 +133,7 @@ export const extensionEntries: CandidateEntry[] = [
     'loadHdImage',
     'loading strategy',
     'detached media; readiness + cancellation',
-    [448, 448]
+    [464, 464]
   ),
   optional(
     'viewport',
@@ -139,15 +157,24 @@ export const extensionEntries: CandidateEntry[] = [
     'bindZoomTriggers',
     'DOM binding',
     'pointer/keyboard activation + cleanup',
-    [832, 832]
+    [840, 840]
   ),
-  optional(
-    'renderers',
-    'src/zoom/dialog.ts',
-    'dialog',
-    'modal renderer',
-    'native dialog + scene replacement',
-    [1_320, 1_320]
+  styled(
+    optional(
+      'renderers',
+      'src/zoom/dialog.ts',
+      'dialog',
+      'modal renderer',
+      'native dialog + scene replacement',
+      [1_660, 1_660]
+    ),
+    [
+      {
+        fileName: 'renderers/style.css',
+        sources: ['src/zoom/dialog.css'],
+        maxBytes: 180,
+      },
+    ]
   ),
   optional(
     'session',
@@ -162,23 +189,43 @@ export const extensionEntries: CandidateEntry[] = [
     'src/gallery/transition.ts',
     'galleryTransition',
     'transition runner',
-    'application effects with cancellation + reduced motion',
-    [600, 600]
+    'effect runner + slide; cancellation + reduced motion',
+    [660, 660]
   ),
-  optional(
-    'gallery',
-    'src/gallery/index.ts',
-    'createGallery',
-    'headless controller',
-    'selection/subscriptions + keyboard; no UI',
-    [896, 896]
+  styled(
+    optional(
+      'gallery',
+      'src/gallery/index.ts',
+      'createGallery',
+      'headless controller',
+      'headless controller + keyboard/gestures; optional stock controls',
+      // Gestures are about 3 KB of it, shaken out by consumers that do not bind them.
+      [5_280, 5_280]
+    ),
+    [
+      {
+        fileName: 'gallery/style.css',
+        sources: ['src/gallery/gallery.css'],
+        maxBytes: 980,
+      },
+      // The happy path: core, dialog and gallery styles in one request.
+      {
+        fileName: 'gallery.css',
+        sources: [
+          'src/zoom/medium-zoom.css',
+          'src/zoom/dialog.css',
+          'src/gallery/gallery.css',
+        ],
+        maxBytes: 1_168,
+      },
+    ]
   ),
 ]
 export const profileEntries: CandidateEntry[] = [
-  preset('compat', 'compat', true, [3_520, 3_520]),
-  preset('compat/pure', 'compat', false, [3_320, 3_320]),
+  preset('compat', 'compat', true, [3_540, 3_540]),
+  preset('compat/pure', 'compat', false, [3_340, 3_340]),
   preset('modern', 'modern', true, [3_420, 3_420]),
-  preset('pure', 'compat', false, [3_320, 3_320]),
+  preset('pure', 'compat', false, [3_340, 3_340]),
 ]
 export const candidateEntries = [...extensionEntries, ...profileEntries]
 export const candidateArtifacts = candidateEntries.flatMap(entry => [
@@ -188,6 +235,10 @@ export const candidateArtifacts = candidateEntries.flatMap(entry => [
 export const candidateBudgets = candidateEntries.flatMap(entry => [
   { path: entry.esm, maxBytes: entry.budgets[0] },
   { path: entry.cjs, maxBytes: entry.budgets[1] },
+  ...(entry.stylesheets || []).map(({ fileName, maxBytes }) => ({
+    path: `dist/${fileName}`,
+    maxBytes,
+  })),
 ])
 export function candidateManifest() {
   const exports: Record<string, unknown> = { ...legacyFixture.exports }
@@ -211,6 +262,9 @@ export function candidateManifest() {
     ]
     if (entry.injected) {
       sideEffects.push(`./${entry.esm}`, `./${entry.cjs}`)
+    }
+    for (const { fileName } of entry.stylesheets || []) {
+      exports[`./${fileName}`] = `./dist/${fileName}`
     }
   }
   return {

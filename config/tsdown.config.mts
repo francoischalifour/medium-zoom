@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 
 import { transformSync } from '@babel/core'
 import { type ecmaVersion, parse } from 'acorn'
-import { type Targets, transform as transformCss } from 'lightningcss'
+import { Features, type Targets, transform as transformCss } from 'lightningcss'
 import {
   type CompressOptions,
   minify as minifyJavaScript,
@@ -19,10 +19,13 @@ import {
   type CandidateEntry,
   type Profile,
   profileStylesheets,
+  type Stylesheet,
 } from './package.config.mts'
 
 const banner = `/*! ${pkg.name} ${pkg.version} | ${pkg.license} License | https://github.com/${pkg.repository} */`
-const stylesheetPath = new URL('../src/zoom/medium-zoom.css', import.meta.url)
+const stylesheetPath = fileURLToPath(
+  new URL('../src/zoom/medium-zoom.css', import.meta.url)
+)
 // Mangle the engine's private scene state; preserve public options and DOM APIs.
 const privateProperties = /^__mz_/
 
@@ -151,10 +154,10 @@ function stylesheet(profile: Profile): TsdownPlugin {
       if (id !== '\0medium-zoom-stylesheet') {
         return
       }
-      this.addWatchFile(stylesheetPath.pathname)
+      this.addWatchFile(stylesheetPath)
       const source = readFileSync(stylesheetPath, 'utf8')
       const code = transformCss({
-        filename: stylesheetPath.pathname,
+        filename: stylesheetPath,
         code: Buffer.from(css.prepare(source)),
         minify: true,
         targets: css.targets,
@@ -169,6 +172,40 @@ function stylesheet(profile: Profile): TsdownPlugin {
         style.textContent = ${JSON.stringify(code)};
         document.head.appendChild(style);
       }`
+    },
+  }
+}
+
+/** Ships an entry's stylesheets next to it, for the application to import. */
+function shippedStylesheets(stylesheets: readonly Stylesheet[]): TsdownPlugin {
+  const resolve = (source: string) =>
+    fileURLToPath(new URL(`../${source}`, import.meta.url))
+  return {
+    name: 'medium-zoom-shipped-stylesheets',
+    buildStart() {
+      stylesheets.forEach(({ sources }) =>
+        sources.forEach(source => this.addWatchFile(resolve(source)))
+      )
+    },
+    generateBundle() {
+      for (const { fileName, sources } of stylesheets) {
+        // Inlined rather than chained with @import, so a stylesheet is one request.
+        const code = sources
+          .map(source => readFileSync(resolve(source), 'utf8'))
+          .join('\n')
+        this.emitFile({
+          type: 'asset',
+          fileName,
+          source: transformCss({
+            filename: fileName,
+            code: Buffer.from(profiles.modern.css.prepare(code)),
+            minify: true,
+            targets: profiles.modern.css.targets,
+            // Lowered light-dark() needs color-scheme rules in the same stylesheet: keep it native.
+            exclude: Features.LightDark,
+          }).code.toString(),
+        })
+      }
     },
   }
 }
@@ -326,6 +363,10 @@ function entryBundle(
     },
     plugins: [
       ...(entry.emitsCss ? [stylesheet(profile)] : []),
+      // Once per entry: the ESM build emits the stylesheets for both formats.
+      ...(entry.stylesheets && format === 'esm'
+        ? [shippedStylesheets(entry.stylesheets)]
+        : []),
       browserSyntax(profile, format, true),
     ],
     ...(full &&

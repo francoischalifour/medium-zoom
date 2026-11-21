@@ -6,10 +6,16 @@ import {
   type ZoomLoader,
   type ZoomViewport,
 } from 'medium-zoom/core'
-import { bindGalleryKeyboard, createGallery } from 'medium-zoom/gallery'
+import {
+  bindGalleryGestures,
+  bindGalleryKeyboard,
+  createGallery,
+  galleryControls,
+} from 'medium-zoom/gallery'
 import { loadHdImage } from 'medium-zoom/loaders'
 import { dialog } from 'medium-zoom/renderers'
 import { createZoomSession } from 'medium-zoom/session'
+import { slide } from 'medium-zoom/transitions'
 import { bindZoomTriggers } from 'medium-zoom/triggers'
 import { containerBounds } from 'medium-zoom/viewport'
 
@@ -37,13 +43,32 @@ const zoom = createZoom('img', {
 })
 createZoom('img', { loader: loadHdImage, viewport })
 const session = createZoomSession(zoom)
-const unbind = bindZoomTriggers(zoom, session)
-const gallery = createGallery(zoom, session)
+// A session is a commander: triggers and galleries can route their requests through it.
+const unbind = bindZoomTriggers(zoom, { commander: session })
+const gallery = createGallery(zoom, { commander: session })
 const keys = bindGalleryKeyboard(document.createElement('div'), gallery)
+const gestures = createZoom('img', {
+  renderer: dialog({ content: view => bindGalleryGestures(view) }),
+})
+void gallery.select(1, { instant: true })
+// @ts-expect-error The gallery chooses the target.
+void gallery.select(1, { target: document.body })
+createZoom('img', {
+  renderer: dialog({
+    content: galleryControls({
+      closeLabel: 'Fermer',
+      positionLabel: (position, total) => `${position} sur ${total}`,
+    }),
+    transition: slide({ duration: 200 }),
+  }),
+})
+// @ts-expect-error Labels are strings.
+galleryControls({ closeLabel: 42 })
 void session.toggle()
 void session.open({ trigger: document.createElement('button') })
 void gallery.next()
 keys()
+void gestures
 unbind()
 gallery.dispose()
 void session.dispose()

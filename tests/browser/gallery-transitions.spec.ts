@@ -53,7 +53,9 @@ async function fixture(
               outgoing: outgoing.length,
               incoming: incoming.length,
               prepared: [...outgoing, ...incoming].every(
-                frame => !!frame.geometry && !!frame.element.style.transform
+                frame =>
+                  !!frame.transform &&
+                  frame.transform === frame.element.style.transform
               ),
               aborted: false,
               ownsDisposal: [...outgoing, ...incoming].some(
@@ -95,7 +97,9 @@ async function fixture(
       }),
     })
     const session = createZoomSession(window.modalZoom)
-    window.transitionGallery = createGallery(window.modalZoom, session)
+    window.transitionGallery = createGallery(window.modalZoom, {
+      commander: session,
+    })
     await session.open({ trigger: document.querySelector('#trigger')! })
   }, mode)
 }
@@ -124,6 +128,8 @@ test('consumer strategies receive prepared frames/direction while the engine own
   await page.evaluate(() => window.finishTransitions.shift()!())
   await expect.poll(() => page.evaluate(() => window.gallerySettled)).toBe(1)
   await expect(page.locator('dialog img')).toHaveCount(1)
+  // Pause as a browsing user would: an immediate change is stepping and skips the effect.
+  await page.waitForTimeout(350)
   await page.evaluate(() => {
     void window.transitionGallery.previous()
   })
@@ -156,7 +162,7 @@ test('clicking an outgoing frame interrupts the transition and closes', async ({
   ).toBeNull()
 })
 
-test('rapid navigation and close cancel obsolete effects and settle every request', async ({
+test('a change that interrupts a running effect swaps at once and settles every request', async ({
   page,
 }) => {
   await fixture(page)
@@ -169,21 +175,92 @@ test('rapid navigation and close cancel obsolete effects and settle every reques
   await page.evaluate(() => {
     void window.transitionGallery.next().then(() => window.gallerySettled++)
   })
-  await expect
-    .poll(() => page.evaluate(() => window.transitionLog.length))
-    .toBe(2)
-  expect(await page.evaluate(() => window.transitionLog[0]!.aborted)).toBe(true)
-  await page.evaluate(() => window.modalZoom.close())
   await expect.poll(() => page.evaluate(() => window.gallerySettled)).toBe(2)
-  expect(
-    await page.evaluate(() => window.transitionLog.every(call => call.aborted))
-  ).toBe(true)
+  expect(await page.evaluate(() => window.transitionLog.length)).toBe(1)
+  expect(await page.evaluate(() => window.transitionLog[0]!.aborted)).toBe(true)
+  await expect(page.getByRole('dialog', { name: 'Ocean' })).toBeVisible()
+  await expect(page.locator('dialog img')).toHaveCount(1)
+  await page.evaluate(() => window.modalZoom.close())
   await page.evaluate(() =>
     window.finishTransitions.forEach(finish => finish())
   )
   await expect(
     page.locator('dialog,.medium-zoom-image--opened,.medium-zoom-image--hidden')
   ).toHaveCount(0)
+})
+
+test('closing mid-effect zooms out from where the effect left the image', async ({
+  page,
+}) => {
+  await preparePage(page, {
+    body: '<img src="/images/image-1.jpg" width="160" alt="Sunset"><img src="/images/image-2.jpg" width="160" alt="Skateboard"><img src="/images/image-1.jpg" width="160" alt="Ocean">',
+  })
+  await addModernStyles(page)
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.evaluate(async () => {
+    const { createZoom } = await window.loadEntry('core')
+    const { dialog } = await window.loadEntry('renderers')
+    const { createGallery } = await window.loadEntry('gallery')
+    const { galleryTransition } = await window.loadEntry('transitions')
+    window.transitionLog = []
+    window.modalZoom = createZoom('img', {
+      renderer: dialog({
+        transition: galleryTransition(({ outgoing, incoming, direction }) => {
+          const animations = [
+            ...outgoing.map(({ element }) =>
+              element.animate({ opacity: 0 }, 10_000)
+            ),
+            ...incoming.map(({ element, transform }) =>
+              element.animate(
+                [
+                  {
+                    opacity: 0,
+                    transform: `translateX(${direction * 100}px) ${transform}`,
+                  },
+                  { opacity: 1, transform },
+                ],
+                10_000
+              )
+            ),
+          ]
+          // Paused halfway, so a close that resets frames shows as a jump.
+          animations.forEach(animation => {
+            animation.pause()
+            animation.currentTime = 5_000
+          })
+          window.transitionLog.push({} as never)
+          return new Promise<void>(() => {})
+        }),
+      }),
+    })
+    window.transitionGallery = createGallery(window.modalZoom)
+    await window.modalZoom.open()
+  })
+  const frames = () =>
+    page.evaluate(() =>
+      [...document.querySelectorAll('dialog img')].map(frame => ({
+        left: Math.round(frame.getBoundingClientRect().left),
+        opacity: Number(getComputedStyle(frame).opacity).toFixed(2),
+      }))
+    )
+  await page.evaluate(() => {
+    void window.transitionGallery.next()
+  })
+  await expect
+    .poll(() => page.evaluate(() => window.transitionLog.length))
+    .toBe(1)
+  const halfway = await frames()
+  expect(halfway.map(frame => frame.opacity)).toEqual(['0.50', '0.50'])
+  const closing = await page.evaluate(() => {
+    void window.modalZoom.close()
+    const frame = document.querySelector('dialog img:last-of-type')!
+    return {
+      left: Math.round(frame.getBoundingClientRect().left),
+      opacity: Number(getComputedStyle(frame).opacity).toFixed(2),
+    }
+  })
+  expect(closing).toEqual(halfway[1])
+  await expect(page.locator('dialog')).toHaveCount(0)
 })
 
 test('reduced motion bypasses strategies and interrupts a running strategy', async ({
@@ -194,6 +271,8 @@ test('reduced motion bypasses strategies and interrupts a running strategy', asy
   await page.evaluate(() => window.transitionGallery.next())
   expect(await page.evaluate(() => window.transitionLog.length)).toBe(0)
   await page.emulateMedia({ reducedMotion: 'no-preference' })
+  // Pause as a browsing user would: an immediate change is stepping and skips the effect.
+  await page.waitForTimeout(350)
   await page.evaluate(() => {
     void window.transitionGallery.next().then(() => window.gallerySettled++)
   })
@@ -249,7 +328,7 @@ test('the engine cancels Web Animations and retires every frame on detach', asyn
   expect(await page.evaluate(() => window.transitionLog[0]!.aborted)).toBe(true)
 })
 
-test('HD content is fitted before entering the strategy and keeps one accessible image', async ({
+test('the next image enters at once and sharpens in place once its effect settles', async ({
   page,
 }) => {
   await fixture(page)
@@ -257,10 +336,12 @@ test('HD content is fitted before entering the strategy and keeps one accessible
   const gate = new Promise<void>(resolve => {
     release = resolve
   })
+  let requested = false
   await page.route('**/pending-frame.jpg', async route => {
+    requested = true
     await gate
     await route.fulfill({
-      path: 'stories/images/image-1.jpg',
+      path: 'stories/images/image-2.jpg',
       contentType: 'image/jpeg',
     })
   })
@@ -270,22 +351,46 @@ test('HD content is fitted before entering the strategy and keeps one accessible
       .setAttribute('data-zoom-src', '/pending-frame.jpg')
     void window.transitionGallery.next().then(() => window.gallerySettled++)
   })
-  await expect(page.locator('dialog')).toHaveAttribute('aria-busy', 'true')
-  expect(await page.evaluate(() => window.transitionLog.length)).toBe(0)
-  await expect(
-    page.getByRole('dialog').getByRole('img', { name: 'Sunset' })
-  ).toHaveCount(1)
-  release()
+  // The effect starts with the preview while the high-resolution image is still loading.
   await expect
     .poll(() => page.evaluate(() => window.transitionLog.length))
     .toBe(1)
+  expect(requested).toBe(true)
   expect(await page.evaluate(() => window.transitionLog[0])).toMatchObject({
-    incoming: 2,
+    incoming: 1,
     prepared: true,
   })
-  await expect(page.getByRole('dialog').getByRole('img')).toHaveCount(1)
+  const dialog = page.getByRole('dialog', { name: 'Skateboard' })
+  await expect(dialog.getByRole('img')).toHaveCount(1)
+  // Arriving mid-effect, the sharp image waits for the scene to settle.
+  release()
+  await page.waitForResponse('**/pending-frame.jpg')
+  await expect(
+    page.locator('dialog img[src$="pending-frame.jpg"]')
+  ).toHaveCount(0)
   await page.evaluate(() => window.finishTransitions.shift()!())
   await expect.poll(() => page.evaluate(() => window.gallerySettled)).toBe(1)
+  const sharp = page.locator('dialog img[src$="pending-frame.jpg"]')
+  await expect(sharp).toHaveCount(1)
+  await expect(dialog.getByRole('img')).toHaveCount(1)
+  // It takes the preview's place: same box, nothing moves.
+  const boxes = await page
+    .locator('dialog img:not([aria-hidden])')
+    .evaluateAll(frames =>
+      frames.map(frame => {
+        const { left, top, width, height } = frame.getBoundingClientRect()
+        return [left, top, width, height].map(Math.round)
+      })
+    )
+  expect(boxes).toHaveLength(1)
+  const preview = await page
+    .locator('dialog img[aria-hidden]:not([src$="pending-frame.jpg"])')
+    .last()
+    .evaluate(frame => {
+      const { left, top, width, height } = frame.getBoundingClientRect()
+      return [left, top, width, height].map(Math.round)
+    })
+  expect(boxes[0]).toEqual(preview)
   await page.evaluate(() => window.modalZoom.close())
   await expect(page.locator('dialog')).toHaveCount(0)
 })
@@ -410,4 +515,39 @@ test('navigation from successive open events waits for each frame and retained h
       return result
     })
   ).toEqual({ current: 'third', dialogs: 1, frames: 1 })
+})
+
+test('slide() animates the incoming frame in from its side and settles in place', async ({
+  page,
+}) => {
+  await preparePage(page, {
+    body: '<img src="/images/image-1.jpg" width="160" alt="Sunset"><img src="/images/image-2.jpg" width="160" alt="Skateboard">',
+  })
+  await addModernStyles(page)
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.evaluate(async () => {
+    const { createZoom } = await window.loadEntry('core')
+    const { dialog } = await window.loadEntry('renderers')
+    const { slide } = await window.loadEntry('transitions')
+    window.modalZoom = createZoom('img', {
+      renderer: dialog({ transition: slide({ duration: 400 }) }),
+    })
+    await window.modalZoom.open()
+  })
+  const entering = await page.evaluate(async () => {
+    const opening = window.modalZoom.open({
+      target: document.querySelectorAll('body > img')[1] as HTMLElement,
+    })
+    await new Promise(resolve => setTimeout(resolve, 100))
+    const frame = document.querySelector('dialog img:last-of-type')!
+    const left = frame.getBoundingClientRect().left
+    await opening
+    return {
+      left,
+      settled: frame.getBoundingClientRect().left,
+      frames: document.querySelectorAll('dialog img').length,
+    }
+  })
+  expect(entering.left).toBeGreaterThan(entering.settled)
+  expect(entering.frames).toBe(1)
 })

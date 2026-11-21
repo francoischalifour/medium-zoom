@@ -32,7 +32,7 @@ async function fixture(page: Page, hd = false) {
     const { templateContent } = await window.loadEntry('content')
     const { dialog } = await window.loadEntry('renderers')
     const { mountCloseControl } = await import(
-      String('/experiments/gallery-controls.mjs')
+      String('/experiments/close-control.mjs')
     )
     let selected: import('../../src/preset/medium-zoom').ZoomOptions = {}
     window.modalZoom = createZoom('#image', {
@@ -188,7 +188,6 @@ test('top layer and scrolled geometry with custom container, backdrop and image 
       document.querySelector('dialog')!.matches(':modal')
     )
   ).toBe(true)
-  await page.screenshot({ path: '.cache/dialog.png' })
   await page.locator('dialog img').click()
   await expect(page.locator('dialog')).toHaveCount(0)
   await page.evaluate(() => window.modalZoom.open())

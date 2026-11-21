@@ -5,13 +5,10 @@ export interface ZoomBounds {
   readonly width: number
   readonly height: number
 }
-/** The fitted transform of a frame: `scale(scale) translate3d(translateX, translateY, 0)`. */
-export interface FrameGeometry {
-  readonly scale: number
-  readonly translateX: number
-  readonly translateY: number
-}
-
+/**
+ * Pure positioning: the transform that scales a box up to its intrinsic size without
+ * leaving the viewport, then centers it there.
+ */
 export function fitBox(
   layout: ZoomBounds,
   intrinsicWidth: number,
@@ -34,11 +31,4 @@ export function fitBox(
   const translateY =
     (viewport.top + viewportHeight / 2 - layout.top - height / 2) / scale
   return `scale(${scale}) translate3d(${translateX}px, ${translateY}px, 0)`
-}
-
-const TRANSFORM_VALUES = /[-\d.e+]+(?=px|\))/g
-
-export function readGeometry(transform: string): FrameGeometry {
-  const values = transform.match(TRANSFORM_VALUES)!.map(Number)
-  return { scale: values[0]!, translateX: values[1]!, translateY: values[2]! }
 }

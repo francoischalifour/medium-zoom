@@ -6,14 +6,23 @@ import {
   isEscape,
 } from '#platform'
 
-import { createOverlay, getImagesFromSelectors, removeNode } from './dom'
+import {
+  createOverlay,
+  getImagesFromSelectors,
+  pageBackground,
+  removeNode,
+} from './dom'
 import { cloneImage, fitImage, type Frame, type ZoomTarget } from './frame'
 import type { ZoomBounds } from './geometry'
 import { waitForTransition } from './transition'
 
 /** The images to zoom: a CSS selector, an element, a list of elements, or `null` for none. */
 export type ZoomSelector =
-  string | HTMLElement | HTMLElement[] | NodeList | null
+  | string
+  | HTMLElement
+  | HTMLElement[]
+  | NodeList
+  | null
 
 /** Options every zoom accepts, in every entry. Change them later with `zoom.update()`. */
 export interface CoreZoomOptions {
@@ -27,7 +36,7 @@ export interface CoreZoomOptions {
   /**
    * The background of the overlay.
    *
-   * @default '#fff'
+   * @default the page's background color when the zoom opens; '#fff' in the presets
    */
   background?: string
 
@@ -57,6 +66,12 @@ export interface ModalOpenOptions extends ZoomOpenOptions {
    * @default document.activeElement
    */
   trigger?: HTMLElement
+  /**
+   * Replaces the open image at once, as while stepping: no scene transition, and the
+   * high-resolution image loads after a pause. For gestures that already moved the new
+   * image into place, such as a swipe.
+   */
+  instant?: boolean
 }
 
 /**
@@ -201,19 +216,27 @@ export interface Scene {
   __mz_viewportScale?: number
   __mz_isPinching?: boolean
   __mz_scrollTimer?: ReturnType<typeof setTimeout>
+  /** Cancels a high-resolution upgrade still scheduled or loading. */
+  __mz_release?: () => void
+  /** When the scene was requested, to tell stepping from browsing. */
+  __mz_requested?: number
 }
 
 /** What a loader works from when a zoom opens. */
 export interface ZoomLoadContext {
   /** The attached image the zoom opened from. */
   readonly original: HTMLImageElement
-  /** The frame on screen: a clone of `original`, already presented and animating. */
+  /**
+   * The frame on screen, a clone of `original`. Composed zooms present it before loading;
+   * the presets fit it once `ready()` is called.
+   */
   readonly clone: HTMLImageElement
 }
 /**
  * Supplies a higher-resolution image for an opening zoom. Call `ready()` with a detached,
  * loaded image to show it over the frame, or without one to keep the frame. Return a cleanup
- * that cancels loading; the zoom calls it when the opening ends or is cancelled.
+ * that cancels loading; the zoom calls it once the image is no longer needed: when the
+ * opening ends or is cancelled, or when a stepping scene is replaced or closed.
  */
 export type ZoomLoader = (
   context: ZoomLoadContext,
@@ -240,14 +263,18 @@ export interface LegacyAdapter<Options extends CoreZoomOptions> {
 export interface Stage {
   mount(context: {
     readonly zoom: ZoomInstance
-    close: Cleanup
+    close: () => void
     readonly trigger?: HTMLElement
   }): StageView
 }
 export interface StageView {
   readonly element: HTMLElement
-  /** Another scene replaces the one whose frames and source are given: keep them on stage. */
-  take(frames: readonly Frame[], source: ZoomTarget): void
+  /**
+   * Another scene replaces the one whose frames and source are given: keep them on stage.
+   * `stepping` when the user moves on before a pause, as while holding an arrow key.
+   */
+  take(frames: readonly Frame[], source: ZoomTarget, stepping: boolean): void
+  /** A frame joined the host and is not positioned yet. */
   enter(frame: Frame): void
   /**
    * Frames are fitted. Return a cancellation when the stage presents them itself and
@@ -264,6 +291,9 @@ export interface StageView {
 /** Fixed presets replace this flag at build time so the bundler can remove strategy checks. */
 declare const __PRESET__: boolean
 
+// Moving on sooner than this after a scene is stepping, as while holding an arrow key.
+const pause = 300
+type Preload = (target: HTMLElement) => void
 export const createEngine = <Options extends CoreZoomOptions>(
   loader?: ZoomLoader,
   measureViewport?: ZoomViewport,
@@ -471,6 +501,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
         }
       }
       const current: Scene = {}
+      let stepping = false
 
       return new Promise<ZoomInstance<Options>>((resolve, reject) => {
         if (
@@ -482,6 +513,16 @@ export const createEngine = <Options extends CoreZoomOptions>(
           return
         }
         if (previous) {
+          // Moving on before the previous scene settled, or right after it, is stepping.
+          if (!__PRESET__) {
+            stepping =
+              !!options.instant ||
+              !!previous.__mz_cancelOpen ||
+              Date.now() - previous.__mz_requested! < pause
+            if (previous.__mz_release) {
+              previous.__mz_release()
+            }
+          }
           if (previous.__mz_cancelOpen) {
             previous.__mz_cancelOpen()
           }
@@ -495,13 +536,19 @@ export const createEngine = <Options extends CoreZoomOptions>(
           current.__mz_view = previous.__mz_view
           current.__mz_view!.take(
             previous.__mz_frames!,
-            previous.__mz_original!
+            previous.__mz_original!,
+            stepping
           )
         }
         active = current
+        if (!__PRESET__) {
+          current.__mz_requested = Date.now()
+        }
 
         let cancelTransition: (() => void) | void
         let cancelImage: (() => void) | void
+        // High-resolution media that arrived while the scene was still moving into place.
+        let arrived: { media?: HTMLImageElement } | undefined
         let frame: number
         const fail = (error: unknown) => {
           reject(error)
@@ -529,6 +576,9 @@ export const createEngine = <Options extends CoreZoomOptions>(
           if (opened) {
             document.body.classList.add('medium-zoom--opened')
             _dispatchEvent(current.__mz_original!, 'opened')
+            if (!__PRESET__ && arrived) {
+              upgrade(arrived.media)
+            }
           }
         }
         const settle = (error?: unknown) => {
@@ -586,6 +636,10 @@ export const createEngine = <Options extends CoreZoomOptions>(
         const host = stage ? current.__mz_view!.element : document.body
         // A replaced scene keeps its backdrop, below the frames still on stage.
         if (!previous) {
+          // Without a background option, the backdrop matches the page in its current theme.
+          if (!__PRESET__ && !zoomOptions.background) {
+            overlay.style.background = pageBackground()
+          }
           host.appendChild(overlay)
         }
         try {
@@ -610,43 +664,63 @@ export const createEngine = <Options extends CoreZoomOptions>(
           document.body.classList.add('medium-zoom--opened')
         })
 
-        current.__mz_original.classList.add('medium-zoom-image--hidden')
+        if (__PRESET__ || primary.complete) {
+          current.__mz_original.classList.add('medium-zoom-image--hidden')
+        } else {
+          // A copy the browser loads again paints nothing yet: the page image stays until it can.
+          const hide = () => {
+            if (active === current && !current.__mz_closing) {
+              current.__mz_original!.classList.add('medium-zoom-image--hidden')
+            }
+          }
+          void primary.decode().then(hide, hide)
+        }
         primary.classList.add('medium-zoom-image--opened')
 
+        const fit = (content: Frame, fill?: boolean) => {
+          const margin = zoomOptions.margin!
+          const bounds = {
+            width: document.documentElement.clientWidth - margin * 2,
+            height: document.documentElement.clientHeight - margin * 2,
+            left: margin,
+            top: margin,
+          }
+          return fitImage(
+            content,
+            __PRESET__
+              ? measureViewport!(bounds, zoomOptions)
+              : (measureViewport && measureViewport(bounds, zoomOptions)) ||
+                  bounds,
+            fill
+          )
+        }
+        // Shows high-resolution media over the frame, in the frame's presentation.
+        const join = (media: HTMLImageElement) => {
+          // The preset's own loader already copied the frame's presentation.
+          if (!__PRESET__ && adoptMedia) {
+            adoptMedia(primary, media)
+          }
+          // An authored load handler may have replaced the copied classes.
+          media.classList.add('medium-zoom-image--opened')
+          media.addEventListener('click', _close)
+          host.appendChild(media)
+          current.__mz_frames!.push(media)
+        }
         let prepared = false
-        const animate = (media?: HTMLImageElement) => {
+        // `fill` presents the frame at the size its high-resolution image will have, so that
+        // image later appears in place instead of growing out of a smaller preview.
+        const animate = (media?: HTMLImageElement, fill?: boolean) => {
           if ((!__PRESET__ && prepared) || !current.__mz_cancelOpen) {
             return
           }
           prepared = true
           try {
             const frames = current.__mz_frames!
-            let content = primary
+            const content = media || primary
             if (media) {
-              if (!__PRESET__ && adoptMedia) {
-                adoptMedia(primary, media)
-              }
-              content = media
-              // An authored load handler may have replaced the copied classes.
-              content.classList.add('medium-zoom-image--opened')
-              content.addEventListener('click', _close)
-              host.appendChild(content)
-              frames.push(content)
+              join(media)
             }
-            const margin = zoomOptions.margin!
-            const bounds = {
-              width: document.documentElement.clientWidth - margin * 2,
-              height: document.documentElement.clientHeight - margin * 2,
-              left: margin,
-              top: margin,
-            }
-            const transform = fitImage(
-              content,
-              __PRESET__
-                ? measureViewport!(bounds, zoomOptions)
-                : (measureViewport && measureViewport(bounds, zoomOptions)) ||
-                    bounds
-            )
+            const transform = fit(content, !__PRESET__ && fill)
             if (stage) {
               cancelTransition = current.__mz_view!.present(
                 frames,
@@ -670,8 +744,100 @@ export const createEngine = <Options extends CoreZoomOptions>(
           }
         }
 
+        // Settles a presented scene on its high-resolution image, or on the preview's own size.
+        const upgrade = (media?: HTMLImageElement) => {
+          if (active !== current || current.__mz_closing) {
+            return
+          }
+          const frames = current.__mz_frames!
+          const content = media || primary
+          if (media) {
+            join(media)
+            // Sharpening fades in over the preview instead of popping.
+            media.animate({ opacity: [0, 1] }, 200)
+          }
+          // Fitting measures the untransformed box: measure it without a transition, then
+          // let the frames move only if the final fit differs from the preview's. A gesture
+          // may be holding the frame zoomed with the individual transform properties.
+          const { style } = content
+          const shown = [style.transform, style.translate, style.scale]
+          style.setProperty('transition', 'none', 'important')
+          style.transform = style.translate = style.scale = ''
+          const transform = fit(content)
+          ;[style.transform, style.translate, style.scale] = shown
+          content.getBoundingClientRect()
+          content.style.removeProperty('transition')
+          // The scene is already presented: this only describes the new frames to the stage.
+          if (media) {
+            current.__mz_view!.present(frames, transform, () => {})
+          }
+          if (transform) {
+            frames.forEach(frame => {
+              frame.style.transform = transform
+            })
+          }
+        }
+
         try {
-          if (__PRESET__ || loader) {
+          if (!__PRESET__ && loader) {
+            // Composed zooms never wait for high resolution: they present the frame at once and
+            // sharpen it in place once the scene has settled.
+            const show = (media?: HTMLImageElement) => {
+              try {
+                if (!prepared) {
+                  // Answered at once, as when there is nothing to load: present it directly.
+                  animate(media)
+                } else if (current.__mz_cancelOpen) {
+                  arrived = { media }
+                } else {
+                  upgrade(media)
+                }
+              } catch {
+                void close()
+              }
+            }
+            // Media arriving after the frame is presented is decoded before it is shown, so it
+            // never appears blank or costs a frame on screen.
+            const ready = (media?: HTMLImageElement) =>
+              prepared && media
+                ? void media
+                    .decode()
+                    .catch(() => {})
+                    .then(() => show(media))
+                : show(media)
+            let cancel: (() => void) | void
+            const load = () => {
+              cancel = loader(
+                {
+                  original: current.__mz_original as HTMLImageElement,
+                  clone: primary,
+                },
+                ready
+              )
+            }
+            // Stepping loads only after a pause, so images passed on the way are never downloaded.
+            let timer: ReturnType<typeof setTimeout> | undefined
+            if (stepping) {
+              timer = setTimeout(() => {
+                try {
+                  load()
+                } catch {
+                  void close()
+                }
+              }, pause)
+            } else {
+              load()
+            }
+            if (!prepared) {
+              animate(undefined, true)
+            }
+            current.__mz_release = () => {
+              clearTimeout(timer)
+              if (cancel) {
+                cancel()
+              }
+            }
+          } else if (__PRESET__) {
             cancelImage = loader!(
               {
                 original: current.__mz_original as HTMLImageElement,
@@ -706,6 +872,9 @@ export const createEngine = <Options extends CoreZoomOptions>(
         }
 
         current.__mz_closing = true
+        if (!__PRESET__ && current.__mz_release) {
+          current.__mz_release()
+        }
         if (current.__mz_cancelOpen) {
           current.__mz_cancelOpen()
         }
@@ -801,6 +970,17 @@ export const createEngine = <Options extends CoreZoomOptions>(
       void close()
     }
 
+    if (!__PRESET__) {
+      ;(zoom as ZoomInstance<Options> & { preload: Preload }).preload =
+        target => {
+          if (loader && images.indexOf(target as ZoomTarget) > -1) {
+            loader(
+              { original: target, clone: target } as ZoomLoadContext,
+              () => {}
+            )
+          }
+        }
+    }
     if (Object.prototype.toString.call(selector) === '[object Object]') {
       zoomOptions = selector as Options
     } else if (
@@ -811,7 +991,11 @@ export const createEngine = <Options extends CoreZoomOptions>(
     }
 
     zoomOptions = assign(
-      { margin: 0, background: '#fff', scrollOffset: 40 },
+      {
+        margin: 0,
+        background: __PRESET__ ? '#fff' : undefined,
+        scrollOffset: 40,
+      },
       __PRESET__ ? legacy!.defaults : undefined,
       zoomOptions
     )

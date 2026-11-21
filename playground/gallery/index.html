@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Gallery · Medium Zoom</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Gallery</h1>
+        <p>
+          Open a photograph, then browse with the arrows or a swipe. Pinch or
+          double-tap to look closer.
+        </p>
+      </header>
+      <div class="gallery">
+        <img
+          src="/images/ocean-sunset-preview.webp"
+          srcset="
+            /images/ocean-sunset-preview-small.webp  480w,
+            /images/ocean-sunset-preview-medium.webp 720w,
+            /images/ocean-sunset-preview.webp        960w
+          "
+          sizes="(max-width: 600px) 50vw, 320px"
+          data-zoom-src="/images/ocean-sunset.jpg"
+          width="1920"
+          height="1280"
+          style="--ratio: 1.5"
+          alt="Waves rolling onto a beach under an orange and purple sunset"
+        />
+        <img
+          src="/images/roosevelt-preview.webp"
+          data-zoom-src="/images/roosevelt.jpg"
+          width="1600"
+          height="2400"
+          style="--ratio: 0.667"
+          alt="Roosevelt Arch at sunrise on a fall morning"
+        />
+        <img
+          src="/images/denali-preview.webp"
+          srcset="
+            /images/denali-preview-small.webp 480w,
+            /images/denali-preview.webp       960w
+          "
+          sizes="(max-width: 600px) 50vw, 320px"
+          data-zoom-src="/images/denali.jpg"
+          width="2400"
+          height="1594"
+          style="--ratio: 1.506"
+          alt="Denali glowing pink in the sunrise alpenglow"
+        />
+        <img
+          src="/images/earth-preview.webp"
+          srcset="
+            /images/earth-preview-small.webp 480w,
+            /images/earth-preview.webp       960w
+          "
+          sizes="(max-width: 600px) 50vw, 320px"
+          data-zoom-src="/images/earth.webp"
+          width="1041"
+          height="1041"
+          style="--ratio: 1.0"
+          alt="Earth from space, centered on the Americas"
+        />
+        <img
+          src="/images/skateboard-preview.webp"
+          data-zoom-src="/images/skateboard.jpg"
+          width="1920"
+          height="1208"
+          style="--ratio: 1.589"
+          alt="A floral longboard tossed in front of a wooden fence"
+        />
+        <img
+          src="/images/portrait-preview.webp"
+          data-zoom-src="/images/portrait.jpg"
+          width="1280"
+          height="1920"
+          style="--ratio: 0.667"
+          alt="A calico cat with a collar sitting in the grass at night"
+        />
+        <img
+          src="/images/aurora-preview.webp"
+          srcset="
+            /images/aurora-preview-small.webp 480w,
+            /images/aurora-preview.webp       960w
+          "
+          sizes="(max-width: 600px) 50vw, 320px"
+          data-zoom-src="/images/aurora.jpg"
+          width="2400"
+          height="1600"
+          style="--ratio: 1.5"
+          alt="An aurora over the Yellowstone River"
+        />
+        <img
+          src="/images/panorama-preview.webp"
+          data-zoom-src="/images/panorama.jpg"
+          width="1920"
+          height="709"
+          style="--ratio: 2.708"
+          alt="A person walking across a dark beach under storm clouds"
+        />
+        <img
+          src="/images/cat-preview.webp"
+          data-zoom-src="/images/cat.jpg"
+          width="1334"
+          height="1920"
+          style="--ratio: 0.695"
+          alt="A long-haired tabby cat with green eyes"
+        />
+        <img
+          src="/images/yellowstone-preview.webp"
+          srcset="
+            /images/yellowstone-preview-small.webp 480w,
+            /images/yellowstone-preview.webp       960w
+          "
+          sizes="(max-width: 600px) 50vw, 320px"
+          data-zoom-src="/images/yellowstone.jpg"
+          width="2400"
+          height="1600"
+          style="--ratio: 1.5"
+          alt="Sunrise over the steaming Terrace Spring in Yellowstone"
+        />
+        <img
+          src="/images/sun-preview.webp"
+          data-zoom-src="/images/sun.jpg"
+          width="1041"
+          height="1041"
+          style="--ratio: 1.0"
+          alt="A solar flare on the Sun, seen in ultraviolet light"
+        />
+        <img
+          src="/images/concert-preview.webp"
+          data-zoom-src="/images/concert.jpg"
+          width="1920"
+          height="1280"
+          style="--ratio: 1.5"
+          alt="A singer raising a hand through stage smoke and lights"
+        />
+        <img
+          src="/images/skater.jpg"
+          width="1920"
+          height="1280"
+          style="--ratio: 1.5"
+          alt="A skateboarder riding across a rooftop parking lot at sunset"
+        />
+      </div>
+    </main>
+    <footer>
+      <p>
+        Denali, Yellowstone, Roosevelt Arch and aurora photographs by the
+        <a href="https://www.nps.gov/aboutus/disclaimer.htm"
+          >National Park Service</a
+        >. Earth and Sun by
+        <a href="https://www.nasa.gov/nasa-brand-center/images-and-media/"
+          >NASA</a
+        >.
+      </p>
+    </footer>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

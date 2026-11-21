@@ -39,9 +39,15 @@ export function cloneImage(image: HTMLImageElement, fixed?: unknown): Frame {
   return clone
 }
 
-export function fitImage(frame: Frame, viewport: ZoomBounds): string | null {
+/** `fill` fits the frame to the viewport whatever its own size, like an SVG file. */
+export function fitImage(
+  frame: Frame,
+  viewport: ZoomBounds,
+  fill?: boolean
+): string | null {
   // SVG files have no reliable intrinsic size: let them fill the viewport.
-  const vector = isSvgSource(frame.currentSrc || frame.src)
+  const vector =
+    (!__PRESET__ && fill) || isSvgSource(frame.currentSrc || frame.src)
   return fitBox(
     frame.getBoundingClientRect(),
     vector ? 0 : frame.naturalWidth,

@@ -34,9 +34,14 @@ for (const [entry, names] of Object.entries({
   viewport: ['containerBounds'],
   content: ['templateContent'],
   triggers: ['bindZoomTriggers'],
-  gallery: ['createGallery', 'bindGalleryKeyboard'],
+  gallery: [
+    'createGallery',
+    'bindGalleryKeyboard',
+    'bindGalleryGestures',
+    'galleryControls',
+  ],
   session: ['createZoomSession'],
-  transitions: ['galleryTransition'],
+  transitions: ['galleryTransition', 'slide'],
   renderers: ['dialog'],
 })) {
   const esm = await import(`medium-zoom/${entry}`)

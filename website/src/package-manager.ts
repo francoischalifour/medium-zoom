@@ -17,7 +17,7 @@ export function getPackageManager(): PackageManager {
   )
 }
 
-export function getServerPackageManager(): PackageManager {
+function getServerPackageManager(): PackageManager {
   return packageManagerPreference.fallback
 }
 
@@ -29,7 +29,7 @@ export function setPackageManager(manager: PackageManager) {
   window.dispatchEvent(new Event(changeEvent))
 }
 
-export function subscribePackageManager(onChange: () => void) {
+function subscribePackageManager(onChange: () => void) {
   const listeners = new AbortController()
   const options = { signal: listeners.signal }
   const restore = () => {

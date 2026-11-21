@@ -1,14 +1,21 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import { fitBox as fit, readGeometry } from '../src/zoom/geometry.ts'
+import { fitBox as fit } from '../src/zoom/geometry.ts'
+
+const readGeometry = (transform: string) => {
+  const [scale, translateX, translateY] = transform
+    .match(/[-\d.e+]+(?=px|\))/g)!
+    .map(Number)
+  return { scale, translateX, translateY }
+}
 
 const fitBox = (...args: Parameters<typeof fit>) => {
   const transform = fit(...args)
   return transform === null ? null : { ...readGeometry(transform), transform }
 }
 
-test('fit preserves v1 raster positioning across viewport, source, and intrinsic sizes', () => {
+void test('fit preserves v1 raster positioning across viewport, source, and intrinsic sizes', () => {
   for (const left of [-200, 0, 75]) {
     for (const top of [-100, 0, 250]) {
       for (const width of [80, 160, 800]) {
@@ -46,7 +53,7 @@ test('fit preserves v1 raster positioning across viewport, source, and intrinsic
   }
 })
 
-test('a zero-size box has no geometry and missing intrinsic dimensions stay finite', () => {
+void test('a zero-size box has no geometry and missing intrinsic dimensions stay finite', () => {
   const box = { left: 0, top: 0, width: 160, height: 100 }
   const viewport = { left: 0, top: 0, width: 800, height: 600 }
   assert.equal(fitBox({ ...box, width: 0 }, 0, 0, viewport), null)
@@ -58,7 +65,7 @@ test('a zero-size box has no geometry and missing intrinsic dimensions stay fini
   )
 })
 
-test('the transform applies exactly the fitted geometry, including fractional bounds', () => {
+void test('the transform applies exactly the fitted geometry, including fractional bounds', () => {
   for (const size of [80, 160.25, 800]) {
     for (const natural of [0, 400, 1_200]) {
       const layout = {

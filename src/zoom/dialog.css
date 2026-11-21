@@ -1,0 +1,21 @@
+/* Layered, so any unlayered application rule wins without a specificity contest. */
+@layer medium-zoom {
+  .medium-zoom-dialog::backdrop {
+    background: transparent;
+  }
+
+  /* The full-window dialog can hold focus itself; a ring around the window helps no one. */
+  .medium-zoom-dialog:focus {
+    outline: none;
+  }
+
+  .medium-zoom-dialog > .medium-zoom-overlay {
+    z-index: -1;
+  }
+
+  /* Frames still leaving when the zoom closes fade with the overlay instead of lingering. */
+  body:not(.medium-zoom--opened) .medium-zoom-image--leaving {
+    opacity: 0 !important;
+    transition: opacity 300ms !important;
+  }
+}

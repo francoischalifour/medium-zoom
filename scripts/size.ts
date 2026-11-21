@@ -55,7 +55,10 @@ interface Composition {
   session?: boolean
   gallery?: boolean
   keyboard?: boolean
+  gestures?: boolean
   transition?: boolean
+  controls?: boolean
+  slide?: boolean
 }
 const compositions: Record<string, Composition> = {
   core: {},
@@ -78,6 +81,11 @@ const compositions: Record<string, Composition> = {
     session: true,
     keyboard: true,
   },
+  'core + dialog + gallery + gestures': {
+    dialog: true,
+    gallery: true,
+    gestures: true,
+  },
   'core + dialog + gallery + session + custom transition': {
     dialog: true,
     gallery: true,
@@ -93,6 +101,14 @@ const compositions: Record<string, Composition> = {
     loader: true,
     viewport: true,
     content: true,
+  },
+  'stock gallery: HD loader + dialog + controls + slide + triggers': {
+    loader: true,
+    dialog: true,
+    gallery: true,
+    controls: true,
+    slide: true,
+    triggers: true,
   },
 }
 const presets: Record<string, { entry: string; css?: string }> = {
@@ -117,11 +133,18 @@ function compositionSource(composition: Composition): string {
     session,
     gallery,
     keyboard,
+    gestures,
     transition,
+    controls,
+    slide,
   } = composition
   const contents = [
     content && 'templateContent("#caption")(view)',
-    keyboard && 'bindGalleryKeyboard(view.element, createGallery(view.zoom))',
+    controls
+      ? 'galleryControls()(view)'
+      : keyboard &&
+        'bindGalleryKeyboard(view.element, createGallery(view.zoom))',
+    gestures && 'bindGalleryGestures(view)',
   ].filter(Boolean)
   return `
     import { createZoom } from ${entry('core')}
@@ -131,8 +154,9 @@ function compositionSource(composition: Composition): string {
     ${triggers ? `import { bindZoomTriggers } from ${entry('triggers')}` : ''}
     ${dialog ? `import { dialog } from ${entry('renderers')}` : ''}
     ${session ? `import { createZoomSession } from ${entry('session')}` : ''}
-    ${gallery ? `import { createGallery, bindGalleryKeyboard } from ${entry('gallery')}` : ''}
+    ${gallery ? `import { createGallery, bindGalleryKeyboard${controls ? ', galleryControls' : ''}${gestures ? ', bindGalleryGestures' : ''} } from ${entry('gallery')}` : ''}
     ${transition ? `import { galleryTransition } from ${entry('transitions')}` : ''}
+    ${slide ? `import { slide } from ${entry('transitions')}` : ''}
     const zoom = createZoom('img', {
       ${loader ? 'loader: loadHdImage,' : ''}
       ${viewport ? 'viewport: containerBounds(document.body),' : ''}
@@ -144,6 +168,7 @@ function compositionSource(composition: Composition): string {
             ? `content: view => { const cleanups = [${contents.join(', ')}]; return () => cleanups.forEach(cleanup => cleanup && cleanup()) },`
             : ''
         }
+        ${slide ? 'transition: slide(),' : ''}
         ${
           transition
             ? 'transition: galleryTransition(({ incoming, signal }) => Promise.all(incoming.map(frame => { const animation = frame.element.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 120 }); signal.addEventListener("abort", () => animation.cancel()); return animation.finished })).then(() => {})),'
@@ -154,8 +179,8 @@ function compositionSource(composition: Composition): string {
       }
     })
     ${session ? 'const session = globalThis.session = createZoomSession(zoom)' : ''}
-    ${gallery ? `globalThis.gallery = createGallery(zoom${session ? ', session' : ''})` : ''}
-    ${triggers ? `globalThis.unbind = bindZoomTriggers(zoom${session ? ', session' : ''})` : ''}
+    ${gallery ? `globalThis.gallery = createGallery(zoom${session ? ', { commander: session }' : ''})` : ''}
+    ${triggers ? `globalThis.unbind = bindZoomTriggers(zoom${session ? ', { commander: session }' : ''})` : ''}
     globalThis.zoom = zoom`
 }
 
@@ -167,10 +192,29 @@ function assertIsolation(
   const preset = !composition
   const expected: [marker: string, present: boolean, capability: string][] = [
     ['showModal', !!composition?.dialog, 'dialog'],
-    ['ArrowLeft', !!composition?.keyboard, 'gallery keyboard'],
+    [
+      'ArrowLeft',
+      !!(
+        composition?.keyboard ||
+        composition?.controls ||
+        composition?.gestures
+      ),
+      'gallery keys',
+    ],
     ['getSnapshot', !!composition?.gallery, 'gallery'],
-    ['AbortController', !!composition?.transition, 'transition runner'],
-    ['.repeat', !!composition?.triggers, 'triggers'],
+    [
+      'AbortController',
+      !!(composition?.transition || composition?.slide),
+      'transition runner',
+    ],
+    ['medium-zoom-control', !!composition?.controls, 'gallery controls'],
+    [
+      'pointerdown',
+      !!(composition?.controls || composition?.gestures),
+      'gallery gestures',
+    ],
+    ['translateX(', !!composition?.slide, 'slide transition'],
+    ['isContentEditable', !!composition?.triggers, 'triggers'],
     ['data-zoom-src', preset || !!composition?.loader, 'HD loader'],
     [
       '.content.cloneNode',
@@ -197,6 +241,12 @@ async function measureConsumers() {
   const directory = mkdtempSync(join(tmpdir(), 'medium-zoom-size-'))
   const results: Record<string, { js: number; css: number }> = {}
   const modernCss = fileSize('dist/modern/style.css')
+  // The stylesheets an application loads for the composition: stock controls take the
+  // combined one, a bare dialog adds its own to the core's.
+  const compositionCss = ({ dialog, controls }: Composition) =>
+    controls
+      ? fileSize('dist/gallery.css')
+      : modernCss + (dialog ? fileSize('dist/renderers/style.css') : 0)
   try {
     const inputs: {
       name: string
@@ -212,7 +262,7 @@ async function measureConsumers() {
       ...Object.entries(compositions).map(([name, composition]) => ({
         name,
         source: compositionSource(composition),
-        css: modernCss,
+        css: compositionCss(composition),
         composition,
       })),
     ]

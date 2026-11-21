@@ -1,6 +1,6 @@
 import { siteOrigin } from './site-url.ts'
 
-export const galleryAssetBase = '/assets/'
+const galleryAssetBase = '/assets/'
 
 export type ExampleImage = {
   id: string

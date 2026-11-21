@@ -47,10 +47,11 @@ const ZoomContext = React.createContext<{
 
 function useZoomContext() {
   const context = React.useContext(ZoomContext)
-  if (!context)
+  if (!context) {
     throw new Error(
       'ImageZoom.Trigger and ImageZoom.Image require ImageZoom.Root.'
     )
+  }
   return context
 }
 
@@ -77,7 +78,9 @@ export function Root({
   const [zoomed, setZoomed] = React.useState(false)
 
   const requestOpen = React.useCallback((next: boolean) => {
-    if (requestedRef.current === next) return
+    if (requestedRef.current === next) {
+      return
+    }
     requestedRef.current = next
     setUncontrolledOpen(next)
     changeRef.current?.(next)
@@ -90,7 +93,9 @@ export function Root({
 
   React.useEffect(() => {
     changeRef.current = onOpenChange
-    if (disabled) requestOpen(false)
+    if (disabled) {
+      requestOpen(false)
+    }
     wantedRef.current = wantedOpen
     requestedRef.current = wantedOpen
   })
@@ -101,19 +106,27 @@ export function Root({
   }, [options])
 
   React.useEffect(() => {
-    if (disabled || !image) return
+    if (disabled || !image) {
+      return
+    }
     let disposed = false
     let session: Session | null = null
     const onOpen = () => setZoomed(true)
     const onClose = () => {
-      if (!disposed) requestOpen(false)
+      if (!disposed) {
+        requestOpen(false)
+      }
     }
     const onClosed = () => {
-      if (image.isConnected) setZoomed(false)
+      if (image.isConnected) {
+        setZoomed(false)
+      }
     }
 
     const attach = () => {
-      if (disposed) return
+      if (disposed) {
+        return
+      }
       setZoomed(false)
       const zoom = createZoom(image, {
         renderer: dialog(),
@@ -126,16 +139,23 @@ export function Root({
       image.addEventListener('medium-zoom:closed', onClosed)
       session = createZoomSession(zoom)
       sessionRef.current = session
-      if (wantedRef.current) openSession()
+      if (wantedRef.current) {
+        openSession()
+      }
     }
 
     // Strict Mode and Activity can restart effects while the previous close is animating.
-    if (closingRef.current) void closingRef.current.then(attach)
-    else attach()
+    if (closingRef.current) {
+      void closingRef.current.then(attach)
+    } else {
+      attach()
+    }
 
     return () => {
       disposed = true
-      if (!session) return
+      if (!session) {
+        return
+      }
       const previous = session
       sessionRef.current = null
       setUncontrolledOpen(false)
@@ -149,14 +169,19 @@ export function Root({
 
   function openSession() {
     const session = sessionRef.current
-    if (!session || !image || session.zoom.getZoomedImage()) return
+    if (!session || !image || session.zoom.getZoomedImage()) {
+      return
+    }
     session.zoom.update(resolveOptions(image, optionsRef.current))
     void session.open({ trigger: image.closest('button') ?? undefined })
   }
 
   React.useEffect(() => {
-    if (wantedOpen) openSession()
-    else void sessionRef.current?.close()
+    if (wantedOpen) {
+      openSession()
+    } else {
+      void sessionRef.current?.close()
+    }
   })
 
   return (
@@ -197,7 +222,9 @@ export const Trigger = React.forwardRef<HTMLButtonElement, TriggerProps>(
         className={['image-zoom-trigger', className].filter(Boolean).join(' ')}
         onClick={event => {
           onClick?.(event)
-          if (!event.defaultPrevented) context.toggle()
+          if (!event.defaultPrevented) {
+            context.toggle()
+          }
         }}
       />
     )
@@ -228,8 +255,9 @@ export const Image = React.forwardRef<HTMLImageElement, ImageProps>(
     React.useEffect(() => {
       if (
         source.some((value, index) => value !== previousSource.current[index])
-      )
+      ) {
         close()
+      }
       previousSource.current = source
     }, [props.src, props.srcSet, props.sizes, props['data-zoom-src'], close])
 
