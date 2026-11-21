@@ -65,4 +65,6 @@ Candidate entries are private: `config/package.config.mts` defines the composabl
 
 Use Conventional Commits. Release Please maintains the version and changelog in a release PR against `main`. Merging that PR creates an unprefixed tag and GitHub release, then verifies and publishes that commit to npm through trusted publishing.
 
+After npm publication, the workflow opens or updates a pull request with the released dependency in every standalone example and the matching Bun lockfile.
+
 If publication fails, fix the cause and rerun the failed publish job. Do not move the tag or repeat a completed publication.
