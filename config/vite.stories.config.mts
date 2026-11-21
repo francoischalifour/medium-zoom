@@ -22,7 +22,13 @@ export default mergeConfig(
       outDir: '../website/dist/storybook',
       emptyOutDir: true,
       // Story modules register themselves; retain those calls despite package sideEffects:false.
-      rolldownOptions: { input: ['stories/index.html', 'stories/frame.html'], treeshake: false },
+      rolldownOptions: {
+        // Absolute paths: the development dependency scan resolves inputs from `root`, not the cwd.
+        input: ['index.html', 'frame.html'].map(page =>
+          fileURLToPath(new URL(`../stories/${page}`, import.meta.url))
+        ),
+        treeshake: false,
+      },
     },
   })
 )

@@ -61,7 +61,10 @@ export function useDocsNavigation(path: string) {
     const article = articleRef.current!
     const listeners = new AbortController()
     const options = { signal: listeners.signal }
-    let pendingDestination: { element: HTMLElement; focusAfterScroll: boolean } | null = null
+    let pendingDestination: {
+      element: HTMLElement
+      focusAfterScroll: boolean
+    } | null = null
     let highlightedElement: HTMLElement | null = null
     let scrollIdleTimer = 0
     let highlightTimer = 0
@@ -161,7 +164,10 @@ export function useDocsNavigation(path: string) {
 
     document.addEventListener('click', onLinkClick, options)
     window.addEventListener('hashchange', onHashChange, options)
-    window.addEventListener('scroll', waitForScroll, { ...options, passive: true })
+    window.addEventListener('scroll', waitForScroll, {
+      ...options,
+      passive: true,
+    })
     window.addEventListener('scrollend', showDestination, options)
     window.addEventListener('resize', waitForScroll, options)
     window.addEventListener('load', onLoad, options)

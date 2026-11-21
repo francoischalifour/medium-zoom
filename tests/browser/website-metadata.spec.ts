@@ -1,5 +1,5 @@
 import packageJson from '../../package.json'
-import { test, expect } from './website-fixture'
+import { expect, test } from './website-fixture'
 
 const origin = 'https://medium-zoom.francoischalifour.com'
 
@@ -20,7 +20,9 @@ test('page aliases redirect permanently to their canonical URLs', async ({ reque
   ]
 
   for (const [alias, canonical] of aliases) {
-    const response = await request.get(`${alias}?source=old-link`, { maxRedirects: 0 })
+    const response = await request.get(`${alias}?source=old-link`, {
+      maxRedirects: 0,
+    })
     expect(response.status(), alias).toBe(301)
     expect(response.headers().location, alias).toBe(`${canonical}?source=old-link`)
     expect((await request.get(canonical!)).status(), canonical).toBe(200)
@@ -38,7 +40,9 @@ test('the React showcase owns /react and redirects its previous URLs', async ({
     '/react/',
     '/react.html',
   ]) {
-    const response = await request.get(`${alias}?source=old-link`, { maxRedirects: 0 })
+    const response = await request.get(`${alias}?source=old-link`, {
+      maxRedirects: 0,
+    })
     expect(response.status()).toBe(301)
     expect(response.headers().location).toBe('/react?source=old-link')
   }

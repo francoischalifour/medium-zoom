@@ -47,15 +47,25 @@ async function build(commits) {
   // Only the GitHub boundary is replaced; configuration, parsing, plugins,
   // versioning, changelog generation and file updaters are release-please's.
   const github = {
-    repository: { owner: 'francoischalifour', repo: 'medium-zoom', defaultBranch: 'main' },
+    repository: {
+      owner: 'francoischalifour',
+      repo: 'medium-zoom',
+      defaultBranch: 'main',
+    },
     getFileJson: async path => JSON.parse(await read(path)),
-    getFileContentsOnBranch: async path => ({ parsedContent: await read(path) }),
+    getFileContentsOnBranch: async path => ({
+      parsedContent: await read(path),
+    }),
     async *releaseIterator() {
       yield { tagName: baseline, sha: 'b'.repeat(40), notes: '' }
     },
     async *mergeCommitIterator() {
       yield* commits
-      yield { sha: 'b'.repeat(40), message: `chore(release): ${baseline}`, files: [] }
+      yield {
+        sha: 'b'.repeat(40),
+        message: `chore(release): ${baseline}`,
+        files: [],
+      }
     },
   }
   return (await loadManifest(github)).buildPullRequests()

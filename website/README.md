@@ -8,11 +8,10 @@ From the repository root:
 
 ```sh
 bun install --frozen-lockfile
-bun run build
 bun run dev:website
 ```
 
-The development server imports the library source directly. The initial package build supplies the bundle-size metadata displayed on the site; subsequent library edits update the preview without rebuilding.
+The development server imports the library source directly. `dev:website` builds the package once for the bundle-size metadata displayed on the site; later library edits update the preview without rebuilding.
 
 To preview the complete site, including stories and examples:
 

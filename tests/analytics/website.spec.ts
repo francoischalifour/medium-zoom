@@ -1,4 +1,4 @@
-import { test, expect, type Page, type BrowserContext } from '@playwright/test'
+import { type BrowserContext, expect, type Page, test } from '@playwright/test'
 
 import { testUrl } from '../server-urls.ts'
 
@@ -320,7 +320,9 @@ test('palette install actions respect package selection and clipboard permission
   context,
 }) => {
   const events = await intercept(page)
-  await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin })
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'], {
+    origin,
+  })
   await page.goto(`${origin}/docs/react/`)
   await page.bringToFront()
   await page.getByRole('radio', { name: 'pnpm', exact: true }).check()

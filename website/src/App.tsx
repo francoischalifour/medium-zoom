@@ -3,7 +3,7 @@ import { Hero } from './hero'
 import { JavaScriptPage } from './JavaScriptPage'
 import { ReactPage } from './ReactPage'
 import type { SitePage } from './site-data'
-import { SiteHeader, SiteFooter } from './site-shell'
+import { SiteFooter, SiteHeader } from './site-shell'
 
 export function App({ page }: { page: SitePage }) {
   return (

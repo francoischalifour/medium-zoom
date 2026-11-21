@@ -1,0 +1,113 @@
+{
+  "revision": "d3dd923",
+  "consumers": {
+    "medium-zoom": {
+      "js": 3696,
+      "css": 0
+    },
+    "medium-zoom/dist/pure": {
+      "js": 3485,
+      "css": 253
+    },
+    "medium-zoom/modern": {
+      "js": 3501,
+      "css": 0
+    },
+    "core": {
+      "js": 3544,
+      "css": 245
+    },
+    "core + HD loader": {
+      "js": 3775,
+      "css": 245
+    },
+    "core + container": {
+      "js": 3744,
+      "css": 245
+    },
+    "core + HD loader + container": {
+      "js": 3976,
+      "css": 245
+    },
+    "core + session": {
+      "js": 4269,
+      "css": 245
+    },
+    "core + dialog": {
+      "js": 4484,
+      "css": 245
+    },
+    "core + dialog + template": {
+      "js": 4573,
+      "css": 245
+    },
+    "core + dialog + triggers": {
+      "js": 5054,
+      "css": 245
+    },
+    "core + dialog + gallery": {
+      "js": 4924,
+      "css": 245
+    },
+    "core + dialog + gallery + session": {
+      "js": 5580,
+      "css": 245
+    },
+    "core + dialog + gallery + session + keyboard": {
+      "js": 5774,
+      "css": 245
+    },
+    "core + dialog + gallery + session + custom transition": {
+      "js": 5660,
+      "css": 245
+    },
+    "everything composed": {
+      "js": 6728,
+      "css": 245
+    }
+  },
+  "artifacts": {
+    "dist/core/index.mjs": 3552,
+    "dist/core/index.cjs": 3554,
+    "dist/loaders/index.mjs": 459,
+    "dist/loaders/index.cjs": 462,
+    "dist/viewport/index.mjs": 418,
+    "dist/viewport/index.cjs": 422,
+    "dist/content/index.mjs": 254,
+    "dist/content/index.cjs": 258,
+    "dist/triggers/index.mjs": 852,
+    "dist/triggers/index.cjs": 853,
+    "dist/renderers/index.mjs": 1327,
+    "dist/renderers/index.cjs": 1328,
+    "dist/session/index.mjs": 949,
+    "dist/session/index.cjs": 949,
+    "dist/gallery/index.mjs": 880,
+    "dist/gallery/index.cjs": 880,
+    "dist/compat/index.mjs": 3697,
+    "dist/compat/index.cjs": 3694,
+    "dist/compat/pure/index.mjs": 3488,
+    "dist/compat/pure/index.cjs": 3492,
+    "dist/modern/index.mjs": 3538,
+    "dist/modern/index.cjs": 3520,
+    "dist/pure/index.mjs": 3488,
+    "dist/pure/index.cjs": 3492,
+    "dist/modern/style.css": 245,
+    "dist/style.css": 253,
+    "dist/medium-zoom.esm.js": 3697,
+    "dist/medium-zoom.min.js": 3787,
+    "dist/pure/index.js": 3488,
+    "dist/pure/medium-zoom.min.umd.js": 3587
+  },
+  "packages": {
+    "release": {
+      "files": 13,
+      "tarball": 29553,
+      "unpacked": 128945
+    },
+    "candidate": {
+      "files": 62,
+      "tarball": 63985,
+      "unpacked": 327142
+    }
+  }
+}

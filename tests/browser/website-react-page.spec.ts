@@ -1,6 +1,6 @@
-import { test, expect, type Page } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 
-import { decodeImages, dismissZoom, openImage, observeErrors } from './helpers.ts'
+import { decodeImages, dismissZoom, observeErrors, openImage } from './helpers.ts'
 
 const demo = '/react'
 
@@ -21,7 +21,10 @@ test('built page hydrates and presents the component without test controls', asy
   await expect(page.getByRole('button', { name: 'Hide with Activity', exact: true })).toHaveCount(0)
   const install = await page.locator('.hero-install').boundingBox()
   expect(install!.y + install!.height).toBeLessThanOrEqual(page.viewportSize()!.height)
-  await page.screenshot({ path: testInfo.outputPath('page-light.png'), fullPage: true })
+  await page.screenshot({
+    path: testInfo.outputPath('page-light.png'),
+    fullPage: true,
+  })
   const image = page
     .getByRole('article', { name: 'Landscape example', exact: true })
     .locator('.demo-stage img')
@@ -31,7 +34,10 @@ test('built page hydrates and presents the component without test controls', asy
 })
 
 async function presented(page: Page, label: string) {
-  const card = page.getByRole('article', { name: `${label} example`, exact: true })
+  const card = page.getByRole('article', {
+    name: `${label} example`,
+    exact: true,
+  })
   await expect
     .poll(async () => {
       const bounds = await card.boundingBox()
@@ -153,7 +159,10 @@ test('keyboard tabs show code and package managers select the install command', 
   page,
 }) => {
   await ready(page)
-  const landscape = page.getByRole('article', { name: 'Landscape example', exact: true })
+  const landscape = page.getByRole('article', {
+    name: 'Landscape example',
+    exact: true,
+  })
   await landscape.getByRole('tab', { name: 'Preview', exact: true }).focus()
   await page.keyboard.press('ArrowRight')
   await expect(landscape.getByRole('tab', { name: 'Code', exact: true })).toBeFocused()
@@ -196,7 +205,10 @@ test('dark mode carries into the enlarged image overlay', async ({ page }, testI
   await ready(page)
   await page.getByRole('button', { name: 'Switch to dark theme', exact: true }).click()
   await expect(page.locator('html')).toHaveClass('dark')
-  await page.screenshot({ path: testInfo.outputPath('page-dark.png'), fullPage: true })
+  await page.screenshot({
+    path: testInfo.outputPath('page-dark.png'),
+    fullPage: true,
+  })
   const image = page
     .getByRole('article', { name: 'Landscape example', exact: true })
     .locator('.demo-stage img')
@@ -220,8 +232,14 @@ test('small screens keep code and the API table inside their scroll containers',
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
     .toBe(true)
-  await page.screenshot({ path: testInfo.outputPath('page-mobile.png'), fullPage: true })
-  const landscape = page.getByRole('article', { name: 'Landscape example', exact: true })
+  await page.screenshot({
+    path: testInfo.outputPath('page-mobile.png'),
+    fullPage: true,
+  })
+  const landscape = page.getByRole('article', {
+    name: 'Landscape example',
+    exact: true,
+  })
   await landscape.getByRole('tab', { name: 'Code', exact: true }).click()
   await expect(landscape.getByRole('tabpanel')).toContainText('<ImageZoom')
   await expect

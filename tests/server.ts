@@ -1,15 +1,22 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { createServer } from 'node:http'
-import { resolve, extname, sep } from 'node:path'
+import { extname, resolve, sep } from 'node:path'
 
+import { buildGalleryExample } from '../scripts/build-gallery-example.ts'
+import { packExperimental } from '../scripts/pack-experimental.ts'
 import { pack } from '../scripts/pack.ts'
 import { readExactHeaders } from '../website/build/site-headers.ts'
 import { readExactRedirects } from '../website/build/site-redirects.ts'
 import { testPort } from './server-urls.ts'
 
+await buildGalleryExample()
 const artifact = pack()
+const experimental = packExperimental()
 const roots: Record<string, string> = {
   package: artifact.root,
+  experimental: experimental.root,
+  experiments: resolve('tests/experimental'),
+  composition: resolve('.cache/gallery-composition'),
   baseline: resolve('node_modules/medium-zoom-baseline'),
   images: resolve('stories/images'),
   site: resolve('website/dist'),
@@ -19,6 +26,7 @@ const pageRedirects = readExactRedirects(resolve(roots.site, '_redirects'))
 const pageHeaders = readExactHeaders(resolve(roots.site, '_headers'))
 const contentTypes: Record<string, string> = {
   '.js': 'text/javascript',
+  '.mjs': 'text/javascript',
   '.css': 'text/css',
   '.html': 'text/html',
   '.md': 'text/markdown; charset=utf-8',
@@ -35,7 +43,9 @@ const server = createServer((request, response) => {
   const url = new URL(request.url || '/', 'http://127.0.0.1')
   if (url.pathname === '/fixture.html') {
     response.writeHead(200, { 'Content-Type': 'text/html' })
-    response.end('<!doctype html><title>Medium Zoom package tests</title>')
+    response.end(
+      '<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Medium Zoom package tests</title>'
+    )
     return
   }
   const destination = pageRedirects.get(url.pathname)
@@ -95,4 +105,7 @@ server.listen(testPort, '127.0.0.1')
 for (const signal of ['SIGTERM', 'SIGINT']) {
   process.on(signal, () => server.close(() => process.exit()))
 }
-process.on('exit', artifact.cleanup)
+process.on('exit', () => {
+  artifact.cleanup()
+  experimental.cleanup()
+})

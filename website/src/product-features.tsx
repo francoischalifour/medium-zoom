@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-import { productFeatures, productPages, type FeatureIcon } from './product-pages'
+import { type FeatureIcon, productFeatures, productPages } from './product-pages'
 import { Icon } from './site-components'
 import type { SitePage } from './site-data'
 import { TypeScriptIcon } from './technology-icons'

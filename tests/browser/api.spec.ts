@@ -1,6 +1,6 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
-import { preparePage, loadBundle } from './helpers.ts'
+import { loadBundle, preparePage, projectPreset } from './helpers.ts'
 
 test.beforeEach(async ({ page }) => {
   await preparePage(page, {
@@ -83,7 +83,13 @@ test('factory defaults, options-only overload, and fluent methods remain availab
     }
   })
   expect(result).toEqual({
-    defaults: { margin: 0, background: '#fff', scrollOffset: 40, container: null, template: null },
+    defaults: {
+      margin: 0,
+      background: '#fff',
+      scrollOffset: 40,
+      container: null,
+      template: null,
+    },
     initialTarget: null,
     margin: 24,
     images: 0,
@@ -91,11 +97,17 @@ test('factory defaults, options-only overload, and fluent methods remain availab
   })
 })
 
-for (const method of ['attach', 'detach'] as const) {
+// Attach starts empty and adds #first; detach starts with every image and removes #first.
+const selectorMethods = {
+  attach: { initial: undefined, ids: ['first'] },
+  detach: { initial: 'img', ids: ['second'] },
+} as const
+
+for (const method of Object.keys(selectorMethods) as (keyof typeof selectorMethods)[]) {
   for (const selector of ['string', 'element', 'array', 'nodelist']) {
     test(`${method} accepts ${selector} selectors`, async ({ page }) => {
       const result = await page.evaluate(
-        ({ method, selector }) => {
+        ({ method, selector, initialSelector }) => {
           const first = document.querySelector<HTMLImageElement>('#first')!
           const targets = {
             string: '#first',
@@ -103,13 +115,19 @@ for (const method of ['attach', 'detach'] as const) {
             array: [first],
             nodelist: document.querySelectorAll('#first'),
           }
-          const zoom = window.mediumZoom(method === 'detach' ? 'img' : undefined)
+          const zoom = window.mediumZoom(initialSelector)
           const returned = zoom[method](targets[selector as keyof typeof targets])
-          return { ids: zoom.getImages().map(image => image.id), fluent: returned === zoom }
+          return {
+            ids: zoom.getImages().map(image => image.id),
+            fluent: returned === zoom,
+          }
         },
-        { method, selector }
+        { method, selector, initialSelector: selectorMethods[method].initial }
       )
-      expect(result).toEqual({ ids: method === 'attach' ? ['first'] : ['second'], fluent: true })
+      expect(result).toEqual({
+        ids: selectorMethods[method].ids,
+        fluent: true,
+      })
     })
   }
 }
@@ -126,12 +144,19 @@ test('repeated attachment is idempotent and detach() removes every image', async
       classes: document.querySelectorAll('.medium-zoom-image').length,
     }
   })
-  expect(result).toEqual({ attached: ['first', 'second'], remaining: 0, classes: 0 })
+  expect(result).toEqual({
+    attached: ['first', 'second'],
+    remaining: 0,
+    classes: 0,
+  })
 })
 
 test('options update individually and coordinate containers merge', async ({ page }) => {
   const result = await page.evaluate(() => {
-    const zoom = window.mediumZoom('img', { margin: 24, container: { width: 600, top: 10 } })
+    const zoom = window.mediumZoom('img', {
+      margin: 24,
+      container: { width: 600, top: 10 },
+    })
     zoom.update({ margin: 48 }).update({ background: '#123456' }).update({ scrollOffset: 0 })
     zoom.update({ container: { left: 20 } })
     return zoom.getOptions()
@@ -200,7 +225,14 @@ test('open, close, and toggle resolve with the instance and expose the active or
     await zoom.toggle()
     const toggled = zoom.getZoomedImage()?.id
     await zoom.toggle()
-    return { opened: opened === zoom, closed: closed === zoom, active, empty, toggled, calls }
+    return {
+      opened: opened === zoom,
+      closed: closed === zoom,
+      active,
+      empty,
+      toggled,
+      calls,
+    }
   })
   expect(result).toEqual({
     opened: true,
@@ -470,9 +502,16 @@ for (const fallback of [false, true]) {
   test(`${fallback ? 'legacy' : 'native'} CustomEvent preserves event semantics`, async ({
     page,
   }) => {
+    test.skip(
+      fallback && projectPreset() === 'modern',
+      'Modern profiles require native CustomEvent'
+    )
     const result = await page.evaluate(fallback => {
       if (fallback) {
-        Object.defineProperty(window, 'CustomEvent', { value: undefined, configurable: true })
+        Object.defineProperty(window, 'CustomEvent', {
+          value: undefined,
+          configurable: true,
+        })
       }
       const zoom = window.mediumZoom('#first')
       let observed
@@ -521,5 +560,22 @@ test('attachment validates selectors, supports variadic nodes, and ignores HTMLC
     return { error, ignored, attached, remaining: zoom.getImages().length }
   })
   expect(result.error).toContain('The provided selector is invalid.')
-  expect(result).toMatchObject({ ignored: 0, attached: ['first', 'second'], remaining: 0 })
+  expect(result).toMatchObject({
+    ignored: 0,
+    attached: ['first', 'second'],
+    remaining: 0,
+  })
+})
+
+test('off removes a subscription from images attached later', async ({ page }) => {
+  expect(
+    await page.evaluate(() => {
+      const zoom = window.mediumZoom('#first')
+      let updates = 0
+      const listener = () => updates++
+      zoom.on('update', listener).off('update', listener)
+      zoom.attach('#second').update({ margin: 12 })
+      return updates
+    })
+  ).toBe(0)
 })

@@ -18,7 +18,10 @@ An attachment runs when the image is added to the document. Return a cleanup fun
   import mediumZoom, { type ZoomOptions } from 'medium-zoom'
   import type { HTMLImgAttributes } from 'svelte/elements'
 
-  let { options, ...image }: HTMLImgAttributes & { options?: ZoomOptions } = $props()
+  let {
+    options,
+    ...image
+  }: HTMLImgAttributes & { options?: ZoomOptions } = $props()
 
   function zoomable(element: HTMLImageElement) {
     const zoom = mediumZoom(element, options)

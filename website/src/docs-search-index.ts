@@ -1,6 +1,6 @@
 import MiniSearch, { type Query } from 'minisearch'
 
-import { getSearchTerms, type DocsSearch, type SearchEntry } from './docs-search'
+import { type DocsSearch, getSearchTerms, type SearchEntry } from './docs-search'
 
 const aliases: Record<string, string> = {
   '/docs/guides/server-rendering/': 'nextjs next.js ssr server components rsc',
@@ -54,7 +54,15 @@ export function createDocsSearch(entries: SearchEntry[]): DocsSearch {
     searchOptions: {
       combineWith: 'AND',
       tokenize: getSearchTerms,
-      boost: { title: 8, keywords: 8, parent: 3, aliases: 6, description: 2, group: 1, content: 1 },
+      boost: {
+        title: 8,
+        keywords: 8,
+        parent: 3,
+        aliases: 6,
+        description: 2,
+        group: 1,
+        content: 1,
+      },
       fuzzy: term => (term.length < 4 ? false : term.length < 8 ? 1 : 2),
     },
   })

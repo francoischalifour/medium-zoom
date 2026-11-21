@@ -28,7 +28,9 @@ async function trackDownload(apiKey: string, component: string, path: string) {
     })
     await response.body?.cancel()
     if (!response.ok) {
-      console.warn('Registry analytics delivery failed', { status: response.status })
+      console.warn('Registry analytics delivery failed', {
+        status: response.status,
+      })
     }
   } catch {
     console.warn('Registry analytics delivery failed')

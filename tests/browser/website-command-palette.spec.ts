@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 
-import { test, expect } from './website-fixture'
+import { expect, test } from './website-fixture'
 
 for (const shortcut of ['Meta+k', 'Control+k']) {
   test(`${shortcut} searches section anchors and restores focus`, async ({ page }) => {
@@ -40,16 +40,22 @@ for (const { platform, label, keys } of [
     page,
   }) => {
     await page.addInitScript(value => {
-      Object.defineProperty(Navigator.prototype, 'platform', { get: () => value })
+      Object.defineProperty(Navigator.prototype, 'platform', {
+        get: () => value,
+      })
     }, platform)
     const trigger = page.getByRole('button', { name: /Search docs/ })
     await page.route('**/assets/*.js', route => route.abort())
     await page.goto('/')
-    await expect(trigger.locator('kbd')).toHaveText(label, { useInnerText: true })
+    await expect(trigger.locator('kbd')).toHaveText(label, {
+      useInnerText: true,
+    })
     await page.unroute('**/assets/*.js')
     await page.reload()
     await expect(trigger).toHaveAttribute('aria-keyshortcuts', keys)
-    await expect(trigger.locator('kbd')).toHaveText(label, { useInnerText: true })
+    await expect(trigger.locator('kbd')).toHaveText(label, {
+      useInnerText: true,
+    })
   })
 }
 
@@ -250,7 +256,10 @@ for (const [name, hostname, pathname] of [
   test(`opens a contextual question in ${name}`, async ({ page, context }) => {
     // Verify the handoff without submitting test prompts to an external assistant.
     await context.route(`https://${hostname}/**`, route =>
-      route.fulfill({ body: '<title>Chat handoff</title>', contentType: 'text/html' })
+      route.fulfill({
+        body: '<title>Chat handoff</title>',
+        contentType: 'text/html',
+      })
     )
     await page.goto('/docs/react/')
     await page.getByRole('button', { name: /Search docs/ }).click()
@@ -424,7 +433,10 @@ test('search header focuses the input and install actions explain their purpose 
   await page.locator('.command-search').click({ position: { x: 8, y: 28 } })
   await expect(input).toBeFocused()
   await expect(
-    page.getByRole('option', { name: 'Copy React install command with shadcn/ui', exact: true })
+    page.getByRole('option', {
+      name: 'Copy React install command with shadcn/ui',
+      exact: true,
+    })
   ).toBeVisible()
   await expect(page.locator('.command-action .command-detail')).toHaveCount(0)
   await input.fill('Copy React install command with shadcn/ui')

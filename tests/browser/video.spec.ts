@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 import { decodeImages, finishAnimations, observeErrors } from './helpers.ts'
 
@@ -8,7 +8,9 @@ for (const width of [1_280, 390]) {
     await page.setViewportSize({ width, height: 844 })
     await page.goto('/examples/video/')
     await decodeImages(page.locator('#poster'))
-    const trigger = page.getByRole('button', { name: 'Zoom and play the flower video' })
+    const trigger = page.getByRole('button', {
+      name: 'Zoom and play the flower video',
+    })
     const video = page.locator('video')
 
     // Exercise keyboard activation as well as pointer activation on reopen.

@@ -15,7 +15,11 @@ export function galleryAssets(): Plugin {
     config(value) {
       const requested = value.base === '/examples/shadcn/' ? '/' : value.base || '/'
       const base = requested.endsWith('/') ? requested : `${requested}/`
-      return { define: { __MEDIUM_ZOOM_GALLERY_BASE__: JSON.stringify(`${base}assets/`) } }
+      return {
+        define: {
+          __MEDIUM_ZOOM_GALLERY_BASE__: JSON.stringify(`${base}assets/`),
+        },
+      }
     },
     configResolved(value) {
       config = value

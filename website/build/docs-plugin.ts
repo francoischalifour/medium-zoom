@@ -1,4 +1,4 @@
-import { readFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -33,7 +33,9 @@ function getSearchText(source: string) {
           if (!literal) {
             return ' '
           }
-          const expression = parseExpressionAt(literal, 0, { ecmaVersion: 'latest' })
+          const expression = parseExpressionAt(literal, 0, {
+            ecmaVersion: 'latest',
+          })
           return expression.type === 'Literal' && typeof expression.value === 'string'
             ? expression.value
             : ''
@@ -150,8 +152,15 @@ export function docsPlugin(): Plugin {
                         item: `${siteOrigin}/docs/`,
                       },
                     ]),
-                { name: page.path === '/docs/' ? 'Documentation' : page.title, item: url },
-              ].map((item, index) => ({ '@type': 'ListItem', position: index + 1, ...item })),
+                {
+                  name: page.path === '/docs/' ? 'Documentation' : page.title,
+                  item: url,
+                },
+              ].map((item, index) => ({
+                '@type': 'ListItem',
+                position: index + 1,
+                ...item,
+              })),
             },
           },
           isPartOf: {

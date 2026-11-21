@@ -1,9 +1,9 @@
 import { useSyncExternalStore } from 'react'
 
 import {
+  type PackageManager,
   packageManagerPreference,
   restorePackageManager,
-  type PackageManager,
 } from './package-manager-preference'
 export type { PackageManager } from './package-manager-preference'
 export const packageManagers = packageManagerPreference.values

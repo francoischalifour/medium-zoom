@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import * as ImageZoom from '../../examples/shadcn/src/components/ui/image-zoom'
-import { galleryImages, type ExampleImage, usageCode, getPreviewImageProps } from './gallery'
+import { type ExampleImage, galleryImages, getPreviewImageProps, usageCode } from './gallery'
 import { trackSiteEvent } from './site-analytics'
 import { CopyButton, HighlightedCode, SiteLink, ZoomControls } from './site-components'
 import { TabList } from './site-tabs'

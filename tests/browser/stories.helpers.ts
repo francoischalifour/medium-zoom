@@ -12,7 +12,10 @@ export async function observeStoryEvents(page: Page) {
       document.addEventListener(
         `medium-zoom:${type}`,
         event => {
-          window.storyEvents.push({ type, target: (event.target as HTMLElement).id })
+          window.storyEvents.push({
+            type,
+            target: (event.target as HTMLElement).id,
+          })
         },
         true
       )

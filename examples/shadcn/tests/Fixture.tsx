@@ -32,7 +32,10 @@ export function Fixture() {
   const image = (
     <ZoomParts.Root
       disabled={disabled}
-      options={{ margin, container: contained ? galleryRef.current! : undefined }}
+      options={{
+        margin,
+        container: contained ? galleryRef.current! : undefined,
+      }}
     >
       <ZoomParts.Trigger
         aria-label={disabled ? 'Ocean sunset' : 'Zoom image: Ocean sunset'}

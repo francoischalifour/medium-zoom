@@ -4,7 +4,7 @@ export default defineConfig({
   ignorePatterns: ['**/node_modules/**', 'tests/fixtures/next/.next/**'],
   categories: { correctness: 'error' },
   env: { browser: true, node: true },
-  globals: { __TEST__: 'readonly' },
+  globals: { __TEST__: 'readonly', __PRESET__: 'readonly' },
   rules: {
     curly: ['error', 'all'],
     'unicorn/numeric-separators-style': ['error', { number: { minimumDigits: 4, groupLength: 3 } }],
@@ -12,7 +12,6 @@ export default defineConfig({
   },
   options: { typeAware: true },
   overrides: [
-    { files: ['src/**/*.js'], rules: { 'typescript/no-floating-promises': 'off' } },
     {
       files: ['**/*.ts', '**/*.mts', '**/*.tsx'],
       rules: {

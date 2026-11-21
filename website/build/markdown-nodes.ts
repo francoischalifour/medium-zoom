@@ -34,7 +34,12 @@ export function listItem(children: PhrasingContent[]): ListItem {
 }
 
 export function list(items: PhrasingContent[][]): List {
-  return { type: 'list', ordered: false, spread: false, children: items.map(listItem) }
+  return {
+    type: 'list',
+    ordered: false,
+    spread: false,
+    children: items.map(listItem),
+  }
 }
 
 export function blockquote(value: string): Blockquote {

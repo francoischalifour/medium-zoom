@@ -1,8 +1,8 @@
-import { Children, isValidElement, useEffect, useRef, type ReactNode } from 'react'
+import { Children, isValidElement, type ReactNode, useEffect, useRef } from 'react'
 
-import { ScrollArea, revealInScrollArea } from '../scroll-area'
+import { revealInScrollArea, ScrollArea } from '../scroll-area'
 import { Icon, SiteLink } from '../site-components'
-import { BrandLink, SiteHeader, SiteFooter } from '../site-shell'
+import { BrandLink, SiteFooter, SiteHeader } from '../site-shell'
 import { CodeFence } from './doc-components'
 import { DocsOutline, DocsOutlineMenu } from './docs-outline'
 import { docsPages, headingId } from './pages'

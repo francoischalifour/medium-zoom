@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 for (const path of ['/', '/react']) {
   test(`${path} expands the decorative zoom frames independently of its content`, async ({

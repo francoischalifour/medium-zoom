@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 import ts from 'typescript-legacy'
@@ -7,6 +7,10 @@ import ts from 'typescript-legacy'
 // Live examples are regular TypeScript modules checked by the website's tsconfig.
 const docsDirectory = resolve('website/src/docs')
 const snippetSources = new Map<string, string>()
+// Checked snippet languages and the TypeScript file each compiles as.
+const snippetExtensions = { js: 'ts', tsx: 'tsx' } as const
+type SnippetLanguage = keyof typeof snippetExtensions
+
 for (const file of readdirSync(docsDirectory).filter(file => file.endsWith('.mdx'))) {
   const text = readFileSync(resolve(docsDirectory, file), 'utf8')
   let snippetIndex = 0
@@ -16,7 +20,10 @@ for (const file of readdirSync(docsDirectory).filter(file => file.endsWith('.mdx
         ? "import type { Zoom } from 'medium-zoom'; declare const zoom: Zoom;\n"
         : ''
     snippetSources.set(
-      resolve(docsDirectory, `${file}-${snippetIndex++}.${language === 'tsx' ? 'tsx' : 'ts'}`),
+      resolve(
+        docsDirectory,
+        `${file}-${snippetIndex++}.${snippetExtensions[language as SnippetLanguage]}`
+      ),
       `${zoomDeclaration}${code}\nexport {}\n`
     )
   }

@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright'
 
 import { observeErrors } from './helpers'
-import { test, expect } from './website-fixture'
+import { expect, test } from './website-fixture'
 
 const origin = 'https://medium-zoom.francoischalifour.com'
 const pages = [
@@ -38,10 +38,15 @@ test('collapsed docs navigation stays inside the article column on phones and ta
   page,
 }) => {
   await page.goto('/docs/javascript/')
-  const outlineButton = page.getByRole('button', { name: 'On this page', exact: true })
+  const outlineButton = page.getByRole('button', {
+    name: 'On this page',
+    exact: true,
+  })
   for (const width of [390, 1_024]) {
     await page.setViewportSize({ width, height: 900 })
-    const sheetButton = page.getByRole('button', { name: 'Open documentation navigation' })
+    const sheetButton = page.getByRole('button', {
+      name: 'Open documentation navigation',
+    })
     if (width === 390) {
       await expect(sheetButton).toBeVisible()
     } else {
@@ -95,7 +100,9 @@ for (const theme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: theme })
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/docs/guides/hd-images/')
-    const trigger = page.getByRole('button', { name: 'Open documentation navigation' })
+    const trigger = page.getByRole('button', {
+      name: 'Open documentation navigation',
+    })
     await trigger.click()
     const area = page.getByRole('dialog', { name: 'Documentation' }).locator('.scroll-area')
     const viewport = area.locator('.scroll-area-viewport')
@@ -138,7 +145,9 @@ test('anchor arrival waits for scrolling, fades away, and repeats for the same d
   await expect(heading).toBeInViewport()
   await expect(link).toHaveAttribute('aria-current', 'location')
   const position = await page.evaluate(() => window.scrollY)
-  await expect(heading).not.toHaveAttribute('data-anchor-arrival', '', { timeout: 3_000 })
+  await expect(heading).not.toHaveAttribute('data-anchor-arrival', '', {
+    timeout: 3_000,
+  })
   expect(await page.evaluate(() => window.scrollY)).toBe(position)
   await link.click()
   await expect(heading).toHaveAttribute('data-anchor-arrival', '')
@@ -164,7 +173,10 @@ test('the breadcrumb outline menu closes before landing and transfers keyboard f
   await expect(menu).toBeHidden()
   await expect(button).toBeFocused()
   await page.keyboard.press('Enter')
-  const link = menu.getByRole('link', { name: 'Style the trigger', exact: true })
+  const link = menu.getByRole('link', {
+    name: 'Style the trigger',
+    exact: true,
+  })
   await link.focus()
   await page.keyboard.press('Enter')
   await expect(button).toHaveAttribute('aria-expanded', 'false')
@@ -185,7 +197,9 @@ test('deep links and compatibility markers show static arrival feedback with red
   expect(
     await heading.evaluate(element => getComputedStyle(element, '::before').animationName)
   ).toBe('none')
-  await expect(heading).not.toHaveAttribute('data-anchor-arrival', '', { timeout: 3_000 })
+  await expect(heading).not.toHaveAttribute('data-anchor-arrival', '', {
+    timeout: 3_000,
+  })
   await page.goto('/docs/guides/hd-images/#data-zoom-src')
   await expect(page.locator('[data-anchor-arrival]')).toBeVisible()
   await expect(page.locator('#data-zoom-src')).not.toHaveAttribute('data-anchor-arrival', '')
@@ -690,9 +704,15 @@ test('Documentation shares the section navigation across desktop and mobile', as
       ['/docs/', 'Docs'],
     ]) {
       await page.goto(path)
-      const bar = page.getByRole('navigation', { name: 'Main navigation', exact: true })
+      const bar = page.getByRole('navigation', {
+        name: 'Main navigation',
+        exact: true,
+      })
       if (width <= 680) {
-        const section = bar.getByRole('combobox', { name: 'Section', exact: true })
+        const section = bar.getByRole('combobox', {
+          name: 'Section',
+          exact: true,
+        })
         await expect(section).toBeInViewport({ ratio: 1 })
         await expect(section.getByRole('option')).toHaveText(['JavaScript', 'React', 'Docs'])
         await expect(section.locator('option:checked')).toHaveText(current)
@@ -717,7 +737,10 @@ test('Documentation shares the section navigation across desktop and mobile', as
 
 test('named reference links use background hover states', async ({ page }) => {
   await page.goto('/docs/reference/javascript/options/')
-  const navigation = page.getByRole('navigation', { name: 'Documentation pages', exact: true })
+  const navigation = page.getByRole('navigation', {
+    name: 'Documentation pages',
+    exact: true,
+  })
   for (const name of ['mediumZoom()', 'Methods']) {
     const link = navigation.getByRole('link', { name })
     await link.hover()
@@ -772,7 +795,10 @@ test('the JavaScript preview opens on a pointer click and closes on the enlarged
   page,
 }) => {
   await page.goto('/docs/javascript/')
-  const trigger = page.getByRole('button', { name: 'Enlarge ocean sunset', exact: true })
+  const trigger = page.getByRole('button', {
+    name: 'Enlarge ocean sunset',
+    exact: true,
+  })
   await trigger.locator('img').evaluate(image => (image as HTMLImageElement).decode())
   await trigger.click()
   await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
@@ -870,10 +896,16 @@ test('example tabs expose copyable code and preserve the working preview', async
   await page.keyboard.press('ArrowRight')
   await expect(example.getByRole('tab', { name: 'Code', exact: true })).toBeFocused()
   await expect(
-    example.getByRole('button', { name: 'Copy multiple-images.tsx', exact: true })
+    example.getByRole('button', {
+      name: 'Copy multiple-images.tsx',
+      exact: true,
+    })
   ).toBeVisible()
   await expect(
-    example.getByRole('button', { name: 'Copy multiple-images.css', exact: true })
+    example.getByRole('button', {
+      name: 'Copy multiple-images.css',
+      exact: true,
+    })
   ).toBeVisible()
   await expect(example.locator('.docs-preview')).toBeHidden()
   await page.keyboard.press('Home')
@@ -974,7 +1006,10 @@ test('external website links have one decorative destination icon', async ({ pag
 
 test('related topics use compact links separate from directional navigation', async ({ page }) => {
   await page.goto('/docs/guides/hd-images/')
-  const related = page.getByRole('navigation', { name: 'Related pages', exact: true })
+  const related = page.getByRole('navigation', {
+    name: 'Related pages',
+    exact: true,
+  })
   await expect(related.getByRole('listitem')).toHaveCount(2)
   const gallery = related.getByRole('link', { name: /^Multiple images/ })
   await expect(gallery).toHaveText('Multiple images')
@@ -991,7 +1026,10 @@ test('documentation source links open a separate tab without replacing the guide
 }) => {
   const source = 'https://github.com/francoischalifour/medium-zoom/tree/main/examples/svg-data-url'
   await context.route(source, route =>
-    route.fulfill({ contentType: 'text/html', body: '<title>Example source</title>' })
+    route.fulfill({
+      contentType: 'text/html',
+      body: '<title>Example source</title>',
+    })
   )
   await page.goto('/docs/guides/generated-svg/')
   const opened = context.waitForEvent('page')
@@ -1022,7 +1060,9 @@ test('custom triggers sit outside the image and remain keyboard accessible', asy
   await page.goto('/docs/guides/custom-react-triggers/')
   const example = page.locator('.custom-trigger-example')
   const image = example.locator('img')
-  const trigger = example.getByRole('button', { name: 'View photo: ocean sunset' })
+  const trigger = example.getByRole('button', {
+    name: 'View photo: ocean sunset',
+  })
   await image.evaluate(image => (image as HTMLImageElement).decode())
   await expect(trigger.locator('img')).toHaveCount(0)
   const imageBounds = (await image.boundingBox())!
@@ -1040,9 +1080,15 @@ test('the parent inspector opens and closes its preview from external controls',
   page,
 }) => {
   await page.goto('/docs/guides/controlled-state/')
-  const inspect = page.getByRole('button', { name: 'Inspect photo', exact: true })
+  const inspect = page.getByRole('button', {
+    name: 'Inspect photo',
+    exact: true,
+  })
   await inspect.click()
-  const toolbar = page.getByRole('toolbar', { name: 'Photo inspection', exact: true })
+  const toolbar = page.getByRole('toolbar', {
+    name: 'Photo inspection',
+    exact: true,
+  })
   await expect(toolbar).toBeVisible()
   await expect(page.locator('.asset-inspector [role="status"]')).toHaveText('Preview open')
   await toolbar.getByRole('button', { name: 'Close preview', exact: true }).click()
@@ -1060,7 +1106,9 @@ test('the video guide loads playback on activation and cleans up on close', asyn
   page.on('request', request => requests.push(request.url()))
   await page.goto('/docs/guides/video/')
   expect(requests.some(url => url.includes('.mp4'))).toBe(false)
-  const trigger = page.getByRole('button', { name: 'Play video: A pink flower opening' })
+  const trigger = page.getByRole('button', {
+    name: 'Play video: A pink flower opening',
+  })
   await trigger.focus()
   await page.keyboard.press('Enter')
   const video = page.locator('video.zoom-video-player')

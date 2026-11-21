@@ -1,10 +1,13 @@
 import { execFileSync } from 'node:child_process'
 
-import { test, expect, type Page } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 
 import { decodeImages, dismissZoom, observeErrors, openImage } from './helpers.ts'
 
-const demo = '/examples/shadcn/playground.html?compound'
+// MEDIUM_ZOOM_SHADCN=composable runs this suite against the component rewritten on the
+// composable entries (core, loaders, viewport, session) instead of the published one.
+const composable = process.env.MEDIUM_ZOOM_SHADCN === 'composable'
+const demo = `${composable ? '/composition/playground.html' : '/examples/shadcn/playground.html'}?compound`
 const oceanName = 'Open composed ocean'
 const boardName = 'Zoom image: Composed skateboard'
 async function ready(page: Page) {
@@ -192,7 +195,10 @@ test('initial controlled open survives Strict Mode effect replay', async ({ page
 test('the default trigger name follows changes to image alt text', async ({ page }) => {
   await ready(page)
   await page.getByRole('button', { name: 'Rename skateboard' }).click()
-  const trigger = page.getByRole('button', { name: 'Zoom image: Floral skateboard', exact: true })
+  const trigger = page.getByRole('button', {
+    name: 'Zoom image: Floral skateboard',
+    exact: true,
+  })
   await expect(trigger).toBeVisible()
   await trigger.click()
   await expect(page.locator('.medium-zoom-image--opened')).toHaveAttribute(

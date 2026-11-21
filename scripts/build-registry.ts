@@ -24,7 +24,10 @@ for (const item of registry.items) {
       {
         $schema: 'https://ui.shadcn.com/schema/registry-item.json',
         ...item,
-        files: item.files.map(file => ({ ...file, content: readFileSync(file.path, 'utf8') })),
+        files: item.files.map(file => ({
+          ...file,
+          content: readFileSync(file.path, 'utf8'),
+        })),
       },
       null,
       2

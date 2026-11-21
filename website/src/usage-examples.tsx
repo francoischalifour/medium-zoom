@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import { ImageZoom } from '../../examples/shadcn/src/components/ui/image-zoom'
 import * as ImageZoomParts from '../../examples/shadcn/src/components/ui/image-zoom'
-import { photos, getPreviewImageProps } from './gallery'
+import { getPreviewImageProps, photos } from './gallery'
 import { trackSiteEvent } from './site-analytics'
 import { CopyButton, HighlightedCode } from './site-components'
 import { TabList } from './site-tabs'
@@ -20,7 +20,10 @@ export function UsageExamples() {
         id={id}
         label="React examples"
         className="usage-tabs"
-        items={usageExamples.map(item => ({ value: item.id, label: item.label }))}
+        items={usageExamples.map(item => ({
+          value: item.id,
+          label: item.label,
+        }))}
         value={example.id}
         onValueChange={value => {
           setExample(usageExamples.find(item => item.id === value)!)
@@ -37,7 +40,10 @@ export function UsageExamples() {
                   text={example.code}
                   label="Copy usage code"
                   onCopied={() =>
-                    trackSiteEvent('Code Copied', { snippet: 'usage', example: example.id })
+                    trackSiteEvent('Code Copied', {
+                      snippet: 'usage',
+                      example: example.id,
+                    })
                   }
                 />
               </div>

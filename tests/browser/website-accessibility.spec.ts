@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright'
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 for (const path of ['/', '/react']) {
   for (const theme of ['light', 'dark'] as const) {
@@ -48,7 +48,11 @@ for (const path of ['/', '/react']) {
       await trigger.focus()
       const ring = await trigger.evaluate(element => {
         const css = getComputedStyle(element)
-        return { radius: css.borderRadius, outline: css.outlineStyle, width: css.outlineWidth }
+        return {
+          radius: css.borderRadius,
+          outline: css.outlineStyle,
+          width: css.outlineWidth,
+        }
       })
       expect(Number.parseFloat(ring.radius)).toBeGreaterThanOrEqual(7)
       expect(ring.outline).toBe('solid')

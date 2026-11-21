@@ -1,4 +1,4 @@
-import { test, expect, type Page, type Route } from '@playwright/test'
+import { expect, type Page, type Route, test } from '@playwright/test'
 
 import { loadZoomFixture, openImage } from './helpers.ts'
 
@@ -39,7 +39,10 @@ for (const distribution of ['baseline', 'package'] as const) {
     test('changing the mobile viewport dismisses the zoom', async ({ page }) => {
       await openImage(page, page.locator('#image'), { via: 'tap' })
       const viewport = page.viewportSize()!
-      await page.setViewportSize({ width: viewport.height, height: viewport.width })
+      await page.setViewportSize({
+        width: viewport.height,
+        height: viewport.width,
+      })
       await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
     })
   })
@@ -80,20 +83,26 @@ for (const initialScale of [0.5, 2]) {
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
     }, initialScale)
     const session = await page.context().newCDPSession(page)
-    await session.send('Emulation.setPageScaleFactor', { pageScaleFactor: initialScale })
+    await session.send('Emulation.setPageScaleFactor', {
+      pageScaleFactor: initialScale,
+    })
     await expect
       .poll(() => page.evaluate(() => window.visualViewport!.scale))
       .toBeCloseTo(initialScale)
     await page.evaluate(() => window.zoom.open())
     await page.clock.install()
 
-    await session.send('Emulation.setPageScaleFactor', { pageScaleFactor: initialScale * 1.5 })
+    await session.send('Emulation.setPageScaleFactor', {
+      pageScaleFactor: initialScale * 1.5,
+    })
     await scroll(page, 100)
     await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
     await scroll(page, 200)
     await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
 
-    await session.send('Emulation.setPageScaleFactor', { pageScaleFactor: initialScale })
+    await session.send('Emulation.setPageScaleFactor', {
+      pageScaleFactor: initialScale,
+    })
     await scroll(page, 210)
     await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
     await scroll(page, 300)
@@ -101,7 +110,9 @@ for (const initialScale of [0.5, 2]) {
     await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 
     // A new opening must capture the browser's current scale again.
-    await session.send('Emulation.setPageScaleFactor', { pageScaleFactor: initialScale * 1.5 })
+    await session.send('Emulation.setPageScaleFactor', {
+      pageScaleFactor: initialScale * 1.5,
+    })
     await page.evaluate(() => void window.zoom.open())
     await page.clock.runFor(500)
     await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
@@ -128,7 +139,10 @@ test('pinching while an HD image loads refreshes the scroll baseline', async ({ 
   await touch(page, 'touchstart', 2)
   await scroll(page, 80)
   await touch(page, 'touchend', 0)
-  await pendingImage.fulfill({ path: 'stories/images/image-2.jpg', contentType: 'image/jpeg' })
+  await pendingImage.fulfill({
+    path: 'stories/images/image-2.jpg',
+    contentType: 'image/jpeg',
+  })
   await expect(page.locator('.medium-zoom-image--opened')).toHaveCount(2)
   await page.clock.runFor(500)
 
@@ -177,7 +191,10 @@ test.describe('pinch gestures', () => {
   test('panning a magnified viewport stays open after touch cancellation', async ({ page }) => {
     await touch(page, 'touchstart', 2)
     await page.evaluate(() => {
-      Object.defineProperty(window.visualViewport, 'scale', { configurable: true, value: 2 })
+      Object.defineProperty(window.visualViewport, 'scale', {
+        configurable: true,
+        value: 2,
+      })
     })
     await touch(page, 'touchcancel', 0)
     await scroll(page, 100)

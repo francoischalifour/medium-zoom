@@ -1,29 +1,28 @@
-import { readFileSync, readdirSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
 import { codeToHtml } from '@pierre/highlights'
-import { githubLightDefault, githubDarkDefault } from '@pierre/highlights/themes'
+import { githubDarkDefault, githubLightDefault } from '@pierre/highlights/themes'
 import type { Plugin } from 'vite'
 
-import { photos, usageCode, javascriptUsageCode } from '../src/gallery.ts'
-import { javascriptCommands, componentCommands } from '../src/install-commands.ts'
+import { javascriptUsageCode, photos, usageCode } from '../src/gallery.ts'
+import { componentCommands, javascriptCommands } from '../src/install-commands.ts'
 import { usageExamples } from '../src/usage-snippets.ts'
 
 type HighlightLanguage =
-  | 'html'
-  | 'tsx'
-  | 'js'
-  | 'vue'
-  | 'svelte'
-  | 'angular-ts'
-  | 'astro'
-  | 'ts'
-  | 'md'
-  | 'bash'
-  | 'css'
+  'html' | 'tsx' | 'js' | 'vue' | 'svelte' | 'angular-ts' | 'astro' | 'ts' | 'md' | 'bash' | 'css'
+
+// Each usage snippet kind and the grammar that highlights it.
+const usageLanguages = { javascript: 'html', react: 'tsx' } as const satisfies Record<
+  string,
+  HighlightLanguage
+>
 
 // Fence names label code blocks; some highlight with another grammar.
-const fenceGrammars: Record<string, HighlightLanguage> = { solid: 'tsx', angular: 'angular-ts' }
+const fenceGrammars: Record<string, HighlightLanguage> = {
+  solid: 'tsx',
+  angular: 'angular-ts',
+}
 
 function highlight(code: string, lang: HighlightLanguage) {
   const html = new TextDecoder().decode(
@@ -61,9 +60,9 @@ function highlightSnippets(watch: (file: string) => void) {
     snippets[command] = highlight(command, 'bash')
   }
   for (const image of Object.values(photos)) {
-    for (const kind of ['javascript', 'react'] as const) {
+    for (const kind of Object.keys(usageLanguages) as (keyof typeof usageLanguages)[]) {
       const code = usageCode(image, kind)
-      snippets[code] = highlight(code, kind === 'react' ? 'tsx' : 'html')
+      snippets[code] = highlight(code, usageLanguages[kind])
     }
   }
   for (const file of readdirSync(docs).filter(file => file.endsWith('.mdx'))) {

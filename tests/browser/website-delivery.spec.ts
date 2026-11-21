@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 
 import { exampleNames } from '../../scripts/example-names'
-import { test, expect } from './website-fixture'
+import { expect, test } from './website-fixture'
 
 for (const path of ['/', '/react']) {
   test(`${path} hydrates without downloading documentation articles`, async ({ page }) => {

@@ -1,5 +1,5 @@
 import { observeErrors } from './helpers'
-import { test, expect } from './website-fixture'
+import { expect, test } from './website-fixture'
 
 for (const path of ['/', '/react']) {
   test(`${path} hydrates saved preferences without losing server-rendered content`, async ({

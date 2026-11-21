@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 
-import { parse, parseExpressionAt, type Expression } from 'acorn'
+import { type Expression, parse, parseExpressionAt } from 'acorn'
 import type { List, PhrasingContent, RootContent } from 'mdast'
 import remarkMdx from 'remark-mdx'
 import remarkParse from 'remark-parse'
@@ -75,7 +75,12 @@ function convertFlow(nodes: readonly RootContent[], scope: Map<string, unknown>)
       case 'list':
       case 'listItem':
       case 'blockquote':
-        return [{ ...node, children: convertFlow(node.children, scope) } as RootContent]
+        return [
+          {
+            ...node,
+            children: convertFlow(node.children, scope),
+          } as RootContent,
+        ]
       default:
         return [node]
     }
@@ -96,7 +101,12 @@ function convertPhrasing(nodes: readonly PhrasingContent[]): PhrasingContent[] {
       case 'emphasis':
       case 'strong':
       case 'link':
-        return [{ ...node, children: convertPhrasing(node.children) } as PhrasingContent]
+        return [
+          {
+            ...node,
+            children: convertPhrasing(node.children),
+          } as PhrasingContent,
+        ]
       default:
         return [node]
     }
@@ -173,7 +183,12 @@ const components: Record<string, Convert<never>> = {
       type,
       defaultValue,
       required,
-    }: { name: string; type: string; defaultValue?: string; required?: boolean },
+    }: {
+      name: string
+      type: string
+      defaultValue?: string
+      required?: boolean
+    },
     element,
     convertChildren
   ) => [

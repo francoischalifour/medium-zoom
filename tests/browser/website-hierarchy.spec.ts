@@ -1,4 +1,4 @@
-import { test, expect } from './website-fixture'
+import { expect, test } from './website-fixture'
 
 test('overview separates quickstarts, task guides, and the two API references', async ({
   page,
@@ -31,7 +31,10 @@ test('overview separates quickstarts, task guides, and the two API references', 
 
 test('page navigation follows the sidebar across section boundaries', async ({ page }) => {
   await page.goto('/docs/guides/video/')
-  const navigation = page.getByRole('navigation', { name: 'Documentation pages', exact: true })
+  const navigation = page.getByRole('navigation', {
+    name: 'Documentation pages',
+    exact: true,
+  })
   await expect(navigation.locator('a[rel="prev"]')).toHaveAttribute(
     'href',
     '/docs/guides/generated-svg/'
@@ -71,7 +74,9 @@ test('earlier documentation URLs redirect to their new content owners', async ({
     const response = await request.get(old, { maxRedirects: 0 })
     expect(response.status()).toBe(301)
     expect(response.headers().location).toBe(destination)
-    const withoutSlash = await request.get(old.slice(0, -1), { maxRedirects: 0 })
+    const withoutSlash = await request.get(old.slice(0, -1), {
+      maxRedirects: 0,
+    })
     expect(withoutSlash.status()).toBe(301)
     expect(withoutSlash.headers().location).toBe(destination)
     expect(sitemap).not.toContain(`<loc>https://medium-zoom.francoischalifour.com${old}</loc>`)
@@ -106,7 +111,10 @@ test('previous and next cards preserve direction and stop only at the sidebar en
   page,
 }) => {
   await page.goto('/docs/guides/styling/')
-  const navigation = page.getByRole('navigation', { name: 'Documentation pages', exact: true })
+  const navigation = page.getByRole('navigation', {
+    name: 'Documentation pages',
+    exact: true,
+  })
   const previous = navigation.locator('a[rel="prev"]')
   const next = navigation.locator('a[rel="next"]')
   await expect(previous).toContainText('Previous')
@@ -120,7 +128,10 @@ test('previous and next cards preserve direction and stop only at the sidebar en
   await previous.click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Multiple images')
   await page.goto('/docs/')
-  const reference = page.getByRole('navigation', { name: 'Documentation pages', exact: true })
+  const reference = page.getByRole('navigation', {
+    name: 'Documentation pages',
+    exact: true,
+  })
   await expect(reference.locator('a[rel="prev"]')).toHaveCount(0)
   await expect(reference.locator('a[rel="next"]')).toHaveAttribute('href', '/docs/javascript/')
   await page.goto('/docs/integrations/vitepress/')

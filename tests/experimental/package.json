@@ -1,0 +1,44 @@
+{
+  "private": true,
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "sideEffects": [
+    "./dist/medium-zoom.js",
+    "./dist/medium-zoom.min.js",
+    "./dist/medium-zoom.esm.js",
+    "**/*.css"
+  ],
+  "typesVersions": {
+    "*": {
+      "dist/pure": [
+        "dist/pure/index.d.ts"
+      ],
+      "*": [
+        "*"
+      ]
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/medium-zoom.d.ts",
+      "module": "./dist/medium-zoom.esm.js",
+      "default": "./dist/medium-zoom.min.js"
+    },
+    "./dist/pure": {
+      "types": "./dist/pure/index.d.ts",
+      "default": "./dist/pure/index.js"
+    },
+    "./dist/medium-zoom": "./dist/medium-zoom.js",
+    "./dist/medium-zoom.min": "./dist/medium-zoom.min.js",
+    "./dist/medium-zoom.esm": "./dist/medium-zoom.esm.js",
+    "./dist/pure/index": "./dist/pure/index.js",
+    "./dist/pure/medium-zoom.umd": "./dist/pure/medium-zoom.umd.js",
+    "./dist/pure/medium-zoom.min.umd": "./dist/pure/medium-zoom.min.umd.js",
+    "./*": "./*",
+    "./style.css": "./dist/style.css",
+    "./compat/style.css": "./dist/style.css",
+    "./modern/style.css": "./dist/modern/style.css"
+  }
+}

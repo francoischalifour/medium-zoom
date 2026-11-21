@@ -25,7 +25,9 @@ zoom.on('open', () => {
   video.src = source
   video.hidden = true
   video.setAttribute('aria-label', 'A pink flower opening')
-  video.addEventListener('loadeddata', () => (video.hidden = false), { once: true })
+  video.addEventListener('loadeddata', () => (video.hidden = false), {
+    once: true,
+  })
   video.addEventListener('error', () => video.remove(), { once: true })
 
   // Start during the user gesture, before the image animation finishes.

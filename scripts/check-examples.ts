@@ -39,7 +39,9 @@ async function checkExample(name: string) {
     filter: path => !['node_modules', 'dist'].includes(basename(path)),
   })
   if (name === 'shadcn') {
-    cpSync(resolve('assets/images'), join(root, 'public/assets/images'), { recursive: true })
+    cpSync(resolve('assets/images'), join(root, 'public/assets/images'), {
+      recursive: true,
+    })
   }
   const run = (args: string[]) =>
     new Promise<void>((resolve, reject) => {

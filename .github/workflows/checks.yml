@@ -49,8 +49,7 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version-file: .bun-version
-      - name: Install only the formatter
-        run: npm install --global --no-audit --no-fund "oxfmt@$(jq -r .devDependencies.oxfmt package.json)"
+      # Bun's built-in formatter needs no install.
       - run: bun run format:check
 
   validate:
@@ -81,7 +80,7 @@ jobs:
       - run: bun run check:source
       - name: Check package
         if: ${{ needs.changes.outputs.scope == 'library' }}
-        run: bun run test:size && bun run test:package
+        run: bun run size && bun run test:package
       - run: bun run test:registry
 
   build:

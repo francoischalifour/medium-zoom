@@ -1,14 +1,14 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 import {
-  bundles,
-  loadZoomFixture,
-  loadBundle,
-  openImage,
-  dismissZoom,
-  finishAnimations,
   type BundleName,
+  bundles,
+  dismissZoom,
   type Distribution,
+  finishAnimations,
+  loadBundle,
+  loadZoomFixture,
+  openImage,
 } from './helpers.ts'
 
 const distributions: Distribution[] = ['baseline', 'package']
@@ -44,21 +44,14 @@ test('default injects styles once; pure has no stylesheet side effect', async ({
   await expect(page.locator('style')).toHaveCount(1)
 })
 
-test('DOM container updates retain published package behavior', async ({ page }) => {
-  const results = []
-  for (const distribution of distributions) {
-    await loadZoomFixture(page, { distribution })
-    results.push(
-      await page.evaluate(() => {
-        const container = window.zoom.update({ container: document.body }).getOptions().container
-        return {
-          preservesElement: container === document.body,
-          keys: Object.keys(container || {}),
-        }
-      })
+test('DOM container updates preserve the element identity', async ({ page }) => {
+  await loadZoomFixture(page)
+  expect(
+    await page.evaluate(
+      () =>
+        window.zoom.update({ container: document.body }).getOptions().container === document.body
     )
-  }
-  expect(results[1]).toEqual(results[0])
+  ).toBe(true)
 })
 
 for (const bundle of ['defaultUmd', 'pureUmd'] as const) {

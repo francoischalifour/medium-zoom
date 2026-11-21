@@ -47,7 +47,10 @@ test('serves the original JSON while analytics is pending and sends only downloa
   const ingest = t.mock.method(globalThis, 'fetch', () => delivery)
   t.after(() => ingest.mock.restore())
   const request = new Request(`${origin}${path}?secret=never-send`, {
-    headers: { 'User-Agent': 'private-user-agent', 'CF-Connecting-IP': '192.0.2.1' },
+    headers: {
+      'User-Agent': 'private-user-agent',
+      'CF-Connecting-IP': '192.0.2.1',
+    },
   })
   const download = serve(request)
   const response = await download.result
@@ -58,7 +61,10 @@ test('serves the original JSON while analytics is pending and sends only downloa
   const [url, init] = ingest.mock.calls[0].arguments as [string, RequestInit]
   assert.equal(url, 'https://api.altertable.ai/track')
   assert.equal(init.method, 'POST')
-  assert.deepEqual(init.headers, { 'Content-Type': 'application/json', 'X-API-Key': 'test-key' })
+  assert.deepEqual(init.headers, {
+    'Content-Type': 'application/json',
+    'X-API-Key': 'test-key',
+  })
   assert.equal(typeof init.body, 'string')
   const body = init.body as string
   const [event] = JSON.parse(body)

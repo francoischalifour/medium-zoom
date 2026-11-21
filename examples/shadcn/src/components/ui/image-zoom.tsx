@@ -291,7 +291,12 @@ function resolveOptions(image: HTMLImageElement, options?: ZoomOptions): ZoomOpt
   if (container && typeof container === 'object' && 'getBoundingClientRect' in container) {
     const bounds = container.getBoundingClientRect()
     // Core's object form describes viewport bounds with top/left insets.
-    container = { width: bounds.right, height: bounds.bottom, left: bounds.left, top: bounds.top }
+    container = {
+      width: bounds.right,
+      height: bounds.bottom,
+      left: bounds.left,
+      top: bounds.top,
+    }
   }
   return {
     template: undefined,

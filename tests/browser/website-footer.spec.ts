@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright'
 
 import { testUrl } from '../server-urls'
-import { test, expect } from './website-fixture'
+import { expect, test } from './website-fixture'
 
 for (const theme of ['light', 'dark'] as const) {
   test(`the shared footer stays usable from phone to desktop in ${theme} mode`, async ({
@@ -16,7 +16,9 @@ for (const theme of ['light', 'dark'] as const) {
       await page.goto(path)
       await page.evaluate(() => document.fonts.ready)
       const footer = page.getByRole('contentinfo')
-      const navigation = footer.getByRole('navigation', { name: 'Footer navigation' })
+      const navigation = footer.getByRole('navigation', {
+        name: 'Footer navigation',
+      })
       await expect(navigation.locator('[aria-current="page"]')).toHaveText(current)
       await expect(navigation.getByRole('link')).toHaveCount(6)
       for (const width of [320, 768, 1_440]) {
@@ -29,7 +31,9 @@ for (const theme of ['light', 'dark'] as const) {
           expect(bounds.x).toBeGreaterThanOrEqual(0)
           expect(bounds.x + bounds.width).toBeLessThanOrEqual(width)
         }
-        await footer.screenshot({ path: testInfo.outputPath(`footer-${current}-${width}.png`) })
+        await footer.screenshot({
+          path: testInfo.outputPath(`footer-${current}-${width}.png`),
+        })
       }
       const result = await new AxeBuilder({ page }).include('.site-footer').analyze()
       expect(result.violations).toEqual([])

@@ -48,7 +48,11 @@ export function Hero({ page }: { page: SitePage }) {
 // The marks and links each page's hero shows in its own way.
 const heroMedia: Record<
   SitePage,
-  { eyebrowMark: ReactNode; technologyIcon: ReactNode; secondaryAction: ReactNode }
+  {
+    eyebrowMark: ReactNode
+    technologyIcon: ReactNode
+    secondaryAction: ReactNode
+  }
 > = {
   javascript: {
     eyebrowMark: null,

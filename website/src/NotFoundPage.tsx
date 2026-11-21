@@ -1,5 +1,5 @@
 import { HeroCrop } from './site-components'
-import { SiteHeader, SiteFooter } from './site-shell'
+import { SiteFooter, SiteHeader } from './site-shell'
 import { JavaScriptIcon, ReactIcon } from './technology-icons'
 
 import './not-found.css'

@@ -1,4 +1,4 @@
-import { altertable, type Altertable, type EventProperties } from '@altertable/altertable-js'
+import { type Altertable, altertable, type EventProperties } from '@altertable/altertable-js'
 
 import { getPackageManager } from './package-manager'
 import { getSitePage } from './site-data'
@@ -57,11 +57,7 @@ function getClient() {
 }
 
 type SiteEvent =
-  | 'Install Command Copied'
-  | 'Code Copied'
-  | 'Image Zoomed'
-  | 'Outbound Click'
-  | 'Searched'
+  'Install Command Copied' | 'Code Copied' | 'Image Zoomed' | 'Outbound Click' | 'Searched'
 export function trackSiteEvent(event: SiteEvent, properties: EventProperties = {}) {
   if (!enabled) {
     return
@@ -74,7 +70,9 @@ export function trackSiteEvent(event: SiteEvent, properties: EventProperties = {
 }
 
 export function trackInstallCopied() {
-  trackSiteEvent('Install Command Copied', { package_manager: getPackageManager() })
+  trackSiteEvent('Install Command Copied', {
+    package_manager: getPackageManager(),
+  })
 }
 
 export function initSiteAnalytics() {

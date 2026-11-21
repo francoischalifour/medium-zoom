@@ -24,6 +24,8 @@ export default defineConfig(({ command }) =>
     define: {
       __MEDIUM_ZOOM_VERSION__: JSON.stringify(packageJson.version),
       __MEDIUM_ZOOM_GZIP_BYTES__: libraryGzipBytes(),
+      // Development serves the root preset from source; builds use the compiled package.
+      ...(command === 'serve' && { __PRESET__: 'true' }),
     },
     plugins: [
       {
@@ -50,7 +52,10 @@ export default defineConfig(({ command }) =>
       alias: {
         // Package rebuilds temporarily remove dist/; development follows source.
         ...(command === 'serve'
-          ? { 'medium-zoom': fileURLToPath(new URL('../src/index.js', import.meta.url)) }
+          ? {
+              'medium-zoom': fileURLToPath(new URL('../src/index.ts', import.meta.url)),
+              '#platform': fileURLToPath(new URL('../src/platform/compat.ts', import.meta.url)),
+            }
           : {}),
         '@/components/ui/image-zoom': fileURLToPath(
           new URL('../examples/shadcn/src/components/ui/image-zoom.tsx', import.meta.url)

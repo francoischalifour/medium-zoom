@@ -1,6 +1,6 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
-import { decodeImages, dismissZoom, openImage, observeErrors } from '../browser/helpers.ts'
+import { decodeImages, dismissZoom, observeErrors, openImage } from '../browser/helpers.ts'
 
 for (const path of ['/zoom', '/composed']) {
   test(`${path}: a Server Component renders the image in the initial HTML without JavaScript`, async ({
@@ -16,7 +16,9 @@ for (const path of ['/zoom', '/composed']) {
         page.getByRole('heading', { name: 'Rendered by a Server Component' })
       ).toBeVisible()
       await expect(
-        page.getByRole('button', { name: 'Zoom image: Ocean sunset from a Server Component' })
+        page.getByRole('button', {
+          name: 'Zoom image: Ocean sunset from a Server Component',
+        })
       ).toBeVisible()
       await expect(page.locator('img')).toHaveAttribute('width', '1920')
     } finally {

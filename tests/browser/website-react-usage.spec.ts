@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright'
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 import { decodeImages, dismissZoom, finishAnimations } from './helpers'
 
@@ -124,7 +124,10 @@ test('example tabs share hover and keyboard behavior, with code before the previ
   await page.keyboard.press('Home')
   await expect(tabs.getByRole('tab', { name: 'Basic', exact: true })).toBeFocused()
   await tabs.getByRole('tab', { name: 'Basic', exact: true }).click()
-  const trigger = usage.getByRole('button', { name: 'Zoom image: Ocean sunset', exact: true })
+  const trigger = usage.getByRole('button', {
+    name: 'Zoom image: Ocean sunset',
+    exact: true,
+  })
   await page.keyboard.press('Tab')
   await trigger.focus()
   const corners = await trigger.evaluate(element => {
@@ -156,7 +159,9 @@ test('the published composition and controlled examples work as documented', asy
   await page.getByRole('tab', { name: 'Composed', exact: true }).click()
   const example = page.locator('#usage [role="tabpanel"]')
   await expect(example.locator('code')).toContainText('ImageZoom.Root')
-  const composed = example.getByRole('button', { name: 'View photo: Denali at sunrise' })
+  const composed = example.getByRole('button', {
+    name: 'View photo: Denali at sunrise',
+  })
   await decodeImages(composed.locator('img'))
   await composed.click()
   await expect(page.locator('.medium-zoom-overlay')).toBeVisible()

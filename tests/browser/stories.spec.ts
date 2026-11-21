@@ -1,16 +1,16 @@
 import { writeFile } from 'node:fs/promises'
 
-import { test, expect, type Page } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 
 import {
-  openImage,
-  dismissZoom,
+  acceptAlerts,
   decodeImages,
+  dismissZoom,
   finishAnimations,
   observeErrors,
-  acceptAlerts,
+  openImage,
 } from './helpers.ts'
-import { readStories, observeStoryEvents, captureStory } from './stories.helpers.ts'
+import { captureStory, observeStoryEvents, readStories } from './stories.helpers.ts'
 
 const unattachedStories = new Set([
   'detach()/with multiple selectors',
@@ -28,7 +28,12 @@ for (let group = 0; group < storyGroups; group++) {
     test.setTimeout(60_000)
     const errors = observeErrors(page)
     const alerts = acceptAlerts(page)
-    const evidence: { id: string; before: string; after: string; action: string }[] = []
+    const evidence: {
+      id: string
+      before: string
+      after: string
+      action: string
+    }[] = []
     await observeStoryEvents(page)
     const stories = await readStories(page)
     expect(stories).toHaveLength(43)
@@ -43,9 +48,17 @@ for (let group = 0; group < storyGroups; group++) {
         await page.goto(story.url)
         await expect(page.locator('html')).toHaveAttribute('data-ready', 'true')
         await assertInitialState(page, story.id)
-        const before = await captureStory(page, testInfo, { story, index, state: 'before' })
+        const before = await captureStory(page, testInfo, {
+          story,
+          index,
+          state: 'before',
+        })
         await demonstrateStory(page, story.id)
-        const after = await captureStory(page, testInfo, { story, index, state: 'after' })
+        const after = await captureStory(page, testInfo, {
+          story,
+          index,
+          state: 'after',
+        })
         await dismissStory(page, story.id)
         expect(alerts).toEqual(expectedAlerts(story.id))
         expect(errors).toEqual([])

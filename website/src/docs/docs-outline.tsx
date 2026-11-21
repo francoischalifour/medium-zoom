@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { ScrollArea, revealInScrollArea } from '../scroll-area'
+import { revealInScrollArea, ScrollArea } from '../scroll-area'
 import { Icon } from '../site-components'
 
 type OutlineItem = { title: string; id: string }

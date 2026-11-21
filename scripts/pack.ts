@@ -1,9 +1,9 @@
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, mkdirSync, rmSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-export function pack() {
+export function pack(cwd = process.cwd()) {
   const directory = mkdtempSync(join(tmpdir(), 'medium-zoom-package-'))
   try {
     const output = JSON.parse(
@@ -18,7 +18,7 @@ export function pack() {
           '--cache',
           join(directory, 'cache'),
         ],
-        { encoding: 'utf8' }
+        { cwd, encoding: 'utf8' }
       )
     )
     const archive = join(directory, output[0].filename)

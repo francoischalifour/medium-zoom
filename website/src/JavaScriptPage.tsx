@@ -3,7 +3,7 @@ import { javascriptUsageCode } from './gallery'
 import { ProductFeatures } from './product-features'
 import { integrationsSection, productPages } from './product-pages'
 import { trackSiteEvent } from './site-analytics'
-import { CopyButton, CodeTokens, InlineCopy } from './site-components'
+import { CodeTokens, CopyButton, InlineCopy } from './site-components'
 
 import './javascript.css'
 

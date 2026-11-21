@@ -23,4 +23,66 @@ for (const path of ['dist/medium-zoom.esm.js', 'dist/pure/index.js', 'dist/style
   assert(require.resolve(`medium-zoom/${path}`))
 }
 // Native Node ESM does not support the directory shorthand used by bundlers.
-await assert.rejects(import('medium-zoom/dist/pure'), { code: 'ERR_UNSUPPORTED_DIR_IMPORT' })
+await assert.rejects(import('medium-zoom/dist/pure'), {
+  code: 'ERR_UNSUPPORTED_DIR_IMPORT',
+})
+
+// Keep v1's extension and directory resolution, including the trailing slash.
+for (const path of [
+  'dist/medium-zoom',
+  'dist/medium-zoom.min',
+  'dist/pure/index',
+  'dist/pure/medium-zoom.umd',
+  'dist/pure/medium-zoom.min.umd',
+]) {
+  assert.equal(require.resolve(`medium-zoom/${path}`), require.resolve(`medium-zoom/${path}.js`))
+}
+assert.equal(
+  require.resolve('medium-zoom/dist/pure'),
+  require.resolve('medium-zoom/dist/pure/index.js')
+)
+assert.equal(
+  require.resolve('medium-zoom/dist/pure/'),
+  require.resolve('medium-zoom/dist/pure/index.js')
+)
+
+// Neither candidate aliases nor raw experimental artifacts may escape the tarball.
+for (const path of [
+  'core',
+  'features',
+  'renderers',
+  'gallery',
+  'controls',
+  'dist/gallery/index.mjs',
+  'dist/controls/index.mjs',
+  'session',
+  'dist/session/index.mjs',
+  'dist/session/index.cjs',
+  'dist/renderers/index.mjs',
+  'dist/renderers/index.cjs',
+  'dist/renderers/index.d.mts',
+  'dist/renderers/index.d.cts',
+  'modern',
+  'compat',
+  'pure',
+  'compat/pure',
+  'style.css',
+  'modern/style.css',
+  'compat/style.css',
+  'dist/core/index.mjs',
+  'dist/core/index.cjs',
+  'dist/core/index.d.mts',
+  'dist/features/index.mjs',
+  'dist/modern/index.mjs',
+  'dist/compat/index.mjs',
+  'dist/compat/pure/index.mjs',
+  'dist/modern/style.css',
+  'dist/pure/index.mjs',
+  'dist/pure/index.cjs',
+  'dist/pure/index.d.mts',
+  'dist/pure/index.d.cts',
+]) {
+  assert.throws(() => require.resolve(`medium-zoom/${path}`), {
+    code: 'MODULE_NOT_FOUND',
+  })
+}

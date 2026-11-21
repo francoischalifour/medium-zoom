@@ -1,13 +1,13 @@
 import * as React from 'react'
 
-import { getCommandGroups, commandVerbs, type CommandItem } from './command-items'
-import { getSearchTerms, type DocsSearch } from './docs-search'
+import { type CommandItem, commandVerbs, getCommandGroups } from './command-items'
+import { type DocsSearch, getSearchTerms } from './docs-search'
 import { usePackageManager } from './package-manager'
 import { usesAppleShortcuts } from './shortcut-platform'
 import { trackInstallCopied, trackSiteEvent } from './site-analytics'
 import { Icon } from './site-components'
 import type { SitePage } from './site-data'
-import { getTheme, getServerTheme, setTheme, subscribeTheme } from './site-theme'
+import { getServerTheme, getTheme, setTheme, subscribeTheme } from './site-theme'
 
 import './command-palette.css'
 

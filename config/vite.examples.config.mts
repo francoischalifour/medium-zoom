@@ -1,7 +1,7 @@
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { loadConfigFromFile, mergeConfig, type ConfigEnv, type UserConfig } from 'vite'
+import { type ConfigEnv, loadConfigFromFile, mergeConfig, type UserConfig } from 'vite'
 
 import { libraryConfig } from './vite.shared.config.mts'
 
@@ -50,7 +50,9 @@ export async function localExampleConfig({
   if (name === 'shadcn' && command === 'build') {
     // The website owns the public React integration page. This build adds its component fixture.
     managed.build!.emptyOutDir = false
-    managed.build!.rolldownOptions!.input = { playground: resolve(root, 'playground.html') }
+    managed.build!.rolldownOptions!.input = {
+      playground: resolve(root, 'playground.html'),
+    }
   }
   return managed
 }

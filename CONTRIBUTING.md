@@ -14,8 +14,8 @@ bunx playwright install chromium firefox webkit
 Run commands from the repository root. Development servers move to the next free port when theirs is taken, so open the URL each command prints when running several worktrees at once.
 
 - `bun run dev`: watch the library build.
-- `bun run dev:example vanilla`: serve an example against the local library build. Run the build watcher in another terminal to pick up library changes.
-- `bun run dev:website`: serve the website against the library source. Run `bun run build` once to supply package-size metadata.
+- `bun run dev:example vanilla`: serve a Vite example against the local library build. Run `bun run build` first, or keep `bun run dev` running in another terminal to pick up library changes. The Angular, Astro, and VitePress examples run with `bun run examples`.
+- `bun run dev:website`: build the library for package-size metadata, then serve the website against the library source.
 - `bun run stories`: build the library and serve the API stories at <http://127.0.0.1:9001/storybook/>.
 - `bun run examples`: build and preview the website, stories, and examples at <http://127.0.0.1:4173>. Examples live under `/examples/<name>/`.
 
@@ -44,9 +44,9 @@ For a focused check, use the commands below:
 - `bun run format` or `bun run format:check`: format maintained files or check formatting.
 - `bun run lint`: check source, tests, and tooling with Oxlint.
 - `bun run typecheck`: check tooling, documentation snippets, and framework examples.
-- `bun run test:package`: verify the npm tarball's exports, declarations, CSS, and ES5 syntax.
+- `bun run test:package`: verify the npm tarball's entries, declarations, CSS, and ES5 syntax and APIs, then the same for the private candidate package.
 - `bun run test:examples`: copy each example outside the workspace, install with npm, check types, and build against the published package.
-- `bun run test:size`: check gzip budgets.
+- `bun run size`: check gzip budgets and compare each import set and `dist` file with `config/size-baseline.json`. After an intended size change, run `bun run size:baseline` to record the new sizes.
 - `bun run test:browser`: exercise the packed library, website, examples, and stories in Chromium, Firefox, and WebKit. Package rendering is compared with the published package.
 
 Before individual package checks, run `bun run build`. Before browser checks, run `bun run build:website && bun run test:examples`. Browser checks reserve the first free block of four ports from 4175 (4175, 4185, …), so worktrees can run them at the same time; set `MEDIUM_ZOOM_TEST_PORT` to choose the block. To select browsers, append `--project=chromium --project=webkit` to the browser test command.
@@ -55,9 +55,11 @@ For documentation changes, the [website guide](website/README.md#verify-changes)
 
 ## Preserve compatibility
 
-Preserve the [documented browser support](https://medium-zoom.francoischalifour.com/docs/javascript/#browser-support) and package entry paths, including CommonJS, AMD, and the `mediumZoom` browser global. The default entry injects CSS; the pure entry does not. Both declaration paths must match `src/medium-zoom.d.ts`.
+Preserve the [documented browser support](https://medium-zoom.francoischalifour.com/docs/javascript/#browser-support) and package entry paths, including CommonJS, AMD, and the `mediumZoom` browser global. The default entry injects CSS; the pure entry does not. Both declaration paths are generated from the TypeScript source and must describe the same API.
 
 The build uses Babel and Terser to retain ES5 syntax after bundling with tsdown. Keep the older-browser CSS fallbacks and existing bundle-size budgets.
+
+Candidate entries are private: `config/package.config.mts` defines the composable entries (`core`, `loaders`, `viewport`, `content`, `triggers`, `renderers`, `transitions`, `session`, `gallery`) and the `compat`, `compat/pure`, `modern`, and `pure` presets. Keep them out of the release manifest and the user documentation until their API is ready. `bun run test:package` packs them from the fixture in `tests/experimental`. `bun run test:browser:shadcn-composable` runs the React component's browser suites against `examples/shadcn/tests/experimental/image-zoom.tsx`, the same component built on those entries.
 
 ## Release
 
