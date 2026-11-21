@@ -149,7 +149,7 @@ for (const kind of ['loader', 'viewport'] as const) {
         const fail = () => {
           throw Error('Strategy failed')
         }
-        const zoom = createZoom('#image', kind === 'loader' ? { loader: fail } : { viewport: fail })
+        const zoom = createZoom('#image', { [kind]: fail })
         try {
           await zoom.open()
           return false

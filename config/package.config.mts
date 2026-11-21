@@ -1,5 +1,13 @@
 import legacyFixture from '../tests/experimental/package.json' with { type: 'json' }
 
+export type Profile = 'modern' | 'compat'
+
+// Each profile publishes its own stylesheet; compat keeps the v1 path.
+export const profileStylesheets: Record<Profile, string> = {
+  compat: 'style.css',
+  modern: 'modern/style.css',
+}
+
 // One npm package. Candidate subpaths remain private until their contracts are proven.
 export interface PackageEntry {
   path: string
@@ -14,7 +22,7 @@ export interface PackageEntry {
 export interface CandidateEntry extends PackageEntry {
   name: string
   source: { esm: string; cjs: string }
-  profile: 'modern' | 'compat'
+  profile: Profile
   primaryExport: string
   emitsCss: boolean
   budgets: readonly [number, number]
@@ -46,7 +54,7 @@ function optional(
 }
 function preset(
   name: string,
-  profile: 'modern' | 'compat',
+  profile: Profile,
   injected: boolean,
   budgets: readonly [number, number]
 ): CandidateEntry {
@@ -58,7 +66,7 @@ function preset(
     `${profile} preset`,
     'HD/container/template; no modal/gallery',
     budgets,
-    `dist/${profile === 'modern' ? 'modern/' : ''}style.css`
+    `dist/${profileStylesheets[profile]}`
   )
   return {
     ...entry,

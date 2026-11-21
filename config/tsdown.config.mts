@@ -3,26 +3,128 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { transformSync } from '@babel/core'
-import { parse } from 'acorn'
-import { transform as transformCss } from 'lightningcss'
-import { minify as minifyJavaScript } from 'terser'
+import { type ecmaVersion, parse } from 'acorn'
+import { type Targets, transform as transformCss } from 'lightningcss'
+import { type CompressOptions, minify as minifyJavaScript, type MinifyOptions } from 'terser'
 import { defineConfig } from 'tsdown'
 import type { TsdownPlugin, UserConfig } from 'tsdown'
 
 import pkg from '../package.json' with { type: 'json' }
-import { candidateEntries, type CandidateEntry } from './package.config.mts'
+import {
+  candidateEntries,
+  type CandidateEntry,
+  type Profile,
+  profileStylesheets,
+} from './package.config.mts'
 
 const banner = `/*! ${pkg.name} ${pkg.version} | ${pkg.license} License | https://github.com/${pkg.repository} */`
 const stylesheetPath = new URL('../src/medium-zoom.css', import.meta.url)
 // Mangle the engine's private scene state; preserve public options and DOM APIs.
 const privateProperties = /^__mz_/
 
-type Profile = 'modern' | 'compat'
-
 // Switch this profile for the v2 default; explicit compat stays stable.
 const defaultProfile: Profile = 'compat'
 
+type Format = 'esm' | 'umd' | 'cjs'
+
+// Everything that differs between the compatibility and modern builds.
+interface ProfileConfig {
+  /** tsdown's syntax target; compat lowers later, through Babel. */
+  target: string
+  css: { prepare: (source: string) => string; targets: Targets }
+  /** Lower bundled syntax for the profile's browsers. */
+  lower: (source: string, minify: boolean) => string | null | undefined
+  terser: Pick<MinifyOptions, 'ecma'> & { compress: CompressOptions }
+  /** The syntax acorn must accept in the minified output. */
+  ecmaVersion: ecmaVersion
+}
+
+const profiles: Record<Profile, ProfileConfig> = {
+  compat: {
+    target: 'esnext',
+    css: {
+      // Browsers without zoom cursors fall back to a pointer.
+      prepare: source =>
+        source.replace(/cursor: (zoom-(?:in|out));/g, 'cursor: pointer;\n  cursor: $1;'),
+      targets: { ie: 10 << 16 },
+    },
+    lower: (source, minify) =>
+      transformSync(source, {
+        babelrc: false,
+        configFile: false,
+        targets: { ie: '10' },
+        assumptions: {
+          iterableIsArray: true,
+          noDocumentAll: true,
+          ignoreFunctionLength: true,
+          ignoreToPrimitiveHint: true,
+          pureGetters: true,
+          setSpreadProperties: true,
+        },
+        presets: [['@babel/preset-env', { modules: false, exclude: ['transform-typeof-symbol'] }]],
+        compact: minify,
+        minified: minify,
+        comments: true,
+      })?.code,
+    terser: {
+      ecma: 5,
+      compress: {
+        passes: 10,
+        // Separate statements gzip better than comma chains in the fixed preset.
+        sequences: false,
+        // Fixed compatibility entries expose instances; their Boolean literals are internal flags or DOM arguments.
+        booleans_as_integers: true,
+      },
+    },
+    ecmaVersion: 2_015,
+  },
+  modern: {
+    target: 'es2020',
+    css: {
+      prepare: source => source,
+      targets: { chrome: 80 << 16, firefox: 78 << 16, safari: 14 << 16 },
+    },
+    lower: source => source,
+    terser: { ecma: 2_020, compress: { passes: 3, sequences: true, booleans_as_integers: false } },
+    ecmaVersion: 2_020,
+  },
+}
+
+// Everything that differs between the output module formats.
+interface FormatConfig {
+  /** tsdown always builds CommonJS for Node; the code itself is still browser-only. */
+  platform: 'browser' | 'node'
+  terser: Pick<MinifyOptions, 'module' | 'toplevel'>
+  outputOptions: { exports?: 'default'; intro?: string }
+  /** Line-based package analyzers can mistake URL strings for comments: keep ESM exports on their own lines. */
+  separateExports: boolean
+}
+
+const formats: Record<Format, FormatConfig> = {
+  esm: { platform: 'browser', terser: { module: true }, outputOptions: {}, separateExports: true },
+  umd: {
+    platform: 'browser',
+    terser: {},
+    outputOptions: { exports: 'default', intro: '"use strict";' },
+    separateExports: false,
+  },
+  // CJS bindings are module-local, just like ESM bindings.
+  cjs: {
+    platform: 'node',
+    terser: { toplevel: true },
+    outputOptions: { intro: '"use strict";' },
+    separateExports: false,
+  },
+}
+
+const exportTypes = new Set([
+  'ExportNamedDeclaration',
+  'ExportDefaultDeclaration',
+  'ExportAllDeclaration',
+])
+
 function stylesheet(profile: Profile): TsdownPlugin {
+  const { css } = profiles[profile]
   return {
     name: 'medium-zoom-stylesheet',
     resolveId(source) {
@@ -36,34 +138,25 @@ function stylesheet(profile: Profile): TsdownPlugin {
       }
       this.addWatchFile(stylesheetPath.pathname)
       const source = readFileSync(stylesheetPath, 'utf8')
-      const css = transformCss({
+      const code = transformCss({
         filename: stylesheetPath.pathname,
-        code: Buffer.from(
-          profile === 'compat'
-            ? source.replace(/cursor: (zoom-(?:in|out));/g, 'cursor: pointer;\n  cursor: $1;')
-            : source
-        ),
+        code: Buffer.from(css.prepare(source)),
         minify: true,
-        targets:
-          profile === 'compat'
-            ? { ie: 10 << 16 }
-            : { chrome: 80 << 16, firefox: 78 << 16, safari: 14 << 16 },
+        targets: css.targets,
       }).code.toString()
-      this.emitFile({
-        type: 'asset',
-        fileName: profile === 'compat' ? 'style.css' : 'modern/style.css',
-        source: css,
-      })
+      this.emitFile({ type: 'asset', fileName: profileStylesheets[profile], source: code })
       return `if (typeof document === 'object') {
         var style = document.createElement('style');
-        style.textContent = ${JSON.stringify(css)};
+        style.textContent = ${JSON.stringify(code)};
         document.head.appendChild(style);
       }`
     },
   }
 }
 
-function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
+function browserSyntax(profile: Profile, format: Format, minify: boolean): TsdownPlugin {
+  const config = profiles[profile]
+  const output = formats[format]
   return {
     name: `medium-zoom-${profile}-syntax`,
     generateBundle(_options, bundle) {
@@ -79,49 +172,21 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
         )
       }
     },
-    async renderChunk(source, chunk, options) {
+    async renderChunk(source, chunk) {
       if (chunk.name.endsWith('.d')) {
         return
       }
-      const result =
-        profile === 'compat'
-          ? transformSync(source, {
-              babelrc: false,
-              configFile: false,
-              targets: { ie: '10' },
-              assumptions: {
-                iterableIsArray: true,
-                noDocumentAll: true,
-                ignoreFunctionLength: true,
-                ignoreToPrimitiveHint: true,
-                pureGetters: true,
-                setSpreadProperties: true,
-              },
-              presets: [
-                ['@babel/preset-env', { modules: false, exclude: ['transform-typeof-symbol'] }],
-              ],
-              compact: minify,
-              minified: minify,
-              comments: true,
-            })
-          : { code: source }
-      if (!result?.code) {
+      const lowered = config.lower(source, minify)
+      if (!lowered) {
         throw new Error('The browser syntax transform did not emit code')
       }
       const code = minify
         ? (
-            await minifyJavaScript(result.code, {
-              ecma: profile === 'compat' ? 5 : 2_020,
-              compress: {
-                passes: profile === 'compat' ? 10 : 3,
-                // Separate statements gzip better than comma chains in the fixed preset.
-                sequences: profile !== 'compat',
-                // Fixed compatibility entries expose instances; their Boolean literals are internal flags or DOM arguments.
-                booleans_as_integers: profile === 'compat',
-              },
-              module: options.format === 'es',
-              // CJS bindings are module-local, just like ESM bindings.
-              ...(options.format === 'cjs' && { toplevel: true }),
+            await minifyJavaScript(lowered, {
+              ...config.terser,
+              // Terser writes defaults into the options it receives: give each call its own copy.
+              compress: { ...config.terser.compress },
+              ...output.terser,
               mangle: { properties: { regex: privateProperties } },
               // No source property uses these keys. Reserving their short names shifts the mangled
               // scene keys to a sequence that gzips 1-3 B smaller in the fixed presets (`bun run size`).
@@ -137,38 +202,40 @@ function browserSyntax(profile: Profile, minify: boolean): TsdownPlugin {
               format: { comments: /^!/, quote_style: 1 },
             })
           ).code
-        : result.code
+        : lowered
       if (!code) {
         throw new Error('The browser minifier did not emit code')
       }
-      // Line-based package analyzers can mistake URL strings for comments.
-      // Keep ESM exports visible on their own lines regardless of minifier formatting.
-      let output = code
-      if (options.format === 'es') {
-        const { body } = parse(code, {
-          ecmaVersion: profile === 'compat' ? 2_015 : 2_020,
-          sourceType: 'module',
-        })
-        // Work backwards so each declaration's original offset remains valid.
-        for (const declaration of body.reverse()) {
-          if (
-            declaration.type === 'ExportNamedDeclaration' ||
-            declaration.type === 'ExportDefaultDeclaration' ||
-            declaration.type === 'ExportAllDeclaration'
-          ) {
-            output = `${output.slice(0, declaration.start)}\n${output.slice(declaration.start)}`
-          }
-        }
+      return {
+        code: output.separateExports ? separateExports(code, config.ecmaVersion) : code,
+        map: null,
       }
-      return { code: output, map: null }
     },
   }
 }
 
+function separateExports(code: string, ecmaVersion: ecmaVersion) {
+  const { body } = parse(code, { ecmaVersion, sourceType: 'module' })
+  // Work backwards so each declaration's original offset remains valid.
+  let output = code
+  for (const declaration of body.reverse()) {
+    if (exportTypes.has(declaration.type)) {
+      output = `${output.slice(0, declaration.start)}\n${output.slice(declaration.start)}`
+    }
+  }
+  return output
+}
+
+// `medium-zoom.esm.js` → `medium-zoom.d.ts`, `core/index.mjs` → `core/index.d.mts`.
+const declarationFileName = (fileName: string) =>
+  /\.[mc]js$/.test(fileName)
+    ? fileName.replace(/\.([mc])js$/, '.d.$1ts')
+    : fileName.replace(/(?:\.esm)?\.js$/, '.d.ts')
+
 function browserBundle(
   source: string,
   fileName: string,
-  format: 'esm' | 'umd' | 'cjs',
+  format: Format,
   minify = true,
   profile: Profile = defaultProfile,
   preset = true
@@ -176,11 +243,10 @@ function browserBundle(
   return {
     cwd: fileURLToPath(new URL('../', import.meta.url)),
     entry: { 'medium-zoom': source },
-    // tsdown always builds CommonJS for Node; the code itself is still browser-only.
-    platform: format === 'cjs' ? 'node' : 'browser',
+    platform: formats[format].platform,
     // Keep editor paths from overriding the runtime platform alias.
     tsconfig: false,
-    target: profile === 'compat' ? 'esnext' : 'es2020',
+    target: profiles[profile].target,
     alias: {
       '#platform': fileURLToPath(new URL(`../src/platform/${profile}.ts`, import.meta.url)),
     },
@@ -200,26 +266,23 @@ function browserBundle(
       // No namespace branding is needed for callable/named package entries.
       generatedCode: { symbols: false },
       entryFileNames: chunk =>
-        chunk.name.endsWith('.d')
-          ? /\.[mc]js$/.test(fileName)
-            ? fileName.replace(/\.([mc])js$/, '.d.$1ts')
-            : fileName.replace(/(?:\.esm)?\.js$/, '.d.ts')
-          : fileName,
-      ...(format === 'umd' && { exports: 'default', intro: '"use strict";' }),
-      ...(format === 'cjs' && { intro: '"use strict";' }),
+        chunk.name.endsWith('.d') ? declarationFileName(fileName) : fileName,
+      ...formats[format].outputOptions,
     },
-    plugins: [stylesheet(profile), browserSyntax(profile, minify)],
+    plugins: [stylesheet(profile), browserSyntax(profile, format, minify)],
   }
 }
 
-function entryBundle(entry: CandidateEntry, format: 'esm' | 'cjs'): UserConfig {
+const moduleExtensions = { esm: 'mjs', cjs: 'cjs' } as const
+
+function entryBundle(entry: CandidateEntry, format: keyof typeof moduleExtensions): UserConfig {
   const { name, profile } = entry
   const source = entry.source[format]
   const full = entry.primaryExport === 'default'
   return {
     ...browserBundle(
       source,
-      `${name}/index.${format === 'esm' ? 'mjs' : 'cjs'}`,
+      `${name}/index.${moduleExtensions[format]}`,
       format,
       true,
       profile,
@@ -234,7 +297,10 @@ function entryBundle(entry: CandidateEntry, format: 'esm' | 'cjs'): UserConfig {
       tsconfig: fileURLToPath(new URL('../tsconfig.json', import.meta.url)),
       cjsDefault: full && format === 'cjs',
     },
-    plugins: [...(entry.emitsCss ? [stylesheet(profile)] : []), browserSyntax(profile, true)],
+    plugins: [
+      ...(entry.emitsCss ? [stylesheet(profile)] : []),
+      browserSyntax(profile, format, true),
+    ],
     ...(full &&
       format === 'cjs' && {
         onSuccess(config) {

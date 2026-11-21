@@ -5,12 +5,13 @@ import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { runInNewContext } from 'node:vm'
 
-import { parse } from 'acorn'
+import { type ecmaVersion, parse } from 'acorn'
 
 import {
   candidateArtifacts,
   candidateEntries,
   extensionEntries,
+  type Profile,
 } from '../config/package.config.mts'
 import baseline from '../config/size-baseline.json' with { type: 'json' }
 import { checkAnalyzers } from './check-package-analyzers.ts'
@@ -63,10 +64,16 @@ function moduleFormat(path: string): ModuleFormat {
 }
 
 // Modern files may use ES2020. Legacy ESM keeps ES2015 module syntax around an ES5 body.
-const legacyEcmaVersion: Record<ModuleFormat, 5 | 2_015> = {
-  esm: 2_015,
-  cjs: 5,
-  umd: 5,
+// The syntax each profile's artifacts must parse as, per module format.
+const profileSyntax: Record<Profile, Record<ModuleFormat, ecmaVersion>> = {
+  compat: { esm: 2_015, cjs: 5, umd: 5 },
+  modern: { esm: 2_020, cjs: 2_020, umd: 2_020 },
+}
+
+const sourceTypes: Record<ModuleFormat, 'module' | 'script'> = {
+  esm: 'module',
+  cjs: 'script',
+  umd: 'script',
 }
 
 function runCommonJs(code: string, file: string) {
@@ -209,15 +216,12 @@ async function checkPackage(artifact: ReturnType<typeof pack>, experimental: boo
       const file = join(artifact.root, 'dist', path)
       const code = readFileSync(file, 'utf8')
       const format = moduleFormat(path)
-      const modern = candidateEntries.some(
-        entry =>
-          entry.profile === 'modern' &&
-          (entry.esm === `dist/${path}` || entry.cjs === `dist/${path}`)
-      )
-      parse(code, {
-        ecmaVersion: modern ? 2_020 : legacyEcmaVersion[format],
-        sourceType: format === 'esm' ? 'module' : 'script',
-      })
+      // Release artifacts are not in the candidate catalog; they all use the compat profile.
+      const profile: Profile =
+        candidateEntries.find(entry => entry.esm === `dist/${path}` || entry.cjs === `dist/${path}`)
+          ?.profile ?? 'compat'
+      const modern = profile === 'modern'
+      parse(code, { ecmaVersion: profileSyntax[profile][format], sourceType: sourceTypes[format] })
       // ESM syntax is intentionally retained; its implementation must still be ES5.
       if (format === 'esm' && !modern) {
         parse(code.replace(/export\s*\{[^}]+\};?\s*$/, ''), { ecmaVersion: 5 })

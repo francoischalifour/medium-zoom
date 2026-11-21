@@ -366,8 +366,10 @@ for (const kind of ['element', 'coordinates'] as const) {
       const element = document.querySelector<HTMLElement>('#container')!
       const { width, height, left, top } = element.getBoundingClientRect()
       window.configureDialog({
-        container:
-          kind === 'element' ? element : { width: width + left, height: height + top, left, top },
+        container: {
+          element,
+          coordinates: { width: width + left, height: height + top, left, top },
+        }[kind],
       })
       await window.modalZoom.open()
     }, kind)

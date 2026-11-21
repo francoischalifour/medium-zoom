@@ -2,7 +2,12 @@ import { expect, test } from '@playwright/test'
 
 import { loadZoomFixture } from './helpers.ts'
 
-for (const reducedMotion of ['reduce', 'no-preference'] as const) {
+// The template fade lasts 150 ms, unless the reader asks for reduced motion.
+const templateFadeDurations = { reduce: '0s', 'no-preference': '0.15s' } as const
+
+for (const reducedMotion of Object.keys(
+  templateFadeDurations
+) as (keyof typeof templateFadeDurations)[]) {
   test(`${reducedMotion}: lifecycle, template, and repeated zooms complete`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion })
     await loadZoomFixture(page, {
@@ -45,9 +50,7 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
     expect(result.events).toEqual(Array(2).fill(['open', 'opened', 'close', 'closed']).flat())
     expect(result.returned).toEqual([true, true, true, true])
     expect(result.active).toBeNull()
-    expect(result.templateDurations).toEqual(
-      Array(2).fill(reducedMotion === 'reduce' ? '0s' : '0.15s')
-    )
+    expect(result.templateDurations).toEqual(Array(2).fill(templateFadeDurations[reducedMotion]))
     if (reducedMotion === 'reduce') {
       expect(result.transitions).toEqual([])
     } else {

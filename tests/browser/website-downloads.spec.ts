@@ -90,25 +90,28 @@ test('the count stays hidden in its reserved line until npm answers', async ({ p
   expect((await stats.boundingBox())?.height).toBe(reservedHeight)
 })
 
-for (const failure of ['unavailable', 'incomplete', 'older'] as const) {
+// A complete report for the latest day, and how each failure departs from it.
+const latestReport = {
+  package: 'medium-zoom',
+  downloads: 420_000,
+  start: new Date(Date.parse(nextDay) - 29 * 86_400_000).toISOString().slice(0, 10),
+  end: nextDay,
+}
+const corsHeaders = { 'Access-Control-Allow-Origin': '*' }
+const npmFailures = {
+  unavailable: { status: 503, body: 'Unavailable' },
+  incomplete: { json: { ...latestReport, downloads: null }, headers: corsHeaders },
+  older: { json: { ...latestReport, end: '2016-07-26' }, headers: corsHeaders },
+}
+
+for (const failure of Object.keys(npmFailures) as (keyof typeof npmFailures)[]) {
   test(`an ${failure} npm report preserves the verified count`, async ({ page }) => {
     const clock = new Date(`${nextDay}T12:00:00Z`)
     clock.setUTCDate(clock.getUTCDate() + 1)
     await page.clock.setFixedTime(clock)
-    await page.route('https://api.npmjs.org/downloads/**', route => {
-      if (failure === 'unavailable') {
-        return route.fulfill({ status: 503, body: 'Unavailable' })
-      }
-      return route.fulfill({
-        json: {
-          package: 'medium-zoom',
-          downloads: failure === 'incomplete' ? null : 420_000,
-          start: new Date(Date.parse(nextDay) - 29 * 86_400_000).toISOString().slice(0, 10),
-          end: failure === 'older' ? '2016-07-26' : nextDay,
-        },
-        headers: { 'Access-Control-Allow-Origin': '*' },
-      })
-    })
+    await page.route('https://api.npmjs.org/downloads/**', route =>
+      route.fulfill(npmFailures[failure])
+    )
     await page.goto('/')
     const stats = page.locator('.monthly-downloads')
     await expect(stats.getByRole('link')).toHaveAccessibleName(

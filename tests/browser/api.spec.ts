@@ -97,11 +97,17 @@ test('factory defaults, options-only overload, and fluent methods remain availab
   })
 })
 
-for (const method of ['attach', 'detach'] as const) {
+// Attach starts empty and adds #first; detach starts with every image and removes #first.
+const selectorMethods = {
+  attach: { initial: undefined, ids: ['first'] },
+  detach: { initial: 'img', ids: ['second'] },
+} as const
+
+for (const method of Object.keys(selectorMethods) as (keyof typeof selectorMethods)[]) {
   for (const selector of ['string', 'element', 'array', 'nodelist']) {
     test(`${method} accepts ${selector} selectors`, async ({ page }) => {
       const result = await page.evaluate(
-        ({ method, selector }) => {
+        ({ method, selector, initialSelector }) => {
           const first = document.querySelector<HTMLImageElement>('#first')!
           const targets = {
             string: '#first',
@@ -109,17 +115,17 @@ for (const method of ['attach', 'detach'] as const) {
             array: [first],
             nodelist: document.querySelectorAll('#first'),
           }
-          const zoom = window.mediumZoom(method === 'detach' ? 'img' : undefined)
+          const zoom = window.mediumZoom(initialSelector)
           const returned = zoom[method](targets[selector as keyof typeof targets])
           return {
             ids: zoom.getImages().map(image => image.id),
             fluent: returned === zoom,
           }
         },
-        { method, selector }
+        { method, selector, initialSelector: selectorMethods[method].initial }
       )
       expect(result).toEqual({
-        ids: method === 'attach' ? ['first'] : ['second'],
+        ids: selectorMethods[method].ids,
         fluent: true,
       })
     })
