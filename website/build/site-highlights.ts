@@ -10,17 +10,7 @@ import { componentCommands, javascriptCommands } from '../src/install-commands.t
 import { usageExamples } from '../src/usage-snippets.ts'
 
 type HighlightLanguage =
-  | 'html'
-  | 'tsx'
-  | 'js'
-  | 'vue'
-  | 'svelte'
-  | 'angular-ts'
-  | 'astro'
-  | 'ts'
-  | 'md'
-  | 'bash'
-  | 'css'
+  'html' | 'tsx' | 'js' | 'vue' | 'svelte' | 'angular-ts' | 'astro' | 'ts' | 'md' | 'bash' | 'css'
 
 // Each usage snippet kind and the grammar that highlights it.
 const usageLanguages = { javascript: 'html', react: 'tsx' } as const satisfies Record<

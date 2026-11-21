@@ -57,11 +57,7 @@ function getClient() {
 }
 
 type SiteEvent =
-  | 'Install Command Copied'
-  | 'Code Copied'
-  | 'Image Zoomed'
-  | 'Outbound Click'
-  | 'Searched'
+  'Install Command Copied' | 'Code Copied' | 'Image Zoomed' | 'Outbound Click' | 'Searched'
 export function trackSiteEvent(event: SiteEvent, properties: EventProperties = {}) {
   if (!enabled) {
     return
