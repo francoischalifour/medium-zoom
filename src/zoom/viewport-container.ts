@@ -30,16 +30,22 @@ export interface ContainerOptions {
   container?: string | HTMLElement | ZoomContainer | null
 }
 
+function isBounds(
+  target: ContainerOptions['container']
+): target is ZoomContainer {
+  return target instanceof Object && !isNode(target)
+}
+
 export const updateContainer = (
   options: ContainerOptions,
   previous: ContainerOptions
 ): void => {
-  if (
-    options.container &&
-    options.container instanceof Object &&
-    !isNode(options.container)
-  ) {
-    options.container = assign({}, previous.container, options.container)
+  if (isBounds(options.container)) {
+    options.container = assign(
+      {},
+      isBounds(previous.container) ? previous.container : undefined,
+      options.container
+    )
   }
 }
 
@@ -52,7 +58,7 @@ export const getContainerViewport = (
     return viewport
   }
   const margin = options.margin!
-  if (target instanceof Object && !isNode(target)) {
+  if (isBounds(target)) {
     const box = assign(
       {
         width: document.documentElement.clientWidth,

@@ -225,6 +225,19 @@ test('event handlers follow attachment and off removes only the selected handler
   expect(result).toEqual(['first', 'second', 'second'])
 })
 
+test('coordinate bounds replace a selector without copying its characters', async ({
+  page,
+}) => {
+  const container = await page.evaluate(
+    () =>
+      window
+        .mediumZoom('img', { container: '#container' })
+        .update({ container: { left: 20 } })
+        .getOptions().container
+  )
+  expect(container).toEqual({ left: 20 })
+})
+
 test('open, close, and toggle resolve with the instance and expose the active original', async ({
   page,
 }) => {
