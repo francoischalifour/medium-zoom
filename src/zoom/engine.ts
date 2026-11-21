@@ -18,11 +18,7 @@ import { waitForTransition } from './transition'
 
 /** The images to zoom: a CSS selector, an element, a list of elements, or `null` for none. */
 export type ZoomSelector =
-  | string
-  | HTMLElement
-  | HTMLElement[]
-  | NodeList
-  | null
+  string | HTMLElement | HTMLElement[] | NodeList | null
 
 /** Options every zoom accepts, in every entry. Change them later with `zoom.update()`. */
 export interface CoreZoomOptions {

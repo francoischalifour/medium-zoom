@@ -2,7 +2,8 @@
 exact = true
 
 [fmt]
-# Explicit: defaults otherwise follow whichever Prettier or oxfmt config Bun detects.
+# The only formatter config: the format scripts pass --no-config so a Prettier or oxfmt
+# config found above the checkout, as in a nested worktree, cannot change the result.
 printWidth = 80
 singleQuote = true
 semi = false
