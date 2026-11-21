@@ -369,6 +369,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
       }
 
       if (__PRESET__) {
+        // FIXME(v2): Normalize a copy so update() accepts frozen options.
         legacy!.update(options, zoomOptions)
       }
 

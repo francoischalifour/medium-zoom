@@ -24,6 +24,7 @@ export interface ZoomOptions
 export interface Zoom<
   Options extends CoreZoomOptions = ZoomOptions,
 > extends ZoomInstance<Options> {
+  // FIXME(v2): Include null in the return type when the zoom is closed.
   /**
    * Returns the current zoomed image.
    *
