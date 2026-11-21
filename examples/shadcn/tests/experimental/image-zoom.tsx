@@ -88,7 +88,6 @@ export function Root({
     void sessionRef.current?.close()
   }, [requestOpen])
 
-  // Read committed props from event handlers and async work, never abandoned renders.
   React.useEffect(() => {
     changeRef.current = onOpenChange
     if (disabled) requestOpen(false)
@@ -96,7 +95,7 @@ export function Root({
     requestedRef.current = wantedOpen
   })
 
-  // Publish options after commit, so an abandoned render cannot affect an active zoom.
+  // Update the zoom after commit so an abandoned React render cannot change its options.
   React.useEffect(() => {
     optionsRef.current = options
   }, [options])
@@ -106,7 +105,6 @@ export function Root({
     let disposed = false
     let session: Session | null = null
     const onOpen = () => setZoomed(true)
-    // Escape, scroll, and overlay clicks start a close outside this component.
     const onClose = () => {
       if (!disposed) requestOpen(false)
     }
@@ -118,17 +116,14 @@ export function Root({
       if (disposed) return
       setZoomed(false)
       const zoom = createZoom(image, {
-        // A native dialog: top layer, focus containment, Escape, and focus return.
         renderer: dialog(),
         loader: loadHdImage,
-        // Read the latest options when the zoom is positioned, not when it was created.
         viewport: (bounds, core) =>
           containerBounds(optionsRef.current?.container ?? null)(bounds, core),
       })
       image.addEventListener('medium-zoom:open', onOpen)
       image.addEventListener('medium-zoom:close', onClose)
       image.addEventListener('medium-zoom:closed', onClosed)
-      // One zoom per document: the session finishes closing another root before opening this one.
       session = createZoomSession(zoom)
       sessionRef.current = session
       if (wantedRef.current) openSession()
@@ -156,7 +151,6 @@ export function Root({
     const session = sessionRef.current
     if (!session || !image || session.zoom.getZoomedImage()) return
     session.zoom.update(resolveOptions(image, optionsRef.current))
-    // Focus returns to the control that wraps the image when the dialog closes.
     void session.open({ trigger: image.closest('button') ?? undefined })
   }
 
@@ -231,7 +225,6 @@ export const Image = React.forwardRef<HTMLImageElement, ImageProps>(
       [setImage]
     )
 
-    // Never keep a clone of a previous source over the replacement image.
     React.useEffect(() => {
       if (
         source.some((value, index) => value !== previousSource.current[index])

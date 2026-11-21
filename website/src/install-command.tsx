@@ -34,7 +34,7 @@ export function InstallCommand({
           <legend className="sr-only">Package manager</legend>
           {packageManagers.map(value => (
             <label key={value} data-package-manager-option={value}>
-              {/* Storage owns this preference; native history restoration can retain stale checks. */}
+              {/* Use the stored preference because browser history can restore a stale radio selection. */}
               <input
                 className="sr-only"
                 type="radio"

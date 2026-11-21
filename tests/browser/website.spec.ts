@@ -29,7 +29,6 @@ const frameworkNames = Object.keys(frameworks) as Framework[]
 
 const scrollBehaviors = { 'no-preference': 'smooth', reduce: 'auto' } as const
 
-// Tests open the JavaScript page first, with its readiness checks, then navigate from it.
 async function showFramework(page: Page, framework: Framework) {
   const { path } = frameworks[framework]
   if (new URL(page.url()).pathname !== path) {
@@ -445,7 +444,6 @@ test('mobile bar shows the section select right after the branding', async ({
         name: 'Section',
         exact: true,
       })
-      // The select's trigger carries the brand name next to the mark.
       await expect(page.locator('.brand-name')).toBeHidden()
       await expect(
         bar.getByRole('link', { name: 'React', exact: true })

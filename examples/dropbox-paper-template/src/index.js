@@ -7,13 +7,11 @@ const zoomPaper = mediumZoom('.container img', {
   container: '[data-zoom-container]',
 })
 
-// You can start manipulating the DOM after the `opened` event has been triggered
 zoomPaper.on('opened', () => {
   const closeButton = document.querySelector('[data-zoom-close]')
   closeButton.addEventListener('click', () => zoomPaper.close())
 })
 
-// Block scroll on zoom
 zoomPaper.on('open', () => {
   document.body.style.overflow = 'hidden'
 })

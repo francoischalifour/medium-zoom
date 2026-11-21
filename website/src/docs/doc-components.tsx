@@ -158,7 +158,6 @@ export function Prop({
   )
 }
 
-// The quickstart's live result; the props match the image markup the page shows.
 export function JavaScriptPreview({
   src,
   alt,
@@ -225,7 +224,6 @@ export function RelatedPages({ pages }: { pages: readonly DocsPath[] }) {
   )
 }
 
-// Cards linking to the quickstarts; each card's children describe when to choose it.
 export function EntryPoints({ children }: { children: React.ReactNode }) {
   return (
     <nav className="docs-entry-points" aria-label="Choose your setup">
@@ -249,7 +247,6 @@ export function EntryPoint({
   )
 }
 
-// Columns of reference links; each group's children are its links.
 export function ReferenceLinks({ children }: { children: React.ReactNode }) {
   return <div className="docs-reference-links">{children}</div>
 }

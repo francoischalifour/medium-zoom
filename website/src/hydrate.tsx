@@ -13,7 +13,6 @@ export async function hydrateSite() {
   const root = document.getElementById('root')!
   const page = getSitePage(location.pathname) ?? 'javascript'
   let content: ReactNode
-  // Product pages do not need the documentation articles and their live examples.
   if (document.documentElement.dataset.page === 'not-found') {
     content = <NotFoundPage />
   } else if (page === 'docs') {

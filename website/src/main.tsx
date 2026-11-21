@@ -111,7 +111,6 @@ document.addEventListener('keydown', deferKeyDown, options)
 document.addEventListener('change', deferRadioChange, options)
 
 function afterFirstPaint(callback: () => void) {
-  // Development has no prerendered content to paint before hydration.
   if (!document.getElementById('root')?.hasChildNodes()) {
     callback()
     return

@@ -53,7 +53,6 @@ assert.equal(
   require.resolve('medium-zoom/dist/pure/index.js')
 )
 
-// Neither candidate aliases nor raw experimental artifacts may escape the tarball.
 for (const path of [
   'core',
   'features',

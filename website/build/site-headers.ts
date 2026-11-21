@@ -46,7 +46,6 @@ export function siteHeaders(): Plugin {
         source: [
           '/examples/*\n  X-Robots-Tag: noindex, follow',
           '/storybook/*\n  X-Robots-Tag: noindex, follow',
-          // Registry items are machine-readable JSON for the shadcn CLI, not search results.
           '/r/*\n  X-Robots-Tag: noindex',
           ...siteMarkdownHeaders(),
           ...fingerprintedAssetPaths.map(

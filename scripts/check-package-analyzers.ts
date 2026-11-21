@@ -73,7 +73,6 @@ function checkAttw(archive: string, experimental: boolean) {
   )
   assert.ifError(attw.error)
   assert(attw.status === 0 || attw.status === 1, attw.stderr)
-  // Exit 1 means findings were reported; validate their exact scope below.
   const { analysis } = JSON.parse(attw.stdout) as { analysis: AttwAnalysis }
   const findings = analysis.problems.map(problem => ({
     kind: problem.kind,

@@ -135,7 +135,6 @@ test('horizontal examples stop at both ends and retain independent card state', 
       .getByRole('region', { name: 'Image zoom examples', exact: true })
       .locator('.example-rail')
   ).toHaveCSS('scrollbar-width', 'none')
-  // Native focus scrolling can traverse the finite rail and leave it normally.
   await landscape.getByRole('tab', { name: 'Code', exact: true }).focus()
   for (let step = 0; step < 40; step++) {
     await page.keyboard.press('Tab')

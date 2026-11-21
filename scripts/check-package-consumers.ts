@@ -68,7 +68,7 @@ export async function checkConsumers(
   await checkBundlerResolution(consumer, packageRoot, experimental)
   await checkBundlerConsumer(consumer)
 
-  // Use Node, not Bun's more permissive module loader, for real package resolution.
+  // Use Node here because Bun can resolve imports that fail for Node consumers.
   for (const file of ['output/commonjs.cjs', 'runtime.mjs']) {
     execFileSync('node', [join(consumer, file)], {
       cwd: consumer,
@@ -78,9 +78,7 @@ export async function checkConsumers(
 }
 
 interface TypeCase {
-  /** Diagnostic label; also names the generated tsconfig. */
   name: string
-  /** The packed manifest whose fixtures this case compiles; both when omitted. */
   manifest?: 'release' | 'candidate'
   module: string
   moduleResolution: string

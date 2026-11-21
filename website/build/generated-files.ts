@@ -8,8 +8,6 @@ const contentTypes: Record<string, string> = {
   '.xml': 'application/xml; charset=utf-8',
 }
 
-// Serves files generated from site data during development and emits them into the build.
-// `generate` returns file contents keyed by public path, such as '/sitemap.xml'.
 export function generatedFiles(
   name: string,
   generate: () => Map<string, string>

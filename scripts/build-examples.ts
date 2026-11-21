@@ -15,7 +15,6 @@ import { build, mergeConfig, type UserConfig } from 'vite'
 import { localExampleConfig } from '../config/vite.examples.config.mts'
 import { exampleNames } from './example-names.ts'
 
-// The repository root is the medium-zoom package the website demos exercise.
 const localPackage = resolve('.')
 
 interface FrameworkBuildOptions {
@@ -24,7 +23,6 @@ interface FrameworkBuildOptions {
   workDirectory: string
 }
 
-// Examples built by their own framework CLI. Each build returns the directory of its static site.
 const frameworkBuilds: Record<
   string,
   (options: FrameworkBuildOptions) => Promise<string>
@@ -84,7 +82,6 @@ async function buildAngular({
   return join(outputPath, 'browser')
 }
 
-// Resolve every medium-zoom import, including its pure entry and stylesheet, to this repository.
 // Astro builds into the project's own `dist`: its image service and asset moves fail outside it.
 async function buildAstro({ root, base }: FrameworkBuildOptions) {
   const astro = await import(
@@ -126,7 +123,6 @@ async function buildVitePress({
   return outDir
 }
 
-// Copy a static site into the website and keep it out of search results.
 function publishExample(name: string, site: string) {
   const output = resolve('website/dist/examples', name)
   rmSync(output, { recursive: true, force: true })

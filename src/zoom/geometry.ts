@@ -12,10 +12,6 @@ export interface FrameGeometry {
   readonly translateY: number
 }
 
-/**
- * Pure positioning: the transform that scales a box up to its intrinsic size without
- * leaving the viewport, then centers it there.
- */
 export function fitBox(
   layout: ZoomBounds,
   intrinsicWidth: number,
@@ -40,10 +36,8 @@ export function fitBox(
   return `scale(${scale}) translate3d(${translateX}px, ${translateY}px, 0)`
 }
 
-// The scale and both translations of a fitted transform, in the order `fitBox` writes them.
 const TRANSFORM_VALUES = /[-\d.e+]+(?=px|\))/g
 
-/** Read a fitted transform back as the geometry handed to gallery transitions. */
 export function readGeometry(transform: string): FrameGeometry {
   const values = transform.match(TRANSFORM_VALUES)!.map(Number)
   return { scale: values[0]!, translateX: values[1]!, translateY: values[2]! }

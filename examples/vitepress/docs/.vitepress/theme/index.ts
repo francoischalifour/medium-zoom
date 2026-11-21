@@ -9,7 +9,6 @@ export default {
   setup() {
     let zoom: Zoom | undefined
 
-    // Runs in the browser after every page renders, including client-side navigations.
     onContentUpdated(() => {
       zoom ??= mediumZoom({ background: 'var(--vp-c-bg)' })
       zoom.detach().attach('.vp-doc :not(a) > img')

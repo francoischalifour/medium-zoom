@@ -48,7 +48,6 @@ function ArticleHeading({ children }: { children: ReactNode }) {
   )
 }
 
-// The sidebar only fits wider screens, so phones open it as a sheet from the breadcrumb.
 function DocsNavigationSheet({ children }: { children: ReactNode }) {
   const dialog = useRef<HTMLDialogElement>(null)
   return (
@@ -69,7 +68,6 @@ function DocsNavigationSheet({ children }: { children: ReactNode }) {
         className="docs-sheet"
         aria-label="Documentation"
         onClick={event => {
-          // Close on backdrop clicks and on links that load another page.
           if (
             event.target === event.currentTarget ||
             (event.target as Element).closest('a')
@@ -163,7 +161,6 @@ function DocsPagination({
 
 export function DocsPage({ path }: { path: string }) {
   const { articleRef, activeHeadingId } = useDocsNavigation(path)
-  // Keep the current page visible in a long sidebar, with its group as context when it fits.
   useEffect(() => {
     const active = document.querySelector('.docs-sidebar [aria-current="page"]')
     if (active) {

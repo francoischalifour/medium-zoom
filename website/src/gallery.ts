@@ -163,7 +163,6 @@ mediumZoom('[data-zoomable]', {
   background: 'var(--background, #fff)',
 })`
 
-// Keep preview selection and full-resolution zoom sources together.
 export function getPreviewImageProps(image: ExampleImage, sizes: string) {
   return {
     src: `${galleryAssetBase}${image.preview}`,

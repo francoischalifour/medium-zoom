@@ -30,7 +30,6 @@ for (const path of ['/', '/react']) {
       }
       await audit('preview')
 
-      // Exercise keyboard access, radio selection, and the rounded image focus ring.
       const packageTab = page
         .locator('.hero-install')
         .getByRole('radio', { name: 'npm', exact: true })

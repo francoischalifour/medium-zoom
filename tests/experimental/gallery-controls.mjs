@@ -1,6 +1,5 @@
 import { bindGalleryKeyboard } from '/experimental/dist/gallery/index.mjs'
 
-// Application example only: this module is never included in the npm package.
 export function mountCloseControl({ element, close }) {
   const button = document.createElement('button')
   button.type = 'button'

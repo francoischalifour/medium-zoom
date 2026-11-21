@@ -46,7 +46,6 @@ const updating = process.argv.includes('--update-baseline')
 const gzip = (code: string | Uint8Array) => gzipSync(code, { level: 9 }).length
 const fileSize = (path: string) => gzip(readFileSync(path))
 
-/** Capabilities a composed consumer imports next to `medium-zoom/core`. */
 interface Composition {
   loader?: boolean
   viewport?: boolean
@@ -96,7 +95,6 @@ const compositions: Record<string, Composition> = {
     content: true,
   },
 }
-/** Fixed presets: one import, with the stylesheet injected or shipped next to it. */
 const presets: Record<string, { entry: string; css?: string }> = {
   'medium-zoom': { entry: 'dist/medium-zoom.esm.js' },
   'medium-zoom/dist/pure': {
@@ -161,7 +159,6 @@ function compositionSource(composition: Composition): string {
     globalThis.zoom = zoom`
 }
 
-/** Each capability must only appear in the bundles that import it. */
 function assertIsolation(
   name: string,
   code: string,
@@ -248,7 +245,6 @@ async function measureConsumers() {
   return results
 }
 
-/** The catalog, source aliases, manifests and budgets must describe the same entries. */
 function assertCatalog() {
   const release = JSON.parse(readFileSync('package.json', 'utf8'))
   const candidate = candidateManifest()

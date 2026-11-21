@@ -47,7 +47,7 @@ if (container) {
   container.appendChild(image)
   const zoom = mediumZoom(image)
 
-  // Before removing the image, detach it from the zoom instance.
+  // Call detach before removing the image so the zoom releases its reference.
   // zoom.detach(image)
 }
 ```
