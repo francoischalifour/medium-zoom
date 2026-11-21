@@ -42,7 +42,7 @@
         "@angular/compiler": "22.2.5",
         "@angular/core": "22.2.5",
         "@angular/platform-browser": "22.2.5",
-        "medium-zoom": "1.1.1",
+        "medium-zoom": "1.1.2",
         "rxjs": "7.8.2",
         "tslib": "2.9.1",
       },
@@ -58,7 +58,7 @@
       "version": "0.1.0",
       "dependencies": {
         "astro": "7.4.7",
-        "medium-zoom": "1.1.1",
+        "medium-zoom": "1.1.2",
       },
       "devDependencies": {
         "@astrojs/check": "0.9.12",
@@ -69,7 +69,7 @@
       "name": "@medium-zoom/dropbox-paper-template-example",
       "version": "1.0.0",
       "dependencies": {
-        "medium-zoom": "1.1.1",
+        "medium-zoom": "1.1.2",
       },
       "devDependencies": {
         "typescript": "7.0.2",
@@ -80,7 +80,7 @@
       "name": "@medium-zoom/facebook-template-example",
       "version": "1.0.0",
       "dependencies": {
-        "medium-zoom": "1.1.1",
+        "medium-zoom": "1.1.2",
       },
       "devDependencies": {
         "typescript": "7.0.2",
@@ -91,7 +91,7 @@
       "name": "@medium-zoom/react-example",
       "version": "0.1.0",
       "dependencies": {
-        "medium-zoom": "1.1.1",
+        "medium-zoom": "1.1.2",
         "react": "19.3.1",
         "react-dom": "19.3.1",
       },
@@ -107,7 +107,7 @@
       "name": "@medium-zoom/react-markdown-example",
       "version": "0.1.0",
       "dependencies": {
-        "medium-zoom": "1.1.1",
+        "medium-zoom": "1.1.2",
         "react": "19.3.1",
         "react-dom": "19.3.1",
         "react-markdown": "10.1.0",
@@ -141,7 +141,7 @@
       "name": "@medium-zoom/svelte-example",
       "version": "0.1.0",
       "dependencies": {
-        "medium-zoom": "1.1.1",
+        "medium-zoom": "1.1.2",
       },
       "devDependencies": {
         "@sveltejs/vite-plugin-svelte": "7.3.1",
@@ -155,7 +155,7 @@
       "name": "@medium-zoom/svg-data-url-example",
       "version": "1.0.0",
       "dependencies": {
-        "medium-zoom": "1.1.1",
+        "medium-zoom": "1.1.2",
       },
       "devDependencies": {
         "typescript": "7.0.2",
@@ -166,7 +166,7 @@
       "name": "@medium-zoom/vanilla-example",
       "version": "1.0.0",
       "dependencies": {
-        "medium-zoom": "1.1.1",
+        "medium-zoom": "1.1.2",
       },
       "devDependencies": {
         "typescript": "7.0.2",
@@ -177,7 +177,7 @@
       "name": "@medium-zoom/video-example",
       "version": "1.0.0",
       "dependencies": {
-        "medium-zoom": "1.1.1",
+        "medium-zoom": "1.1.2",
       },
       "devDependencies": {
         "typescript": "7.0.2",
@@ -188,7 +188,7 @@
       "name": "@medium-zoom/vitepress-example",
       "version": "0.1.0",
       "dependencies": {
-        "medium-zoom": "1.1.1",
+        "medium-zoom": "1.1.2",
         "vitepress": "1.6.4",
         "vue": "3.5.44",
       },
@@ -200,7 +200,7 @@
       "name": "@medium-zoom/vue-example",
       "version": "0.1.0",
       "dependencies": {
-        "medium-zoom": "1.1.1",
+        "medium-zoom": "1.1.2",
         "vue": "3.5.44",
       },
       "devDependencies": {
@@ -1714,7 +1714,7 @@
 
     "mdn-data": ["mdn-data@2.27.1", "", {}, "sha512-9Yubnt3e8A0OKwxYSXyhLymGW4sCufcLG6VdiDdUGVkPhpqLxlvP5vl1983gQjJl3tqbrM731mjaZaP68AgosQ=="],
 
-    "medium-zoom": ["medium-zoom@1.1.1", "", {}, "sha512-jU/jkTbPGhdSRUNWgBbuT9BWmeifLxORhifi19LX1ExlQerSxSsLW+r6/7aUWNE/HjmZGPEJr/kPeYBAF1EXTQ=="],
+    "medium-zoom": ["medium-zoom@1.1.2", "", {}, "sha512-0wTqeCQ4NGzjPghi7i2lMI6RyGj9N60fGvzY9HiNcxDTcvOw7S+ri7K3xVkrIZ+2uzUg4w/KSVMDdZXYMtHkdw=="],
 
     "medium-zoom-baseline": ["medium-zoom@1.1.1", "", {}, "sha512-jU/jkTbPGhdSRUNWgBbuT9BWmeifLxORhifi19LX1ExlQerSxSsLW+r6/7aUWNE/HjmZGPEJr/kPeYBAF1EXTQ=="],
 
@@ -2375,8 +2375,6 @@
     "@medium-zoom/astro-example/@astrojs/check": ["@astrojs/check@0.9.12", "", { "dependencies": { "@astrojs/language-server": "^2.17.3", "chokidar": "^5.0.0", "kleur": "^4.1.5", "yargs": "^18.2.0" }, "peerDependencies": { "typescript": "^5.0.0 || ^6.0.0" }, "bin": { "astro-check": "./bin/astro-check.js" } }, "sha512-hazpqxIfZWj2VhyPyR0pOEQ/IhFDM/2nIApL96zMXABdD8NrUKYDmhxTy7h+drTDl9MQG/Sd1ET/4amadVJUUA=="],
 
     "@medium-zoom/astro-example/typescript": ["typescript@6.0.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw=="],
-
-    "@medium-zoom/shadcn-example/medium-zoom": ["medium-zoom@1.1.2", "", {}, "sha512-0wTqeCQ4NGzjPghi7i2lMI6RyGj9N60fGvzY9HiNcxDTcvOw7S+ri7K3xVkrIZ+2uzUg4w/KSVMDdZXYMtHkdw=="],
 
     "@medium-zoom/svelte-example/svelte-check": ["svelte-check@4.7.7", "", { "dependencies": { "@jridgewell/trace-mapping": "^0.3.25", "@sveltejs/load-config": "^0.2.3", "chokidar": "^4.0.1", "fdir": "^6.2.0", "picocolors": "^1.0.0", "sade": "^1.7.4" }, "peerDependencies": { "svelte": "^4.0.0 || ^5.0.0-next.0", "typescript": "^5.0.0 || ^6.0.0" }, "bin": { "svelte-check": "bin/svelte-check" } }, "sha512-Ge2IMdeTpbJuzNFGRiiMg0RWgbScysKQu7xwcyFJ22+DU9F5nPX51+Q3gHmGqRxYQMx2knreVWt5oCtfe0vf2g=="],
 

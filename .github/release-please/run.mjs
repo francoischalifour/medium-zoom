@@ -40,6 +40,6 @@ const release = releases.find(
 )
 appendFileSync(
   process.env.GITHUB_OUTPUT,
-  `release_created=${Boolean(release)}\nsha=${release?.sha || ''}\n`
+  `release_created=${Boolean(release)}\nsha=${release?.sha || ''}\nversion=${release?.version || ''}\n`
 )
 await (await loadManifest(github)).createPullRequests()

@@ -8,6 +8,7 @@ while IFS= read -r file; do
   case "$file" in
     # The package checks assert the homepage from the site URL.
     website/src/site-url.ts) echo library && exit ;;
+    examples/vitepress/docs/*.md) echo library && exit ;;
     *.md | .claude/* | .codex/*) ;;
     # Specs named website* test the site's pages: see test:browser:website.
     website/* | tests/analytics/* | tests/browser/website* | \
