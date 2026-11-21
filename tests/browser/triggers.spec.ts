@@ -218,3 +218,38 @@ test('authored cancellation runs before delegated pointer activation', async ({
   await page.locator('#first').click()
   await expect(page.locator('dialog')).toHaveCount(0)
 })
+
+test('pointer activation follows bound images in each document', async ({
+  page,
+}) => {
+  await fixture(page)
+  await page.evaluate(() => {
+    const frame = document.createElement('iframe')
+    document.body.appendChild(frame)
+    const doc = frame.contentDocument!
+    const image = doc.createElement('img')
+    image.src = '/images/image-1.jpg'
+    image.width = 80
+    image.alt = 'Framed photo'
+    doc.body.appendChild(image)
+    window.modalZoom.attach(image)
+  })
+  const framed = page
+    .frameLocator('iframe')
+    .getByRole('button', { name: 'Framed photo' })
+  await framed.click()
+  await expect(page.getByRole('dialog', { name: 'Framed photo' })).toBeVisible()
+  await page.evaluate(async () => {
+    await window.modalZoom.close()
+    window.modalZoom.detach(
+      document.querySelector('iframe')!.contentDocument!.images[0]!
+    )
+  })
+  await page
+    .frameLocator('iframe')
+    .getByRole('img', { name: 'Framed photo' })
+    .click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await page.locator('#first').click()
+  await expect(page.getByRole('dialog', { name: 'Sunset' })).toBeVisible()
+})

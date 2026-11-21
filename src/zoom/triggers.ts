@@ -25,15 +25,37 @@ export function bindZoomTriggers<Options extends CoreZoomOptions>(
   if (existing) {
     return existing
   }
-  let bound = true
   const records = new Map<ZoomTarget, () => void>()
+  const documents = new WeakMap<Document, number>()
+  const activate = (target: HTMLElement) =>
+    commander.open({ target, trigger: target })
+  const unmodified = (event: MouseEvent | KeyboardEvent) =>
+    !event.defaultPrevented &&
+    !event.altKey &&
+    !event.ctrlKey &&
+    !event.metaKey &&
+    !event.shiftKey
+  const click = (event: MouseEvent) => {
+    const image = event.target as ZoomTarget
+    if (records.has(image) && unmodified(event) && event.button === 0) {
+      event.preventDefault()
+      void activate(image as HTMLElement)
+    }
+  }
+  const keydown = (event: KeyboardEvent) => {
+    if (unmodified(event) && (event.key === 'Enter' || event.key === ' ')) {
+      event.preventDefault()
+      if (!event.repeat) {
+        void activate(event.currentTarget as HTMLElement)
+      }
+    }
+  }
   const sync = () => {
     for (const image of zoom.getImages() as ZoomTarget[]) {
       if (
         records.has(image) ||
-        image.parentElement?.closest(interactive) ||
-        (image as HTMLElement).isContentEditable ||
-        image.matches(interactive)
+        image.closest(interactive) ||
+        (image as HTMLElement).isContentEditable
       ) {
         continue
       }
@@ -42,69 +64,38 @@ export function bindZoomTriggers<Options extends CoreZoomOptions>(
         tabindex: image.getAttribute('tabindex') || '0',
         'aria-haspopup': 'dialog',
       }
-      const previous = Object.keys(attributes).map(name => [
-        name,
-        image.getAttribute(name),
-      ])
-      for (const [name, value] of Object.entries(attributes)) {
+      const previous = Object.entries(attributes).map(([name, value]) => {
+        const original = image.getAttribute(name)
         image.setAttribute(name, value)
-      }
-      const keydown = (event: KeyboardEvent) => {
-        if (
-          !event.defaultPrevented &&
-          !event.altKey &&
-          !event.ctrlKey &&
-          !event.metaKey &&
-          !event.shiftKey &&
-          (event.key === 'Enter' || event.key === ' ')
-        ) {
-          event.preventDefault()
-          if (!event.repeat) {
-            void commander.open({
-              target: image as HTMLElement,
-              trigger: image as HTMLElement,
-            })
-          }
-        }
-      }
-      const click = (event: MouseEvent) => {
-        if (
-          event.target === image &&
-          !event.defaultPrevented &&
-          !event.altKey &&
-          !event.ctrlKey &&
-          !event.metaKey &&
-          !event.shiftKey &&
-          event.button === 0
-        ) {
-          event.preventDefault()
-          void commander.open({
-            target: image as HTMLElement,
-            trigger: image as HTMLElement,
-          })
-        }
-      }
+        return [name, value, original] as const
+      })
       const hadClass = image.classList.contains('medium-zoom-image')
       image.classList.add('medium-zoom-image')
-      image.ownerDocument.addEventListener('click', click as EventListener)
+      const owner = image.ownerDocument
+      const count = documents.get(owner) || 0
+      if (!count) {
+        owner.addEventListener('click', click)
+      }
+      documents.set(owner, count + 1)
       image.addEventListener('keydown', keydown as EventListener)
       records.set(image, () => {
         image.removeEventListener('keydown', keydown as EventListener)
-        image.ownerDocument.removeEventListener('click', click as EventListener)
+        const remaining = documents.get(owner)! - 1
+        documents.set(owner, remaining)
+        if (!remaining) {
+          owner.removeEventListener('click', click)
+        }
         if (!hadClass) {
           image.classList.remove('medium-zoom-image')
         }
-        for (const [name, value] of previous) {
-          if (
-            image.getAttribute(name!) !==
-            attributes[name as keyof typeof attributes]
-          ) {
+        for (const [name, value, original] of previous) {
+          if (image.getAttribute(name) !== value) {
             continue
           }
-          if (value === null) {
-            image.removeAttribute(name!)
+          if (original === null) {
+            image.removeAttribute(name)
           } else {
-            image.setAttribute(name!, value!)
+            image.setAttribute(name, original)
           }
         }
       })
@@ -118,14 +109,13 @@ export function bindZoomTriggers<Options extends CoreZoomOptions>(
   zoom.on('attach', sync).on('detach', detach)
   sync()
   const unbind = () => {
-    if (!bound) {
+    if (bindings.get(zoom) !== unbind) {
       return
     }
-    bound = false
+    bindings.delete(zoom)
     zoom.off('attach', sync).off('detach', detach)
     records.forEach(cleanup => cleanup())
     records.clear()
-    bindings.delete(zoom)
   }
   bindings.set(zoom, unbind)
   return unbind
