@@ -80,7 +80,7 @@ jobs:
       - run: bun run check:source
       - name: Check package
         if: ${{ needs.changes.outputs.scope == 'library' }}
-        run: bun run size && bun run test:package
+        run: bun run size && bun run test:package && bun run test:geometry
       - run: bun run test:registry
 
   build:
