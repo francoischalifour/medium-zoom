@@ -46,7 +46,6 @@ const LEGACY_UNSUPPORTED_APIS: Record<string, RegExp> = {
   AbortController: /\bAbortController\b/,
   'MediaQueryList.addEventListener()': /matchMedia\([^)]*\)\.addEventListener/,
 }
-// Legacy builds keep these fallbacks; modern builds must drop them.
 const LEGACY_FALLBACKS = [
   'initCustomEvent',
   '.keyCode',
@@ -68,7 +67,6 @@ function moduleFormat(path: string): ModuleFormat {
 }
 
 // Modern files may use ES2020. Legacy ESM keeps ES2015 module syntax around an ES5 body.
-// The syntax each profile's artifacts must parse as, per module format.
 const profileSyntax: Record<Profile, Record<ModuleFormat, ecmaVersion>> = {
   compat: { esm: 2_015, cjs: 5, umd: 5 },
   modern: { esm: 2_020, cjs: 2_020, umd: 2_020 },
@@ -90,7 +88,6 @@ function runCommonJs(code: string, file: string) {
   return commonjs.exports
 }
 
-/** Loads a packed script the way its consumers do and checks its primary export. */
 const checkExports: Record<
   ModuleFormat,
   (
@@ -245,7 +242,6 @@ async function checkPackage(
       const file = join(artifact.root, 'dist', path)
       const code = readFileSync(file, 'utf8')
       const format = moduleFormat(path)
-      // Release artifacts are not in the candidate catalog; they all use the compat profile.
       const profile: Profile =
         candidateEntries.find(
           entry => entry.esm === `dist/${path}` || entry.cjs === `dist/${path}`

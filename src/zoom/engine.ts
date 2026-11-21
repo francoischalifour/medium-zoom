@@ -191,7 +191,6 @@ export interface ZoomFactory<
 
 export type Cleanup = () => void
 export type LegacyContent = (disposed?: boolean) => void
-// Per-opening state belongs to the engine alone.
 export interface Scene {
   __mz_view?: StageView
   __mz_closeContent?: LegacyContent | void
@@ -228,7 +227,6 @@ export type ZoomViewport = (
   bounds: ZoomBounds,
   options: Readonly<CoreZoomOptions>
 ) => ZoomBounds
-/** Closed compatibility adapter, not an extension/install API. */
 export interface LegacyAdapter<Options extends CoreZoomOptions> {
   defaults: Partial<Options>
   update: (options: Options, previous: Options) => void
@@ -239,11 +237,6 @@ export interface LegacyAdapter<Options extends CoreZoomOptions> {
   ) => LegacyContent | void
 }
 
-/**
- * Where a scene is presented. Without a stage the engine presents in the document body.
- * A stage hosts frames elsewhere and can keep them through a scene replacement. It only
- * ever receives frames and callbacks: scene state stays in the engine.
- */
 export interface Stage {
   mount(context: {
     readonly zoom: ZoomInstance
@@ -252,11 +245,9 @@ export interface Stage {
   }): StageView
 }
 export interface StageView {
-  /** The host frames are appended to. */
   readonly element: HTMLElement
   /** Another scene replaces the one whose frames and source are given: keep them on stage. */
   take(frames: readonly Frame[], source: ZoomTarget): void
-  /** A frame joined the host and is not positioned yet. */
   enter(frame: Frame): void
   /**
    * Frames are fitted. Return a cancellation when the stage presents them itself and
@@ -270,18 +261,9 @@ export interface StageView {
   dispose(): void
 }
 
-/**
- * Build constant: true in the fixed presets (`medium-zoom`, pure, compat, modern), which
- * always have the HD loader, container viewport and v1 options, and never a stage.
- * It lets those builds drop every capability check; composed core keeps them at runtime.
- */
+/** Fixed presets replace this flag at build time so the bundler can remove strategy checks. */
 declare const __PRESET__: boolean
 
-/**
- * One engine sequences every zoom: collection, events, opening, loading, dismissal and
- * closing. Each argument is an optional capability; an entry that omits one does not
- * ship its code.
- */
 export const createEngine = <Options extends CoreZoomOptions>(
   loader?: ZoomLoader,
   measureViewport?: ZoomViewport,
@@ -302,7 +284,6 @@ export const createEngine = <Options extends CoreZoomOptions>(
 
     const isAttached = (image: ZoomTarget) => images.indexOf(image) !== -1
 
-    // Automatic pointer zoom is a v1 behavior; composed instances bind their own triggers.
     const handleClick = (event: Event) => {
       const target = event.target as HTMLImageElement
       if (__PRESET__ && isAttached(target)) {
@@ -460,7 +441,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
 
     const _updateGlobalEvents = (enabled: boolean) => {
       const method = enabled ? 'addEventListener' : 'removeEventListener'
-      // A stage owns Escape through its host.
+      // The modal handles Escape through its native cancel event.
       if (!stage) {
         document[method]('keyup', _handleKeyUp as EventListener)
       }
@@ -479,7 +460,6 @@ export const createEngine = <Options extends CoreZoomOptions>(
       options: ModalOpenOptions = {}
     ): Promise<ZoomInstance<Options>> => {
       const target = options.target
-      // With a stage, a request for another image replaces the open scene.
       let previous: Scene | undefined
       if (stage && active.__mz_original && !active.__mz_closing) {
         // Re-entrant requests wait until the open scene has its host and frames.
@@ -505,7 +485,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
           if (previous.__mz_cancelOpen) {
             previous.__mz_cancelOpen()
           }
-          // Cancellation can synchronously issue a newer request or close this scene.
+          // Recheck the scene after cancellation because its callbacks can navigate or close synchronously.
           if (active !== previous || previous.__mz_closing) {
             resolve(zoom)
             return
@@ -551,7 +531,6 @@ export const createEngine = <Options extends CoreZoomOptions>(
             _dispatchEvent(current.__mz_original!, 'opened')
           }
         }
-        // Presentation settled: the zoom transition ended, or a stage finished its own.
         const settle = (error?: unknown) => {
           if (!current.__mz_cancelOpen) {
             return
@@ -580,8 +559,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
           stage
         )
         current.__mz_frames = [primary]
-        // Frames listen directly, as in v1: mobile WebKit and stopped propagation can keep the
-        // click from reaching the document.
+        // Listen on the frame because mobile WebKit can fail to deliver its click to the document.
         primary.addEventListener('click', _close)
 
         try {
@@ -645,7 +623,6 @@ export const createEngine = <Options extends CoreZoomOptions>(
             const frames = current.__mz_frames!
             let content = primary
             if (media) {
-              // The preset's own loader already copied the frame's presentation.
               if (!__PRESET__ && adoptMedia) {
                 adoptMedia(primary, media)
               }
@@ -755,7 +732,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
           }
         }
 
-        // Install completion before dispatching events, whose listeners may interact again.
+        // Set up completion before firing events because listeners can start another operation synchronously.
         if (primary) {
           waitForTransition(primary, finishClosing)
         }
@@ -805,7 +782,6 @@ export const createEngine = <Options extends CoreZoomOptions>(
     let zoomOptions: Options = options
     let active: Scene = {}
 
-    // Construct the public instance before attach() returns it.
     const zoom: ZoomInstance<Options> = {
       open,
       close,
@@ -825,17 +801,15 @@ export const createEngine = <Options extends CoreZoomOptions>(
       void close()
     }
 
-    // If the selector is omitted, it's replaced by the options
     if (Object.prototype.toString.call(selector) === '[object Object]') {
       zoomOptions = selector as Options
     } else if (
       selector ||
-      typeof selector === 'string' // to process empty string as a selector
+      typeof selector === 'string' // Route empty strings through selector validation.
     ) {
       attach(selector as ZoomSelector)
     }
 
-    // Apply the default option values
     zoomOptions = assign(
       { margin: 0, background: '#fff', scrollOffset: 40 },
       __PRESET__ ? legacy!.defaults : undefined,

@@ -14,7 +14,6 @@ async function trackDownload(apiKey: string, component: string, path: string) {
       signal: AbortSignal.timeout(2_000),
       body: JSON.stringify([
         {
-          // Audience events count downloads without identifying a developer, device, or project.
           mode: 'audience',
           event: 'Registry Component Downloaded',
           timestamp: new Date().toISOString(),

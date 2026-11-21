@@ -7,7 +7,6 @@ import ts from 'typescript-legacy'
 // Live examples are regular TypeScript modules checked by the website's tsconfig.
 const docsDirectory = resolve('website/src/docs')
 const snippetSources = new Map<string, string>()
-// Checked snippet languages and the TypeScript file each compiles as.
 const snippetExtensions = { js: 'ts', tsx: 'tsx' } as const
 type SnippetLanguage = keyof typeof snippetExtensions
 

@@ -6,7 +6,7 @@ export const packageManagerPreference = {
 
 export type PackageManager = (typeof packageManagerPreference.values)[number]
 
-// Also runs inline in the document head. Keep this function self-contained.
+// Keep this self-contained because the build embeds it in the document head.
 export function restorePackageManager(
   preference: typeof packageManagerPreference
 ): PackageManager {

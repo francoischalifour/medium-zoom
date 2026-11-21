@@ -110,7 +110,6 @@ ${sharedStyles}
     quality: 90,
   })
 
-  // GitHub repository settings use a 2:1 card, separate from the website OG cards.
   await page.setViewportSize({ width: 1_280, height: 640 })
   await page.setContent(`<!doctype html><html><head><style>
 ${sharedStyles}

@@ -26,7 +26,6 @@ type MarkdownPage = {
   content: () => RootContent[]
 }
 
-// Every page in sitemap order: the product pages, then the docs in sidebar order.
 const markdownPages: MarkdownPage[] = [
   ...(['javascript', 'react'] as const).map(page => ({
     path: productPages[page].path,
@@ -45,14 +44,10 @@ const markdownPages: MarkdownPage[] = [
   })),
 ]
 
-// Each page's Markdown sits beside its route: / → /index.md, /react → /react.md, and
-// /docs/guides/hd-images/ → /docs/guides/hd-images.md
 export function markdownPath(path: string) {
   return path === '/' ? '/index.md' : path.replace(/\/?$/, '.md')
 }
 
-// Every page as Markdown beside its route, plus an llms.txt index and an llms-full.txt with
-// every page (https://llmstxt.org), keyed by public path.
 export function siteMarkdownFiles(): Map<string, string> {
   const pages = markdownPages.map(page => ({
     path: markdownPath(page.path),

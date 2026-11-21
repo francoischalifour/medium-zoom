@@ -24,7 +24,6 @@ async function readPagePaths(request: APIRequestContext) {
   )
 }
 
-// The home page's Markdown is /index.md; every other page's sits beside its route.
 function markdownPath(path: string) {
   return path === '/' ? '/index.md' : path.replace(/\/?$/, '.md')
 }
@@ -51,7 +50,6 @@ test('each page links to a Markdown version of its content', async ({
       `# ${title}`
     )
     expect(markdown, path).toContain(`Source: <${origin}${path}>`)
-    // Prose outside code carries no MDX imports, components, or site-relative links.
     const prose = markdown
       .replace(/^```[^\n]*\n[\s\S]*?^```$/gm, '')
       .replace(/`[^`\n]+`/g, '')

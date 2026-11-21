@@ -123,7 +123,6 @@ for (const initialScale of [0.5, 2]) {
     await page.clock.runFor(500)
     await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
 
-    // A new opening must capture the browser's current scale again.
     await session.send('Emulation.setPageScaleFactor', {
       pageScaleFactor: initialScale * 1.5,
     })
@@ -146,7 +145,6 @@ test('pinching while an HD image loads refreshes the scroll baseline', async ({
   })
   await page.clock.install()
   await page.evaluate(() => {
-    // Exercise touch tracking without relying on the visual viewport guard.
     Object.defineProperty(window, 'visualViewport', { value: undefined })
     document
       .querySelector('#image')!
@@ -188,7 +186,6 @@ test.describe('pinch gestures', () => {
         window.scrollTo(0, 80)
         document.dispatchEvent(new Event('scroll'))
       })
-      // A pinch must also cancel a dismissal queued by a preceding scroll.
       await touch(page, 'touchstart', 2)
       await scroll(page, 160)
       await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
@@ -196,7 +193,6 @@ test.describe('pinch gestures', () => {
       await scroll(page, 240)
       await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
       await touch(page, endEvent, 0)
-      // Releasing the pinch resets the baseline for ordinary scrolling.
       await scroll(page, 250)
       await expect(page.locator('body')).toHaveClass(/medium-zoom--opened/)
       await touch(page, 'touchstart', 1)

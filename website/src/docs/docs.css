@@ -19,7 +19,6 @@ html:has(.docs-shell) {
   padding: 0 var(--site-gutter);
   align-items: start;
 }
-/* The sidebar runs the full height while the footer sits under the article and outline. */
 .docs-sidebar {
   grid-column: 1;
   grid-row: 1 / span 2;
@@ -46,7 +45,6 @@ html:has(.docs-shell) {
 .docs-outline .scroll-area-viewport {
   padding: calc(var(--docs-content-top) + 4px) 10px 32px;
 }
-/* Keep a few neighbors of the current section visible when the outline follows reading. */
 .docs-outline .scroll-area-viewport,
 .docs-outline-menu-panel .scroll-area-viewport {
   scroll-padding-block: 48px;
@@ -205,7 +203,6 @@ html:has(.docs-shell) {
   margin-left: -6px;
   color: var(--foreground);
 }
-/* Left sheet holding the documentation navigation on phones. */
 .docs-sheet {
   position: fixed;
   inset: 0 auto 0 0;
@@ -646,7 +643,6 @@ html:has(.docs-shell) {
   margin-bottom: 0;
 }
 
-/* The overview is a directory, so its entry points use the outline column. */
 .docs-overview .docs-layout {
   grid-template-columns: 180px minmax(0, 1fr);
 }

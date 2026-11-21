@@ -15,7 +15,6 @@ export const isImage = (target: ZoomTarget): target is HTMLImageElement =>
 
 const isSvgSource = (source: string): boolean => /\.svg$/i.test(source)
 
-/** Clone the source over itself: in document coordinates, or the viewport's for a fixed host. */
 export function cloneImage(image: HTMLImageElement, fixed?: unknown): Frame {
   const { left, top, width, height } = image.getBoundingClientRect()
   const clone = image.cloneNode() as HTMLImageElement
@@ -28,7 +27,7 @@ export function cloneImage(image: HTMLImageElement, fixed?: unknown): Frame {
     height: `${height}px`,
     transform: '',
   })
-  // A picture's selected source can differ from the image's own src.
+  // The clone is outside the picture, so copy the source its picture selected.
   if (
     image.parentElement &&
     image.parentElement.tagName === 'PICTURE' &&

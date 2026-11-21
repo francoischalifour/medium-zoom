@@ -15,7 +15,6 @@ for (const width of [1_280, 390]) {
     })
     const video = page.locator('video')
 
-    // Exercise keyboard activation as well as pointer activation on reopen.
     await trigger.focus()
     await page.keyboard.press('Enter')
     await expect(video).toBeVisible()

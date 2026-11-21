@@ -40,7 +40,7 @@ export function galleryTransition(
   strategy: GalleryTransition
 ): SceneTransition {
   return (change, done) => {
-    // Narrow the runtime objects as well as their types before crossing into application code.
+    // Pass only the public frame fields so effects cannot access the stage's internal references.
     const prepare = (frames: typeof change.incoming): PreparedFrame[] =>
       frames.map(({ element, transform }) => ({
         element,
@@ -74,7 +74,7 @@ export function galleryTransition(
       queueMicrotask(() => finish())
     } else {
       motion.addEventListener('change', reduce)
-      // Install the cancellation lease before application code can synchronously navigate again.
+      // Register cancellation first because an effect can navigate again before returning.
       queueMicrotask(() => {
         if (settled) {
           return

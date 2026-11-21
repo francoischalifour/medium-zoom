@@ -103,7 +103,6 @@ const iconPaths = {
   ),
 }
 
-/** Frames the hero headline and lede with zoom-crop marks sized to the text. */
 export function HeroCrop({ children }: { children: React.ReactNode }) {
   return (
     <div className="hero-crop">
@@ -271,7 +270,6 @@ export function ZoomControls({ descriptionId }: { descriptionId?: string }) {
   )
 }
 
-// Renders shared page copy, where backticks mark inline code.
 export function InlineCopy({ copy }: { copy: string }) {
   return splitInlineCode(copy).map((part, index) =>
     index % 2 === 1 ? <code key={index}>{part}</code> : part

@@ -22,7 +22,6 @@ jobs:
       github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # Only main may use this environment, including when PRs edit these workflows.
     environment: preview
     env:
       GH_TOKEN: ${{ github.token }}

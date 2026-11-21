@@ -19,7 +19,6 @@ export async function buildGalleryExample() {
           find: entry.path,
           replacement: resolve(entry.esm),
         })),
-        // Run the published component's playground against its composable rewrite.
         {
           find: /^.*\/src\/components\/ui\/image-zoom$/,
           replacement: resolve(root, 'image-zoom.tsx'),

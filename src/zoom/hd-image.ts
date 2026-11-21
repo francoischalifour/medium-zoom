@@ -12,7 +12,7 @@ export const loadHdImage: ZoomLoader = ({ original, clone }, ready) => {
   }
   // Install handlers before assigning sources: Firefox may queue a cached load.
   const hd = document.createElement('img')
-  // Request attributes must be present before src: CORS/referrer policy cannot be adopted later.
+  // Set CORS and referrer policy before assigning a source so they apply to the request.
   Array.prototype.forEach.call(clone.attributes, ({ name, value }: Attr) => {
     if (!/^(src|srcset|sizes|loading)$/.test(name)) {
       hd.setAttribute(name, value)

@@ -28,7 +28,6 @@ type HighlightLanguage =
   | 'bash'
   | 'css'
 
-// Each usage snippet kind and the grammar that highlights it.
 const usageLanguages = {
   javascript: 'html',
   react: 'tsx',
@@ -59,9 +58,7 @@ const moduleId = 'virtual:highlighted-snippets'
 const docs = new URL('../src/docs/', import.meta.url)
 const examples = new URL('examples/', docs)
 
-// Trusted, escaped token markup for every code sample on the site, keyed by its source.
-// Served as a virtual module so the static page and React hydration share it without a
-// generated file in the repository.
+// The virtual module gives prerendering and hydration the same token markup without a checked-in generated file.
 function highlightSnippets(watch: (file: string) => void) {
   const snippets: Record<string, string> = {
     [javascriptUsageCode]: highlight(javascriptUsageCode, 'js'),

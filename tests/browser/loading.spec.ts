@@ -2,7 +2,6 @@ import { expect, test } from '@playwright/test'
 
 import { loadZoomFixture, observeErrors } from './helpers.ts'
 
-// The attribute value that points each HD source at an image URL.
 const hdValues = {
   srcset: (url: string) => `${url} 2000w`,
   'data-zoom-src': (url: string) => url,

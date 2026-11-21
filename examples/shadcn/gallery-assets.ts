@@ -4,7 +4,6 @@ import { fileURLToPath } from 'node:url'
 
 import type { Plugin, ResolvedConfig } from 'vite'
 
-// The complete site owns the photos. Standalone exports include a local copy.
 export function galleryAssets(): Plugin {
   const shared = fileURLToPath(new URL('../../assets/images/', import.meta.url))
   const local = fileURLToPath(

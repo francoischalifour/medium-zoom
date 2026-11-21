@@ -1,4 +1,4 @@
-// Branded types must come from the core entry itself, not a copy bundled into this one.
+// Import the branded types from core so consumers of both entries share the same type identity.
 import type {
   CoreZoomOptions,
   ModalZoom,
@@ -105,7 +105,7 @@ export function createGallery<Options extends CoreZoomOptions>(
       return
     }
     queued = true
-    // detach notifications precede legacy collection mutation. Observe the settled batch.
+    // Defer until the batch ends because v1 emits detach events before updating the collection.
     queueMicrotask(() => {
       queued = false
       if (!disposed) {

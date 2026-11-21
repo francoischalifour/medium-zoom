@@ -201,13 +201,11 @@ storiesOf('options', module)
           container: '[data-zoom-container]',
         });
 
-        // You can start manipulating the DOM after the \`opened\` event has been triggered
         zoom.on('opened', () => {
           const closeButton = document.querySelector('[data-zoom-close]');
           closeButton.addEventListener('click', () => zoom.close());
         });
 
-        // Block scroll on zoom
         zoom.on('open', () => {
           document.body.style.overflow = 'hidden';
         });
@@ -345,13 +343,11 @@ storiesOf('options', module)
           container: '[data-zoom-container]',
         });
 
-        // You can start manipulating the DOM after the \`opened\` event has been triggered
         zoom.on('opened', () => {
           const closeButton = document.querySelector('[data-zoom-close]');
           closeButton.addEventListener('click', () => zoom.close());
         });
 
-        // Block scroll on zoom
         zoom.on('open', () => {
           document.body.style.overflow = 'hidden';
         });

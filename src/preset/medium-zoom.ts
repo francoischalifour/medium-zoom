@@ -34,7 +34,6 @@ export interface Zoom<
   getZoomedImage(): HTMLElement
 }
 
-// Full builds have fixed capabilities, so they can omit configurable composition.
 /**
  * Attaches a zoom to the images matching `selector`, opening on click and closing on
  * click, scroll, resize and Escape. Loads `data-zoom-src` or `srcset` images in high

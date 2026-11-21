@@ -11,8 +11,6 @@ import type {
 
 import { splitInlineCode } from '../src/product-pages.ts'
 
-// Small mdast builders shared by the site's Markdown pages and llms.txt.
-
 export function text(value: string): PhrasingContent {
   return { type: 'text', value }
 }
@@ -49,7 +47,6 @@ export function blockquote(value: string): Blockquote {
   return { type: 'blockquote', children: [paragraph([text(value)])] }
 }
 
-// A code block titled by its file name, with the language taken from the extension.
 export function codeBlock({
   code,
   title,
@@ -65,7 +62,6 @@ export function codeBlock({
   }
 }
 
-// Shared page copy, where backticks mark inline code.
 export function inlineCopy(copy: string): PhrasingContent[] {
   return splitInlineCode(copy)
     .map((value, index): PhrasingContent =>

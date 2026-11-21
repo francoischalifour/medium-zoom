@@ -102,7 +102,6 @@ test('the count stays hidden in its reserved line until npm answers', async ({
   expect((await stats.boundingBox())?.height).toBe(reservedHeight)
 })
 
-// A complete report for the latest day, and how each failure departs from it.
 const latestReport = {
   package: 'medium-zoom',
   downloads: 420_000,

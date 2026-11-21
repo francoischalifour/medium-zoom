@@ -20,7 +20,6 @@ export const componentCommands = {
   bun: `bunx shadcn@latest add ${registryItem}`,
 }
 
-// The install command each product page offers.
 export const installCommands = {
   javascript: javascriptCommands,
   react: componentCommands,

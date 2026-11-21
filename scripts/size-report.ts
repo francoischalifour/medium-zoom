@@ -1,6 +1,5 @@
 export const bytes = (value: number) => `${value.toLocaleString('en-US')} B`
 
-/** A size compared with its baseline: `new` without one, `—` when unchanged. */
 export function change(current: number, before: number | undefined) {
   if (before === undefined) {
     return 'new'

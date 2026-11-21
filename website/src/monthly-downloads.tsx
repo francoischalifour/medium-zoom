@@ -23,8 +23,7 @@ function requestMonthly() {
   return monthlyRequest
 }
 
-// The line stays empty until the count is known, then fades in, so a stale count
-// never shows and then changes. Without JavaScript, the snapshot shows instead.
+// With JavaScript, wait for the count so the reader never sees the fallback replaced mid-page.
 export function MonthlyDownloads() {
   const [monthly, setMonthly] = useState(loadedMonthly)
 

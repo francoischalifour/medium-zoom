@@ -69,7 +69,6 @@ export function dialog({
         )
       }
       element.className = 'medium-zoom-dialog'
-      // enter() names the dialog after the frame.
       // Viewport coordinates keep the top-layer host independent of document scroll.
       element.style.cssText =
         'position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;color:inherit;overflow:hidden;'
@@ -98,12 +97,10 @@ export function dialog({
         event.preventDefault()
         close()
       })
-      // The existing overlay owns fading and click dismissal inside the modal.
       element.appendChild(style)
       document.body.appendChild(element)
       let cleanup: void | (() => void) = undefined
       try {
-        // A stage only ever mounts for a zoom created with this renderer.
         cleanup = content?.({ element, zoom: zoom as ModalZoom, close })
         element.showModal()
       } catch (error) {
@@ -115,7 +112,6 @@ export function dialog({
         throw error
       }
       const transforms = new WeakMap<Frame, string>()
-      // Frames of replaced scenes stay on stage until the next scene is presented.
       let outgoing: Frame[] = []
       let replaced: HTMLElement | SVGElement | undefined
       // The engine dismisses on the frames it holds; the frames kept here are the stage's.
@@ -232,7 +228,6 @@ export function dialog({
   return stage as unknown as ZoomRenderer
 }
 
-/** Scene replacement commits fitted geometry without replaying the thumbnail motion. */
 const commitFrame = (
   frame: Frame,
   transform: string | undefined | null

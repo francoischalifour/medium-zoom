@@ -83,7 +83,6 @@ test('vitepress example zooms page images above the navigation after client-side
   const image = content.locator('.medium-zoom-image').first()
   await decodeImages(image)
   await openImage(page, image)
-  // The zoom covers the fixed navigation bar instead of sliding under it.
   const nav = await page.locator('.VPNav').boundingBox()
   const covering = await page.evaluate(
     ({ x, y }) => document.elementFromPoint(x, y)?.className,

@@ -1,4 +1,3 @@
-// Minimum versions the JavaScript library supports, shown in the docs and their Markdown.
 export const supportedBrowsers = [
   { name: 'Chrome', version: 36 },
   { name: 'Firefox', version: 34 },
