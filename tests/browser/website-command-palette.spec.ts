@@ -633,7 +633,7 @@ test('the command menu locks page scrolling while its results remain scrollable'
 }) => {
   await page.setViewportSize({ width: 740, height: 320 })
   await page.goto('/docs/')
-  await page.evaluate(() => window.scrollTo(0, 300))
+  await page.evaluate(() => window.scrollTo({ top: 300, behavior: 'instant' }))
   await page.getByRole('button', { name: /Search docs/ }).click()
   await expect(
     page.getByRole('option', { name: /JavaScript quickstart/ })
