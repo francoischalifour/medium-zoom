@@ -25,7 +25,7 @@ For website source, generated files, and analytics, see the [website development
 
 User guides and API references live in `website/src/docs/`. Keep the root README focused on installation and a first working image. The Markdown files in `docs/` preserve links to guides that moved to the website.
 
-When changing the public API, update the relevant MDX page and its examples together. For new pages, add the route and metadata to `website/src/docs/pages.ts`, list the URL in `website/public/sitemap.xml`, and include the page in `tests/browser/website-docs.spec.ts`. Add aliases for the URL without a trailing slash and for `index.html` in `website/public/_redirects`. Run `bun run generate:og` to create its sharing image.
+When changing the public API, update the relevant MDX page and its examples together. For new pages, add the route and metadata to `website/src/docs/pages.ts` and include the page in `tests/browser/website-docs.spec.ts`. The build generates the sitemap from the registered pages. Add aliases for the URL without a trailing slash and for `index.html` in `website/public/_redirects`. Run `bun run generate:og` to create its sharing image.
 
 Keep each page focused on one task or reference topic. Explain prerequisites before commands, use complete examples, and link to existing explanations instead of repeating them. Each example's README covers its purpose and how to run it.
 

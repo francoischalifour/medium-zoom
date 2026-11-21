@@ -161,7 +161,7 @@ export const docsPages = [
     path: '/docs/reference/javascript/events/',
     source: 'events.mdx',
     summary: 'Respond when images open, close, or change.',
-    updatedOn: '2026-10-27',
+    updatedOn: '2026-11-21',
     title: 'Events',
     documentTitle: 'JavaScript events • medium-zoom',
     group: 'JavaScript reference',
