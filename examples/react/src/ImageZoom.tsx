@@ -1,30 +1,31 @@
-import mediumZoom, { Zoom, ZoomOptions } from 'medium-zoom'
-import { ComponentProps, RefCallback, useRef } from 'react'
+import mediumZoom, { type Zoom, type ZoomOptions } from 'medium-zoom'
+import {
+  type ComponentPropsWithoutRef,
+  useCallback,
+  useEffect,
+  useRef,
+} from 'react'
 
-type ImageZoomProps = ComponentProps<'img'> & {
+type ImageZoomProps = ComponentPropsWithoutRef<'img'> & {
   options?: ZoomOptions
 }
 
 export function ImageZoom({ options, ...props }: ImageZoomProps) {
   const zoomRef = useRef<Zoom | null>(null)
-
-  function getZoom() {
-    if (zoomRef.current === null) {
-      zoomRef.current = mediumZoom(options)
-    }
-
-    return zoomRef.current
-  }
-
-  const attachZoom: RefCallback<HTMLImageElement> = node => {
-    const zoom = getZoom()
-
-    if (node) {
-      zoom.attach(node)
+  const attachZoom = useCallback((image: HTMLImageElement | null) => {
+    if (image) {
+      zoomRef.current = mediumZoom(image)
     } else {
-      zoom.detach()
+      zoomRef.current?.detach()
+      zoomRef.current = null
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    if (options) {
+      zoomRef.current?.update({ ...options })
+    }
+  }, [options])
 
   return <img {...props} ref={attachZoom} />
 }
