@@ -25,7 +25,6 @@ async function open(page: Page, name = 'Mountain') {
   await expect(page.getByRole('dialog', { name })).toBeVisible()
   await settled(page)
 }
-/** Waits until the frames rest where the zoom put them. */
 const settled = (page: Page) =>
   page.waitForFunction(() =>
     [...document.querySelectorAll('dialog img')].every(
@@ -50,7 +49,7 @@ test('a swipe carries the image under the finger with its neighbour beside it', 
   const [x, y] = await centre(page)
   await finger.down([x, y])
   await finger.glide(-60, 0)
-  // One to one once the slop that tells a drag from a tap is crossed.
+  // Past the slop that tells a drag from a tap, the image follows one to one.
   const dragged = await offsetX(page)
   expect(dragged).toBeLessThan(-40)
   await finger.glide(-40, 0)
@@ -58,11 +57,10 @@ test('a swipe carries the image under the finger with its neighbour beside it', 
   const neighbour = page.locator('dialog img:not([class])')
   await expect(neighbour).toHaveCount(1)
   await expect(neighbour).toHaveAttribute('aria-hidden', 'true')
-  // Beside the image, a gap and the window's own width away.
   const shown = (await frame(page).boundingBox())!
   const box = (await neighbour.boundingBox())!
   expect(box.x).toBeGreaterThan(shown.x + shown.width)
-  // Held still before release: not a flick and short of half way, so it springs back.
+  // Held still so the release is no flick; short of halfway, it springs back.
   await page.waitForTimeout(150)
   await finger.up()
   await expect.poll(() => offsetX(page)).toBe(0)
@@ -82,7 +80,7 @@ test('a short flick is enough to move on, and no click dismisses the zoom', asyn
   await finger.up()
   await expect(page.getByRole('dialog', { name: 'Forest' })).toBeVisible()
   await expect(page.getByRole('status')).toContainText('2 / 3')
-  // The incoming image settles into its own fit, in place, without a scene transition.
+  // The incoming image settles in place: no scene transition adds frames.
   await expect.poll(() => offsetX(page)).toBe(0)
   await expect(page.locator('dialog img')).toHaveCount(
     await page.locator('dialog img.medium-zoom-image--opened').count()
@@ -139,7 +137,7 @@ test('a swipe that catches the last one early holds the strip, both images in pl
   await finger.glide(-120, 0, 3)
   await finger.up()
   await travelled(page, 0.1)
-  // A tap stops nothing: the strip carries on to the neighbour it was heading for.
+  // A press holds both images; releasing carries on to the neighbour it was heading for.
   await finger.down([x, y])
   expect(
     await page
@@ -175,13 +173,13 @@ test('dragging the image away fades the backdrop and closes past a threshold', a
   const [x, y] = await centre(page)
   const dialog = page.locator('dialog')
   const overlay = page.locator('.medium-zoom-overlay')
-  // A short drag springs back.
   await finger.down([x, y])
   await finger.glide(0, 50)
   await expect(dialog).toHaveAttribute('data-medium-zoom-gesture', 'close')
   expect(
     Number(await overlay.evaluate(({ style }) => style.opacity))
   ).toBeLessThan(1)
+  // Held still so the release is no flick, which would close.
   await page.waitForTimeout(150)
   await finger.up()
   await expect(dialog).not.toHaveAttribute('data-medium-zoom-gesture')
@@ -189,7 +187,6 @@ test('dragging the image away fades the backdrop and closes past a threshold', a
     .poll(() => overlay.evaluate(({ style }) => style.opacity))
     .toBe('')
   await expect(page.getByRole('dialog', { name: 'Mountain' })).toBeVisible()
-  // Dragging further, up this time, closes; the controls step aside meanwhile.
   await finger.down([x, y])
   await finger.glide(0, -200, 12)
   await expect(page.getByRole('button', { name: 'Close' })).toHaveCSS(
@@ -222,7 +219,7 @@ test('a double tap zooms in where it lands, further each time, back to fit from 
     isMobile
       ? page.touchscreen.tap(x - 40, y - 20)
       : page.mouse.click(x - 40, y - 20)
-  // The scale once the spring has come to rest; '' when fitted.
+  // The scale once the spring rests; '' when fitted, which Number() reads as 0.
   const doubleTap = async () => {
     await tap()
     await tap()
@@ -232,14 +229,13 @@ test('a double tap zooms in where it lands, further each time, back to fit from 
   const scales = [Number(await doubleTap())]
   await expect(dialog).toHaveAttribute('data-medium-zoom-zoomed', 'true')
   expect(scales[0]).toBeGreaterThanOrEqual(2)
-  // A single tap leaves a zoomed image alone.
+  // Past the double-tap pause, the second tap has not also closed it.
   await page.waitForTimeout(400)
   await expect(dialog).toBeVisible()
-  // Each double tap zooms further, as a pinch would, up to the maximum.
   for (let step = 0; step < 6 && scales.at(-1) !== 0; step++) {
     scales.push(Number(await doubleTap()))
   }
-  // Back to fit only from the maximum, at least four times the fit.
+  // The step before fit is the maximum, at least four times the fit.
   const fitted = scales.indexOf(0)
   expect(fitted).toBeGreaterThan(0)
   for (let step = 1; step < fitted; step++) {
@@ -294,7 +290,6 @@ test('a pinch zooms around the fingers, one finger then pans, and a pinch in clo
   await finger.up()
   await expect(page.getByRole('status')).toContainText('1 / 3')
   await expect(dialog).toHaveAttribute('data-medium-zoom-zoomed', 'true')
-  // Pinching well below the fit closes, as in Photos.
   await hand.down([x - 120, y], [x + 120, y])
   await hand.glide(0, 0, 8, -105)
   await hand.up()
@@ -341,7 +336,7 @@ test('keys zoom, pan a zoomed image instead of stepping, and reach either end', 
   expect(await frame(page).evaluate(({ style }) => style.scale)).toBe('1.5')
   const before = await offsetX(page)
   await page.keyboard.down('ArrowRight')
-  // Panning is not stepping: the button shows no press.
+  // Panning is not stepping, so Next shows no press.
   await expect(
     page.getByRole('button', { name: 'Next image' })
   ).not.toHaveAttribute('data-pressed')
@@ -380,7 +375,7 @@ test('with reduced motion, gestures settle at once', async ({ page }, info) => {
   await finger.glide(-100, 0)
   await page.waitForTimeout(150)
   await finger.up()
-  // Settled within the same frame: no spring to wait for.
+  // Settled in the same frame: no spring to wait for.
   expect(await offsetX(page)).toBe(0)
   await finger.down([x, y])
   await finger.glide(-90, 0, 3)
@@ -436,7 +431,7 @@ test('after a swipe, the high-resolution image loads after a pause and joins a z
   await expect.poll(() => offsetX(page)).toBe(0)
   await page.keyboard.press('+')
   const zoomed = await frame(page).boundingBox()
-  // The image the swipe settled on is requested, after it was preloaded as a neighbour.
+  // Forest twice: preloaded as a neighbour, then requested once the swipe settled on it.
   await expect
     .poll(() =>
       page.evaluate(() =>
@@ -457,7 +452,7 @@ test('after a swipe, the high-resolution image loads after a pause and joins a z
   expect(joined!.x).toBeCloseTo(zoomed!.x, 0)
 })
 
-/** Records when the press ends, when the close shows and when the zoom starts closing. */
+/** Records `up` (press ends), `feedback` (close gesture shows) and `closed` (zoom starts closing). */
 const timeTap = (page: Page) =>
   page.evaluate(() => {
     const dialog = document.querySelector('dialog')!
@@ -494,9 +489,9 @@ test('a single tap starts closing at once and finishes within the double-tap pau
   await (isMobile ? page.touchscreen.tap(x, y) : page.mouse.click(x, y))
   await expect(page.locator('dialog')).toHaveCount(0)
   const { up, feedback, closed } = await tapTimes(page)
-  // The image answers the release in the same task, and the backdrop is already fading.
+  // Feedback comes in the same task as the release.
   expect(feedback! - up!).toBeLessThan(20)
-  // The pause runs from the press: no more than its length after the release.
+  // The double-tap pause runs from the press, so closing starts within its length of the release.
   expect(closed! - up!).toBeLessThan(330)
 })
 

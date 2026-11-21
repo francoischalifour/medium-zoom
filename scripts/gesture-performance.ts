@@ -30,7 +30,7 @@ const touch = (
     type,
     touchPoints: points.map(([x, y], id) => ({ x, y, id })),
   })
-/** Fingers travel from `from` by (dx, dy), each a little apart when `spread` is set. */
+/** `spread` moves the fingers apart as they travel, for a pinch. */
 async function gesture(from: Point[], dx: number, dy: number, spread = 0) {
   await touch('touchStart', from)
   for (let step = 1; step <= 12; step++) {

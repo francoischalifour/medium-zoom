@@ -4,7 +4,7 @@
     background: transparent;
   }
 
-  /* The full-window dialog can hold focus itself; a ring around the window helps no one. */
+  /* The dialog itself can take focus, and a ring around the whole window helps no one. */
   .medium-zoom-dialog:focus {
     outline: none;
   }
@@ -13,7 +13,7 @@
     z-index: -1;
   }
 
-  /* Frames still leaving when the zoom closes fade with the overlay instead of lingering. */
+  /* Frames still leaving when the zoom closes fade out with the overlay instead of lingering. */
   body:not(.medium-zoom--opened) .medium-zoom-image--leaving {
     opacity: 0 !important;
     transition: opacity 300ms !important;

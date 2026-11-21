@@ -50,11 +50,11 @@ export const createOverlay = (
   return overlay
 }
 
-/** The page's own background color, as it looks right now, whatever sets the theme. */
+/** Computed on each call, so it follows whatever sets the page's theme. */
 export const pageBackground = (): string => {
   for (const node of [document.body, document.documentElement]) {
     const color = getComputedStyle(node).backgroundColor
-    // Fully transparent computes to `rgba(…, 0)`: the page shows through it.
+    // A transparent background computes to `rgba(…, 0)`: the color comes from further up.
     if (!color.endsWith(', 0)')) {
       return color
     }

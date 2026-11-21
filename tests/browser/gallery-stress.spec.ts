@@ -4,10 +4,9 @@ import { fingers, inputFor, type Point } from './fingers'
 import { addModernStyles, preparePage } from './helpers'
 
 /*
-  Seeded random sequences of every gallery interaction, against invariants checked on
-  every frame and whenever the gallery settles. A failure names its seed and the actions
-  that led to it; replay one with MEDIUM_ZOOM_STRESS_SEED=<seed>. `bun run test:stress`
-  runs more and longer sequences.
+  Seeded random gallery interactions, checked on every frame and at rest. A failure names
+  its seed and actions: replay it with MEDIUM_ZOOM_STRESS_SEED=<seed>.
+  `bun run test:stress` runs more and longer sequences.
 */
 
 const seeds = process.env.MEDIUM_ZOOM_STRESS_SEED
@@ -20,9 +19,8 @@ const steps = Number(process.env.MEDIUM_ZOOM_STRESS_STEPS ?? 40)
 const margin = 24
 
 /**
- * Thumbnails on the page, full-size images in the zoom: landscape, panorama and portrait
- * shapes, one image without high-resolution media and one whose full size is smaller than
- * the window.
+ * Landscape, panorama and portrait shapes, one image without high-resolution media and
+ * one whose full size is smaller than the window.
  */
 const photos: [thumbnail: string, full?: string][] = [
   ['image-1.thumbnail.jpg', 'image-1.jpg'],
@@ -41,7 +39,6 @@ const body = photos
   )
   .join('')
 
-/** A small seeded generator, so a failing sequence can be replayed. */
 const generator = (seed: number) => {
   let state = seed >>> 0
   const next = () => {
@@ -87,7 +84,6 @@ async function mount(page: Page, random: ReturnType<typeof generator>) {
     })
     bindZoomTriggers(window.modalZoom)
 
-    // Invariants that hold on every frame, whatever is in flight.
     const state = window as unknown as { glitches: string[] }
     state.glitches = []
     const report = (glitch: string) => {
@@ -95,7 +91,7 @@ async function mount(page: Page, random: ReturnType<typeof generator>) {
         state.glitches.push(glitch)
       }
     }
-    // What last lost focus, to name it if focus leaves an open zoom.
+    // What last lost focus and the input before, to name the culprit if focus leaves the zoom.
     let blurred = ''
     const trail: string[] = []
     const name = (element: Element) =>
@@ -297,7 +293,6 @@ async function settle(page: Page) {
       if (!open.contains(document.activeElement)) {
         problems.push(`focus on ${document.activeElement?.tagName}`)
       }
-      // Fitted, centred and one box for the frame and its copy, unless zoomed in.
       if (!open.hasAttribute('data-medium-zoom-zoomed') && frames.length) {
         const stage = open.getBoundingClientRect()
         const boxes = frames.map(frame => frame.getBoundingClientRect())
@@ -371,7 +366,7 @@ function actions(
       .boundingBox({ timeout: 500 })
       .catch(() => null)
     const size = page.viewportSize()!
-    // A finger presses what it can reach: the image's centre, kept inside the window.
+    // The image's centre, kept inside the window where a finger can reach it.
     const inside = (value: number, limit: number) =>
       Math.min(Math.max(value, 16), limit - 16)
     return box
@@ -594,7 +589,6 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
         expect(glitches, failure(glitches)).toEqual([])
         expect(errors, failure(errors)).toEqual([])
       }
-      // Whatever came before, the zoom still closes cleanly and opens again.
       await page.keyboard.press('Escape')
       expect(await settle(page), failure(['closing'])).toEqual([])
       const image = page.locator('body > img').first()

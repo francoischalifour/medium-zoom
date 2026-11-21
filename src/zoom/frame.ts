@@ -2,6 +2,8 @@ import { assign, getScrollX, getScrollY } from '#platform'
 
 import { fitBox, type ZoomBounds } from './geometry'
 
+declare const __PRESET__: boolean
+
 export type ZoomTarget = HTMLElement | SVGElement
 
 /**

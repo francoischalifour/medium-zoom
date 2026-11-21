@@ -56,7 +56,7 @@ async function fixture(page: Page, sharedSession = false) {
           },
         }),
       })
-      // Open, close and trigger requests go through a session: shared, or looked up per open.
+      // Triggers open through the shared session, or through a new one per open.
       const session = createZoomSession(zoom)
       if (sharedSession) {
         bindZoomTriggers(zoom, { commander: session })
@@ -644,7 +644,7 @@ test('the zoom opens at once and sharpens in place when the high-resolution imag
       return [left, top, width, height].map(Math.round)
     })
   const preview = await box('dialog img')
-  // Already at its final size: filling the viewport less the margin in one dimension.
+  // Already at its final size: the viewport less the margin in one dimension.
   const [width, height] = await page.evaluate(() => [
     document.documentElement.clientWidth - 48,
     document.documentElement.clientHeight - 48,
@@ -789,7 +789,7 @@ test('the close button rests quieter than navigation and steps aside with it', a
   // The dialog holds initial focus, so no control lights up on open.
   await expect(page.locator('dialog')).toBeFocused()
   const close = page.getByRole('button', { name: 'Close' })
-  // The icon rests quieter and brightens at once on hover; the button fades as a whole.
+  // The icon brightens at once on hover; only the button as a whole fades.
   const icon = close.locator('svg')
   await expect(icon).toHaveCSS('opacity', '0.48')
   await expect(icon).toHaveCSS('transition-duration', '0s')
@@ -849,7 +849,7 @@ test('the zoom travels with the page as it scrolls, until the scroll closes it',
 
 test('a class-toggled dark theme needs no configuration', async ({ page }) => {
   await stockFixture(page, threeImages)
-  // Themed by a class alone: no color-scheme declaration, no media query.
+  // A class alone: no color-scheme declaration, no media query.
   await page.addStyleTag({ content: '.dark{background:#111014;color:#eee}' })
   await page.evaluate(() => document.documentElement.classList.add('dark'))
   await page.getByRole('button', { name: 'Forest' }).click()
@@ -1002,7 +1002,7 @@ test('a swipe navigates without its trailing click dismissing the zoom', async (
             clientY: start.y,
           })
         )
-        // A quick stroke: the image follows it, then a flick carries it on.
+        // Quick moves, so the release is a flick.
         for (let step = 1; step <= 3; step++) {
           await new Promise(resolve => setTimeout(resolve, 16))
           frame.dispatchEvent(
@@ -1165,8 +1165,7 @@ test('stock controls follow theme properties and yield to application styles', a
   const close = page.getByRole('button', { name: 'Close' })
   await expect(close).toHaveCSS('color', 'rgb(1, 2, 3)')
   await expect(close).toHaveCSS('border-radius', '0px')
-  // Shipped stylesheets, not injected <style> elements, keep strict CSP sites working: the
-  // only one is this test's own.
+  // No injected <style>, so strict CSP sites work: the only one is this test's own.
   await expect(page.locator('style')).toHaveCount(1)
 })
 

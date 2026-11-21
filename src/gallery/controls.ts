@@ -27,15 +27,13 @@ const icons = {
 }
 
 /**
- * Previous and next buttons, a position and a quieter close button for `dialog({ content })`,
- * with keyboard navigation and gestures (`bindGalleryKeyboard()`, `bindGalleryGestures()`):
- * swipe, pinch, pan, double tap and drag to close. A tap on the image or the backdrop still
- * closes the zoom.
+ * Content for `dialog({ content })`: previous and next buttons, a position and a close
+ * button, with keyboard navigation and gestures (swipe, pinch, pan, double tap, drag to
+ * close). A tap on the image or the backdrop still closes the zoom.
  * Import `medium-zoom/gallery.css`, which includes the core and dialog styles, or
- * `medium-zoom/gallery/style.css` next to them. Theme it with `--medium-zoom-control-color`
- * and `--medium-zoom-control-background` or restyle the `.medium-zoom-control` and
- * `.medium-zoom-navigation` classes: its rules are layered, so yours win. For your own UI,
- * build on `createGallery()` instead.
+ * `medium-zoom/gallery/style.css` next to them. Theme it with the `--medium-zoom-control-*`
+ * properties or restyle `.medium-zoom-control` and `.medium-zoom-navigation`: the rules are
+ * layered, so yours win. For your own UI, build on `createGallery()` instead.
  */
 export function galleryControls({
   closeLabel = 'Close',
@@ -71,7 +69,6 @@ export function galleryControls({
     shown.append(current, count)
     const announced = document.createElement('span')
     position.append(shown, announced)
-    // Navigation gathers below the image, which keeps the attention.
     const navigation = document.createElement('div')
     navigation.className = 'medium-zoom-navigation'
     navigation.append(previous, position, next)
@@ -79,19 +76,18 @@ export function galleryControls({
     const update = () => {
       const { index, images, canPrevious, canNext } = gallery.getSnapshot()
       const total = images.length
-      // aria-disabled, unlike disabled, keeps focus on a button that reaches either end.
+      // aria-disabled, unlike disabled, keeps focus on a button that reaches an end.
       previous.ariaDisabled = String(!canPrevious)
       next.ariaDisabled = String(!canNext)
       navigation.hidden = total < 2
       current.textContent = String(index + 1)
       count.data = ` / ${total}`
-      // Announce where stepping settles instead of every image passed on the way.
+      // Announces where stepping settles, not every image passed on the way.
       clearTimeout(announcing)
       announcing = setTimeout(() => {
         announced.textContent = positionLabel(index + 1, total)
       }, 300)
     }
-    // The image gets the stage to itself until the pointer moves or a control takes focus.
     const idleAttribute = 'data-medium-zoom-idle'
     let idle: ReturnType<typeof setTimeout> | undefined
     const wake = () => {
@@ -109,9 +105,8 @@ export function galleryControls({
     const unsubscribe = gallery.subscribe(update)
     bindGalleryKeyboard(element, gallery)
     const unbindGestures = bindGalleryGestures({ element, zoom, close })
-    // An arrow key presses its button while held, so the keys and the controls read as one.
-    // Registered after the keyboard binding: a handled key arrives already prevented. A
-    // zoomed image pans with the arrows instead.
+    // Registered after bindGalleryKeyboard(), so defaultPrevented means it stepped. A zoomed
+    // image pans with the arrows instead, so no button shows pressed.
     const press = (event: KeyboardEvent) => {
       const button = { ArrowLeft: previous, ArrowRight: next }[event.key]
       button?.toggleAttribute(
@@ -128,20 +123,19 @@ export function galleryControls({
     element.tabIndex = -1
     // Runs once the dialog is open and laid out, before it is painted.
     queueMicrotask(() => {
-      // Controls sit centred in the margin when it fits them, otherwise inside the image's
-      // edge, measured so --medium-zoom-control-size and app styles are taken into account.
+      // Measured, so --medium-zoom-control-size and app styles count: centred in the margin
+      // when the button fits, otherwise inside the image's edge.
       const margin = zoom.getOptions().margin || 0
       const size = closeButton.offsetWidth
       element.style.setProperty(
         '--medium-zoom-control-auto-inset',
         `${margin >= size + 16 ? (margin - size) / 2 : margin + 12}px`
       )
-      // The dialog holds focus itself, so nothing shows as focused until Tab; a focused
-      // button would otherwise light up on open in browsers that treat it as visible.
+      // Focus on the dialog, not a button: some browsers would show a focused button's
+      // focus ring on open.
       element.focus({ preventScroll: true })
     })
-    // The dialog, its listeners and these controls are discarded on close: release only what
-    // outlives it.
+    // The dialog and its listeners are discarded on close: release only what outlives it.
     return () => {
       clearTimeout(announcing)
       clearTimeout(idle)

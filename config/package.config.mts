@@ -27,7 +27,6 @@ export interface CandidateEntry extends PackageEntry {
   emitsCss: boolean
   budgets: readonly [number, number]
   cjs: string
-  /** Stylesheets the entry ships for the application to import. */
   stylesheets?: readonly Stylesheet[]
 }
 /**
@@ -208,7 +207,7 @@ export const extensionEntries: CandidateEntry[] = [
         sources: ['src/gallery/gallery.css'],
         maxBytes: 980,
       },
-      // The happy path: core, dialog and gallery styles in one request.
+      // Core, dialog and gallery styles in one request for the common setup.
       {
         fileName: 'gallery.css',
         sources: [

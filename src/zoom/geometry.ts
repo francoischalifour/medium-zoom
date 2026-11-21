@@ -5,10 +5,7 @@ export interface ZoomBounds {
   readonly width: number
   readonly height: number
 }
-/**
- * Pure positioning: the transform that scales a box up to its intrinsic size without
- * leaving the viewport, then centers it there.
- */
+/** The transform that scales a box up to its intrinsic size, within the viewport, centered. */
 export function fitBox(
   layout: ZoomBounds,
   intrinsicWidth: number,

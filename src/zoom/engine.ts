@@ -68,8 +68,8 @@ export interface ModalOpenOptions extends ZoomOpenOptions {
   trigger?: HTMLElement
   /**
    * Replaces the open image at once, as while stepping: no scene transition, and the
-   * high-resolution image loads after a pause. For gestures that already moved the new
-   * image into place, such as a swipe.
+   * high-resolution image loads after a pause. For gestures that already moved the new image
+   * into place, such as a swipe.
    */
   instant?: boolean
 }
@@ -216,11 +216,8 @@ export interface Scene {
   __mz_viewportScale?: number
   __mz_isPinching?: boolean
   __mz_scrollTimer?: ReturnType<typeof setTimeout>
-  /** Fits the presented scene to the window again. */
   __mz_refit?: () => void
-  /** Cancels a high-resolution upgrade still scheduled or loading. */
   __mz_release?: () => void
-  /** When the scene was requested, to tell stepping from browsing. */
   __mz_requested?: number
 }
 
@@ -273,7 +270,7 @@ export interface StageView {
   readonly element: HTMLElement
   /**
    * Another scene replaces the one whose frames and source are given: keep them on stage.
-   * `stepping` when the user moves on before a pause, as while holding an arrow key.
+   * `stepping` is true when the user moves on without pausing, as while holding an arrow key.
    */
   take(frames: readonly Frame[], source: ZoomTarget, stepping: boolean): void
   /** A frame joined the host and is not positioned yet. */
@@ -293,7 +290,7 @@ export interface StageView {
 /** Fixed presets replace this flag at build time so the bundler can remove strategy checks. */
 declare const __PRESET__: boolean
 
-// Moving on sooner than this after a scene is stepping, as while holding an arrow key.
+// Moving on within this many milliseconds of a scene is stepping, as while holding an arrow key.
 const pause = 300
 type Preload = (target: HTMLElement) => void
 export const createEngine = <Options extends CoreZoomOptions>(
@@ -516,7 +513,6 @@ export const createEngine = <Options extends CoreZoomOptions>(
           return
         }
         if (previous) {
-          // Moving on before the previous scene settled, or right after it, is stepping.
           if (!__PRESET__) {
             stepping =
               !!options.instant ||
@@ -550,7 +546,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
 
         let cancelTransition: (() => void) | void
         let cancelImage: (() => void) | void
-        // High-resolution media that arrived while the scene was still moving into place.
+        // High-resolution media that arrived mid-opening, held until the scene settles.
         let arrived: { media?: HTMLImageElement } | undefined
         let frame: number
         const fail = (error: unknown) => {
@@ -639,7 +635,6 @@ export const createEngine = <Options extends CoreZoomOptions>(
         const host = stage ? current.__mz_view!.element : document.body
         // A replaced scene keeps its backdrop, below the frames still on stage.
         if (!previous) {
-          // Without a background option, the backdrop matches the page in its current theme.
           if (!__PRESET__ && !zoomOptions.background) {
             overlay.style.background = pageBackground()
           }
@@ -670,7 +665,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
         if (__PRESET__ || primary.complete) {
           current.__mz_original.classList.add('medium-zoom-image--hidden')
         } else {
-          // A copy the browser loads again paints nothing yet: the page image stays until it can.
+          // A copy the browser loads again paints nothing yet: keep the page image until it can.
           const hide = () => {
             if (active === current && !current.__mz_closing) {
               current.__mz_original!.classList.add('medium-zoom-image--hidden')
@@ -697,7 +692,6 @@ export const createEngine = <Options extends CoreZoomOptions>(
             fill
           )
         }
-        // Shows high-resolution media over the frame, in the frame's presentation.
         const join = (media: HTMLImageElement) => {
           // The preset's own loader already copied the frame's presentation.
           if (!__PRESET__ && adoptMedia) {
@@ -710,7 +704,6 @@ export const createEngine = <Options extends CoreZoomOptions>(
           current.__mz_frames!.push(media)
         }
         let prepared = false
-        // Presented at the size of its high-resolution image, before knowing that size.
         let filled: boolean | undefined
         // `fill` presents the frame at the size its high-resolution image will have, so that
         // image later appears in place instead of growing out of a smaller preview.
@@ -750,7 +743,6 @@ export const createEngine = <Options extends CoreZoomOptions>(
           }
         }
 
-        // Settles a presented scene on its high-resolution image, or on the preview's own size.
         const upgrade = (media?: HTMLImageElement) => {
           if (active !== current || current.__mz_closing) {
             return
@@ -759,23 +751,22 @@ export const createEngine = <Options extends CoreZoomOptions>(
           const content = media || primary
           if (media) {
             join(media)
-            // Sharpening fades in over the preview instead of popping.
             media.animate({ opacity: [0, 1] }, 200)
           }
-          // Fitting measures the untransformed box: measure it without a transition, then
-          // let the frames move only if the final fit differs from the preview's. A gesture
-          // may be holding the frame zoomed with the individual transform properties.
+          // Fitting measures the untransformed box, including the individual transform
+          // properties a gesture may be zooming with: clear them without a transition, so the
+          // frames only move if the final fit differs from the preview's.
           const { style } = content
           const shown = [style.transform, style.translate, style.scale]
           style.setProperty('transition', 'none', 'important')
           style.transform = style.translate = style.scale = ''
-          // A size once shown is kept: a smaller high-resolution image fills the preview's box
-          // rather than shrinking it.
+          // Keep the size already shown: a smaller high-resolution image fills the preview's
+          // box rather than shrinking it.
           const transform = fit(content, filled)
           ;[style.transform, style.translate, style.scale] = shown
           content.getBoundingClientRect()
           content.style.removeProperty('transition')
-          // The scene is already presented: this only describes the new frames to the stage.
+          // The scene is already presented: this only hands the new frames to the stage.
           if (media) {
             current.__mz_view!.present(frames, transform, () => {})
           }
@@ -787,8 +778,8 @@ export const createEngine = <Options extends CoreZoomOptions>(
         }
 
         if (!__PRESET__) {
-          // Follows the window at once: the page may have reflowed, so the frames zoom from
-          // and back to where the image is now, and a gesture's zoom is dropped.
+          // Refits without a transition from where the image is now, since the page may have
+          // reflowed, so closing zooms back to the right place. A gesture's zoom is dropped.
           current.__mz_refit = () => {
             if (prepared) {
               const { left, top, width, height } = cloneImage(
@@ -813,12 +804,12 @@ export const createEngine = <Options extends CoreZoomOptions>(
 
         try {
           if (!__PRESET__ && loader) {
-            // Composed zooms never wait for high resolution: they present the frame at once and
-            // sharpen it in place once the scene has settled.
+            // Composed zooms never wait for high resolution: they present the preview at once
+            // and sharpen it in place once the scene has settled.
             const show = (media?: HTMLImageElement) => {
               try {
                 if (!prepared) {
-                  // Answered at once, as when there is nothing to load: present it directly.
+                  // Answered synchronously, as when there is nothing to load: present it directly.
                   animate(media)
                 } else if (current.__mz_cancelOpen) {
                   arrived = { media }
@@ -829,8 +820,8 @@ export const createEngine = <Options extends CoreZoomOptions>(
                 void close()
               }
             }
-            // Media arriving after the frame is presented is decoded before it is shown, so it
-            // never appears blank or costs a frame on screen.
+            // Media arriving after the frame is presented is decoded first, so it never shows
+            // blank or drops a frame on screen.
             const ready = (media?: HTMLImageElement) =>
               prepared && media
                 ? void media

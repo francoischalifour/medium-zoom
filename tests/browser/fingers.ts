@@ -4,8 +4,9 @@ export type Point = readonly [number, number]
 export type Input = 'touch' | 'mouse' | 'pointer'
 
 /**
- * Real input wherever the browser takes it: CDP touch in mobile Chromium, the mouse on
- * desktop. Mobile WebKit has no touch injection, so it gets pointer events in the page.
+ * Real input where the browser accepts it: CDP touch in mobile Chromium, the mouse on
+ * desktop. Mobile WebKit has no touch injection and the mouse is a single pointer, so
+ * those get synthetic pointer events.
  */
 export const inputFor = ({ project }: TestInfo, fingers = 1): Input =>
   project.use.isMobile
@@ -32,7 +33,7 @@ export async function fingers(page: Page, input: Input) {
       ({ type, points }) => {
         const state = window as unknown as { pressed?: Element }
         points.forEach(([clientX, clientY], index) => {
-          // As a captured pointer: the pressed element may since have been replaced.
+          // Later events go to the pressed element, as with pointer capture, unless it was replaced.
           const target =
             type === 'pointerdown'
               ? (document.elementFromPoint(clientX, clientY) ??
@@ -48,7 +49,7 @@ export async function fingers(page: Page, input: Input) {
               bubbles: true,
               cancelable: true,
               composed: true,
-              // Apart from the mouse's own pointer, which a page can also see.
+              // Kept apart from the mouse's pointer id, which the page also sees.
               pointerId: index + 11,
               isPrimary: !index,
               pointerType: 'touch',
@@ -83,7 +84,7 @@ export async function fingers(page: Page, input: Input) {
         await dispatch('pointermove', points)
       }
     },
-    /** Moves every finger by (dx, dy) over `steps` frames. */
+    /** Moves every finger by (dx, dy) over `steps` frames; `spread` pulls two fingers apart. */
     async glide(dx: number, dy: number, steps = 8, spread = 0) {
       const from = at
       for (let step = 1; step <= steps; step++) {

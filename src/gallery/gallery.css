@@ -1,7 +1,8 @@
 /*
-  Layered, so any unlayered application rule wins without a specificity contest. Light and
-  dark follow the backdrop. Custom properties, for composing without overriding:
-    --medium-zoom-control-color, --medium-zoom-control-background
+  Layered, so any unlayered application rule wins. Light and dark follow the backdrop.
+  Custom properties:
+    --medium-zoom-control-color       icons and position text
+    --medium-zoom-control-background  close button and navigation surface
     --medium-zoom-control-size        button size, 44px
     --medium-zoom-control-radius      buttons and navigation, fully rounded
     --medium-zoom-control-transition  idle and closing fade, 200ms
@@ -39,10 +40,7 @@
       scale 160ms cubic-bezier(0.23, 1, 0.32, 1);
   }
 
-  /*
-    The icon carries the resting, hover and disabled emphasis, and changes at once; the
-    button's own opacity is left to fade the close button in and out.
-  */
+  /* Emphasis lives on the icon, so the button's own opacity stays free for the fade. */
   .medium-zoom-control svg {
     width: 20px;
     height: 20px;
@@ -54,7 +52,6 @@
     opacity: 0.72;
   }
 
-  /* The pill carries the surface: its buttons stay bare. */
   .medium-zoom-navigation > .medium-zoom-control {
     background: none;
     color: inherit;
@@ -76,8 +73,7 @@
     }
   }
 
-  /* data-pressed mirrors a held arrow key on its button. */
-  /* A tint over whatever surface the button has: bare icons need it to show the press. */
+  /* data-pressed mirrors a held arrow key. The tint shows the press on bare icons too. */
   .medium-zoom-control:active:not([aria-disabled='true']),
   .medium-zoom-control[data-pressed]:not([aria-disabled='true']) {
     background-image: radial-gradient(
@@ -119,7 +115,6 @@
   .medium-zoom-position {
     margin: 0;
     cursor: default;
-    /* The page's own typeface, with figures that keep their width as the count changes. */
     font-size: 13px;
     line-height: 1.5;
     font-variant-numeric: tabular-nums;
@@ -141,8 +136,7 @@
     clip-path: inset(50%);
   }
 
-  /* Out of the way while the pointer rests, while the image is dragged away and from the
-     moment the zoom starts closing. */
+  /* Hidden while idle, while a drag closes the image and once the zoom starts closing. */
   [data-medium-zoom-idle] .medium-zoom-control--close:not(:focus-visible),
   [data-medium-zoom-idle] .medium-zoom-navigation:not(:has(:focus-visible)),
   [data-medium-zoom-gesture='close']

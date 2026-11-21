@@ -3,13 +3,12 @@ import type { ZoomContent } from 'medium-zoom/core'
 import { createGallery } from './index'
 import { isGalleryKey, ownKeys } from './keyboard'
 
-/** What `bindGalleryGestures()` works on: the view a `ZoomContent` receives. */
+/** The view a `ZoomContent` receives, which `bindGalleryGestures()` binds to. */
 export type GalleryGestureView = Parameters<ZoomContent>[0]
 
-/** Where the open image sits over its fitted place: screen = fitted × k + (x, y). */
+/** The open image over its fitted box: screen = fitted × k + (x, y). */
 type Placement = [x: number, y: number, k: number]
 type Mode = '' | 'pending' | 'swipe' | 'close' | 'pan' | 'pinch'
-// Frames and previews are media elements: images today, videos as well tomorrow.
 type Media = HTMLElement & {
   naturalWidth?: number
   videoWidth?: number
@@ -18,23 +17,21 @@ type Media = HTMLElement & {
   currentSrc?: string
 }
 
-// Spring rates per millisecond: settling a gesture, and coasting after a pan.
+// Spring rates per ms: settling a gesture, and coasting after a pan.
 const snappy = 0.022
 const coast = 0.007
-// Movement before a press becomes a drag, and the speed that makes a flick, in px/ms.
+// Pixels before a press becomes a drag, and px/ms that make a flick.
 const slop = 8
 const fling = 0.25
-// The space between neighbouring images while swiping.
 const gap = 16
-// The longest pause between the presses of a double tap, and how far a single tap
-// shrinks the image while it waits to tell.
+// Longest pause between double-tap presses, and the scale a single tap shrinks the
+// image to while waiting for a second one.
 const doubleTap = 300
 const hint = 0.95
 const rest: Placement = [0, 0, 1]
 
 const clamp = (value: number, [min, max]: number[]) =>
   Math.min(Math.max(value, min!), max!)
-/** Past its limits a value moves less the further it goes, as against an elastic band. */
 const rubber = (value: number, limits: number[], size: number) => {
   const over = value - clamp(value, limits)
   return (
@@ -49,16 +46,21 @@ const mediaSize = (media: Media) => [
 ]
 
 /**
- * Direct manipulation of the open image inside `element`, for pointers, touch and trackpads:
- * - swipe between images with the neighbours following the finger, a flick being enough;
- * - drag the image down or up to close, the backdrop fading with the distance;
- * - pinch, double-tap or double-click, Ctrl+wheel or a trackpad pinch to zoom, then drag
- *   or scroll to pan, with inertia and elastic bounds; a pinch below fit closes.
- * Keyboard equivalents: `+`, `-` and `0` zoom in, out and back to fit, and arrows pan the
- * zoomed image instead of stepping. A single click or tap still closes: the image starts
- * leaving at once and a second tap within the double-tap pause brings it back, zoomed. Reduced motion settles gestures without animating. Styling hooks on `element`:
- * `data-medium-zoom-zoomed` and `data-medium-zoom-gesture` (`swipe`, `close`, `pan`,
- * `pinch`). Creates no controls. Returns the unbind function.
+ * Binds direct manipulation of the open image inside `element`, for mouse, touch and
+ * trackpads:
+ * - swipe or flick between images, the neighbours following the finger;
+ * - drag the image up or down to close;
+ * - pinch, double-tap, double-click, Ctrl+wheel or a trackpad pinch to zoom, then drag or
+ *   scroll to pan; pinching below fit closes;
+ * - `+`, `-` and `0` zoom in, out and back to fit; arrows pan a zoomed image.
+ *
+ * A single click or tap still closes, after the double-tap pause. Reduced motion settles
+ * gestures without animating. Creates no controls.
+ *
+ * Styling hooks on `element`: `data-medium-zoom-zoomed`, and `data-medium-zoom-gesture`
+ * (`swipe`, `close`, `pan` or `pinch`).
+ *
+ * @returns A function that unbinds the gestures.
  */
 export function bindGalleryGestures({
   element,
@@ -70,32 +72,30 @@ export function bindGalleryGestures({
   const pointers = new Map<number, number[]>()
   let [x, y, k] = rest
   let mode: Mode = ''
-  // The gesture's anchor and the placement it started from, rebased whenever a finger
-  // joins or leaves so nothing jumps.
+  // Rebased whenever a finger joins or leaves, so the image never jumps.
   let start: number[] = []
   let anchor: number[] = []
   let spread = 1
   let from = rest
   let samples: number[][] = []
-  // Geometry, measured when an interaction starts: the fitted box [left, top, right,
-  // bottom], the frames' transform origin, the window and the zoom levels.
+  // Measured when an interaction starts. `fitted` is [left, top, right, bottom] at k = 1.
   let fitted: number[] = []
   let origin: number[] = []
   let width = 0
   let height = 0
   let detail = 2
   let measured = 0
-  // Neighbour previews while swiping, [previous, next], with their fitted boxes.
+  // [previous, next], each with its fitted box.
   let previews: ([Media, number[]] | undefined)[] = []
-  // The settling animation, kept so a touch that only stops it can let it carry on.
+  // Kept so a touch that only stops the animation can let it carry on.
   let frame = 0
   let settling: [to: Placement, rate: number, done?: () => void] | undefined
-  // The neighbour a released swipe is carrying the strip to, until it lands.
+  // The direction a released swipe is carrying the strip, until it lands.
   let heading = 0
   let velocity = [0, 0, 0]
   let dragged = false
-  // A tap waiting to tell whether a second one follows: [pressed at, x, y]. A second press
-  // in time holds the close until its click arrives.
+  // A tap waiting for a possible second one: [pressed at, x, y]. `seconded` marks a second
+  // press in time, which holds the close until its click arrives.
   let tap: number[] | undefined
   let seconded = false
   let pressed = 0
@@ -116,14 +116,14 @@ export function bindGalleryGestures({
       : element.removeAttribute(`data-medium-zoom-${name}`)
   const span = () => width + gap
 
-  /** Reads the layout once per interaction; pointer moves only write. */
+  /** Reads layout once per interaction, so pointer moves only write and never reflow. */
   const measure = () => {
     const current = frames()
     const media = current[current.length - 1]
     if (!media) {
       return false
     }
-    // A touch during the opening or a scene transition takes the image where it is going.
+    // A touch mid-animation takes the image where it is going, so measurements are final.
     current.forEach(each => each.getAnimations().forEach(run => run.finish()))
     const box = media.getBoundingClientRect()
     const host = element.getBoundingClientRect()
@@ -136,13 +136,13 @@ export function bindGalleryGestures({
     ]
     width = document.documentElement.clientWidth
     height = document.documentElement.clientHeight
-    // Double tap shows the image's own pixels one to one, and at least twice its fit.
+    // Double tap shows the image's pixels one to one, and at least twice its fit.
     detail = Math.max(2, mediaSize(media)[0]! / (fitted[2]! - fitted[0]!))
     measured = performance.now()
     return true
   }
   const maximum = () => Math.max(4, detail)
-  /** The offsets along an axis that keep a zoomed image over the window, or centred. */
+  /** Offsets that keep a zoomed image covering the window, or centred if smaller. */
   const limits = (axis: number, scale: number) => {
     const low = fitted[axis]! * scale
     const high = fitted[axis + 2]! * scale
@@ -150,7 +150,7 @@ export function bindGalleryGestures({
     const centred = ((low + high) / 2 / scale) * (1 - scale)
     return high - low > size ? [size - high, -low] : [centred, centred]
   }
-  /** The placement at `scale` that keeps the point under (cx, cy) in place, in bounds. */
+  /** The in-bounds placement at `scale` that keeps the point under (cx, cy) still. */
   const aim = (scale: number, cx: number, cy: number, dx = 0, dy = 0) => {
     const level = clamp(scale, [1, maximum()])
     const ratio = level / k
@@ -174,7 +174,6 @@ export function bindGalleryGestures({
         preview[0].style.translate = `${x + (index ? span() : -span())}px`
       }
     })
-    // The backdrop fades as the image is dragged away or pinched below its fit.
     const overlay = element.querySelector<HTMLElement>('.medium-zoom-overlay')
     if (overlay) {
       const shade =
@@ -193,11 +192,11 @@ export function bindGalleryGestures({
     settling = undefined
     heading = 0
   }
-  /** Springs to `to` from the current velocity, without overshoot; instant for reduced motion. */
+  /** A critically damped spring to `to`, starting from the current velocity. */
   const animate = (to: Placement, rate = snappy, done?: () => void) => {
     stop()
     const begin = [x, y, k]
-    // Speed towards the target beyond what the spring can absorb would overshoot.
+    // Speed towards the target beyond what the spring absorbs would overshoot: cap it.
     const initial = begin.map((value, axis) => {
       const away = value - to[axis]!
       const speed = velocity[axis]!
@@ -241,7 +240,7 @@ export function bindGalleryGestures({
       frame = requestAnimationFrame(step)
     }
   }
-  /** Settles a pan or pinch inside the bounds, coasting on when the scale stays. */
+  /** Coasts on after a pan, but snaps back when the scale overshot its bounds. */
   const settle = () => {
     const kept = clamp(k, [1, maximum()]) === k
     const [vx, vy] = kept ? velocity : [0, 0]
@@ -255,12 +254,11 @@ export function bindGalleryGestures({
     previews.forEach(preview => preview?.[0].remove())
     previews = []
   }
-  /** Zooming by keys, wheel or trackpad takes the image from a swipe where it is. */
+  /** Zooming by keys, wheel or trackpad interrupts a swipe, taking the image as it is. */
   const hold = () => {
     stop()
     drop()
   }
-  /** Neighbours drawn from their attached images, fitted to the window beside this one. */
   const reveal = () => {
     const { images, index } = gallery.getSnapshot()
     const host = element.getBoundingClientRect()
@@ -296,10 +294,7 @@ export function bindGalleryGestures({
       return [preview, box] as [Media, number[]]
     })
   }
-  /**
-   * Swaps in the neighbour the swipe is bringing to the middle, then fits the real frame.
-   * A finger that caught the strip on its way keeps holding the new image where it is.
-   */
+  /** `held`: a finger caught the strip mid-swipe and keeps holding the new image. */
   const navigate = (direction: number, held?: boolean) => {
     heading = 0
     const offset = x + direction * span()
@@ -315,8 +310,8 @@ export function bindGalleryGestures({
         animate(rest, snappy, drop)
         return
       }
-      // Start the frame exactly over the preview, which the engine may have fitted
-      // differently, and let it settle into its own fit.
+      // The engine may fit the frame differently from the preview: start it exactly over
+      // the preview and let it settle into its own fit.
       k = box[2]! / (fitted[2]! - fitted[0]!)
       x = box[0]! - fitted[0]! * k + offset
       y = box[1]! - fitted[1]! * k
@@ -326,8 +321,8 @@ export function bindGalleryGestures({
       }
     }
     const opening = gallery.select(index + direction, { instant: true })
-    // The engine swaps scenes at once, unless the previous one is still being mounted: by
-    // the time it does, the moment has passed and the strip only settles.
+    // The engine swaps scenes at once unless the previous one is still mounting; by then
+    // the moment has passed and the strip only settles.
     if (shown === target) {
       land()
     } else {
@@ -365,10 +360,9 @@ export function bindGalleryGestures({
     attribute('gesture', next !== 'pending' && next)
   }
 
-  // A swipe past halfway to its neighbour is as good as landed; before, the image the user
-  // is moving away from is still the one on screen.
+  // Past halfway, a swipe counts as landed; before, the image being left is still current.
   const landing = () => (Math.abs(x) > span() / 2 && heading) || 0
-  /** A swipe as good as landed lands at once, so a control or key acts from its image. */
+  /** Lands such a swipe at once, so a control or key acts on the image the user sees. */
   const land = () => {
     const direction = landing()
     if (direction) {
@@ -400,18 +394,17 @@ export function bindGalleryGestures({
     if (pointers.size > 1) {
       return
     }
-    // A swipe caught as good as landed lands now, so every swipe counts; before, the
-    // finger holds the strip where it is, both images still in place.
+    // Catching a swipe past halfway lands it, so no swipe is lost; before that, the finger
+    // holds the strip with both images in place.
     const caught = landing()
     if (!pointers.size) {
-      // A touch that catches the image on its way is not a tap, unless it is the second
-      // tap, which catches the first one's hint.
+      // Catching a moving image is not a tap, unless it is a second tap catching the
+      // first one's shrink.
       dragged =
         !seconded && !!settling && Math.hypot(velocity[0]!, velocity[1]!) > 0.1
       if (caught) {
         stop()
         navigate(caught, true)
-        // Never a tap: released where it is, the image settles from there.
         dragged = true
         // The press landed on the image just replaced: its default would drop focus.
         event.preventDefault()
@@ -427,16 +420,16 @@ export function bindGalleryGestures({
       enter('pinch')
     }
     pointers.set(event.pointerId, [event.clientX, event.clientY])
-    // The centroid jumps when a finger joins or leaves: speed is measured afresh.
+    // The centroid jumps when a finger joins or leaves: measure speed afresh.
     samples = []
     rebase()
-    // A caught swipe replaced the image under the finger: the gesture stays with the stage.
+    // A caught swipe replaced the image under the finger: capture keeps the gesture here.
     if (mode === 'pinch' || caught) {
       capture()
     }
   }
   const move = (event: PointerEvent) => {
-    // A mouse moving off after a click is not double-clicking: no need to wait.
+    // A mouse moving away after a click is not double-clicking: close without waiting.
     if (
       tap &&
       !seconded &&
@@ -461,9 +454,9 @@ export function bindGalleryGestures({
       }
       dragged = true
       settling = undefined
-      // A drag is never the second tap: it takes the image from where the first left it.
+      // A drag is never a second tap: it takes the image from where the first left it.
       forget()
-      // Catching a swipe on its way keeps swiping, as does an image left off centre.
+      // Catching a swipe mid-way keeps swiping, as does an image left off centre.
       const next =
         k > 1.01
           ? 'pan'
@@ -475,14 +468,13 @@ export function bindGalleryGestures({
       if (next === 'swipe' && !previews.length) {
         reveal()
       }
-      // Follow from here: the slop is not made up, so the image never jumps.
+      // Follow from here rather than making up the slop, so the image never jumps.
       rebase()
       dx = dy = 0
     }
     const [x0, y0, k0] = from
     if (mode === 'pinch') {
       k = rubber((k0 * distance()) / spread, [1, maximum()], 1)
-      // The point that was under the fingers stays under them.
       x = cx! - ((start[0]! - x0) * k) / k0
       y = cy! - ((start[1]! - y0) * k) / k0
     } else if (mode === 'pan') {
@@ -543,7 +535,7 @@ export function bindGalleryGestures({
       const { canPrevious, canNext } = gallery.getSnapshot()
       const [vx] = velocity
       const ahead = x + vx! * 200
-      // Judged from where the drag started: a swipe that caught the strip on its way
+      // Judged from where the drag started, since a swipe that caught the strip mid-way
       // starts off centre.
       const direction =
         canNext && (vx! < -fling || ahead < -span() / 2) && x < from[0]!
@@ -571,10 +563,7 @@ export function bindGalleryGestures({
     }
   }
 
-  /**
-   * Double tap zooms in to detail, then further each time as a pinch would, and back to fit
-   * from the maximum; a single tap closes, as ever.
-   */
+  /** Double tap zooms to detail, then doubles, and returns to fit from the maximum. */
   const click = (event: MouseEvent) => {
     const frameClicked = frames().includes(event.target as Media)
     if (dragged || frameClicked) {
@@ -597,14 +586,14 @@ export function bindGalleryGestures({
     }
     clearTimeout(tapTimer)
     tap = [pressed, cx, cy]
-    // The pause runs from the press, so the click's own latency is not added to it. A
-    // click with no press, as from a script, closes at once.
+    // Timed from the press so the click's latency is not added. A scripted click, with no
+    // press, closes at once.
     tapTimer = setTimeout(
       decide,
       Math.max(0, pressed + doubleTap - performance.now())
     )
-    // The close starts now, reversibly: the image gives a little, the backdrop and the
-    // controls fade, and closing carries on from there.
+    // Start closing now, reversibly, so a single tap feels immediate: the image shrinks a
+    // little and closing carries on from there.
     if (k <= 1.01 && measure()) {
       attribute('gesture', 'close')
       velocity = [0, 0, 0]
@@ -615,7 +604,6 @@ export function bindGalleryGestures({
       ])
     }
   }
-  /** No second tap came: a fitted image closes, a zoomed one stays. */
   const decide = () => {
     const leave = k <= 1.01 && tap
     forget()
@@ -630,7 +618,7 @@ export function bindGalleryGestures({
     attribute('gesture', mode !== 'pending' && mode)
   }
 
-  // Keyboard equivalents act at once: they are pressed again and again.
+  // Keys apply without animating: they are pressed repeatedly.
   const keydown = (event: KeyboardEvent) => {
     land()
     const factor = { '+': 1.5, '=': 1.5, '-': 1 / 1.5, '0': 0 }[event.key]
@@ -657,8 +645,8 @@ export function bindGalleryGestures({
         : aim(factor ? k * factor : 1, width / 2, height / 2)
     apply()
   }
-  // Ctrl+wheel is how browsers report a trackpad pinch; a plain wheel pans a zoomed image
-  // and otherwise scrolls the page, which closes the zoom as ever.
+  // Browsers report a trackpad pinch as Ctrl+wheel. A plain wheel on a fitted image is left
+  // to scroll the page, which closes the zoom.
   const wheel = (event: WheelEvent) => {
     if (closing || (!event.ctrlKey && k <= 1.01)) {
       return
@@ -701,7 +689,7 @@ export function bindGalleryGestures({
     }
   }
 
-  // Closing by any means takes the image back from wherever the gesture left it.
+  // Closing by any means animates the image back from wherever the gesture left it.
   const closed = () => {
     closing = true
     stop()
@@ -724,7 +712,7 @@ export function bindGalleryGestures({
     ;[x, y, k] = rest
     apply()
   }
-  // Another image replaced this one, by keys, buttons or a swipe: it starts fitted.
+  // Whatever replaced the image (keys, buttons or a swipe), the new one starts fitted.
   const unsubscribe = gallery.subscribe(() => {
     const { current } = gallery.getSnapshot()
     if (current !== shown) {
@@ -763,7 +751,7 @@ export function bindGalleryGestures({
       passive: false,
     })
   }
-  // The engine refits the image to a resized window: the gesture's zoom goes with it.
+  // The engine refits the image to a resized window, so the gesture's zoom is reset.
   const resized = () => {
     if (!closing) {
       hold()

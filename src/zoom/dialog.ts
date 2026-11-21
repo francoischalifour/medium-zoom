@@ -7,8 +7,8 @@ import type { Frame } from './frame'
 export interface StagedFrame {
   readonly element: HTMLElement
   /**
-   * The CSS transform applied to the frame: the fitted one, or where an interrupted change
-   * left the frame. Compose screen-space offsets before it, such as `translateX(8px) ${transform}`.
+   * The CSS transform applied to the frame: the fitted one, or wherever an interrupted change
+   * left it. Prepend screen-space offsets, such as `translateX(8px) ${transform}`.
    */
   readonly transform: string
 }
@@ -16,8 +16,8 @@ export interface StagedFrame {
 export interface SceneChange {
   /**
    * The frames of the replaced images; the dialog removes them once the change settles.
-   * After an interruption they are held where they were on screen, so animate them towards
-   * an end state rather than from a fixed starting keyframe.
+   * After an interruption they are held where they were, so animate them towards an end
+   * state rather than from a fixed starting keyframe.
    */
   readonly outgoing: readonly StagedFrame[]
   /** The frames of the new image. */
@@ -83,26 +83,26 @@ export function dialog({
       element.style.cssText =
         'position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;color:inherit;overflow:visible;'
       let disposed = false
-      // The page scrolls under the modal: carry the image and controls with it, as the zoom
-      // does in the document, while the backdrop stays put until the scroll closes the zoom.
-      // The dialog does not clip, or the shifted dialog would cut the counter-shifted backdrop.
+      // The page still scrolls under the modal: move the image and controls with it, as the
+      // zoom does in the document, while the backdrop stays put until the scroll closes it.
+      // The dialog must not clip, or shifting it would cut off the counter-shifted backdrop.
       const scrolled = scrollY
-      // The engine's backdrop, shared between openings and detached before disposal.
+      // The engine reuses its backdrop for later openings: reset what is set on it here.
       let overlay: HTMLElement | null
       const follow = () => {
         element.style.translate = `0 ${scrolled - scrollY}px`
         overlay!.style.translate = `0 ${scrollY - scrolled}px`
       }
-      // Runs once the engine has put its backdrop in the dialog, unless the opening failed.
+      // The engine appends its backdrop after mounting the stage.
       queueMicrotask(() => {
         overlay = element.querySelector('.medium-zoom-overlay')
         if (disposed || !overlay) {
           return
         }
         addEventListener('scroll', follow, { passive: true })
-        // Content on the backdrop takes its scheme, so light-dark() styles contrast with what
-        // is actually behind them, however the page sets its theme. A see-through backdrop
-        // leaves the page's scheme.
+        // Controls take the backdrop's color scheme, so light-dark() styles contrast with
+        // what is actually behind them, however the page sets its theme. A mostly
+        // see-through backdrop keeps the page's scheme.
         const color = getComputedStyle(overlay).backgroundColor
         const [red, green, blue, alpha = 1] =
           (color.startsWith('rgb') && color.match(/[\d.]+/g)!.map(Number)) || []
@@ -146,7 +146,6 @@ export function dialog({
         }
         throw error
       }
-      // Frames of replaced scenes stay on stage until the next scene is presented.
       let outgoing: Frame[] = []
       let replaced: HTMLElement | SVGElement | undefined
       let opener = trigger
@@ -183,7 +182,7 @@ export function dialog({
           replaced = source
           stepping = quickly
           // Leave from where the frames are on screen, even mid-zoom. Stepping swaps them out
-          // in this same task, so it skips the work.
+          // in this same task, so freezing would be wasted layout work.
           if (!quickly) {
             freeze(frames)
           }
@@ -226,8 +225,8 @@ export function dialog({
             outgoing = []
             done(error)
           }
-          // Frames replaced before they were fitted, or swiped off screen, are not seen
-          // leaving: leave them out.
+          // Frames replaced before they were fitted, or swiped off screen, are never seen
+          // leaving: keep them out of the effect.
           const staged = (elements: readonly Frame[]) =>
             elements
               .filter(element => {
@@ -243,7 +242,8 @@ export function dialog({
                 transform: element.style.transform,
               }))
           const leaving = staged(outgoing)
-          // With nothing seen leaving, the next image would fade in from nothing: it appears.
+          // With nothing visibly leaving, the effect would fade in from an empty backdrop:
+          // show the next image at once instead.
           if (transform && transition && !stepping && leaving.length) {
             const images = zoom.getImages()
             cancel = transition(
@@ -259,8 +259,8 @@ export function dialog({
               complete
             )
           } else {
-            // A frame still being decoded paints nothing: the outgoing ones stay beneath it
-            // until it can, or the backdrop would show through for a moment.
+            // A frame still decoding paints nothing: keep the outgoing frames beneath it until
+            // it can, or the backdrop flashes through.
             const finish = () => complete()
             void Promise.resolve(
               (frames[0] as HTMLImageElement).decode?.()
@@ -295,8 +295,8 @@ export function dialog({
 }
 
 /**
- * Applies styles to frames at once, without running their CSS transitions: one layout for all.
- * Any inline transition is dropped: the stylesheet's !important frame transition wins anyway.
+ * Applies styles without running CSS transitions, forcing a single layout for all frames.
+ * Inline transitions are dropped rather than restored: the stylesheet's !important one wins.
  */
 const withoutTransitions = (
   frames: readonly Frame[],
@@ -310,17 +310,17 @@ const withoutTransitions = (
   frames.forEach(({ style }) => style.removeProperty('transition'))
 }
 
-/** Scene replacement commits fitted geometry without replaying the thumbnail motion. */
+/** Without transitions, a new scene's frames would replay the zoom from their thumbnail. */
 const commitFrames = (frames: readonly Frame[], transform: string | null) =>
   withoutTransitions(frames, frame => {
-    // An unfitted frame still shows, in its own box.
+    // A frame that could not be fitted still shows, in its own box.
     if (transform) {
       frame.style.transform = transform
     }
     frame.style.visibility = ''
   })
 
-/** Holds frames where they are on screen: every style is read before any is written. */
+/** Holds frames where they are on screen, reading every style before writing any: one layout. */
 const freeze = (frames: readonly Frame[]): void => {
   const shown = frames.map(frame => {
     const { transform, opacity } = getComputedStyle(frame)

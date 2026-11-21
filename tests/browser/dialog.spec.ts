@@ -389,7 +389,7 @@ test('touch controls clean up the modal, and rotating refits the open image', as
   )
   const viewport = page.viewportSize()!
   await page.setViewportSize({ width: viewport.height, height: viewport.width })
-  // The zoom follows the window instead of closing: centred in the new one, inside it.
+  // Rotating keeps the zoom open, centred inside the new window.
   await expect(page.locator('dialog')).toHaveCount(1)
   await expect
     .poll(() =>

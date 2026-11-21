@@ -41,7 +41,7 @@ This checks formatting, lint, types, package contents, bundle sizes, website and
 
 For a focused check, use the commands below:
 
-- `bun run format` or `bun run format:check`: format maintained files or check formatting.
+- `bun run format` or `bun run format:check`: format or check maintained files; pass paths to limit either to those files.
 - `bun run lint`: check source, tests, and tooling with Oxlint.
 - `bun run typecheck`: check tooling, documentation snippets, and framework examples.
 - `bun run test:package`: verify the npm tarball's entries, declarations, CSS, and ES5 syntax and APIs, then the same for the private candidate package.

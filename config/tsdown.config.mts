@@ -176,12 +176,12 @@ function stylesheet(profile: Profile): TsdownPlugin {
   }
 }
 
-/** Ships an entry's stylesheets next to it, for the application to import. */
-function shippedStylesheets(stylesheets: readonly Stylesheet[]): TsdownPlugin {
+/** Emits the stylesheets an entry declares, as files for the application to import. */
+function entryStylesheets(stylesheets: readonly Stylesheet[]): TsdownPlugin {
   const resolve = (source: string) =>
     fileURLToPath(new URL(`../${source}`, import.meta.url))
   return {
-    name: 'medium-zoom-shipped-stylesheets',
+    name: 'medium-zoom-entry-stylesheets',
     buildStart() {
       stylesheets.forEach(({ sources }) =>
         sources.forEach(source => this.addWatchFile(resolve(source)))
@@ -365,7 +365,7 @@ function entryBundle(
       ...(entry.emitsCss ? [stylesheet(profile)] : []),
       // Once per entry: the ESM build emits the stylesheets for both formats.
       ...(entry.stylesheets && format === 'esm'
-        ? [shippedStylesheets(entry.stylesheets)]
+        ? [entryStylesheets(entry.stylesheets)]
         : []),
       browserSyntax(profile, format, true),
     ],

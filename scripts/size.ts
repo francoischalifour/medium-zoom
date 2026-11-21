@@ -241,8 +241,7 @@ async function measureConsumers() {
   const directory = mkdtempSync(join(tmpdir(), 'medium-zoom-size-'))
   const results: Record<string, { js: number; css: number }> = {}
   const modernCss = fileSize('dist/modern/style.css')
-  // The stylesheets an application loads for the composition: stock controls take the
-  // combined one, a bare dialog adds its own to the core's.
+  // Stock controls load the combined stylesheet; a bare dialog adds its own to the core's.
   const compositionCss = ({ dialog, controls }: Composition) =>
     controls
       ? fileSize('dist/gallery.css')

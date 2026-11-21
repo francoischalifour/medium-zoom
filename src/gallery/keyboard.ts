@@ -3,8 +3,8 @@ import type { CoreZoomOptions } from 'medium-zoom/core'
 import type { GalleryController } from './index'
 
 /**
- * The pause between steps while a key is held: about 200 ms at first, easing towards 60 ms
- * the longer the key is held, so a short hold stays readable and a long one travels fast.
+ * The pause between steps of a held key: about 200 ms, easing towards 60 ms, so a short
+ * hold stays readable and a long one travels fast.
  */
 const stepInterval = (held: number) => 60 + 140 * Math.exp(-held / 800)
 

@@ -28,7 +28,6 @@ export function galleryTransition(
     const controller = new AbortController()
     const motion = matchMedia('(prefers-reduced-motion)')
     let settled = false
-    // Ends the effect once: listeners released and its animations cleared.
     const stop = () => {
       settled = true
       motion.removeEventListener('change', reduce)
@@ -81,7 +80,7 @@ export function galleryTransition(
 export interface SlideOptions {
   /** How far each image travels, in CSS pixels. @default 8% of the viewport width */
   distance?: number
-  /** @default 220 */
+  /** In milliseconds. @default 220 */
   duration?: number
   /** The zoom's own curve by default. @default "cubic-bezier(0.2, 0, 0.2, 1)" */
   easing?: string
