@@ -45,8 +45,8 @@ export function fitImage(frame: Frame, viewport: ZoomBounds): string | null {
   const vector = isSvgSource(frame.currentSrc || frame.src)
   return fitBox(
     frame.getBoundingClientRect(),
-    vector ? viewport.width : frame.naturalWidth,
-    vector ? viewport.height : frame.naturalHeight,
+    vector ? 0 : frame.naturalWidth,
+    vector ? 0 : frame.naturalHeight,
     viewport
   )
 }

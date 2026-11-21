@@ -141,7 +141,7 @@ test('repeated attachment is idempotent and detach() removes every image', async
 }) => {
   const result = await page.evaluate(() => {
     const zoom = window.mediumZoom('#first')
-    zoom.attach('#first').attach('#second').attach('#second')
+    zoom.attach('#first', 'img', '#second').attach('#second')
     const attached = zoom.getImages().map(image => image.id)
     zoom.detach()
     return {
@@ -236,6 +236,27 @@ test('coordinate bounds replace a selector without copying its characters', asyn
         .getOptions().container
   )
   expect(container).toEqual({ left: 20 })
+})
+
+test('detach ignores unowned images and emits once per attached image', async ({
+  page,
+}) => {
+  const result = await page.evaluate(() => {
+    const first = document.querySelector('#first')!
+    const other = window.mediumZoom('#second')
+    const zoom = window.mediumZoom('#first')
+    const events: string[] = []
+    for (const image of document.images) {
+      image.addEventListener('medium-zoom:detach', () => events.push(image.id))
+    }
+    zoom.detach('img', '#first')
+    return {
+      events,
+      owned: other.getImages()[0]!.classList.contains('medium-zoom-image'),
+      released: !first.classList.contains('medium-zoom-image'),
+    }
+  })
+  expect(result).toEqual({ events: ['first'], owned: true, released: true })
 })
 
 test('open, close, and toggle resolve with the instance and expose the active original', async ({
@@ -633,4 +654,25 @@ test('off removes a subscription from images attached later', async ({
       return updates
     })
   ).toBe(0)
+})
+
+test('off matches listener identity and capture on current and future images', async ({
+  page,
+}) => {
+  const calls = await page.evaluate(() => {
+    const calls: string[] = []
+    const record = (name: string) => () => calls.push(name)
+    const first = record('first')
+    const second = record('second')
+    window
+      .mediumZoom('#first')
+      .on('update', first, { capture: true })
+      .on('update', first)
+      .on('update', second)
+      .off('update', first, true)
+      .attach('#second')
+      .update({})
+    return calls
+  })
+  expect(calls).toEqual(['first', 'second', 'first', 'second'])
 })

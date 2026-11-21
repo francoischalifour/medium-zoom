@@ -1,37 +1,42 @@
 import type { ZoomSelector } from './engine'
-import type { ZoomTarget } from './frame'
+import { isImage, type ZoomTarget } from './frame'
 
 export const isNode = (selector: unknown): selector is ZoomTarget =>
   !!selector && (selector as Node).nodeType === 1
 
-export const getImagesFromSelector = (
-  selector: unknown,
-  supports: (target: ZoomTarget) => boolean
-): ZoomTarget[] => {
-  try {
-    if (typeof selector === 'string') {
-      selector = document.querySelectorAll(selector)
-    }
-    if (isNode(selector)) {
-      selector = [selector]
-    }
-    if (NodeList.prototype.isPrototypeOf(selector as object)) {
-      selector = Array.prototype.slice.call(selector)
-    }
-    return Array.isArray(selector) ? selector.filter(supports) : []
-  } catch (err) {
-    throw new TypeError('The provided selector is invalid.')
-  }
-}
-
 export const getImagesFromSelectors = (
   selectors: ArrayLike<ZoomSelector>,
-  supports: (target: ZoomTarget) => boolean
+  include: (image: ZoomTarget) => boolean
 ): ZoomTarget[] => {
-  let images: ZoomTarget[] = []
-  for (let index = 0, length = selectors.length; index < length; index++) {
-    images = images.concat(getImagesFromSelector(selectors[index], supports))
+  const images: ZoomTarget[] = []
+  const unique = selectors.length === 1 && !Array.isArray(selectors[0])
+  const collect = (image: ZoomTarget) => {
+    if (
+      image &&
+      isImage(image) &&
+      include(image) &&
+      (unique || images.indexOf(image) === -1)
+    ) {
+      images.push(image)
+    }
   }
+  Array.prototype.forEach.call(selectors, (selector: ZoomSelector) => {
+    if (typeof selector === 'string') {
+      try {
+        selector = document.querySelectorAll(selector)
+      } catch {
+        throw new TypeError('The provided selector is invalid.')
+      }
+    }
+    if (
+      Array.isArray(selector) ||
+      NodeList.prototype.isPrototypeOf(selector as object)
+    ) {
+      Array.prototype.forEach.call(selector, collect)
+    } else if (isNode(selector)) {
+      collect(selector)
+    }
+  })
   return images
 }
 

@@ -7,13 +7,7 @@ import {
 } from '#platform'
 
 import { createOverlay, getImagesFromSelectors, removeNode } from './dom'
-import {
-  cloneImage,
-  fitImage,
-  type Frame,
-  isImage,
-  type ZoomTarget,
-} from './frame'
+import { cloneImage, fitImage, type Frame, type ZoomTarget } from './frame'
 import type { ZoomBounds } from './geometry'
 import { waitForTransition } from './transition'
 
@@ -207,7 +201,7 @@ export interface Scene {
   __mz_cancelOpen?: ((opened?: boolean) => void) | null
   __mz_viewportScale?: number
   __mz_isPinching?: boolean
-  __mz_scrollTimer?: ReturnType<typeof setTimeout> | null
+  __mz_scrollTimer?: ReturnType<typeof setTimeout>
 }
 
 /** What a loader works from when a zoom opens. */
@@ -306,10 +300,12 @@ export const createEngine = <Options extends CoreZoomOptions>(
       image.dispatchEvent(createCustomEvent(`medium-zoom:${type}`, { zoom }))
     }
 
+    const isAttached = (image: ZoomTarget) => images.indexOf(image) !== -1
+
     // Automatic pointer zoom is a v1 behavior; composed instances bind their own triggers.
     const handleClick = (event: Event) => {
       const target = event.target as HTMLImageElement
-      if (__PRESET__ && images.indexOf(target) !== -1) {
+      if (__PRESET__ && isAttached(target)) {
         void toggle({ target })
       } else if (target === overlay) {
         _close()
@@ -330,8 +326,8 @@ export const createEngine = <Options extends CoreZoomOptions>(
           window.visualViewport.scale > active.__mz_viewportScale!)
       ) {
         scrollTop = currentScroll
-        clearTimeout(active.__mz_scrollTimer || undefined)
-        active.__mz_scrollTimer = null
+        clearTimeout(active.__mz_scrollTimer)
+        active.__mz_scrollTimer = undefined
         return
       }
 
@@ -368,8 +364,6 @@ export const createEngine = <Options extends CoreZoomOptions>(
     }
 
     const update = (options = {} as Options) => {
-      const newOptions = options
-
       if (options.background) {
         overlay.style.background = options.background
       }
@@ -378,7 +372,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
         legacy!.update(options, zoomOptions)
       }
 
-      zoomOptions = assign({}, zoomOptions, newOptions)
+      zoomOptions = assign({}, zoomOptions, options)
 
       images.forEach(image => {
         _dispatchEvent(image, 'update')
@@ -391,20 +385,20 @@ export const createEngine = <Options extends CoreZoomOptions>(
       mediumZoom(assign({}, zoomOptions, options))
 
     const attach: ZoomInstance<Options>['attach'] = function () {
-      const newImages = getImagesFromSelectors(arguments, isImage).filter(
-        image => images.indexOf(image) === -1
+      const newImages = getImagesFromSelectors(
+        arguments,
+        image => !isAttached(image)
       )
 
       if (__PRESET__ && !images.length && newImages.length) {
         document.addEventListener('click', handleClick)
       }
       images = images.concat(newImages)
-      if (__PRESET__) {
-        newImages.forEach(image => image.classList.add('medium-zoom-image'))
-      }
-
-      eventListeners.forEach(([type, listener, options]) => {
-        newImages.forEach(image => {
+      newImages.forEach(image => {
+        if (__PRESET__) {
+          image.classList.add('medium-zoom-image')
+        }
+        eventListeners.forEach(([type, listener, options]) => {
           image.addEventListener(type, listener, options)
         })
       })
@@ -418,24 +412,24 @@ export const createEngine = <Options extends CoreZoomOptions>(
         void close()
       }
 
-      const imagesToDetach =
-        arguments.length > 0
-          ? getImagesFromSelectors(arguments, isImage)
-          : images
-
-      imagesToDetach.forEach(image => {
+      const detached = arguments.length
+        ? getImagesFromSelectors(arguments, isAttached)
+        : images
+      detached.forEach(image => {
         if (__PRESET__) {
           image.classList.remove('medium-zoom-image')
         }
         _dispatchEvent(image, 'detach')
       })
-
-      images = images.filter(image => imagesToDetach.indexOf(image) === -1)
+      images = images.filter(image => detached.indexOf(image) === -1)
       if (__PRESET__ && !images.length) {
         document.removeEventListener('click', handleClick)
       }
       return zoom
     }
+
+    const capture = (options: boolean | AddEventListenerOptions) =>
+      typeof options === 'boolean' ? options : !!options.capture
 
     const bindEvents =
       (add: boolean): ZoomInstance<Options>['on'] =>
@@ -452,11 +446,11 @@ export const createEngine = <Options extends CoreZoomOptions>(
           eventListeners.push([eventType, listener, options])
         } else {
           eventListeners = eventListeners.filter(
-            ([type, callback]) =>
+            ([type, callback, registered]) =>
               !(
                 type === eventType &&
-                // oxlint-disable-next-line typescript/no-base-to-string -- Preserve v1 listener matching.
-                callback.toString() === listener.toString()
+                callback === listener &&
+                capture(registered) === capture(options)
               )
           )
         }
@@ -499,8 +493,9 @@ export const createEngine = <Options extends CoreZoomOptions>(
 
       return new Promise<ZoomInstance<Options>>((resolve, reject) => {
         if (
+          !images.length ||
           (!previous && active.__mz_original) ||
-          (target && images.indexOf(target as ZoomTarget) === -1)
+          (target && !isAttached(target))
         ) {
           resolve(zoom)
           return
@@ -514,7 +509,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
             resolve(zoom)
             return
           }
-          clearTimeout(previous.__mz_scrollTimer || undefined)
+          clearTimeout(previous.__mz_scrollTimer)
           previous.__mz_original!.classList.remove('medium-zoom-image--hidden')
           current.__mz_view = previous.__mz_view
           current.__mz_view!.take(
@@ -527,6 +522,10 @@ export const createEngine = <Options extends CoreZoomOptions>(
         let cancelTransition: (() => void) | void
         let cancelImage: (() => void) | void
         let frame: number
+        const fail = (error: unknown) => {
+          reject(error)
+          void close()
+        }
         const finishOpening = (opened = false) => {
           if (!current.__mz_cancelOpen) {
             return
@@ -558,18 +557,13 @@ export const createEngine = <Options extends CoreZoomOptions>(
           }
           cancelTransition = undefined
           if (error !== undefined) {
-            reject(error)
-            void close()
+            fail(error)
           } else {
             finishOpening(true)
           }
         }
         current.__mz_cancelOpen = finishOpening
-        current.__mz_original = (target as ZoomTarget) || images[0]
-        if (!current.__mz_original) {
-          resolve(zoom)
-          return
-        }
+        current.__mz_original = target || images[0]!
         current.__mz_viewportScale = window.visualViewport
           ? window.visualViewport.scale
           : 1
@@ -624,8 +618,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
             )
           }
         } catch (error) {
-          reject(error)
-          void close()
+          fail(error)
           return
         }
         if (!current.__mz_cancelOpen) {
@@ -643,7 +636,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
 
         let prepared = false
         const animate = (media?: HTMLImageElement) => {
-          if (prepared || !current.__mz_cancelOpen) {
+          if ((!__PRESET__ && prepared) || !current.__mz_cancelOpen) {
             return
           }
           prepared = true
@@ -683,7 +676,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
                 settle
               )
             }
-            if (!cancelTransition) {
+            if (__PRESET__ || !cancelTransition) {
               if (transform) {
                 frames.forEach(frame => {
                   frame.style.transform = transform
@@ -695,8 +688,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
               )
             }
           } catch (error) {
-            reject(error)
-            void close()
+            fail(error)
           }
         }
 
@@ -716,8 +708,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
             animate()
           }
         } catch (error) {
-          reject(error)
-          void close()
+          fail(error)
         }
       })
     }
@@ -729,7 +720,8 @@ export const createEngine = <Options extends CoreZoomOptions>(
       }
       const promise = new Promise<ZoomInstance<Options>>((resolve, reject) => {
         const current = active
-        const primary = current.__mz_frames && current.__mz_frames[0]
+        const frames = current.__mz_frames || []
+        const primary = frames[0]
         if (!current.__mz_original || current.__mz_closing) {
           resolve(zoom)
           return
@@ -739,24 +731,20 @@ export const createEngine = <Options extends CoreZoomOptions>(
         if (current.__mz_cancelOpen) {
           current.__mz_cancelOpen()
         }
-        clearTimeout(current.__mz_scrollTimer || undefined)
+        clearTimeout(current.__mz_scrollTimer)
         const finishClosing = () => {
           current.__mz_original!.classList.remove('medium-zoom-image--hidden')
-          ;(current.__mz_frames || []).forEach(removeNode)
+          frames.forEach(removeNode)
           removeNode(overlay)
           const view = __PRESET__ ? undefined : current.__mz_view
           active = {}
           closing = undefined
           _updateGlobalEvents(false)
           try {
-            try {
-              if (current.__mz_closeContent) {
-                current.__mz_closeContent(true)
-              }
-            } finally {
-              if (view) {
-                view.dispose()
-              }
+            if (__PRESET__ && current.__mz_closeContent) {
+              current.__mz_closeContent(true)
+            } else if (view) {
+              view.dispose()
             }
             resolve(zoom)
           } catch (error) {
@@ -771,11 +759,11 @@ export const createEngine = <Options extends CoreZoomOptions>(
           waitForTransition(primary, finishClosing)
         }
         document.body.classList.remove('medium-zoom--opened')
-        ;(current.__mz_frames || []).forEach(frame => {
+        frames.forEach(frame => {
           frame.style.transform = ''
         })
         try {
-          if (current.__mz_closeContent) {
+          if (__PRESET__ && current.__mz_closeContent) {
             current.__mz_closeContent()
           }
         } catch (error) {
@@ -792,7 +780,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
       return promise
     }
 
-    const toggle = (options: ModalOpenOptions = {}) => {
+    const toggle = (options?: ModalOpenOptions) => {
       if (active.__mz_original) {
         return close()
       }
