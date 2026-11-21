@@ -18,7 +18,10 @@ declare global {
     gallerySettled: number
   }
 }
-async function fixture(page: Page, mode: 'deferred' | 'throw' | 'reject' | 'animate' = 'deferred') {
+async function fixture(
+  page: Page,
+  mode: 'deferred' | 'throw' | 'reject' | 'animate' = 'deferred'
+) {
   await preparePage(page, {
     body: '<button id="trigger">Trigger</button><img id="first" src="/images/image-1.jpg" width="160" alt="Sunset"><img id="second" src="/images/image-2.jpg" width="160" alt="Skateboard"><img id="third" src="/images/image-1.jpg" width="160" alt="Ocean">',
   })
@@ -37,54 +40,58 @@ async function fixture(page: Page, mode: 'deferred' | 'throw' | 'reject' | 'anim
     window.modalZoom = createZoom('img', {
       loader: loadHdImage,
       renderer: dialog({
-        transition: galleryTransition(({ outgoing, incoming, direction, signal }) => {
-          if (mode === 'throw') {
-            throw new Error('Consumer transition failed')
-          }
-          if (mode === 'reject') {
-            return Promise.reject(new Error('Consumer transition failed'))
-          }
-          const entry = {
-            direction,
-            outgoing: outgoing.length,
-            incoming: incoming.length,
-            prepared: [...outgoing, ...incoming].every(
-              frame => !!frame.geometry && !!frame.element.style.transform
-            ),
-            aborted: false,
-            ownsDisposal: [...outgoing, ...incoming].some(frame => 'dispose' in frame),
-          }
-          window.transitionLog.push(entry)
-          if (mode === 'animate') {
-            signal.addEventListener(
-              'abort',
-              () => {
-                entry.aborted = true
-              },
-              { once: true }
-            )
-            return Promise.all(
-              incoming.map(
-                frame =>
-                  frame.element.animate([{ opacity: 0 }, { opacity: 1 }], {
-                    duration: 10_000,
-                    fill: 'both',
-                  }).finished
+        transition: galleryTransition(
+          ({ outgoing, incoming, direction, signal }) => {
+            if (mode === 'throw') {
+              throw new Error('Consumer transition failed')
+            }
+            if (mode === 'reject') {
+              return Promise.reject(new Error('Consumer transition failed'))
+            }
+            const entry = {
+              direction,
+              outgoing: outgoing.length,
+              incoming: incoming.length,
+              prepared: [...outgoing, ...incoming].every(
+                frame => !!frame.geometry && !!frame.element.style.transform
+              ),
+              aborted: false,
+              ownsDisposal: [...outgoing, ...incoming].some(
+                frame => 'dispose' in frame
+              ),
+            }
+            window.transitionLog.push(entry)
+            if (mode === 'animate') {
+              signal.addEventListener(
+                'abort',
+                () => {
+                  entry.aborted = true
+                },
+                { once: true }
               )
-            ).then(() => undefined)
+              return Promise.all(
+                incoming.map(
+                  frame =>
+                    frame.element.animate([{ opacity: 0 }, { opacity: 1 }], {
+                      duration: 10_000,
+                      fill: 'both',
+                    }).finished
+                )
+              ).then(() => undefined)
+            }
+            return new Promise<void>(resolve => {
+              window.finishTransitions.push(resolve)
+              signal.addEventListener(
+                'abort',
+                () => {
+                  entry.aborted = true
+                  resolve()
+                },
+                { once: true }
+              )
+            })
           }
-          return new Promise<void>(resolve => {
-            window.finishTransitions.push(resolve)
-            signal.addEventListener(
-              'abort',
-              () => {
-                entry.aborted = true
-                resolve()
-              },
-              { once: true }
-            )
-          })
-        }),
+        ),
       }),
     })
     const session = createZoomSession(window.modalZoom)
@@ -100,7 +107,9 @@ test('consumer strategies receive prepared frames/direction while the engine own
   await page.evaluate(() => {
     void window.transitionGallery.next().then(() => window.gallerySettled++)
   })
-  await expect.poll(() => page.evaluate(() => window.transitionLog.length)).toBe(1)
+  await expect
+    .poll(() => page.evaluate(() => window.transitionLog.length))
+    .toBe(1)
   expect(await page.evaluate(() => window.transitionLog[0])).toEqual({
     direction: 1,
     outgoing: 1,
@@ -118,25 +127,33 @@ test('consumer strategies receive prepared frames/direction while the engine own
   await page.evaluate(() => {
     void window.transitionGallery.previous()
   })
-  await expect.poll(() => page.evaluate(() => window.transitionLog[1]?.direction)).toBe(-1)
+  await expect
+    .poll(() => page.evaluate(() => window.transitionLog[1]?.direction))
+    .toBe(-1)
   await page.evaluate(() => window.modalZoom.close())
   expect(await page.evaluate(() => window.transitionLog[1]!.aborted)).toBe(true)
   await expect(page.locator('dialog,.medium-zoom-image--hidden')).toHaveCount(0)
   await expect(page.locator('#trigger')).toBeFocused()
 })
 
-test('clicking an outgoing frame interrupts the transition and closes', async ({ page }) => {
+test('clicking an outgoing frame interrupts the transition and closes', async ({
+  page,
+}) => {
   await fixture(page)
   await page.evaluate(() => {
     void window.transitionGallery.next().then(() => window.gallerySettled++)
   })
-  await expect.poll(() => page.evaluate(() => window.transitionLog.length)).toBe(1)
+  await expect
+    .poll(() => page.evaluate(() => window.transitionLog.length))
+    .toBe(1)
   await expect(page.locator('dialog img')).toHaveCount(2)
   await page.locator('dialog img[aria-hidden="true"]').dispatchEvent('click')
   await expect(page.locator('dialog,.medium-zoom-image--hidden')).toHaveCount(0)
   expect(await page.evaluate(() => window.transitionLog[0]!.aborted)).toBe(true)
   await expect.poll(() => page.evaluate(() => window.gallerySettled)).toBe(1)
-  expect(await page.evaluate(() => window.modalZoom.getZoomedImage())).toBeNull()
+  expect(
+    await page.evaluate(() => window.modalZoom.getZoomedImage())
+  ).toBeNull()
 })
 
 test('rapid navigation and close cancel obsolete effects and settle every request', async ({
@@ -146,22 +163,32 @@ test('rapid navigation and close cancel obsolete effects and settle every reques
   await page.evaluate(() => {
     void window.transitionGallery.next().then(() => window.gallerySettled++)
   })
-  await expect.poll(() => page.evaluate(() => window.transitionLog.length)).toBe(1)
+  await expect
+    .poll(() => page.evaluate(() => window.transitionLog.length))
+    .toBe(1)
   await page.evaluate(() => {
     void window.transitionGallery.next().then(() => window.gallerySettled++)
   })
-  await expect.poll(() => page.evaluate(() => window.transitionLog.length)).toBe(2)
+  await expect
+    .poll(() => page.evaluate(() => window.transitionLog.length))
+    .toBe(2)
   expect(await page.evaluate(() => window.transitionLog[0]!.aborted)).toBe(true)
   await page.evaluate(() => window.modalZoom.close())
   await expect.poll(() => page.evaluate(() => window.gallerySettled)).toBe(2)
-  expect(await page.evaluate(() => window.transitionLog.every(call => call.aborted))).toBe(true)
-  await page.evaluate(() => window.finishTransitions.forEach(finish => finish()))
+  expect(
+    await page.evaluate(() => window.transitionLog.every(call => call.aborted))
+  ).toBe(true)
+  await page.evaluate(() =>
+    window.finishTransitions.forEach(finish => finish())
+  )
   await expect(
     page.locator('dialog,.medium-zoom-image--opened,.medium-zoom-image--hidden')
   ).toHaveCount(0)
 })
 
-test('reduced motion bypasses strategies and interrupts a running strategy', async ({ page }) => {
+test('reduced motion bypasses strategies and interrupts a running strategy', async ({
+  page,
+}) => {
   await fixture(page)
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.evaluate(() => window.transitionGallery.next())
@@ -170,14 +197,18 @@ test('reduced motion bypasses strategies and interrupts a running strategy', asy
   await page.evaluate(() => {
     void window.transitionGallery.next().then(() => window.gallerySettled++)
   })
-  await expect.poll(() => page.evaluate(() => window.transitionLog.length)).toBe(1)
+  await expect
+    .poll(() => page.evaluate(() => window.transitionLog.length))
+    .toBe(1)
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await expect.poll(() => page.evaluate(() => window.gallerySettled)).toBe(1)
   expect(await page.evaluate(() => window.transitionLog[0]!.aborted)).toBe(true)
   await expect(page.locator('dialog img')).toHaveCount(1)
 })
 
-test('a rejected strategy uses normal close cleanup without leaking frames', async ({ page }) => {
+test('a rejected strategy uses normal close cleanup without leaking frames', async ({
+  page,
+}) => {
   await fixture(page, 'throw')
   expect(
     await page.evaluate(async () => {
@@ -195,14 +226,20 @@ test('a rejected strategy uses normal close cleanup without leaking frames', asy
   ).toHaveCount(0)
 })
 
-test('the engine cancels Web Animations and retires every frame on detach', async ({ page }) => {
+test('the engine cancels Web Animations and retires every frame on detach', async ({
+  page,
+}) => {
   await fixture(page, 'animate')
   await page.evaluate(() => {
     void window.transitionGallery.next().then(() => window.gallerySettled++)
   })
-  await expect.poll(() => page.evaluate(() => window.transitionLog.length)).toBe(1)
+  await expect
+    .poll(() => page.evaluate(() => window.transitionLog.length))
+    .toBe(1)
   expect(
-    await page.locator('dialog').evaluate(node => node.getAnimations({ subtree: true }).length)
+    await page
+      .locator('dialog')
+      .evaluate(node => node.getAnimations({ subtree: true }).length)
   ).toBeGreaterThan(0)
   await page.evaluate(() => window.modalZoom.detach())
   await expect.poll(() => page.evaluate(() => window.gallerySettled)).toBe(1)
@@ -228,14 +265,20 @@ test('HD content is fitted before entering the strategy and keeps one accessible
     })
   })
   await page.evaluate(() => {
-    document.querySelector('#second')!.setAttribute('data-zoom-src', '/pending-frame.jpg')
+    document
+      .querySelector('#second')!
+      .setAttribute('data-zoom-src', '/pending-frame.jpg')
     void window.transitionGallery.next().then(() => window.gallerySettled++)
   })
   await expect(page.locator('dialog')).toHaveAttribute('aria-busy', 'true')
   expect(await page.evaluate(() => window.transitionLog.length)).toBe(0)
-  await expect(page.getByRole('dialog').getByRole('img', { name: 'Sunset' })).toHaveCount(1)
+  await expect(
+    page.getByRole('dialog').getByRole('img', { name: 'Sunset' })
+  ).toHaveCount(1)
   release()
-  await expect.poll(() => page.evaluate(() => window.transitionLog.length)).toBe(1)
+  await expect
+    .poll(() => page.evaluate(() => window.transitionLog.length))
+    .toBe(1)
   expect(await page.evaluate(() => window.transitionLog[0])).toMatchObject({
     incoming: 2,
     prepared: true,
@@ -291,7 +334,10 @@ for (const abortNavigates of [false, true]) {
         const zoom = createZoom('img', {
           renderer: dialog({
             transition: galleryTransition(context => {
-              if ((context.incoming[0]!.element as HTMLImageElement).alt === 'Second') {
+              if (
+                (context.incoming[0]!.element as HTMLImageElement).alt ===
+                'Second'
+              ) {
                 interrupted = context.signal
                 if (abortNavigates) {
                   context.signal.addEventListener(
@@ -317,7 +363,8 @@ for (const abortNavigates of [false, true]) {
           current: zoom.getZoomedImage()?.id,
           aborted: interrupted?.aborted,
           dialogs: document.querySelectorAll('dialog').length,
-          frames: document.querySelectorAll('.medium-zoom-image--opened').length,
+          frames: document.querySelectorAll('.medium-zoom-image--opened')
+            .length,
         }
         await zoom.close()
         return result

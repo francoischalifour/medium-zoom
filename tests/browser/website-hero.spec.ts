@@ -28,7 +28,8 @@ for (const path of ['/', '/react']) {
         )
         .toBeGreaterThan(1.035)
       const scale = await frame.evaluate(
-        element => new DOMMatrixReadOnly(getComputedStyle(element).transform).m11
+        element =>
+          new DOMMatrixReadOnly(getComputedStyle(element).transform).m11
       )
       expect(scale).toBeLessThan(1.065)
       const surfaceOpacity = await crop.evaluate(element =>
@@ -38,16 +39,22 @@ for (const path of ['/', '/react']) {
       expect(surfaceOpacity).toBeLessThan(0.75)
     } else {
       await expect
-        .poll(() => frame.evaluate(element => getComputedStyle(element).transform))
+        .poll(() =>
+          frame.evaluate(element => getComputedStyle(element).transform)
+        )
         .toBe('none')
     }
-    expect(await crop.evaluate(element => getComputedStyle(element, '::before').transform)).toBe(
-      'none'
-    )
+    expect(
+      await crop.evaluate(
+        element => getComputedStyle(element, '::before').transform
+      )
+    ).toBe('none')
     expect((await hero.boundingBox())!.height).toBe(initialHeight)
   })
 
-  test(`${path} keeps zoom frames still with reduced motion`, async ({ page }) => {
+  test(`${path} keeps zoom frames still with reduced motion`, async ({
+    page,
+  }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto(path)
     await page.mouse.move(600, 300)
@@ -55,7 +62,9 @@ for (const path of ['/', '/react']) {
     await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(150)
     await expect
       .poll(() =>
-        page.locator('.hero-frame').evaluate(element => getComputedStyle(element).transform)
+        page
+          .locator('.hero-frame')
+          .evaluate(element => getComputedStyle(element).transform)
       )
       .toBe('none')
     await expect
@@ -67,13 +76,18 @@ for (const path of ['/', '/react']) {
       .toBe('none')
   })
 
-  test(`${path} frames the headline and lede at every width and text size`, async ({ page }) => {
+  test(`${path} frames the headline and lede at every width and text size`, async ({
+    page,
+  }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     for (const width of [375, 768, 1_100, 1_440]) {
       await page.setViewportSize({ width, height: 900 })
       await page.goto(path)
       for (const rootSize of ['100%', '125%']) {
-        await page.evaluate(size => (document.documentElement.style.fontSize = size), rootSize)
+        await page.evaluate(
+          size => (document.documentElement.style.fontSize = size),
+          rootSize
+        )
         const { frame, text } = await page.evaluate(() => {
           const range = document.createRange()
           const walker = document.createTreeWalker(
@@ -89,7 +103,10 @@ for (const path of ['/', '/react']) {
             rects.push(...range.getClientRects())
           }
           return {
-            frame: document.querySelector('.hero-frame')!.getBoundingClientRect().toJSON(),
+            frame: document
+              .querySelector('.hero-frame')!
+              .getBoundingClientRect()
+              .toJSON(),
             text: {
               left: Math.min(...rects.map(rect => rect.left)),
               right: Math.max(...rects.map(rect => rect.right)),
@@ -110,7 +127,9 @@ for (const path of ['/', '/react']) {
 }
 
 for (const path of ['/', '/react']) {
-  test(`${path} keeps the mobile hero within the viewport`, async ({ page }) => {
+  test(`${path} keeps the mobile hero within the viewport`, async ({
+    page,
+  }) => {
     for (const width of [375, 430]) {
       await page.setViewportSize({ width, height: 844 })
       for (const theme of ['light', 'dark'] as const) {
@@ -118,7 +137,11 @@ for (const path of ['/', '/react']) {
         await page.goto(path)
         await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
         await expect
-          .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
+          .poll(() =>
+            page.evaluate(
+              () => document.documentElement.scrollWidth <= innerWidth
+            )
+          )
           .toBe(true)
         const install = await page.locator('#installation').boundingBox()
         expect(install!.y + install!.height).toBeLessThanOrEqual(844)

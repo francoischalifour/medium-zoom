@@ -25,7 +25,9 @@ export interface GallerySnapshot {
  * Headless traversal state and commands; compatible with React's `useSyncExternalStore`.
  * Navigation resolves without opening when there is nothing to open.
  */
-export interface GalleryController<Options extends CoreZoomOptions = CoreZoomOptions> {
+export interface GalleryController<
+  Options extends CoreZoomOptions = CoreZoomOptions,
+> {
   /** Returns the current snapshot; the same object until something changes. */
   getSnapshot(this: void): GallerySnapshot
   /** Calls `listener` after every change. Returns the unsubscribe function. */
@@ -93,7 +95,9 @@ export function createGallery<Options extends CoreZoomOptions>(
   }
   const choose = (index: number) => {
     const target = getSnapshot().images[index]
-    return !disposed && target ? commander.open({ target }) : Promise.resolve(zoom)
+    return !disposed && target
+      ? commander.open({ target })
+      : Promise.resolve(zoom)
   }
   let queued = false
   const collectionChanged = () => {
@@ -124,10 +128,14 @@ export function createGallery<Options extends CoreZoomOptions>(
       return () => listeners.delete(listener)
     },
     previous() {
-      return getSnapshot().canPrevious ? choose(snapshot.index - 1) : Promise.resolve(zoom)
+      return getSnapshot().canPrevious
+        ? choose(snapshot.index - 1)
+        : Promise.resolve(zoom)
     },
     next() {
-      return getSnapshot().canNext ? choose(snapshot.index + 1) : Promise.resolve(zoom)
+      return getSnapshot().canNext
+        ? choose(snapshot.index + 1)
+        : Promise.resolve(zoom)
     },
     select: choose,
     attach(...selectors) {

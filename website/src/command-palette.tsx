@@ -1,13 +1,22 @@
 import * as React from 'react'
 
-import { type CommandItem, commandVerbs, getCommandGroups } from './command-items'
+import {
+  type CommandItem,
+  commandVerbs,
+  getCommandGroups,
+} from './command-items'
 import { type DocsSearch, getSearchTerms } from './docs-search'
 import { usePackageManager } from './package-manager'
 import { usesAppleShortcuts } from './shortcut-platform'
 import { trackInstallCopied, trackSiteEvent } from './site-analytics'
 import { Icon } from './site-components'
 import type { SitePage } from './site-data'
-import { getServerTheme, getTheme, setTheme, subscribeTheme } from './site-theme'
+import {
+  getServerTheme,
+  getTheme,
+  setTheme,
+  subscribeTheme,
+} from './site-theme'
 
 import './command-palette.css'
 
@@ -30,7 +39,11 @@ function Highlight({
   return text
     .split(new RegExp(`(${words.join('|')})`, 'gi'))
     .map((part, index) =>
-      words.includes(part.toLowerCase()) ? <mark key={index}>{part}</mark> : part
+      words.includes(part.toLowerCase()) ? (
+        <mark key={index}>{part}</mark>
+      ) : (
+        part
+      )
     )
 }
 
@@ -77,14 +90,22 @@ function CommandOption({
       </span>
       <span className="command-result-content">
         <span className="command-title">
-          <Highlight text={command.title} query={query} matchedTerms={command.matchedTerms} />
+          <Highlight
+            text={command.title}
+            query={query}
+            matchedTerms={command.matchedTerms}
+          />
         </span>
         {command.detail && (
           <span className="command-detail">
             {isChat ? (
               command.detail
             ) : (
-              <Highlight text={command.detail} query={query} matchedTerms={command.matchedTerms} />
+              <Highlight
+                text={command.detail}
+                query={query}
+                matchedTerms={command.matchedTerms}
+              />
             )}
           </span>
         )}
@@ -134,11 +155,17 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
   const [search, setSearch] = React.useState<DocsSearch | null>(null)
   const [loadError, setLoadError] = React.useState(false)
   const [mac, setMac] = React.useState(false)
-  const dark = React.useSyncExternalStore(subscribeTheme, getTheme, getServerTheme)
+  const dark = React.useSyncExternalStore(
+    subscribeTheme,
+    getTheme,
+    getServerTheme
+  )
   const packageManager = usePackageManager()
   const id = React.useId()
 
-  function show(value = new URLSearchParams(window.location.search).get('q') ?? '') {
+  function show(
+    value = new URLSearchParams(window.location.search).get('q') ?? ''
+  ) {
     if (!dialog.current?.open) {
       returnFocus.current =
         document.activeElement === document.body

@@ -9,7 +9,8 @@ const output = resolve('.cache/analytics-site')
 await build({
   configFile: resolve('config/vite.website.config.mts'),
   define: {
-    'import.meta.env.VITE_ALTERTABLE_API_KEY': JSON.stringify('website-test-key'),
+    'import.meta.env.VITE_ALTERTABLE_API_KEY':
+      JSON.stringify('website-test-key'),
   },
   build: { outDir: output, emptyOutDir: true },
 })

@@ -6,7 +6,9 @@ const imageButton = `<button type="button" aria-label="Zoom image" style="paddin
   <img id="image" src="/images/image-1.jpg" width="160" alt="Zoom fixture">
 </button>`
 
-test('video plays inline after a tap and cleans up on viewport change', async ({ page }) => {
+test('video plays inline after a tap and cleans up on viewport change', async ({
+  page,
+}) => {
   await page.goto('/examples/video/')
   await page.locator('#play').tap()
   const video = page.locator('video')
@@ -30,13 +32,17 @@ for (const distribution of ['baseline', 'package'] as const) {
       })
     })
 
-    test('touch opens the image and a second tap dismisses it', async ({ page }) => {
+    test('touch opens the image and a second tap dismisses it', async ({
+      page,
+    }) => {
       await openImage(page, page.locator('#image'), { via: 'tap' })
       await page.locator('.medium-zoom-image--opened').tap()
       await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
     })
 
-    test('changing the mobile viewport dismisses the zoom', async ({ page }) => {
+    test('changing the mobile viewport dismisses the zoom', async ({
+      page,
+    }) => {
       await openImage(page, page.locator('#image'), { via: 'tap' })
       const viewport = page.viewportSize()!
       await page.setViewportSize({
@@ -73,14 +79,22 @@ for (const initialScale of [0.5, 2]) {
     page,
     browserName,
   }) => {
-    test.skip(browserName !== 'chromium', 'Browser scale emulation requires Chromium CDP')
+    test.skip(
+      browserName !== 'chromium',
+      'Browser scale emulation requires Chromium CDP'
+    )
     await loadZoomFixture(page, { body: imageButton })
     await page.evaluate(async initialScale => {
       document
         .querySelector('meta[name="viewport"]')!
-        .setAttribute('content', `width=device-width,initial-scale=${initialScale}`)
+        .setAttribute(
+          'content',
+          `width=device-width,initial-scale=${initialScale}`
+        )
       // Let the updated viewport metadata take effect before emulating a pinch.
-      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+      await new Promise(resolve =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve))
+      )
     }, initialScale)
     const session = await page.context().newCDPSession(page)
     await session.send('Emulation.setPageScaleFactor', {
@@ -122,7 +136,9 @@ for (const initialScale of [0.5, 2]) {
   })
 }
 
-test('pinching while an HD image loads refreshes the scroll baseline', async ({ page }) => {
+test('pinching while an HD image loads refreshes the scroll baseline', async ({
+  page,
+}) => {
   await loadZoomFixture(page, { body: imageButton })
   let pendingImage!: Route
   await page.route('**/pending.jpg', route => {
@@ -132,7 +148,9 @@ test('pinching while an HD image loads refreshes the scroll baseline', async ({ 
   await page.evaluate(() => {
     // Exercise touch tracking without relying on the visual viewport guard.
     Object.defineProperty(window, 'visualViewport', { value: undefined })
-    document.querySelector('#image')!.setAttribute('data-zoom-src', '/pending.jpg')
+    document
+      .querySelector('#image')!
+      .setAttribute('data-zoom-src', '/pending.jpg')
   })
   await page.locator('#image').tap()
   await expect.poll(() => Boolean(pendingImage)).toBe(true)
@@ -188,7 +206,9 @@ test.describe('pinch gestures', () => {
     })
   }
 
-  test('panning a magnified viewport stays open after touch cancellation', async ({ page }) => {
+  test('panning a magnified viewport stays open after touch cancellation', async ({
+    page,
+  }) => {
     await touch(page, 'touchstart', 2)
     await page.evaluate(() => {
       Object.defineProperty(window.visualViewport, 'scale', {
@@ -211,7 +231,9 @@ test.describe('pinch gestures', () => {
     await expect(page.locator('.medium-zoom-overlay')).toHaveCount(0)
   })
 
-  test('closing during a pinch clears gesture state for the next opening', async ({ page }) => {
+  test('closing during a pinch clears gesture state for the next opening', async ({
+    page,
+  }) => {
     await touch(page, 'touchstart', 2)
     await page.evaluate(() => void window.zoom.close())
     await page.clock.runFor(500)

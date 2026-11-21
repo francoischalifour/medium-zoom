@@ -5,7 +5,11 @@ import { fileURLToPath } from 'node:url'
 import { transformSync } from '@babel/core'
 import { type ecmaVersion, parse } from 'acorn'
 import { type Targets, transform as transformCss } from 'lightningcss'
-import { type CompressOptions, minify as minifyJavaScript, type MinifyOptions } from 'terser'
+import {
+  type CompressOptions,
+  minify as minifyJavaScript,
+  type MinifyOptions,
+} from 'terser'
 import { defineConfig } from 'tsdown'
 import type { TsdownPlugin, UserConfig } from 'tsdown'
 
@@ -45,7 +49,10 @@ const profiles: Record<Profile, ProfileConfig> = {
     css: {
       // Browsers without zoom cursors fall back to a pointer.
       prepare: source =>
-        source.replace(/cursor: (zoom-(?:in|out));/g, 'cursor: pointer;\n  cursor: $1;'),
+        source.replace(
+          /cursor: (zoom-(?:in|out));/g,
+          'cursor: pointer;\n  cursor: $1;'
+        ),
       targets: { ie: 10 << 16 },
     },
     lower: (source, minify) =>
@@ -61,7 +68,12 @@ const profiles: Record<Profile, ProfileConfig> = {
           pureGetters: true,
           setSpreadProperties: true,
         },
-        presets: [['@babel/preset-env', { modules: false, exclude: ['transform-typeof-symbol'] }]],
+        presets: [
+          [
+            '@babel/preset-env',
+            { modules: false, exclude: ['transform-typeof-symbol'] },
+          ],
+        ],
         compact: minify,
         minified: minify,
         comments: true,
@@ -85,7 +97,10 @@ const profiles: Record<Profile, ProfileConfig> = {
       targets: { chrome: 80 << 16, firefox: 78 << 16, safari: 14 << 16 },
     },
     lower: source => source,
-    terser: { ecma: 2_020, compress: { passes: 3, sequences: true, booleans_as_integers: false } },
+    terser: {
+      ecma: 2_020,
+      compress: { passes: 3, sequences: true, booleans_as_integers: false },
+    },
     ecmaVersion: 2_020,
   },
 }
@@ -101,7 +116,12 @@ interface FormatConfig {
 }
 
 const formats: Record<Format, FormatConfig> = {
-  esm: { platform: 'browser', terser: { module: true }, outputOptions: {}, separateExports: true },
+  esm: {
+    platform: 'browser',
+    terser: { module: true },
+    outputOptions: {},
+    separateExports: true,
+  },
   umd: {
     platform: 'browser',
     terser: {},
@@ -144,7 +164,11 @@ function stylesheet(profile: Profile): TsdownPlugin {
         minify: true,
         targets: css.targets,
       }).code.toString()
-      this.emitFile({ type: 'asset', fileName: profileStylesheets[profile], source: code })
+      this.emitFile({
+        type: 'asset',
+        fileName: profileStylesheets[profile],
+        source: code,
+      })
       return `if (typeof document === 'object') {
         var style = document.createElement('style');
         style.textContent = ${JSON.stringify(code)};
@@ -154,7 +178,11 @@ function stylesheet(profile: Profile): TsdownPlugin {
   }
 }
 
-function browserSyntax(profile: Profile, format: Format, minify: boolean): TsdownPlugin {
+function browserSyntax(
+  profile: Profile,
+  format: Format,
+  minify: boolean
+): TsdownPlugin {
   const config = profiles[profile]
   const output = formats[format]
   return {
@@ -168,7 +196,8 @@ function browserSyntax(profile: Profile, format: Format, minify: boolean): Tsdow
         }
         declaration.code = declaration.code.replace(
           /export \{([^}]+)\}/g,
-          (_match, names: string) => `export {${names.replace(/\btype\s+/g, '')}}`
+          (_match, names: string) =>
+            `export {${names.replace(/\btype\s+/g, '')}}`
         )
       }
     },
@@ -207,7 +236,9 @@ function browserSyntax(profile: Profile, format: Format, minify: boolean): Tsdow
         throw new Error('The browser minifier did not emit code')
       }
       return {
-        code: output.separateExports ? separateExports(code, config.ecmaVersion) : code,
+        code: output.separateExports
+          ? separateExports(code, config.ecmaVersion)
+          : code,
         map: null,
       }
     },
@@ -248,7 +279,9 @@ function browserBundle(
     tsconfig: false,
     target: profiles[profile].target,
     alias: {
-      '#platform': fileURLToPath(new URL(`../src/platform/${profile}.ts`, import.meta.url)),
+      '#platform': fileURLToPath(
+        new URL(`../src/platform/${profile}.ts`, import.meta.url)
+      ),
     },
     dts: false,
     clean: false,
@@ -275,7 +308,10 @@ function browserBundle(
 
 const moduleExtensions = { esm: 'mjs', cjs: 'cjs' } as const
 
-function entryBundle(entry: CandidateEntry, format: keyof typeof moduleExtensions): UserConfig {
+function entryBundle(
+  entry: CandidateEntry,
+  format: keyof typeof moduleExtensions
+): UserConfig {
   const { name, profile } = entry
   const source = entry.source[format]
   const full = entry.primaryExport === 'default'
@@ -306,7 +342,12 @@ function entryBundle(entry: CandidateEntry, format: keyof typeof moduleExtension
         onSuccess(config) {
           // CJS declarations are emitted in a separate pipeline without runtime plugins.
           const path = join(config.outDir, `${name}/index.d.cts`)
-          const names = ['ZoomOptions', 'ZoomSelector', 'ZoomContainer', 'ZoomOpenOptions']
+          const names = [
+            'ZoomOptions',
+            'ZoomSelector',
+            'ZoomContainer',
+            'ZoomOpenOptions',
+          ]
           const aliases = names
             .map(name => `type ${name} = import('medium-zoom').${name};`)
             .join('\n')
@@ -346,5 +387,8 @@ export default defineConfig([
   },
   browserBundle('src/pure.ts', 'pure/medium-zoom.umd.js', 'umd', false),
   browserBundle('src/pure.ts', 'pure/medium-zoom.min.umd.js', 'umd'),
-  ...candidateEntries.flatMap(entry => [entryBundle(entry, 'esm'), entryBundle(entry, 'cjs')]),
+  ...candidateEntries.flatMap(entry => [
+    entryBundle(entry, 'esm'),
+    entryBundle(entry, 'cjs'),
+  ]),
 ])

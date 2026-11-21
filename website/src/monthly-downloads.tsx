@@ -61,7 +61,8 @@ function MonthlyDownloadsLink({ monthly }: { monthly: number }) {
       href="https://www.npmjs.com/package/medium-zoom"
       title={`${fullCountFormat.format(monthly)} downloads over the last 30 completed days`}
     >
-      <strong>{compactCountFormat.format(monthly)}</strong> monthly downloads on npm
+      <strong>{compactCountFormat.format(monthly)}</strong> monthly downloads on
+      npm
     </SiteLink>
   )
 }

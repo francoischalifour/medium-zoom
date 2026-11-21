@@ -11,12 +11,16 @@ export function restoreTheme(key: string) {
   }
   document.documentElement.classList.toggle(
     'dark',
-    theme === 'dark' || (!theme && matchMedia('(prefers-color-scheme: dark)').matches)
+    theme === 'dark' ||
+      (!theme && matchMedia('(prefers-color-scheme: dark)').matches)
   )
 }
 
 export function getTheme() {
-  return typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+  return (
+    typeof document !== 'undefined' &&
+    document.documentElement.classList.contains('dark')
+  )
 }
 
 export function getServerTheme() {

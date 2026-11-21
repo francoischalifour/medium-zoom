@@ -4,7 +4,9 @@ import type { CoreZoomOptions, ModalOpenOptions, Zoom } from 'medium-zoom/core'
  * Coordinated access to one zoom. Methods never read `this`: pass them around freely, or
  * pass the session as the `commander` of `bindZoomTriggers()` and `createGallery()`.
  */
-export interface ZoomSession<Options extends CoreZoomOptions = CoreZoomOptions> {
+export interface ZoomSession<
+  Options extends CoreZoomOptions = CoreZoomOptions,
+> {
   /** The coordinated zoom. Requests made on it directly are not coordinated. */
   readonly zoom: Zoom<Options>
   /**
@@ -24,7 +26,10 @@ export interface ZoomSession<Options extends CoreZoomOptions = CoreZoomOptions> 
 }
 
 const sessions = new WeakMap<object, unknown>()
-const active = new WeakMap<Document, { owner: object; close: () => Promise<unknown> }>()
+const active = new WeakMap<
+  Document,
+  { owner: object; close: () => Promise<unknown> }
+>()
 
 /**
  * Coordinates zooms so only one is open per document: opening through a session first closes
@@ -168,7 +173,9 @@ export function createZoomSession<Options extends CoreZoomOptions>(
       return task
     },
     toggle(options) {
-      return pending || zoom.getZoomedImage() ? session.close() : session.open(options)
+      return pending || zoom.getZoomedImage()
+        ? session.close()
+        : session.open(options)
     },
     dispose() {
       if (disposal) {

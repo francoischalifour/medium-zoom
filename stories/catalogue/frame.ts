@@ -5,7 +5,9 @@ import { stories } from './stories.ts'
 import './frame.css'
 
 window.mediumZoom = mediumZoom
-const story = stories.find(story => story.id === new URLSearchParams(location.search).get('story'))
+const story = stories.find(
+  story => story.id === new URLSearchParams(location.search).get('story')
+)
 if (!story) {
   throw new Error('Unknown story')
 }

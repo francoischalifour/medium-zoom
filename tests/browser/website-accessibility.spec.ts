@@ -3,7 +3,9 @@ import { expect, test } from '@playwright/test'
 
 for (const path of ['/', '/react']) {
   for (const theme of ['light', 'dark'] as const) {
-    test(`${path} is accessible in ${theme} mode`, async ({ page }, testInfo) => {
+    test(`${path} is accessible in ${theme} mode`, async ({
+      page,
+    }, testInfo) => {
       await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' })
       await page.goto(path)
       await expect(page.locator('.example-card').first()).toBeVisible()
@@ -11,7 +13,14 @@ for (const path of ['/', '/react']) {
 
       async function audit(state: string) {
         const results = await new AxeBuilder({ page })
-          .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
+          .withTags([
+            'wcag2a',
+            'wcag2aa',
+            'wcag21a',
+            'wcag21aa',
+            'wcag22aa',
+            'best-practice',
+          ])
           .analyze()
         await testInfo.attach(`${state}-accessibility`, {
           body: JSON.stringify(results, null, 2),
@@ -28,10 +37,15 @@ for (const path of ['/', '/react']) {
         .locator('..')
       await packageTab.click()
       await expect(packageTab).toHaveCSS('outline-style', 'none')
-      await page.locator('.hero-install').getByRole('radio', { name: 'npm', exact: true }).focus()
+      await page
+        .locator('.hero-install')
+        .getByRole('radio', { name: 'npm', exact: true })
+        .focus()
       await page.keyboard.press('ArrowRight')
       await expect(
-        page.locator('.hero-install').getByRole('radio', { name: 'pnpm', exact: true })
+        page
+          .locator('.hero-install')
+          .getByRole('radio', { name: 'pnpm', exact: true })
       ).toBeChecked()
       await page.keyboard.press('Tab')
       await page.keyboard.press('Shift+Tab')
@@ -66,7 +80,9 @@ for (const path of ['/', '/react']) {
 
       await page.getByRole('tab', { name: 'Code', exact: true }).first().click()
       await audit('code')
-      await page.getByRole('link', { name: 'Start building', exact: true }).click()
+      await page
+        .getByRole('link', { name: 'Start building', exact: true })
+        .click()
       await expect(page).toHaveURL(/#usage-title$/)
       await expect(page.locator('#usage h2')).toBeInViewport()
       await page.setViewportSize({ width: 390, height: 844 })

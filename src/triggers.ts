@@ -1,4 +1,8 @@
-import type { CoreZoomOptions, ModalZoom, ZoomCommander } from 'medium-zoom/core'
+import type {
+  CoreZoomOptions,
+  ModalZoom,
+  ZoomCommander,
+} from 'medium-zoom/core'
 
 import type { ZoomTarget } from './engine/frame'
 
@@ -38,7 +42,10 @@ export function bindZoomTriggers<Options extends CoreZoomOptions>(
         tabindex: image.getAttribute('tabindex') || '0',
         'aria-haspopup': 'dialog',
       }
-      const previous = Object.keys(attributes).map(name => [name, image.getAttribute(name)])
+      const previous = Object.keys(attributes).map(name => [
+        name,
+        image.getAttribute(name),
+      ])
       for (const [name, value] of Object.entries(attributes)) {
         image.setAttribute(name, value)
       }
@@ -88,7 +95,10 @@ export function bindZoomTriggers<Options extends CoreZoomOptions>(
           image.classList.remove('medium-zoom-image')
         }
         for (const [name, value] of previous) {
-          if (image.getAttribute(name!) !== attributes[name as keyof typeof attributes]) {
+          if (
+            image.getAttribute(name!) !==
+            attributes[name as keyof typeof attributes]
+          ) {
             continue
           }
           if (value === null) {

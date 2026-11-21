@@ -20,7 +20,9 @@ if (!name || !viteExampleNames.includes(name)) {
 }
 // Examples resolve medium-zoom to the package build, not the source.
 if (!existsSync('dist/medium-zoom.esm.js')) {
-  console.error('Build the library first: `bun run build`, or `bun run dev` to watch it.')
+  console.error(
+    'Build the library first: `bun run build`, or `bun run dev` to watch it.'
+  )
   process.exit(1)
 }
 const config = await localExampleConfig({ name, command: 'serve' })

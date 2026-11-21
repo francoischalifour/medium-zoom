@@ -14,8 +14,12 @@ export interface TemplateOptions {
   template?: string | HTMLTemplateElement | null
 }
 
-const resolveTemplate = (target: string | HTMLTemplateElement): HTMLTemplateElement | null =>
-  typeof target === 'string' ? document.querySelector<HTMLTemplateElement>(target) : target
+const resolveTemplate = (
+  target: string | HTMLTemplateElement
+): HTMLTemplateElement | null =>
+  typeof target === 'string'
+    ? document.querySelector<HTMLTemplateElement>(target)
+    : target
 
 export const updateTemplate = (options: ZoomOptions): void => {
   if (options.template) {
@@ -39,7 +43,9 @@ export const mountTemplate = (
     if (disposed) {
       removeNode(content)
     } else {
-      content.style.transition = parseFloat(window.getComputedStyle(frame).transitionDuration)
+      content.style.transition = parseFloat(
+        window.getComputedStyle(frame).transitionDuration
+      )
         ? 'opacity 150ms'
         : 'none'
       content.style.opacity = '0'

@@ -33,8 +33,10 @@ export function fitBox(
     viewportWidth / width,
     viewportHeight / height
   )
-  const translateX = (viewport.left + viewportWidth / 2 - layout.left - width / 2) / scale
-  const translateY = (viewport.top + viewportHeight / 2 - layout.top - height / 2) / scale
+  const translateX =
+    (viewport.left + viewportWidth / 2 - layout.left - width / 2) / scale
+  const translateY =
+    (viewport.top + viewportHeight / 2 - layout.top - height / 2) / scale
   return `scale(${scale}) translate3d(${translateX}px, ${translateY}px, 0)`
 }
 

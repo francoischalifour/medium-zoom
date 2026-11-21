@@ -1,5 +1,11 @@
 import { spawnSync } from 'node:child_process'
-import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import {
+  cpSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, relative, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -19,7 +25,10 @@ interface FrameworkBuildOptions {
 }
 
 // Examples built by their own framework CLI. Each build returns the directory of its static site.
-const frameworkBuilds: Record<string, (options: FrameworkBuildOptions) => Promise<string>> = {
+const frameworkBuilds: Record<
+  string,
+  (options: FrameworkBuildOptions) => Promise<string>
+> = {
   angular: buildAngular,
   astro: buildAstro,
   vitepress: buildVitePress,
@@ -45,7 +54,11 @@ for (const name of exampleNames) {
 }
 
 // The Angular CLI has no alias option, so a TypeScript path points medium-zoom at this repository.
-async function buildAngular({ root, base, workDirectory }: FrameworkBuildOptions) {
+async function buildAngular({
+  root,
+  base,
+  workDirectory,
+}: FrameworkBuildOptions) {
   const tsConfig = join(workDirectory, 'tsconfig.json')
   writeFileSync(
     tsConfig,
@@ -89,9 +102,16 @@ async function buildAstro({ root, base }: FrameworkBuildOptions) {
 }
 
 // VitePress reads Vite options from the site config, so the alias joins it once it resolves.
-async function buildVitePress({ root, base, workDirectory }: FrameworkBuildOptions) {
+async function buildVitePress({
+  root,
+  base,
+  workDirectory,
+}: FrameworkBuildOptions) {
   const vitepress = await import(
-    import.meta.resolve('vitepress', pathToFileURL(join(root, 'package.json')).href)
+    import.meta.resolve(
+      'vitepress',
+      pathToFileURL(join(root, 'package.json')).href
+    )
   )
   const outDir = join(workDirectory, 'dist')
   await vitepress.build(join(root, 'docs'), {

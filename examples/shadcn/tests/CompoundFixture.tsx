@@ -6,7 +6,11 @@ import { galleryAssetBase } from '../src/gallery-paths'
 const ocean = `${galleryAssetBase}images/ocean-sunset.jpg`
 const skateboard = `${galleryAssetBase}images/skateboard.jpg`
 
-export function CompoundFixture({ initiallyOpen = false }: { initiallyOpen?: boolean }) {
+export function CompoundFixture({
+  initiallyOpen = false,
+}: {
+  initiallyOpen?: boolean
+}) {
   const [open, setOpen] = React.useState(initiallyOpen)
   const [accept, setAccept] = React.useState(true)
   const [mounted, setMounted] = React.useState(true)
@@ -15,7 +19,9 @@ export function CompoundFixture({ initiallyOpen = false }: { initiallyOpen?: boo
   const [source, setSource] = React.useState(ocean)
   const [caption, setCaption] = React.useState('Composed skateboard')
   const [changes, setChanges] = React.useState<boolean[]>([])
-  const [uncontrolledChanges, setUncontrolledChanges] = React.useState<boolean[]>([])
+  const [uncontrolledChanges, setUncontrolledChanges] = React.useState<
+    boolean[]
+  >([])
   const triggerRef = React.useRef<HTMLButtonElement>(null)
   const imageRef = React.useRef<HTMLImageElement>(null)
   const [refs, setRefs] = React.useState('')
@@ -25,24 +31,47 @@ export function CompoundFixture({ initiallyOpen = false }: { initiallyOpen?: boo
       <div className="controls">
         <button onClick={() => setOpen(true)}>Open externally</button>
         <button onClick={() => setOpen(false)}>Close externally</button>
-        <button onClick={() => setAccept(value => !value)} aria-pressed={!accept}>
+        <button
+          onClick={() => setAccept(value => !value)}
+          aria-pressed={!accept}
+        >
           Decline requests
         </button>
-        <button onClick={() => setCaption('Floral skateboard')}>Rename skateboard</button>
-        <button onClick={() => setMounted(value => !value)}>Toggle image</button>
-        <button onClick={() => setDisabled(value => !value)}>Toggle disabled</button>
-        <button onClick={() => setCancel(value => !value)}>Cancel trigger</button>
-        <button onClick={() => setSource(value => (value === ocean ? skateboard : ocean))}>
+        <button onClick={() => setCaption('Floral skateboard')}>
+          Rename skateboard
+        </button>
+        <button onClick={() => setMounted(value => !value)}>
+          Toggle image
+        </button>
+        <button onClick={() => setDisabled(value => !value)}>
+          Toggle disabled
+        </button>
+        <button onClick={() => setCancel(value => !value)}>
+          Cancel trigger
+        </button>
+        <button
+          onClick={() =>
+            setSource(value => (value === ocean ? skateboard : ocean))
+          }
+        >
           Replace source
         </button>
         <button
-          onClick={() => setRefs(`${triggerRef.current?.tagName} ${imageRef.current?.tagName}`)}
+          onClick={() =>
+            setRefs(
+              `${triggerRef.current?.tagName} ${imageRef.current?.tagName}`
+            )
+          }
         >
           Inspect part refs
         </button>
       </div>
-      <output aria-label="Controlled requests">{JSON.stringify(changes)}</output>
-      <output aria-label="Uncontrolled changes">{JSON.stringify(uncontrolledChanges)}</output>
+      <output aria-label="Controlled requests">
+        {JSON.stringify(changes)}
+      </output>
+      <output aria-label="Uncontrolled changes">
+        {JSON.stringify(uncontrolledChanges)}
+      </output>
       <output aria-label="Part refs">{refs}</output>
       <div className="gallery">
         <ImageZoom.Root
@@ -72,10 +101,17 @@ export function CompoundFixture({ initiallyOpen = false }: { initiallyOpen?: boo
           )}
         </ImageZoom.Root>
         <ImageZoom.Root
-          onOpenChange={value => setUncontrolledChanges(previous => [...previous, value])}
+          onOpenChange={value =>
+            setUncontrolledChanges(previous => [...previous, value])
+          }
         >
           <ImageZoom.Trigger>
-            <ImageZoom.Image src={skateboard} alt={caption} width={640} height={427} />
+            <ImageZoom.Image
+              src={skateboard}
+              alt={caption}
+              width={640}
+              height={427}
+            />
           </ImageZoom.Trigger>
         </ImageZoom.Root>
       </div>

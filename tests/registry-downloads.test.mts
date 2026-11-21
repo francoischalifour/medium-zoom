@@ -68,7 +68,12 @@ test('serves the original JSON while analytics is pending and sends only downloa
   assert.equal(typeof init.body, 'string')
   const body = init.body as string
   const [event] = JSON.parse(body)
-  assert.deepEqual(Object.keys(event).sort(), ['event', 'mode', 'properties', 'timestamp'])
+  assert.deepEqual(Object.keys(event).sort(), [
+    'event',
+    'mode',
+    'properties',
+    'timestamp',
+  ])
   assert.equal(event.mode, 'audience')
   assert.equal(event.event, 'Registry Component Downloaded')
   assert.ok(!Number.isNaN(Date.parse(event.timestamp)))
@@ -87,7 +92,11 @@ test('serves the original JSON while analytics is pending and sends only downloa
 })
 
 test('ignores previews, index files, missing components, non-GET requests, and missing keys', async t => {
-  const ingest = t.mock.method(globalThis, 'fetch', async () => new Response(null, { status: 202 }))
+  const ingest = t.mock.method(
+    globalThis,
+    'fetch',
+    async () => new Response(null, { status: 202 })
+  )
   t.after(() => ingest.mock.restore())
   for (const [url, method, status, key] of [
     [`https://preview.workers.dev${path}`, 'GET', 200, 'test-key'],
@@ -112,7 +121,10 @@ test('ignores previews, index files, missing components, non-GET requests, and m
 test('analytics errors and rejected requests leave downloads successful', async t => {
   const warning = t.mock.method(console, 'warn', () => {})
   t.after(() => warning.mock.restore())
-  for (const failure of [new Error('network unavailable'), new Response(null, { status: 503 })]) {
+  for (const failure of [
+    new Error('network unavailable'),
+    new Response(null, { status: 503 }),
+  ]) {
     const ingest = t.mock.method(globalThis, 'fetch', async () => {
       if (failure instanceof Error) {
         throw failure
@@ -134,7 +146,11 @@ test('a hanging analytics request is aborted without delaying the download', asy
     'fetch',
     (_url: string, init: RequestInit) =>
       new Promise<Response>((_resolve, reject) => {
-        init.signal!.addEventListener('abort', () => reject(init.signal!.reason), { once: true })
+        init.signal!.addEventListener(
+          'abort',
+          () => reject(init.signal!.reason),
+          { once: true }
+        )
       })
   )
   t.after(() => {

@@ -18,7 +18,9 @@ for (const modal of [false, true]) {
       const before = source.getBoundingClientRect().toJSON()
       window.coreZoom = createZoom(source, modal ? { renderer: dialog() } : {})
       const opening = window.coreZoom.open()
-      const clone = document.querySelector<HTMLImageElement>('.medium-zoom-image--opened')!
+      const clone = document.querySelector<HTMLImageElement>(
+        '.medium-zoom-image--opened'
+      )!
       const initial = clone.getBoundingClientRect().toJSON()
       const attributes = {
         id: clone.id,
@@ -60,7 +62,9 @@ test('picture source resolution stays with the adapter and leaves the original s
       const source = document.querySelector<HTMLImageElement>('#image')!
       window.zoom = window.mediumZoom(source)
       await window.zoom.open()
-      const clone = document.querySelector<HTMLImageElement>('.medium-zoom-image--opened')!
+      const clone = document.querySelector<HTMLImageElement>(
+        '.medium-zoom-image--opened'
+      )!
       const result = {
         selected: source.currentSrc,
         cloned: clone.src,
@@ -77,7 +81,9 @@ test('picture source resolution stays with the adapter and leaves the original s
 })
 
 for (const format of ['file', 'data'] as const) {
-  test(`existing SVG ${format} images remain image-adapter targets`, async ({ page }) => {
+  test(`existing SVG ${format} images remain image-adapter targets`, async ({
+    page,
+  }) => {
     const source =
       format === 'file'
         ? '/images/crab.svg'
@@ -95,7 +101,10 @@ for (const format of ['file', 'data'] as const) {
     })
     await expect(page.locator('.medium-zoom-image--opened')).toHaveCount(1)
     await expect(page.locator('#inline')).not.toHaveClass(/medium-zoom-image/)
-    await expect(page.locator('.medium-zoom-image--opened')).toHaveCSS('transform', /matrix/)
+    await expect(page.locator('.medium-zoom-image--opened')).toHaveCSS(
+      'transform',
+      /matrix/
+    )
     await page.evaluate(() => window.zoom.close())
     await expect(page.locator('.medium-zoom-image--opened')).toHaveCount(0)
   })

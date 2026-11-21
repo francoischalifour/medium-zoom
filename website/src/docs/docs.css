@@ -344,7 +344,11 @@ html:has(.docs-shell) {
 .docs-article li a {
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: color-mix(in srgb, var(--foreground) 30%, var(--border));
+  text-decoration-color: color-mix(
+    in srgb,
+    var(--foreground) 30%,
+    var(--border)
+  );
 }
 .docs-article p a:focus-visible,
 .docs-article li a:focus-visible {
