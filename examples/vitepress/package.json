@@ -11,7 +11,7 @@
     "start": "vitepress dev docs --host 0.0.0.0"
   },
   "dependencies": {
-    "medium-zoom": "1.1.1",
+    "medium-zoom": "1.1.2",
     "vitepress": "1.6.4",
     "vue": "3.5.44"
   },
