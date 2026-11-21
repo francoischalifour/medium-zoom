@@ -339,7 +339,7 @@ test('keys zoom, pan a zoomed image instead of stepping, and reach either end', 
   // Panning is not stepping, so Next shows no press.
   await expect(
     page.getByRole('button', { name: 'Next image' })
-  ).not.toHaveAttribute('data-pressed')
+  ).not.toHaveAttribute('data-medium-zoom-pressed')
   await page.keyboard.up('ArrowRight')
   expect(await offsetX(page)).toBeLessThan(before)
   await expect(status).toContainText('1 / 3')

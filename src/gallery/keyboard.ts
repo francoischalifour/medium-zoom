@@ -9,7 +9,7 @@ import type { GalleryController } from './index'
 const stepInterval = (held: number) => 60 + 140 * Math.exp(-held / 800)
 
 /** Keys aimed at these keep their own meaning. */
-export const ownKeys =
+export const elementsWithOwnKeys =
   'input,textarea,select,[contenteditable],video,audio,[role="slider"],[role="spinbutton"],[role="combobox"]'
 
 /** Whether a key belongs to the gallery rather than to the page or a field. */
@@ -18,7 +18,7 @@ export const isGalleryKey = (event: KeyboardEvent): boolean =>
   !event.altKey &&
   !event.ctrlKey &&
   !event.metaKey &&
-  !(event.target as HTMLElement).closest(ownKeys)
+  !(event.target as HTMLElement).closest(elementsWithOwnKeys)
 
 /**
  * Opens the previous or next image on ArrowLeft and ArrowRight pressed inside `element`, and

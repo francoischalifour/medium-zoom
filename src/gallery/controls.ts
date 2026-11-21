@@ -110,7 +110,7 @@ export function galleryControls({
     const press = (event: KeyboardEvent) => {
       const button = { ArrowLeft: previous, ArrowRight: next }[event.key]
       button?.toggleAttribute(
-        'data-pressed',
+        'data-medium-zoom-pressed',
         event.type === 'keydown' &&
           event.defaultPrevented &&
           !element.hasAttribute('data-medium-zoom-zoomed')

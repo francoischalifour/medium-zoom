@@ -20,7 +20,7 @@
     );
     color: var(--medium-zoom-control-color, light-dark(#1c1c1a, #ededea));
     user-select: none;
-    --medium-zoom-edge: var(
+    --medium-zoom-control-used-inset: var(
       --medium-zoom-control-inset,
       var(--medium-zoom-control-auto-inset, 12px)
     );
@@ -73,9 +73,9 @@
     }
   }
 
-  /* data-pressed mirrors a held arrow key. The tint shows the press on bare icons too. */
+  /* data-medium-zoom-pressed mirrors a held arrow key. The tint shows the press on bare icons too. */
   .medium-zoom-control:active:not([aria-disabled='true']),
-  .medium-zoom-control[data-pressed]:not([aria-disabled='true']) {
+  .medium-zoom-control[data-medium-zoom-pressed]:not([aria-disabled='true']) {
     background-image: radial-gradient(
       closest-side,
       color-mix(in srgb, currentColor 8%, transparent) 60%,
@@ -93,8 +93,11 @@
   }
 
   .medium-zoom-control--close {
-    top: max(var(--medium-zoom-edge), env(safe-area-inset-top));
-    right: max(var(--medium-zoom-edge), env(safe-area-inset-right));
+    top: max(var(--medium-zoom-control-used-inset), env(safe-area-inset-top));
+    right: max(
+      var(--medium-zoom-control-used-inset),
+      env(safe-area-inset-right)
+    );
   }
 
   /* The image and backdrop already close the zoom: the button stays quieter than navigation. */
@@ -105,7 +108,10 @@
   .medium-zoom-navigation {
     border-radius: var(--medium-zoom-control-radius, 999px);
     transition: opacity var(--medium-zoom-control-transition, 200ms);
-    bottom: max(var(--medium-zoom-edge), env(safe-area-inset-bottom));
+    bottom: max(
+      var(--medium-zoom-control-used-inset),
+      env(safe-area-inset-bottom)
+    );
     left: 50%;
     translate: -50% 0;
     display: flex;

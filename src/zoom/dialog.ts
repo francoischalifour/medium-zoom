@@ -149,7 +149,7 @@ export function dialog({
       let outgoing: Frame[] = []
       let replaced: HTMLElement | SVGElement | undefined
       let opener = trigger
-      let stepping = false
+      let stepped = false
       // The engine dismisses on the frames it holds; the frames kept here are the stage's.
       element.addEventListener('click', event => {
         if (outgoing.indexOf(event.target as Frame) !== -1) {
@@ -178,12 +178,12 @@ export function dialog({
       }
       return {
         element,
-        take(frames, source, quickly) {
+        take(frames, source, stepping) {
           replaced = source
-          stepping = quickly
+          stepped = stepping
           // Leave from where the frames are on screen, even mid-zoom. Stepping swaps them out
           // in this same task, so freezing would be wasted layout work.
-          if (!quickly) {
+          if (!stepping) {
             freeze(frames)
           }
           frames.forEach(frame =>
@@ -244,7 +244,7 @@ export function dialog({
           const leaving = staged(outgoing)
           // With nothing visibly leaving, the effect would fade in from an empty backdrop:
           // show the next image at once instead.
-          if (transform && transition && !stepping && leaving.length) {
+          if (transform && transition && !stepped && leaving.length) {
             const images = zoom.getImages()
             cancel = transition(
               {

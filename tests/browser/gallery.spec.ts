@@ -1356,10 +1356,10 @@ test('a held arrow key presses its button for as long as it is down', async ({
   const next = page.getByRole('button', { name: 'Next image' })
   await page.keyboard.down('ArrowRight')
   await expect(page.getByRole('status')).toContainText('2 / 3')
-  await expect(next).toHaveAttribute('data-pressed', '')
+  await expect(next).toHaveAttribute('data-medium-zoom-pressed', '')
   await expect(next).toHaveCSS('scale', '0.9')
   await page.keyboard.up('ArrowRight')
-  await expect(next).not.toHaveAttribute('data-pressed')
+  await expect(next).not.toHaveAttribute('data-medium-zoom-pressed')
   await expect(next).toHaveCSS('scale', 'none')
   // Reaching the end disables the button, which then shows no press.
   await page.keyboard.down('ArrowRight')

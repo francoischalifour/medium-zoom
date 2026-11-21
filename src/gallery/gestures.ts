@@ -1,7 +1,7 @@
 import type { ZoomContent } from 'medium-zoom/core'
 
 import { createGallery } from './index'
-import { isGalleryKey, ownKeys } from './keyboard'
+import { elementsWithOwnKeys, isGalleryKey } from './keyboard'
 
 /** The view a `ZoomContent` receives, which `bindGalleryGestures()` binds to. */
 export type GalleryGestureView = Parameters<ZoomContent>[0]
@@ -255,7 +255,7 @@ export function bindGalleryGestures({
     previews = []
   }
   /** Zooming by keys, wheel or trackpad interrupts a swipe, taking the image as it is. */
-  const hold = () => {
+  const endSwipe = () => {
     stop()
     drop()
   }
@@ -374,7 +374,9 @@ export function bindGalleryGestures({
     if (closing || event.button > 0) {
       return
     }
-    if ((event.target as Element).closest(`button,a[href],${ownKeys}`)) {
+    if (
+      (event.target as Element).closest(`button,a[href],${elementsWithOwnKeys}`)
+    ) {
       land()
       return
     }
@@ -638,7 +640,7 @@ export function bindGalleryGestures({
       return
     }
     event.preventDefault()
-    hold()
+    endSwipe()
     ;[x, y, k] =
       factor === undefined
         ? aim(k, width / 2, height / 2, (dx! * width) / 8, (dy! * height) / 8)
@@ -656,7 +658,7 @@ export function bindGalleryGestures({
       return
     }
     measured = performance.now()
-    hold()
+    endSwipe()
     const lines = event.deltaMode ? 16 : 1
     const { clientX, clientY } = event
     ;[x, y, k] = event.ctrlKey
@@ -680,7 +682,7 @@ export function bindGalleryGestures({
       return
     }
     event.preventDefault()
-    hold()
+    endSwipe()
     if (type === 'gesturestart') {
       gestureScale = k
     } else {
@@ -754,7 +756,7 @@ export function bindGalleryGestures({
   // The engine refits the image to a resized window, so the gesture's zoom is reset.
   const resized = () => {
     if (!closing) {
-      hold()
+      endSwipe()
       ;[x, y, k] = rest
       apply()
     }

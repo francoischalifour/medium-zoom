@@ -50,7 +50,11 @@ export const productPages = {
 } as const satisfies Record<SitePage, unknown>
 
 export type FeatureIcon =
-  'code' | 'keyboard' | 'feather' | 'typescript' | 'image'
+  | 'code'
+  | 'keyboard'
+  | 'feather'
+  | 'typescript'
+  | 'image'
 
 type ProductFeature = { icon: FeatureIcon; title: string; description: string }
 
