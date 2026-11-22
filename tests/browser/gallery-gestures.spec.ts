@@ -243,14 +243,14 @@ test('dragging the image away fades the backdrop and closes past a threshold', a
   const overlay = page.locator('.medium-zoom-overlay')
   await finger.down([x, y])
   await finger.glide(0, 50)
-  await expect(dialog).toHaveAttribute('data-medium-zoom-gesture', 'close')
+  await expect(dialog).toHaveAttribute('data-gesture', 'close')
   expect(
     Number(await overlay.evaluate(({ style }) => style.opacity))
   ).toBeLessThan(1)
   // Held still so the release is no flick, which would close.
   await finger.hold(150)
   await finger.up()
-  await expect(dialog).not.toHaveAttribute('data-medium-zoom-gesture')
+  await expect(dialog).not.toHaveAttribute('data-gesture')
   await expect
     .poll(() => overlay.evaluate(({ style }) => style.opacity))
     .toBe('')
@@ -296,7 +296,7 @@ test('a double tap zooms in where it lands, further each time, back to fit from 
     return frame(page).evaluate(({ style }) => style.scale)
   }
   const scales = [Number(await doubleTap())]
-  await expect(dialog).toHaveAttribute('data-medium-zoom-zoomed', 'true')
+  await expect(dialog).toHaveAttribute('data-zoomed', 'true')
   expect(scales[0]).toBeGreaterThanOrEqual(2)
   // Past the double-tap pause, the second tap has not also closed it.
   await page.clock.runFor(400)
@@ -311,7 +311,7 @@ test('a double tap zooms in where it lands, further each time, back to fit from 
     expect(scales[step]).toBeGreaterThan(scales[step - 1]!)
   }
   expect(scales[fitted - 1]).toBeGreaterThanOrEqual(3.99)
-  await expect(dialog).not.toHaveAttribute('data-medium-zoom-zoomed')
+  await expect(dialog).not.toHaveAttribute('data-zoomed')
   await tap()
   await page.clock.resume()
   await expect(dialog).toHaveCount(0)
@@ -332,10 +332,7 @@ for (const gap of [40, 100, 160]) {
     await page.clock.runFor(gap)
     await tap()
     await rest(page)
-    await expect(page.locator('dialog')).toHaveAttribute(
-      'data-medium-zoom-zoomed',
-      'true'
-    )
+    await expect(page.locator('dialog')).toHaveAttribute('data-zoomed', 'true')
     await page.clock.runFor(800)
     expect(await closing(page)).toBe(false)
   })
@@ -350,9 +347,9 @@ test('a pinch zooms around the fingers, one finger then pans, and a pinch in clo
   const dialog = page.locator('dialog')
   await hand.down([x - 20, y], [x + 20, y])
   await hand.glide(0, 0, { spread: 40 })
-  await expect(dialog).toHaveAttribute('data-medium-zoom-gesture', 'pinch')
+  await expect(dialog).toHaveAttribute('data-gesture', 'pinch')
   await hand.up()
-  await expect(dialog).toHaveAttribute('data-medium-zoom-zoomed', 'true')
+  await expect(dialog).toHaveAttribute('data-zoomed', 'true')
   const scale = await frame(page).evaluate(({ style }) => Number(style.scale))
   expect(scale).toBeGreaterThan(2)
   // Panning a zoomed image never navigates.
@@ -361,7 +358,7 @@ test('a pinch zooms around the fingers, one finger then pans, and a pinch in clo
   await finger.glide(-150, 0)
   await finger.up()
   await expect(page.getByRole('status')).toContainText('1 / 3')
-  await expect(dialog).toHaveAttribute('data-medium-zoom-zoomed', 'true')
+  await expect(dialog).toHaveAttribute('data-zoomed', 'true')
   await hand.down([x - 120, y], [x + 120, y])
   await hand.glide(0, 0, { spread: -105 })
   await hand.up()
@@ -383,7 +380,7 @@ test('Ctrl+wheel, as a trackpad pinch, zooms and the wheel then pans', async ({
     await page.mouse.wheel(0, -20)
   }
   await page.keyboard.up('Control')
-  await expect(dialog).toHaveAttribute('data-medium-zoom-zoomed', 'true')
+  await expect(dialog).toHaveAttribute('data-zoomed', 'true')
   const before = await offsetX(page)
   await page.mouse.wheel(30, 0)
   await expect.poll(() => offsetX(page)).toBeLessThan(before)
@@ -397,22 +394,22 @@ test('keys zoom, pan a zoomed image instead of stepping, and reach either end', 
   const dialog = page.locator('dialog')
   const status = page.getByRole('status')
   await page.keyboard.press('+')
-  await expect(dialog).toHaveAttribute('data-medium-zoom-zoomed', 'true')
+  await expect(dialog).toHaveAttribute('data-zoomed', 'true')
   expect(await frame(page).evaluate(({ style }) => style.scale)).toBe('1.5')
   const before = await offsetX(page)
   await page.keyboard.down('ArrowRight')
   // Panning is not stepping, so Next shows no press.
   await expect(
     page.getByRole('button', { name: 'Next image' })
-  ).not.toHaveAttribute('data-medium-zoom-pressed')
+  ).not.toHaveAttribute('data-pressed')
   await page.keyboard.up('ArrowRight')
   expect(await offsetX(page)).toBeLessThan(before)
   await expect(status).toContainText('1 / 3')
   await page.keyboard.press('-')
-  await expect(dialog).not.toHaveAttribute('data-medium-zoom-zoomed')
+  await expect(dialog).not.toHaveAttribute('data-zoomed')
   await page.keyboard.press('+')
   await page.keyboard.press('0')
-  await expect(dialog).not.toHaveAttribute('data-medium-zoom-zoomed')
+  await expect(dialog).not.toHaveAttribute('data-zoomed')
   await page.keyboard.press('ArrowRight')
   await expect(status).toContainText('2 / 3')
   await page.keyboard.press('End')
@@ -527,7 +524,7 @@ test('a single tap starts closing at once and finishes within the double-tap pau
   const [x, y] = await centre(page)
   await (isMobile ? page.touchscreen.tap(x, y) : page.mouse.click(x, y))
   // Feedback comes with the release, before any time passes.
-  await expect(dialog).toHaveAttribute('data-medium-zoom-gesture', 'close')
+  await expect(dialog).toHaveAttribute('data-gesture', 'close')
   expect(await closing(page)).toBe(false)
   // The double-tap pause runs from the press, so closing starts within its length.
   await page.clock.runFor(300)

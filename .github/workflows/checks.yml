@@ -185,6 +185,11 @@ jobs:
           HOME: /root
           TOTAL_SHARDS: ${{ matrix.suite == 'stories' && 1 || 2 }}
         run: bun run test:browser:${{ matrix.suite }} --project="*${{ matrix.browser }}" --shard="${{ matrix.shard }}/$TOTAL_SHARDS"
+      - name: Test the composable React component
+        if: ${{ matrix.shard == 1 && matrix.suite == 'api-and-examples' }}
+        env:
+          HOME: /root
+        run: bun run test:browser:shadcn-composable --project="*${{ matrix.browser }}"
       - name: Test React Server Components
         if: ${{ matrix.browser == 'chromium' && matrix.shard == 1 && matrix.suite == 'api-and-examples' }}
         env:

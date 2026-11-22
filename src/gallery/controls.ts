@@ -32,8 +32,11 @@ const icons = {
  * close). A tap on the image or the backdrop still closes the zoom.
  * Import `medium-zoom/gallery.css`, which includes the core and dialog styles, or
  * `medium-zoom/gallery/style.css` next to them. Theme it with the `--medium-zoom-control-*`
- * properties or restyle `.medium-zoom-control` and `.medium-zoom-navigation`: the rules are
- * layered, so yours win. For your own UI, build on `createGallery()` instead.
+ * properties or restyle the parts: the rules are layered, so yours win. Each part has a
+ * `data-slot` (`medium-zoom-close`, `-navigation`, `-previous`, `-position`, `-next`);
+ * the previous and next buttons have `data-disabled` at either end and `data-pressed` while
+ * an arrow key steps, and the dialog has `data-idle` while the pointer rests. For your own
+ * UI, build on `createGallery()` instead.
  */
 export function galleryControls({
   closeLabel = 'Close',
@@ -52,16 +55,22 @@ export function galleryControls({
       const button = document.createElement('button')
       button.type = 'button'
       button.className = `medium-zoom-control medium-zoom-control--${name}`
+      button.dataset.slot = `medium-zoom-${name}`
       button.ariaLabel = label
       button.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${icons[name]}"/></svg>`
       button.onclick = activate
       return button
     }
     const closeButton = control('close', closeLabel, close)
-    const previous = control('previous', previousLabel, gallery.previous)
-    const next = control('next', nextLabel, gallery.next)
+    const previous = control('previous', previousLabel, () =>
+      gallery.previous({ reason: 'previous-press' })
+    )
+    const next = control('next', nextLabel, () =>
+      gallery.next({ reason: 'next-press' })
+    )
     const position = document.createElement('p')
     position.className = 'medium-zoom-position'
+    position.dataset.slot = 'medium-zoom-position'
     position.role = 'status'
     const shown = document.createElement('span')
     shown.ariaHidden = 'true'
@@ -72,6 +81,7 @@ export function galleryControls({
     position.append(shown, announced)
     const navigation = document.createElement('div')
     navigation.className = 'medium-zoom-navigation'
+    navigation.dataset.slot = 'medium-zoom-navigation'
     navigation.append(previous, position, next)
     let announcing: ReturnType<typeof setTimeout> | undefined
     const update = () => {
@@ -80,6 +90,8 @@ export function galleryControls({
       // aria-disabled, unlike disabled, keeps focus on a button that reaches an end.
       previous.ariaDisabled = String(!canPrevious)
       next.ariaDisabled = String(!canNext)
+      previous.toggleAttribute('data-disabled', !canPrevious)
+      next.toggleAttribute('data-disabled', !canNext)
       navigation.hidden = total < 2
       current.textContent = String(index + 1)
       count.data = ` / ${total}`
@@ -89,7 +101,7 @@ export function galleryControls({
         announced.textContent = positionLabel(index + 1, total)
       }, 300)
     }
-    const idleAttribute = 'data-medium-zoom-idle'
+    const idleAttribute = 'data-idle'
     let idle: ReturnType<typeof setTimeout> | undefined
     const wake = () => {
       element.toggleAttribute(idleAttribute, false)
@@ -111,10 +123,10 @@ export function galleryControls({
     const press = (event: KeyboardEvent) => {
       const button = { ArrowLeft: previous, ArrowRight: next }[event.key]
       button?.toggleAttribute(
-        'data-medium-zoom-pressed',
+        'data-pressed',
         event.type === 'keydown' &&
           event.defaultPrevented &&
-          !element.hasAttribute('data-medium-zoom-zoomed')
+          !element.hasAttribute('data-zoomed')
       )
     }
     element.addEventListener('keydown', press)

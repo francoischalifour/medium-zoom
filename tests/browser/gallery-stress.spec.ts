@@ -254,7 +254,7 @@ async function settle(page: Page) {
         return (
           state.still >= 5 &&
           !open.hasAttribute('aria-busy') &&
-          !open.hasAttribute('data-medium-zoom-gesture') &&
+          !open.hasAttribute('data-gesture') &&
           !open.querySelector(
             '.medium-zoom-image--leaving, img:not([class])'
           ) &&
@@ -276,8 +276,8 @@ async function settle(page: Page) {
       const moving = open
         ? [
             open.getAttribute('aria-busy') && 'busy',
-            open.getAttribute('data-medium-zoom-gesture') &&
-              `gesture ${open.getAttribute('data-medium-zoom-gesture')}`,
+            open.getAttribute('data-gesture') &&
+              `gesture ${open.getAttribute('data-gesture')}`,
             open.querySelector('.medium-zoom-image--leaving') &&
               'a frame leaving',
             open.querySelector('img:not([class])') && 'swipe neighbours shown',
@@ -360,7 +360,7 @@ async function settle(page: Page) {
       if (!open.contains(document.activeElement)) {
         problems.push(`focus on ${document.activeElement?.tagName}`)
       }
-      if (!open.hasAttribute('data-medium-zoom-zoomed') && frames.length) {
+      if (!open.hasAttribute('data-zoomed') && frames.length) {
         const boxes = frames.map(frame => frame.getBoundingClientRect())
         const [box] = boxes
         if (

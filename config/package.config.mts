@@ -122,8 +122,8 @@ export const extensionEntries: CandidateEntry[] = [
     'src/zoom/index.ts',
     'createZoom',
     'instance API',
-    'engine/contracts + state, close reasons, signal, groups',
-    [4_120, 4_120],
+    'engine/contracts + state, close reasons and events, signal, groups',
+    [4_230, 4_230],
     'dist/modern/style.css'
   ),
   optional(
@@ -164,8 +164,8 @@ export const extensionEntries: CandidateEntry[] = [
       'src/zoom/dialog.ts',
       'dialog',
       'modal renderer',
-      'native dialog + scene replacement',
-      [1_700, 1_700]
+      'native dialog + scene replacement + state attributes',
+      [1_900, 1_900]
     ),
     [
       {
@@ -191,7 +191,7 @@ export const extensionEntries: CandidateEntry[] = [
       'headless controller',
       'shared headless controller + keyboard/gestures; optional stock controls',
       // Gestures are about 3 KB of it, shaken out by consumers that do not bind them.
-      [5_420, 5_420]
+      [5_630, 5_630]
     ),
     [
       {

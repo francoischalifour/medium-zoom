@@ -64,6 +64,10 @@ export interface DialogOptions {
  * gallery hands focus back where the user left off. Pass it to `createZoom(…, { renderer })`.
  * Requires `HTMLDialogElement.showModal()`; opening throws without it, and no polyfill is installed.
  * Import `medium-zoom/renderers/style.css` for its backdrop and closing styles.
+ *
+ * Styling hooks: the dialog has `data-slot="medium-zoom-dialog"`, `data-open` while the zoom
+ * opens or is open, `data-starting-style` for its first frame and `data-ending-style` while
+ * it closes; its backdrop has `data-slot="medium-zoom-overlay"`.
  */
 export function dialog({
   label,
@@ -79,6 +83,7 @@ export function dialog({
         )
       }
       element.className = 'medium-zoom-dialog'
+      element.dataset.slot = 'medium-zoom-dialog'
       // Viewport coordinates keep the top-layer host independent of document scroll.
       element.style.cssText =
         'position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;color:inherit;overflow:visible;'
@@ -86,6 +91,27 @@ export function dialog({
       // Aborted once the dialog is gone: ends its own listeners and those of its content.
       const lifetime = new AbortController()
       const { signal } = lifetime
+      const modal = zoom as ModalZoom
+      const sync = () => {
+        const { status } = modal.getSnapshot()
+        element.toggleAttribute('data-open', status[0] === 'o')
+        element.toggleAttribute('data-ending-style', status === 'closing')
+      }
+      signal.addEventListener('abort', modal.subscribe(sync))
+      sync()
+      element.toggleAttribute('data-starting-style', true)
+      requestAnimationFrame(() =>
+        element.removeAttribute('data-starting-style')
+      )
+      // The cancel event a close request fires does not say whether Escape caused it.
+      let escape: KeyboardEvent | undefined
+      addEventListener(
+        'keydown',
+        event => {
+          escape = event.key === 'Escape' ? event : undefined
+        },
+        { capture: true, signal }
+      )
       // The page still scrolls under the modal: move the image and controls with it, as the
       // zoom does in the document, while the backdrop stays put until the scroll closes it.
       // The dialog must not clip, or shifting it would cut off the counter-shifted backdrop.
@@ -102,6 +128,7 @@ export function dialog({
         if (disposed || !overlay) {
           return
         }
+        overlay.dataset.slot = 'medium-zoom-overlay'
         addEventListener('scroll', follow, { passive: true, signal })
         // Controls take the backdrop's color scheme, so light-dark() styles contrast with
         // what is actually behind them, however the page sets its theme. A mostly
@@ -123,18 +150,19 @@ export function dialog({
           (submitter?.formMethod || form.method) === 'dialog'
         ) {
           event.preventDefault()
-          close('form')
+          close('form', event)
         }
       })
       // The dialog was closed from outside the zoom, as with `dialog.close()`.
-      element.addEventListener('close', () => {
+      element.addEventListener('close', event => {
         if (!disposed) {
-          close('api')
+          close('api', event)
         }
       })
       element.addEventListener('cancel', event => {
         event.preventDefault()
-        close('escape')
+        close(escape ? 'escape-key' : 'back', escape || event)
+        escape = undefined
       })
       document.body.appendChild(element)
       let cleanup: void | (() => void) = undefined
@@ -158,7 +186,7 @@ export function dialog({
       // The engine dismisses on the frames it holds; the frames kept here are the stage's.
       element.addEventListener('click', event => {
         if (outgoing.indexOf(event.target as Frame) !== -1) {
-          close('pointer')
+          close('image-press', event)
         }
       })
       const describe = (next: Frame, previous?: Frame) => {
