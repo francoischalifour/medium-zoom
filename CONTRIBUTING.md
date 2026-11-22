@@ -14,16 +14,7 @@ bun install --frozen-lockfile
 bunx playwright install chromium firefox webkit
 ```
 
-Use the versions in `.node-version` and `.bun-version`, and install in each worktree. Run every command from the repository root.
-
-## Find the code
-
-- `src/zoom`, `src/gallery`: the engine and gallery, shared by every build.
-- `src/platform`: what differs between the compat and modern profiles.
-- `src/preset`: the published `mediumZoom()` entries.
-- `config/package.config.mts`: every entry, with its sources, stylesheets, and budgets.
-- `config/tsdown.config.mts`: each profile's browser targets.
-- `website/`: the site and documentation, described in its [guide](website/README.md).
+Use the versions in `.node-version` and `.bun-version`. Run every command from the repository root.
 
 ## Develop
 
