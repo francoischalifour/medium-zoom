@@ -35,11 +35,11 @@ function serve(
   }
 }
 
-test('the shadcn registry advertises the site origin', () => {
+void test('the shadcn registry advertises the site origin', () => {
   assert.equal(registry.homepage, siteOrigin)
 })
 
-test('serves the original JSON while analytics is pending and sends only download metadata', async t => {
+void test('serves the original JSON while analytics is pending and sends only download metadata', async t => {
   let finishDelivery!: (response: Response) => void
   const delivery = new Promise<Response>(resolve => {
     finishDelivery = resolve
@@ -91,7 +91,7 @@ test('serves the original JSON while analytics is pending and sends only downloa
   await Promise.all(download.pending)
 })
 
-test('ignores previews, index files, missing components, non-GET requests, and missing keys', async t => {
+void test('ignores previews, index files, missing components, non-GET requests, and missing keys', async t => {
   const ingest = t.mock.method(
     globalThis,
     'fetch',
@@ -118,7 +118,7 @@ test('ignores previews, index files, missing components, non-GET requests, and m
   assert.equal(ingest.mock.callCount(), 0)
 })
 
-test('analytics errors and rejected requests leave downloads successful', async t => {
+void test('analytics errors and rejected requests leave downloads successful', async t => {
   const warning = t.mock.method(console, 'warn', () => {})
   t.after(() => warning.mock.restore())
   for (const failure of [
@@ -139,7 +139,7 @@ test('analytics errors and rejected requests leave downloads successful', async 
   assert.equal(warning.mock.callCount(), 2)
 })
 
-test('a hanging analytics request is aborted without delaying the download', async t => {
+void test('a hanging analytics request is aborted without delaying the download', async t => {
   const warning = t.mock.method(console, 'warn', () => {})
   const ingest = t.mock.method(
     globalThis,

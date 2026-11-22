@@ -23,5 +23,10 @@ export default defineConfig({
         'typescript/await-thenable': 'error',
       },
     },
+    {
+      // Examples are code to copy, in their own style: lint them for correctness only.
+      files: ['examples/**'],
+      rules: { curly: 'off', 'typescript/no-floating-promises': 'off' },
+    },
   ],
 })
