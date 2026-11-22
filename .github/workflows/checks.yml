@@ -75,11 +75,10 @@ jobs:
         with:
           bun-version-file: .bun-version
       - run: bun install --frozen-lockfile
-      - run: bun run check:source
+      - run: bun run check format lint isolated unit typecheck
       - name: Check package
         if: ${{ needs.changes.outputs.scope == 'library' }}
-        run: bun run size && bun run check:release && bun run test:package
-      - run: bun test
+        run: bun run check size release package
 
   build:
     needs: changes

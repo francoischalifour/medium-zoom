@@ -31,20 +31,15 @@ Use the versions in `.node-version` and `.bun-version`. Run every command from t
 bun run check
 ```
 
-It runs everything CI runs. To check one thing, run `bun run build` first:
+It runs every step CI runs, in parallel where it can. `scripts/check.ts` lists the steps. Name some to run only those and the steps they need, as in `bun run check lint typecheck`, or add `--changed` to run what your branch's changes can affect.
 
-| Command                 | Checks                                                       |
-| ----------------------- | ------------------------------------------------------------ |
-| `bun run format`        | Formats files; add `--check` to only check                   |
-| `bun run lint`          | Source, tests, and tooling                                   |
-| `bun run typecheck`     | Tooling, documentation snippets, and examples                |
-| `bun test`              | Unit tests                                                   |
-| `bun run test:package`  | Both packages' entries, declarations, CSS, and legacy syntax |
-| `bun run test:examples` | Each example builds against the published package            |
-| `bun run test:browser`  | Chromium, Firefox, and WebKit; filter by file or `--project` |
-| `bun run test:stress`   | Long random gallery sequences; replay one with its seed      |
+To pass arguments, run a step's own command:
 
-Browser checks need `bun run build:website && bun run test:examples` first.
+- `bun run format`: format files.
+- `bun run test:browser <file> --project=<browser>`: run some browser suites.
+- `bun run test:stress`: run long random gallery sequences; replay one with its seed.
+
+Browser suites need `bun run build:website && bun run test:examples` first.
 
 ## Measure
 
