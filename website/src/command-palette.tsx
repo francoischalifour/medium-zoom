@@ -5,10 +5,10 @@ import {
   commandVerbs,
   getCommandGroups,
 } from './command-items'
-import { type DocsSearch, getSearchTerms } from './docs-search'
+import { CommandOption } from './command-option'
 import { usePackageManager } from './package-manager'
 import { usesAppleShortcuts } from './shortcut-platform'
-import { trackInstallCopied, trackSiteEvent } from './site-analytics'
+import { trackInstallCopied } from './site-analytics'
 import { Icon } from './site-components'
 import type { SitePage } from './site-data'
 import {
@@ -17,143 +17,21 @@ import {
   setTheme,
   subscribeTheme,
 } from './site-theme'
+import { useCommandQuery } from './use-command-query'
+import { useDocsSearch } from './use-docs-search'
 
 import './command-palette.css'
-
-function Highlight({
-  text,
-  query,
-  matchedTerms,
-}: {
-  text: string
-  query: string
-  matchedTerms?: string[]
-}) {
-  const words = [...new Set(matchedTerms ?? getSearchTerms(query))].sort(
-    (a, b) => b.length - a.length
-  )
-  if (!words.length) {
-    return text
-  }
-  // Tokens contain only letters and numbers, so the expression treats user input literally.
-  return text
-    .split(new RegExp(`(${words.join('|')})`, 'gi'))
-    .map((part, index) =>
-      words.includes(part.toLowerCase()) ? (
-        <mark key={index}>{part}</mark>
-      ) : (
-        part
-      )
-    )
-}
-
-function CommandOption({
-  command,
-  query,
-  selected,
-  id,
-  onSelect,
-  onActivate,
-}: {
-  command: CommandItem
-  query: string
-  selected: boolean
-  id: string
-  onSelect: () => void
-  onActivate: () => void
-}) {
-  const isChat = command.kind === 'chat'
-  const isLink = command.kind === 'navigate' || isChat
-  const resultClass = isChat ? 'command-chat' : isLink ? '' : 'command-action'
-  const OptionElement = isLink ? 'a' : 'button'
-  return (
-    <OptionElement
-      id={id}
-      role="option"
-      aria-selected={selected}
-      tabIndex={-1}
-      type={isLink ? undefined : 'button'}
-      href={isLink ? command.url : undefined}
-      target={isChat ? '_blank' : undefined}
-      rel={isChat ? 'noopener noreferrer' : undefined}
-      className={`command-result ${resultClass}`}
-      onMouseDown={event => {
-        if (event.button === 0) {
-          event.preventDefault()
-        }
-      }}
-      onPointerMove={onSelect}
-      onClick={onActivate}
-    >
-      <span className="command-result-icon">
-        <Icon name={command.icon} />
-      </span>
-      <span className="command-result-content">
-        <span className="command-title">
-          <Highlight
-            text={command.title}
-            query={query}
-            matchedTerms={command.matchedTerms}
-          />
-        </span>
-        {command.detail && (
-          <span className="command-detail">
-            {isChat ? (
-              command.detail
-            ) : (
-              <Highlight
-                text={command.detail}
-                query={query}
-                matchedTerms={command.matchedTerms}
-              />
-            )}
-          </span>
-        )}
-        {command.description && (
-          <span className="command-description">
-            <Highlight
-              text={command.description}
-              query={query}
-              matchedTerms={command.matchedTerms}
-            />
-          </span>
-        )}
-      </span>
-      <span className="command-result-tail" aria-hidden="true">
-        {isChat ? (
-          <Icon name="external" className="command-external" />
-        ) : (
-          <kbd className="command-enter">⏎</kbd>
-        )}
-      </span>
-    </OptionElement>
-  )
-}
-
-function replaceSearchQuery(query: string) {
-  const url = new URL(window.location.href)
-  const value = query.trim()
-  if (value) {
-    url.searchParams.set('q', value)
-  } else {
-    url.searchParams.delete('q')
-  }
-  if (url.href !== window.location.href) {
-    window.history.replaceState(window.history.state, '', url)
-  }
-}
 
 export function CommandPalette({ framework }: { framework: SitePage }) {
   const trigger = React.useRef<HTMLButtonElement>(null)
   const dialog = React.useRef<HTMLDialogElement>(null)
   const input = React.useRef<HTMLInputElement>(null)
   const returnFocus = React.useRef<HTMLElement | null>(null)
-  const settledQuery = React.useRef('')
   const [open, setOpen] = React.useState(false)
-  const [query, setQuery] = React.useState('')
+  const { query, setQuery, settleSearch } = useCommandQuery(open)
   const [activeIndex, setActiveIndex] = React.useState(0)
-  const [search, setSearch] = React.useState<DocsSearch | null>(null)
-  const [loadError, setLoadError] = React.useState(false)
+  const searchState = useDocsSearch(open)
+  const search = searchState.status === 'ready' ? searchState.search : null
   const [mac, setMac] = React.useState(false)
   const dark = React.useSyncExternalStore(
     subscribeTheme,
@@ -180,18 +58,6 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
   }
   function close() {
     dialog.current?.close()
-  }
-  // Settled queries update the URL and count as searches, including ones opened from a `?q=` link.
-  function settleSearch(value: string) {
-    const searchTerm = value.trim()
-    replaceSearchQuery(searchTerm)
-    if (searchTerm === settledQuery.current) {
-      return
-    }
-    settledQuery.current = searchTerm
-    if (searchTerm) {
-      trackSiteEvent('Searched', { search_term: searchTerm })
-    }
   }
   React.useEffect(() => {
     setMac(usesAppleShortcuts())
@@ -239,35 +105,6 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
       window.removeEventListener('pageshow', syncFromUrl)
     }
   }, [])
-  React.useEffect(() => {
-    if (!open) {
-      return
-    }
-    const timer = window.setTimeout(() => settleSearch(query), 300)
-    return () => window.clearTimeout(timer)
-  }, [open, query])
-  React.useEffect(() => {
-    if (!open || search) {
-      return
-    }
-    let cancelled = false
-    setLoadError(false)
-    import('virtual:docs-search').then(
-      module => {
-        if (!cancelled) {
-          setSearch(() => module.default)
-        }
-      },
-      () => {
-        if (!cancelled) {
-          setLoadError(true)
-        }
-      }
-    )
-    return () => {
-      cancelled = true
-    }
-  }, [open, search])
 
   const groups = React.useMemo(
     () => getCommandGroups({ search, query, framework, packageManager, dark }),
@@ -431,7 +268,7 @@ export function CommandPalette({ framework }: { framework: SitePage }) {
           >
             {!search && (
               <p className="command-empty">
-                {loadError
+                {searchState.status === 'error'
                   ? 'Documentation search could not load. Close and reopen to retry.'
                   : 'Loading documentation…'}
               </p>

@@ -337,6 +337,47 @@ test('the search engine loads on demand and is reused after closing the palette'
   expect(requests).toHaveLength(1)
 })
 
+test('closing during search loading allows results on the next open', async ({
+  page,
+}) => {
+  let releaseSearch!: () => void
+  const searchReady = new Promise<void>(resolve => {
+    releaseSearch = resolve
+  })
+  await page.route('**/*_virtual_docs-search-*.js', async route => {
+    await searchReady
+    await route.continue()
+  })
+  await page.goto('/docs/react/')
+  const trigger = page.getByRole('button', { name: /Search docs/ })
+  await trigger.click()
+  await expect(page.getByText('Loading documentation…')).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog')).not.toBeVisible()
+  releaseSearch()
+  await trigger.click()
+  await expect(
+    page.getByRole('option', { name: /React quickstart/ })
+  ).toBeVisible()
+  await expect(page.getByText('Loading documentation…')).not.toBeVisible()
+})
+
+test('search loading failures leave palette actions available', async ({
+  page,
+}) => {
+  await page.route('**/*_virtual_docs-search-*.js', route => route.abort())
+  await page.goto('/docs/react/')
+  await page.getByRole('button', { name: /Search docs/ }).click()
+  await expect(
+    page.getByText('Documentation search could not load.', { exact: false })
+  ).toBeVisible()
+  await page
+    .getByRole('combobox', { name: 'Search documentation' })
+    .fill('theme')
+  await page.getByRole('option', { name: /Switch to .* theme/ }).click()
+  await expect(page.getByRole('dialog')).not.toBeVisible()
+})
+
 for (const [name, hostname, pathname] of [
   ['ChatGPT', 'chatgpt.com', '/'],
   ['Claude', 'claude.ai', '/new'],
