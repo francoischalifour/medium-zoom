@@ -40,10 +40,11 @@ export const isEscape = (event: KeyboardEvent): boolean => {
   return key === 'Escape' || key === 'Esc' || key === 27
 }
 
+// Listeners receive the query, or its change event in newer browsers: both carry `matches`.
 export const listenForMotionChange = (
-  query: MediaQueryList,
-  listener: () => void
+  listener: (change: { matches: boolean }) => void
 ): (() => void) => {
+  const query = matchMedia('(prefers-reduced-motion)')
   query.addListener(listener)
   return () => query.removeListener(listener)
 }
@@ -62,3 +63,10 @@ export const assign: typeof Object.assign =
     }
     return target
   }
+
+// Compatibility browsers lack getAnimations(): the zoom settles when its timer fires.
+export const hasAnimations = false
+export const findRunningTransform = (_image: Element): unknown => undefined
+
+export const getViewportScale = (): number =>
+  window.visualViewport ? window.visualViewport.scale : 1
