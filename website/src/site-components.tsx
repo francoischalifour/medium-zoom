@@ -154,11 +154,9 @@ export function SiteLink({
   const linkTarget = target ?? (external ? '_blank' : undefined)
   const safeRel =
     linkTarget === '_blank'
-      ? [
-          ...new Set(
-            `${rel || ''} noopener noreferrer`.split(/\s+/).filter(Boolean)
-          ),
-        ].join(' ')
+      ? [...new Set(`${rel || ''} noopener`.split(/\s+/).filter(Boolean))].join(
+          ' '
+        )
       : rel
   return (
     <a
