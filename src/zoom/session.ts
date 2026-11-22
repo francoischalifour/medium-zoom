@@ -1,4 +1,8 @@
-import type { CoreZoomOptions, ModalOpenOptions, Zoom } from 'medium-zoom/core'
+import type {
+  CoreZoomOptions,
+  ModalOpenOptions,
+  ZoomInstance as Zoom,
+} from 'medium-zoom/core'
 
 /**
  * Coordinated access to one zoom. Methods never read `this`: pass them around freely, or

@@ -65,7 +65,6 @@ const mediaSize = (media: Media) => [
 export function bindGalleryGestures({
   element,
   zoom,
-  close,
 }: GalleryGestureView): () => void {
   const gallery = createGallery(zoom)
   const motion = matchMedia('(prefers-reduced-motion: reduce)')
@@ -562,12 +561,12 @@ export function bindGalleryGestures({
     } else if (ended === 'close') {
       const [, vy] = velocity
       if (Math.abs(y) > height / 6 || (vy! * y > 0 && Math.abs(vy!) > fling)) {
-        close()
+        void zoom.close('gesture')
       } else {
         animate(rest)
       }
     } else if (k < 0.8) {
-      close()
+      void zoom.close('gesture')
     } else {
       settle()
     }
@@ -618,7 +617,7 @@ export function bindGalleryGestures({
     const leave = k <= 1.01 && tap
     forget()
     if (leave) {
-      close()
+      void zoom.close('pointer')
     }
   }
   const forget = () => {

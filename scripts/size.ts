@@ -201,7 +201,7 @@ function assertIsolation(
       ),
       'gallery keys',
     ],
-    ['getSnapshot', !!composition?.gallery, 'gallery'],
+    ['canPrevious', !!composition?.gallery, 'gallery'],
     [
       'AbortController',
       !!(composition?.transition || composition?.slide),

@@ -81,76 +81,57 @@ export function createGallery<Options extends CoreZoomOptions>(
   }
   const listeners = new Set<() => void>()
   let disposed = false
-  let snapshot: GallerySnapshot = {
+  // Derived from the zoom's frozen state, and frozen too: every subscriber shares it.
+  let snapshot: GallerySnapshot = Object.freeze({
     images: [],
     current: null,
     index: -1,
     canPrevious: false,
     canNext: false,
-  }
+  })
   const getSnapshot = () => {
-    const images = zoom.getImages()
-    const current = zoom.getZoomedImage()
-    if (
-      current !== snapshot.current ||
-      images.length !== snapshot.images.length ||
-      images.some((image, index) => image !== snapshot.images[index])
-    ) {
-      const index = images.indexOf(current!)
-      snapshot = {
-        images: images.slice(),
+    const { images, image: current } = zoom.getSnapshot()
+    if (images !== snapshot.images || current !== snapshot.current) {
+      const index = current ? images.indexOf(current) : -1
+      snapshot = Object.freeze({
+        images,
         current,
         index,
         canPrevious: index > 0,
         canNext: index >= 0 && index < images.length - 1,
-      }
+      })
     }
     return snapshot
   }
   let preloading: ReturnType<typeof setTimeout> | undefined
-  const notify = () => {
+  const changed = () => {
     clearTimeout(preloading)
-    getSnapshot()
-    listeners.forEach(listener => listener())
-  }
-  // Once the user pauses on an image, both neighbours load ahead so they open sharp. Not
-  // while stepping, so images passed on the way are never downloaded.
-  const preload = () => {
-    preloading = setTimeout(() => {
-      const { images, index } = getSnapshot()
-      for (const image of [images[index + 1], images[index - 1]]) {
-        if (image) {
-          zoom.preload(image)
+    // Once the user pauses on an image, both neighbours load ahead so they open sharp. Not
+    // while stepping, so images passed on the way are never downloaded.
+    if (zoom.getSnapshot().status === 'open') {
+      preloading = setTimeout(() => {
+        const { images, index } = getSnapshot()
+        for (const image of [images[index + 1], images[index - 1]]) {
+          if (image) {
+            zoom.preload(image)
+          }
         }
-      }
-    }, 300)
+      }, 300)
+    }
+    const previous = snapshot
+    if (getSnapshot() !== previous) {
+      listeners.forEach(listener => listener())
+    }
   }
   const choose = (index: number, options?: ModalOpenOptions) => {
     const target = getSnapshot().images[index]
-    return !disposed && target
-      ? commander.open({ ...options, target })
-      : Promise.resolve(zoom)
+    return (
+      !disposed && target
+        ? commander.open({ ...options, target })
+        : Promise.resolve(zoom)
+    ) as Promise<Zoom<Options>>
   }
-  let queued = false
-  const collectionChanged = () => {
-    if (queued) {
-      return
-    }
-    queued = true
-    // Defer until the batch ends because v1 emits detach events before updating the collection.
-    queueMicrotask(() => {
-      queued = false
-      if (!disposed) {
-        notify()
-      }
-    })
-  }
-  zoom
-    .on('open', notify)
-    .on('opened', preload)
-    .on('closed', notify)
-    .on('attach', collectionChanged)
-    .on('detach', collectionChanged)
+  const unsubscribe = zoom.subscribe(changed)
   const controller: GalleryController<Options> = {
     getSnapshot,
     subscribe(listener) {
@@ -187,12 +168,7 @@ export function createGallery<Options extends CoreZoomOptions>(
       }
       disposed = true
       clearTimeout(preloading)
-      zoom
-        .off('open', notify)
-        .off('opened', preload)
-        .off('closed', notify)
-        .off('attach', collectionChanged)
-        .off('detach', collectionChanged)
+      unsubscribe()
       listeners.clear()
       galleries.delete(zoom)
     },

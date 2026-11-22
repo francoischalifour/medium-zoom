@@ -120,17 +120,18 @@ export function dialog({
           (submitter?.formMethod || form.method) === 'dialog'
         ) {
           event.preventDefault()
-          close()
+          close('form')
         }
       })
+      // The dialog was closed from outside the zoom, as with `dialog.close()`.
       element.addEventListener('close', () => {
         if (!disposed) {
-          close()
+          close('api')
         }
       })
       element.addEventListener('cancel', event => {
         event.preventDefault()
-        close()
+        close('escape')
       })
       document.body.appendChild(element)
       let cleanup: void | (() => void) = undefined
@@ -153,7 +154,7 @@ export function dialog({
       // The engine dismisses on the frames it holds; the frames kept here are the stage's.
       element.addEventListener('click', event => {
         if (outgoing.indexOf(event.target as Frame) !== -1) {
-          close()
+          close('pointer')
         }
       })
       const describe = (next: Frame, previous?: Frame) => {

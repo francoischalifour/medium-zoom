@@ -1,5 +1,7 @@
 import type { ZoomInstance } from '../zoom/engine'
 
+type ZoomEventDetail = { zoom: ZoomInstance; reason?: string }
+
 // Preserve v1's no-Promise behavior without installing a global polyfill.
 // This executes the zoom lifecycle but does not implement promise chaining.
 export const getPromise = (): PromiseConstructor =>
@@ -13,8 +15,8 @@ export const getPromise = (): PromiseConstructor =>
 
 export const createCustomEvent = (
   type: string,
-  detail: { zoom: ZoomInstance }
-): CustomEvent<{ zoom: ZoomInstance }> => {
+  detail: ZoomEventDetail
+): CustomEvent<ZoomEventDetail> => {
   // One DOM event path works with and without a constructible CustomEvent (including IE10).
   const event = document.createEvent('CustomEvent')
   event.initCustomEvent(type, false, false, detail)

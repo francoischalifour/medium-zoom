@@ -3,7 +3,10 @@ import {
   type CoreZoomOptions,
   createZoom,
   type Zoom,
+  type ZoomCloseReason,
   type ZoomLoader,
+  type ZoomState,
+  type ZoomStatus,
   type ZoomViewport,
 } from 'medium-zoom/core'
 import {
@@ -86,3 +89,17 @@ dialog({ label: 42 })
 dialog({ closeLabel: 'Close' })
 // @ts-expect-error Keyboard binding requires a DOM host.
 bindGalleryKeyboard({}, gallery)
+const state: ZoomState = zoom.getSnapshot()
+const status: ZoomStatus = state.status
+void status
+// @ts-expect-error Snapshots are read-only.
+state.images.push(document.createElement('img'))
+const stopObserving: () => void = zoom.subscribe(() => {})
+stopObserving()
+zoom.on('closed', event => {
+  const reason: ZoomCloseReason = event.detail.reason
+  void reason
+})
+void zoom.close('control')
+// @ts-expect-error Close reasons are a closed set.
+void zoom.close('swipe')

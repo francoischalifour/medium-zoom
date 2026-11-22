@@ -3,21 +3,31 @@ import {
   createEngine,
   type ModalOpenOptions,
   type Stage,
+  type ZoomCloseReason,
+  type ZoomEvent,
+  type ZoomEventMap,
   type ZoomInstance,
   type ZoomLoader,
   type ZoomSelector,
+  type ZoomState,
   type ZoomViewport,
 } from './engine'
 import { type Frame, isImage } from './frame'
 
 export type {
   CoreZoomOptions,
+  ZoomInstance,
   ModalOpenOptions,
   ZoomSelector,
   ZoomOpenOptions,
   ZoomLoader,
   ZoomLoadContext,
   ZoomViewport,
+  ZoomCloseReason,
+  ZoomEvent,
+  ZoomEventMap,
+  ZoomState,
+  ZoomStatus,
 } from './engine'
 export type { ZoomBounds } from './geometry'
 
@@ -39,13 +49,54 @@ export type ZoomContent = (view: {
   readonly element: HTMLElement
   /** The zoom being presented. */
   readonly zoom: ModalZoom
-  /** Closes the zoom, for application controls. */
+  /** Closes the zoom for an application control: the close reason is `control`. */
   close: () => void
 }) => void | (() => void)
 
-/** A zoom created by `createZoom()`. See `ModalZoom` for one created with a renderer. */
-export type Zoom<Options extends CoreZoomOptions = CoreZoomOptions> =
-  ZoomInstance<Options>
+/**
+ * A zoom created by `createZoom()`. See `ModalZoom` for one created with a renderer.
+ * `getOptions()` and `getImages()` return copies; `getSnapshot()` returns frozen state.
+ */
+export interface Zoom<
+  Options extends CoreZoomOptions = CoreZoomOptions,
+> extends ZoomInstance<Options> {
+  /**
+   * Returns the current state; the same frozen object until something changes. Compatible
+   * with React's `useSyncExternalStore` together with `subscribe()`.
+   */
+  getSnapshot(this: void): ZoomState
+  /** Calls `listener` after every state change. Returns the unsubscribe function. */
+  subscribe(this: void, listener: () => void): () => void
+  /**
+   * Closes the zoom. Does nothing while it is already closed. Never reads `this`, so it can
+   * be passed around, as to an event listener.
+   *
+   * @param reason - Why, as reported by the `close` and `closed` events. Defaults to `api`.
+   */
+  close(this: void, reason?: ZoomCloseReason): Promise<this>
+  /** Registers a `medium-zoom:<type>` listener on every image, current and future. */
+  on<Type extends keyof ZoomEventMap>(
+    type: Type,
+    listener: (event: ZoomEvent<Type>) => void,
+    options?: boolean | AddEventListenerOptions
+  ): this
+  on(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | AddEventListenerOptions
+  ): this
+  /** Unregisters a listener registered with `on()`. */
+  off<Type extends keyof ZoomEventMap>(
+    type: Type,
+    listener: (event: ZoomEvent<Type>) => void,
+    options?: boolean | AddEventListenerOptions
+  ): this
+  off(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | AddEventListenerOptions
+  ): this
+}
 
 declare const modalType: unique symbol
 /**
@@ -87,7 +138,7 @@ export interface ModalZoom<
 export interface ZoomCommander<
   Options extends CoreZoomOptions = CoreZoomOptions,
 > {
-  open(options?: ModalOpenOptions): Promise<Zoom<Options>>
+  open(options?: ModalOpenOptions): Promise<ZoomInstance<Options>>
 }
 
 /** Options of `createZoom()`. The strategies are fixed at creation; `update()` ignores them. */
@@ -148,5 +199,5 @@ export function createZoom(
     renderer as unknown as Stage,
     undefined,
     adoptMedia
-  )(images, options)
+  )(images, options) as Zoom
 }
