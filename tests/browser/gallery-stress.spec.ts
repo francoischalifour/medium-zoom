@@ -1,6 +1,6 @@
 import { expect, type Page, test, type TestInfo } from '@playwright/test'
 
-import { fingers, inputFor, type Point } from './fingers'
+import { fingers, inputFor, type Point, throttle } from './fingers'
 import { addModernStyles, preparePage } from './helpers'
 
 /*
@@ -8,6 +8,8 @@ import { addModernStyles, preparePage } from './helpers'
   its seed and actions: replay it with MEDIUM_ZOOM_STRESS_SEED=<seed>.
   `bun run test:stress` runs more and longer sequences.
 */
+
+test.beforeEach(({ page }, info) => throttle(page, info))
 
 const seeds = process.env.MEDIUM_ZOOM_STRESS_SEED
   ? [Number(process.env.MEDIUM_ZOOM_STRESS_SEED)]
@@ -389,11 +391,9 @@ function actions(
       Math.min(Math.max(from + by, 8), size - 8) - from
     const input = await finger
     await input.down([x, y])
-    await input.glide(
-      inside(x, dx, width),
-      inside(y, dy, height),
-      Math.round(random.between(2, 8))
-    )
+    await input.glide(inside(x, dx, width), inside(y, dy, height), {
+      steps: Math.round(random.between(2, 8)),
+    })
     await input.up()
   }
   const button = (name: string) =>
@@ -494,7 +494,7 @@ function actions(
         const [x, y] = await centre()
         const input = await pair
         await input.down([x - 30, y], [x + 30, y])
-        await input.glide(0, 0, 6, random.between(-25, 80))
+        await input.glide(0, 0, { steps: 6, spread: random.between(-25, 80) })
         await input.up()
       },
     ],

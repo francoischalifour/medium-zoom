@@ -1,7 +1,9 @@
-import { expect, type Page, test } from '@playwright/test'
+import { expect, type Page, test, type TestInfo } from '@playwright/test'
 
-import { fingers, inputFor, type Point } from './fingers'
+import { fingers, inputFor, type Point, throttle } from './fingers'
 import { addModernStyles, preparePage } from './helpers'
+
+test.beforeEach(({ page }, info) => throttle(page, info))
 
 const threeImages =
   '<img src="/images/image-1.jpg" width="160" alt="Mountain"><img src="/images/image-2.jpg" width="160" alt="Forest"><img src="/images/image-1.jpg" width="160" alt="Ocean">'
@@ -40,6 +42,14 @@ const centre = async (page: Page): Promise<Point> => {
 }
 const offsetX = (page: Page) =>
   frame(page).evaluate(element => parseFloat(element.style.translate) || 0)
+/**
+ * Resolves once a page timer of `ms` fires, so after any shorter timer the engine set
+ * before it, however slowly the page runs: a check that nothing happens waits on this.
+ */
+const pageTimers = (page: Page, ms: number) =>
+  page.evaluate(ms => new Promise(resolve => setTimeout(resolve, ms)), ms)
+const closing = (page: Page) =>
+  page.evaluate(() => !document.body.classList.contains('medium-zoom--opened'))
 
 test('a swipe carries the image under the finger with its neighbour beside it', async ({
   page,
@@ -50,10 +60,10 @@ test('a swipe carries the image under the finger with its neighbour beside it', 
   await finger.down([x, y])
   await finger.glide(-60, 0)
   // Past the slop that tells a drag from a tap, the image follows one to one.
+  await expect.poll(() => offsetX(page)).toBeLessThan(-40)
   const dragged = await offsetX(page)
-  expect(dragged).toBeLessThan(-40)
   await finger.glide(-40, 0)
-  expect(await offsetX(page)).toBeCloseTo(dragged - 40, 0)
+  await expect.poll(() => offsetX(page)).toBeCloseTo(dragged - 40, 0)
   const neighbour = page.locator('dialog img:not([class])')
   await expect(neighbour).toHaveCount(1)
   await expect(neighbour).toHaveAttribute('aria-hidden', 'true')
@@ -61,7 +71,7 @@ test('a swipe carries the image under the finger with its neighbour beside it', 
   const box = (await neighbour.boundingBox())!
   expect(box.x).toBeGreaterThan(shown.x + shown.width)
   // Held still so the release is no flick; short of halfway, it springs back.
-  await page.waitForTimeout(150)
+  await finger.hold(150)
   await finger.up()
   await expect.poll(() => offsetX(page)).toBe(0)
   await expect(neighbour).toHaveCount(0)
@@ -76,7 +86,7 @@ test('a short flick is enough to move on, and no click dismisses the zoom', asyn
   const finger = await fingers(page, inputFor(info))
   const [x, y] = await centre(page)
   await finger.down([x, y])
-  await finger.glide(-90, 0, 3)
+  await finger.glide(-90, 0, { steps: 3 })
   await finger.up()
   await expect(page.getByRole('dialog', { name: 'Forest' })).toBeVisible()
   await expect(page.getByRole('status')).toContainText('2 / 3')
@@ -85,42 +95,77 @@ test('a short flick is enough to move on, and no click dismisses the zoom', asyn
   await expect(page.locator('dialog img')).toHaveCount(
     await page.locator('dialog img.medium-zoom-image--opened').count()
   )
-  await page.waitForTimeout(400)
-  await expect(page.getByRole('dialog', { name: 'Forest' })).toBeVisible()
+  // Past the double-tap pause, which a click ending the swipe would have closed after.
+  await pageTimers(page, 400)
+  expect(await closing(page)).toBe(false)
   await finger.down([x, y])
-  await finger.glide(90, 0, 3)
+  await finger.glide(90, 0, { steps: 3 })
   await finger.up()
   await expect(page.getByRole('dialog', { name: 'Mountain' })).toBeVisible()
 })
 
-/** Resolves once the open image's swipe offset passes `limit`, as a fraction of the window. */
-const travelled = (page: Page, limit: number) =>
-  page.waitForFunction(
-    limit =>
-      (parseFloat(
-        document.querySelector<HTMLElement>(
-          'dialog img.medium-zoom-image--opened'
-        )?.style.translate ?? ''
-      ) || 0) <
-      -limit * innerWidth,
-    limit,
-    { polling: 'raf' }
+/**
+ * Pauses the page's clock, which drives the gesture springs and stamps events, and returns
+ * fingers that move on it: a test then presses at an exact point of a swipe's flight, at an
+ * exact speed, however fast the machine runs.
+ */
+const onPausedClock = async (page: Page, info: TestInfo) => {
+  await pauseClock(page)
+  return fingers(page, inputFor(info), async ms => {
+    await page.evaluate(
+      () =>
+        new Promise(resolve =>
+          (
+            window as unknown as { realFrame: typeof requestAnimationFrame }
+          ).realFrame(resolve)
+        )
+    )
+    await page.clock.runFor(ms)
+  })
+}
+const pauseClock = async (page: Page) => {
+  // Chromium delivers moves with the next real frame: wait for it before time passes, or
+  // the moves are stamped late. The clock replaces requestAnimationFrame.
+  await page.evaluate(() =>
+    Object.assign(window, { realFrame: requestAnimationFrame.bind(window) })
   )
+  await page.clock.install()
+  await page.clock.pauseAt(Date.now() + 1_000)
+}
+/** Runs the paused clock until the open image holds still for a few frames. */
+const rest = async (page: Page) => {
+  const placement = () =>
+    frame(page).evaluate(({ style }) => `${style.translate} ${style.scale}`)
+  for (let still = 0, last = ''; still < 3;) {
+    await page.clock.runFor(16)
+    const now = await placement()
+    still = now === last ? still + 1 : 0
+    last = now
+  }
+}
+/** The open image's swipe offset, as a fraction of the window. */
+const travelled = async (page: Page) =>
+  -(await offsetX(page)) / page.viewportSize()!.width
 
 test('a swipe that catches the last one past halfway moves on again', async ({
   page,
 }, info) => {
   await open(page)
-  const finger = await fingers(page, inputFor(info))
+  const finger = await onPausedClock(page, info)
   const [x, y] = await centre(page)
-  for (let swipe = 0; swipe < 2; swipe++) {
-    await finger.down([x, y])
-    await finger.glide(-120, 0, 3)
-    await finger.up()
-    if (!swipe) {
-      await travelled(page, 0.55)
-    }
+  await finger.down([x, y])
+  await finger.glide(-120, 0, { steps: 3 })
+  await finger.up()
+  while ((await travelled(page)) < 0.55) {
+    await page.clock.runFor(16)
   }
+  // Still in flight: the press lands it on Forest, and this swipe carries on from there.
+  expect(await travelled(page)).toBeLessThan(0.9)
+  await finger.down([x, y])
+  await expect(page.getByRole('dialog', { name: 'Forest' })).toBeVisible()
+  await finger.glide(-120, 0, { steps: 3 })
+  await finger.up()
+  await page.clock.resume()
   await expect(page.getByRole('dialog', { name: 'Ocean' })).toBeVisible()
   await expect(page.getByRole('status')).toContainText('3 / 3')
   await expect.poll(() => offsetX(page)).toBe(0)
@@ -131,14 +176,14 @@ test('a swipe that catches the last one early holds the strip, both images in pl
   page,
 }, info) => {
   await open(page)
-  const finger = await fingers(page, inputFor(info))
+  const finger = await onPausedClock(page, info)
   const [x, y] = await centre(page)
   await finger.down([x, y])
-  await finger.glide(-120, 0, 3)
+  await finger.glide(-120, 0, { steps: 3 })
   await finger.up()
-  // Pressed again at once, well before the strip is halfway, however slow the machine.
+  await page.clock.runFor(16)
   await finger.down([x, y])
-  expect(-(await offsetX(page)) / page.viewportSize()!.width).toBeLessThan(0.5)
+  expect(await travelled(page)).toBeLessThan(0.5)
   // A press holds both images; releasing carries on to the neighbour it was heading for.
   expect(
     await page
@@ -146,8 +191,31 @@ test('a swipe that catches the last one early holds the strip, both images in pl
       .count()
   ).toBe(2)
   await finger.up()
+  await page.clock.resume()
   await expect(page.getByRole('dialog', { name: 'Forest' })).toBeVisible()
   await expect.poll(() => offsetX(page)).toBe(0)
+})
+
+test('a flick reads its speed however far apart its moves arrive, and a rest still stops it', async ({
+  page,
+}, info) => {
+  await open(page)
+  const finger = await onPausedClock(page, info)
+  const [x, y] = await centre(page)
+  // Moves further apart than the 100ms speed is measured over, as from a busy page.
+  await finger.down([x, y])
+  await finger.glide(-150, 0, { steps: 3, every: 150 })
+  await finger.hold(150)
+  await finger.up()
+  await rest(page)
+  await expect(page.getByRole('dialog', { name: 'Mountain' })).toBeVisible()
+  expect(await offsetX(page)).toBe(0)
+  // Too short to pass halfway: only its speed moves it on.
+  await finger.down([x, y])
+  await finger.glide(-150, 0, { steps: 3, every: 150 })
+  await finger.up()
+  await page.clock.resume()
+  await expect(page.getByRole('dialog', { name: 'Forest' })).toBeVisible()
 })
 
 test('the first and last images resist being swiped past', async ({
@@ -158,9 +226,8 @@ test('the first and last images resist being swiped past', async ({
   const [x, y] = await centre(page)
   await finger.down([x, y])
   await finger.glide(150, 0)
-  const resisted = await offsetX(page)
-  expect(resisted).toBeGreaterThan(20)
-  expect(resisted).toBeLessThan(100)
+  await expect.poll(() => offsetX(page)).toBeGreaterThan(20)
+  expect(await offsetX(page)).toBeLessThan(100)
   await finger.up()
   await expect.poll(() => offsetX(page)).toBe(0)
   await expect(page.getByRole('dialog', { name: 'Mountain' })).toBeVisible()
@@ -181,7 +248,7 @@ test('dragging the image away fades the backdrop and closes past a threshold', a
     Number(await overlay.evaluate(({ style }) => style.opacity))
   ).toBeLessThan(1)
   // Held still so the release is no flick, which would close.
-  await page.waitForTimeout(150)
+  await finger.hold(150)
   await finger.up()
   await expect(dialog).not.toHaveAttribute('data-medium-zoom-gesture')
   await expect
@@ -189,12 +256,12 @@ test('dragging the image away fades the backdrop and closes past a threshold', a
     .toBe('')
   await expect(page.getByRole('dialog', { name: 'Mountain' })).toBeVisible()
   await finger.down([x, y])
-  await finger.glide(0, -200, 12)
+  await finger.glide(0, -200, { steps: 12 })
   await expect(page.getByRole('button', { name: 'Close' })).toHaveCSS(
     'opacity',
     '0'
   )
-  await page.waitForTimeout(150)
+  await finger.hold(150)
   await finger.up()
   await expect(dialog).toHaveCount(0)
 })
@@ -204,7 +271,7 @@ test('a flick down closes however short it is', async ({ page }, info) => {
   const finger = await fingers(page, inputFor(info))
   const [x, y] = await centre(page)
   await finger.down([x, y])
-  await finger.glide(0, 60, 2)
+  await finger.glide(0, 60, { steps: 2 })
   await finger.up()
   await expect(page.locator('dialog')).toHaveCount(0)
 })
@@ -214,6 +281,7 @@ test('a double tap zooms in where it lands, further each time, back to fit from 
   isMobile,
 }) => {
   await open(page)
+  await pauseClock(page)
   const dialog = page.locator('dialog')
   const [x, y] = await centre(page)
   const tap = () =>
@@ -224,15 +292,15 @@ test('a double tap zooms in where it lands, further each time, back to fit from 
   const doubleTap = async () => {
     await tap()
     await tap()
-    await page.waitForTimeout(800)
+    await rest(page)
     return frame(page).evaluate(({ style }) => style.scale)
   }
   const scales = [Number(await doubleTap())]
   await expect(dialog).toHaveAttribute('data-medium-zoom-zoomed', 'true')
   expect(scales[0]).toBeGreaterThanOrEqual(2)
   // Past the double-tap pause, the second tap has not also closed it.
-  await page.waitForTimeout(400)
-  await expect(dialog).toBeVisible()
+  await page.clock.runFor(400)
+  expect(await closing(page)).toBe(false)
   for (let step = 0; step < 6 && scales.at(-1) !== 0; step++) {
     scales.push(Number(await doubleTap()))
   }
@@ -245,6 +313,7 @@ test('a double tap zooms in where it lands, further each time, back to fit from 
   expect(scales[fitted - 1]).toBeGreaterThanOrEqual(3.99)
   await expect(dialog).not.toHaveAttribute('data-medium-zoom-zoomed')
   await tap()
+  await page.clock.resume()
   await expect(dialog).toHaveCount(0)
 })
 
@@ -254,19 +323,21 @@ for (const gap of [40, 100, 160]) {
     isMobile,
   }) => {
     await open(page)
+    await pauseClock(page)
     const [x, y] = await centre(page)
     const tap = () =>
       isMobile ? page.touchscreen.tap(x, y) : page.mouse.click(x, y)
     await tap()
     // The first tap's hint is still moving when the second lands.
-    await page.waitForTimeout(gap)
+    await page.clock.runFor(gap)
     await tap()
+    await rest(page)
     await expect(page.locator('dialog')).toHaveAttribute(
       'data-medium-zoom-zoomed',
       'true'
     )
-    await page.waitForTimeout(800)
-    await expect(page.locator('dialog')).toBeVisible()
+    await page.clock.runFor(800)
+    expect(await closing(page)).toBe(false)
   })
 }
 
@@ -278,7 +349,7 @@ test('a pinch zooms around the fingers, one finger then pans, and a pinch in clo
   const [x, y] = await centre(page)
   const dialog = page.locator('dialog')
   await hand.down([x - 20, y], [x + 20, y])
-  await hand.glide(0, 0, 8, 40)
+  await hand.glide(0, 0, { spread: 40 })
   await expect(dialog).toHaveAttribute('data-medium-zoom-gesture', 'pinch')
   await hand.up()
   await expect(dialog).toHaveAttribute('data-medium-zoom-zoomed', 'true')
@@ -292,7 +363,7 @@ test('a pinch zooms around the fingers, one finger then pans, and a pinch in clo
   await expect(page.getByRole('status')).toContainText('1 / 3')
   await expect(dialog).toHaveAttribute('data-medium-zoom-zoomed', 'true')
   await hand.down([x - 120, y], [x + 120, y])
-  await hand.glide(0, 0, 8, -105)
+  await hand.glide(0, 0, { spread: -105 })
   await hand.up()
   await expect(dialog).toHaveCount(0)
 })
@@ -306,23 +377,16 @@ test('Ctrl+wheel, as a trackpad pinch, zooms and the wheel then pans', async ({
   const [x, y] = await centre(page)
   const dialog = page.locator('dialog')
   await page.mouse.move(x, y)
-  const wheel = (deltaX: number, deltaY: number, ctrlKey = false) =>
-    dialog.dispatchEvent('wheel', {
-      deltaX,
-      deltaY,
-      ctrlKey,
-      clientX: x,
-      clientY: y,
-      bubbles: true,
-      cancelable: true,
-    })
+  // Browsers report a trackpad pinch as a wheel with Ctrl held.
+  await page.keyboard.down('Control')
   for (let step = 0; step < 5; step++) {
-    await wheel(0, -20, true)
+    await page.mouse.wheel(0, -20)
   }
+  await page.keyboard.up('Control')
   await expect(dialog).toHaveAttribute('data-medium-zoom-zoomed', 'true')
   const before = await offsetX(page)
-  await wheel(30, 0)
-  expect(await offsetX(page)).toBeLessThan(before)
+  await page.mouse.wheel(30, 0)
+  await expect.poll(() => offsetX(page)).toBeLessThan(before)
   await expect(dialog).toBeVisible()
 })
 
@@ -374,12 +438,12 @@ test('with reduced motion, gestures settle at once', async ({ page }, info) => {
   const [x, y] = await centre(page)
   await finger.down([x, y])
   await finger.glide(-100, 0)
-  await page.waitForTimeout(150)
+  await finger.hold(150)
   await finger.up()
   // Settled in the same frame: no spring to wait for.
   expect(await offsetX(page)).toBe(0)
   await finger.down([x, y])
-  await finger.glide(-90, 0, 3)
+  await finger.glide(-90, 0, { steps: 3 })
   await finger.up()
   await expect(page.getByRole('dialog', { name: 'Forest' })).toBeVisible()
   expect(await offsetX(page)).toBe(0)
@@ -426,7 +490,7 @@ test('after a swipe, the high-resolution image loads after a pause and joins a z
   const finger = await fingers(page, inputFor(info))
   const [x, y] = await centre(page)
   await finger.down([x, y])
-  await finger.glide(-90, 0, 3)
+  await finger.glide(-90, 0, { steps: 3 })
   await finger.up()
   await expect(page.getByRole('dialog', { name: 'Forest' })).toBeVisible()
   await expect.poll(() => offsetX(page)).toBe(0)
@@ -453,47 +517,23 @@ test('after a swipe, the high-resolution image loads after a pause and joins a z
   expect(joined!.x).toBeCloseTo(zoomed!.x, 0)
 })
 
-/** Records `up` (press ends), `feedback` (close gesture shows) and `closed` (zoom starts closing). */
-const timeTap = (page: Page) =>
-  page.evaluate(() => {
-    const dialog = document.querySelector('dialog')!
-    const times: Record<string, number> = {}
-    Object.assign(window, { times })
-    dialog.addEventListener(
-      'pointerup',
-      () => (times.up ??= performance.now()),
-      true
-    )
-    new MutationObserver(() => {
-      if (dialog.dataset.mediumZoomGesture === 'close') {
-        times.feedback ??= performance.now()
-      }
-    }).observe(dialog, { attributes: true })
-    new MutationObserver(() => {
-      if (!document.body.classList.contains('medium-zoom--opened')) {
-        times.closed ??= performance.now()
-      }
-    }).observe(document.body, { attributes: true })
-  })
-const tapTimes = (page: Page) =>
-  page.evaluate(
-    () => (window as unknown as { times: Record<string, number> }).times
-  )
-
 test('a single tap starts closing at once and finishes within the double-tap pause', async ({
   page,
   isMobile,
 }) => {
   await open(page)
-  await timeTap(page)
+  await pauseClock(page)
+  const dialog = page.locator('dialog')
   const [x, y] = await centre(page)
   await (isMobile ? page.touchscreen.tap(x, y) : page.mouse.click(x, y))
-  await expect(page.locator('dialog')).toHaveCount(0)
-  const { up, feedback, closed } = await tapTimes(page)
-  // Feedback comes in the same task as the release.
-  expect(feedback! - up!).toBeLessThan(20)
-  // The double-tap pause runs from the press, so closing starts within its length of the release.
-  expect(closed! - up!).toBeLessThan(330)
+  // Feedback comes with the release, before any time passes.
+  await expect(dialog).toHaveAttribute('data-medium-zoom-gesture', 'close')
+  expect(await closing(page)).toBe(false)
+  // The double-tap pause runs from the press, so closing starts within its length.
+  await page.clock.runFor(300)
+  expect(await closing(page)).toBe(true)
+  await page.clock.resume()
+  await expect(dialog).toHaveCount(0)
 })
 
 test('a mouse moving off after a click closes without waiting for a second one', async ({
@@ -502,11 +542,11 @@ test('a mouse moving off after a click closes without waiting for a second one',
 }) => {
   test.skip(isMobile, 'Hovering needs a mouse')
   await open(page)
-  await timeTap(page)
+  await pauseClock(page)
   const [x, y] = await centre(page)
   await page.mouse.click(x, y)
   await page.mouse.move(x + 60, y, { steps: 3 })
+  expect(await closing(page)).toBe(true)
+  await page.clock.resume()
   await expect(page.locator('dialog')).toHaveCount(0)
-  const { up, closed } = await tapTimes(page)
-  expect(closed! - up!).toBeLessThan(200)
 })
