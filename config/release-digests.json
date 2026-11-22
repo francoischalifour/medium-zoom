@@ -1,0 +1,11 @@
+{
+  "dist/medium-zoom.js": "sha256-nHBEDd1WXF0TewR/TRWMs/u3oMsoho9ABQqb8ua1vEs=",
+  "dist/medium-zoom.min.js": "sha256-sjrcpnfglxRzM+fvS1GNLXcpB7GxaiGCFPsBRvmp7Qw=",
+  "dist/medium-zoom.esm.js": "sha256-jU534102qs83p/BieOWMQWF9cX3Th6Xl/nu+gKWALAg=",
+  "dist/medium-zoom.d.ts": "sha256-U8Q8qHGwBX9Uq0OqoQF2Hy2ntFk6nzFURQwcNUXROa0=",
+  "dist/pure/index.js": "sha256-ZF2gUQkXeXcuNa24ViFGfNyc88l48eNaUPsRpzHiGSQ=",
+  "dist/pure/index.d.ts": "sha256-U8Q8qHGwBX9Uq0OqoQF2Hy2ntFk6nzFURQwcNUXROa0=",
+  "dist/pure/medium-zoom.umd.js": "sha256-zAmOS4kGZGuxo14UtCBY1NQAwYw7pWAMKPxBwqnGhjw=",
+  "dist/pure/medium-zoom.min.umd.js": "sha256-pAuupiGoOCVddaJCwmxgMyOTnremAhUd1oE986vJ40A=",
+  "dist/style.css": "sha256-ckjCs8DSoaI/O+jAYMsF0jf/sI/lGSohcfLNA/IKIbE="
+}
