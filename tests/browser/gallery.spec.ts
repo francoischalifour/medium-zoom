@@ -808,6 +808,10 @@ test('the zoom travels with the page as it scrolls, until the scroll closes it',
       target: document.querySelectorAll('img')[1]!,
     })
   })
+  // On a busy machine the opening transition can still run its last frames.
+  await page.waitForFunction(
+    () => !document.querySelector('dialog img')!.getAnimations().length
+  )
   const place = () =>
     page.evaluate(() => {
       const top = (selector: string) =>
