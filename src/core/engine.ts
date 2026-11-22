@@ -534,18 +534,37 @@ export const createEngine = (
       const frames = (current.__mz_frames = [primary])
       // Listen on the frame because mobile WebKit can fail to deliver its click to the document.
       primary.addEventListener('click', closeOnImage)
+      // Before the frame is laid out: `will-change` makes it a containing block, which
+      // would invalidate that layout.
+      primary.classList.add('medium-zoom-image--opened')
 
+      let host = document.body
       try {
         if (stage) {
-          current.__mz_view =
+          host = (current.__mz_view =
             current.__mz_view ||
             stage.mount({
               zoom,
               // Bound as a listener, it receives an event: that is a control.
               close: (reason, event) => void closeFor(reason, 'control', event),
               trigger: options.trigger,
-            })
-          current.__mz_view.enter(primary)
+            })).element
+        }
+        // Mounting the stage's content may have closed the zoom.
+        if (!current.__mz_cancelOpen) {
+          return
+        }
+        // A replaced scene keeps its backdrop, below the frames still on stage.
+        if (!previous) {
+          if (!zoomOptions.background) {
+            overlay.style.background = pageBackground()
+          }
+          host.appendChild(overlay)
+        }
+        host.appendChild(primary)
+        // The stage shows itself with the frame inside, so one layout covers both.
+        if (stage) {
+          current.__mz_view!.enter(primary)
         }
       } catch (error) {
         reject(error)
@@ -562,16 +581,6 @@ export const createEngine = (
       if (!current.__mz_cancelOpen) {
         return
       }
-      const host = stage ? current.__mz_view!.element : document.body
-      // A replaced scene keeps its backdrop, below the frames still on stage.
-      if (!previous) {
-        if (!zoomOptions.background) {
-          overlay.style.background = pageBackground()
-        }
-        host.appendChild(overlay)
-      }
-
-      host.appendChild(primary)
 
       frame = requestAnimationFrame(() => {
         document.body.classList.add('medium-zoom--opened')
@@ -588,7 +597,6 @@ export const createEngine = (
       } else {
         void primary.decode().then(hide, hide)
       }
-      primary.classList.add('medium-zoom-image--opened')
 
       const fit = (content: Frame, fill?: boolean) => {
         const margin = zoomOptions.margin!

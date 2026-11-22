@@ -31,7 +31,10 @@ export interface StageView {
    * `stepping` is true when the user moves on without pausing, as while holding an arrow key.
    */
   take(frames: readonly Frame[], source: ZoomTarget, stepping: boolean): void
-  /** A frame joined the host and is not positioned yet. */
+  /**
+   * A frame joined the host, after the backdrop, and is not positioned yet. The stage shows
+   * itself here, so the layout that showing forces also measures the frame.
+   */
   enter(frame: Frame): void
   /**
    * Frames are fitted. Return a cancellation when the stage presents them itself and

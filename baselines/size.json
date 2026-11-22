@@ -25,7 +25,7 @@
       "css": 233
     },
     "core + content": {
-      "js": 4034,
+      "js": 4035,
       "css": 233
     },
     "core + triggers": {
@@ -33,19 +33,19 @@
       "css": 233
     },
     "core + renderers": {
-      "js": 5355,
+      "js": 5348,
       "css": 405
     },
     "core + transitions": {
-      "js": 4176,
+      "js": 4175,
       "css": 233
     },
     "core + gallery": {
-      "js": 4500,
+      "js": 4501,
       "css": 1186
     },
     "everything composed": {
-      "js": 7036,
+      "js": 7039,
       "css": 1358
     },
     "stock gallery": {
@@ -64,13 +64,13 @@
     "dist/content/index.cjs": 251,
     "dist/triggers/index.mjs": 901,
     "dist/triggers/index.cjs": 893,
-    "dist/renderers/index.mjs": 1885,
-    "dist/renderers/index.cjs": 1889,
+    "dist/renderers/index.mjs": 1876,
+    "dist/renderers/index.cjs": 1882,
     "dist/renderers/style.css": 172,
     "dist/transitions/index.mjs": 628,
     "dist/transitions/index.cjs": 631,
     "dist/gallery/index.mjs": 5554,
-    "dist/gallery/index.cjs": 5560,
+    "dist/gallery/index.cjs": 5559,
     "dist/gallery/style.css": 953,
     "dist/gallery.css": 1135,
     "dist/compat/index.mjs": 3382,
@@ -96,8 +96,8 @@
     },
     "candidate": {
       "files": 65,
-      "tarball": 82118,
-      "unpacked": 357364
+      "tarball": 82117,
+      "unpacked": 357342
     }
   }
 }

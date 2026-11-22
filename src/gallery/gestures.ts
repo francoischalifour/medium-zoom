@@ -737,10 +737,13 @@ export function bindGalleryGestures({
     ;[x, y, k] = rest
     apply()
   }
+  // Follows the zoom's state rather than its events, which are listeners on every image.
   // Whatever replaced the image (keys, buttons or a swipe), the new one starts fitted.
-  const unsubscribe = gallery.subscribe(() => {
-    const { current } = gallery.getSnapshot()
-    if (current !== shown) {
+  const unsubscribe = zoom.subscribe(() => {
+    const { image: current, status } = zoom.getSnapshot()
+    if (status === 'closing' && !closing) {
+      closed()
+    } else if (current !== shown) {
       shown = current
       stop()
       drop()
@@ -785,7 +788,6 @@ export function bindGalleryGestures({
     }
   }
   addEventListener('resize', resized)
-  zoom.on('close', closed)
   let bound = true
   const unbind = () => {
     if (!bound) {
@@ -799,7 +801,6 @@ export function bindGalleryGestures({
     drop()
     unsubscribe()
     gallery.dispose()
-    zoom.off('close', closed)
     style.touchAction = touchAction
     style.userSelect = userSelect
     for (const [type, listener, capture] of listeners) {
