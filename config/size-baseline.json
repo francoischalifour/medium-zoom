@@ -13,56 +13,44 @@
       "css": 0
     },
     "core": {
-      "js": 4096,
+      "js": 4089,
       "css": 233
     },
-    "core + HD loader": {
-      "js": 4328,
+    "core + loaders": {
+      "js": 4324,
       "css": 233
     },
-    "core + container": {
-      "js": 4306,
+    "core + viewport": {
+      "js": 4292,
       "css": 233
     },
-    "core + HD loader + container": {
-      "js": 4537,
+    "core + content": {
+      "js": 4151,
       "css": 233
     },
-    "core + dialog": {
-      "js": 5325,
+    "core + triggers": {
+      "js": 4760,
+      "css": 233
+    },
+    "core + renderers": {
+      "js": 5317,
       "css": 404
     },
-    "core + dialog + template": {
-      "js": 5407,
-      "css": 404
+    "core + transitions": {
+      "js": 4293,
+      "css": 233
     },
-    "core + dialog + triggers": {
-      "js": 5963,
-      "css": 404
-    },
-    "core + dialog + gallery": {
-      "js": 5804,
-      "css": 404
-    },
-    "core + dialog + gallery + keyboard": {
-      "js": 6124,
-      "css": 404
-    },
-    "core + dialog + gallery + gestures": {
-      "js": 9212,
-      "css": 404
-    },
-    "core + dialog + gallery + custom transition": {
-      "js": 6036,
-      "css": 404
+    "core + gallery": {
+      "js": 4570,
+      "css": 1185
     },
     "everything composed": {
-      "js": 7164,
-      "css": 404
+      "js": 7011,
+      "css": 1356
     },
-    "stock gallery: HD loader + dialog + controls + slide + triggers": {
-      "js": 11161,
-      "css": 1131
+    "stock gallery": {
+      "js": 11084,
+      "css": 1356
     }
   },
   "artifacts": {
@@ -103,13 +91,13 @@
   "packages": {
     "release": {
       "files": 13,
-      "tarball": 27741,
-      "unpacked": 119816
+      "tarball": 27294,
+      "unpacked": 117720
     },
     "candidate": {
       "files": 65,
-      "tarball": 82545,
-      "unpacked": 365340
+      "tarball": 82043,
+      "unpacked": 363376
     }
   }
 }
