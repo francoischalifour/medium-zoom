@@ -1,5 +1,12 @@
-import { expect, type Page, test, type TestInfo } from '@playwright/test'
+import {
+  expect,
+  type Locator,
+  type Page,
+  test,
+  type TestInfo,
+} from '@playwright/test'
 
+import { fitBox } from '../../src/zoom/geometry'
 import { fingers, inputFor, type Point, throttle } from './fingers'
 import { addModernStyles, preparePage } from './helpers'
 
@@ -144,9 +151,9 @@ async function mount(page: Page, random: ReturnType<typeof generator>) {
               Number(style.opacity) > 0 &&
               box.width > 1 &&
               box.right > 0 &&
-              box.left < innerWidth &&
+              box.left < document.documentElement.clientWidth &&
               box.bottom > 0 &&
-              box.top < innerHeight
+              box.top < document.documentElement.clientHeight
             )
           })
           if (!shown) {
@@ -167,6 +174,62 @@ async function mount(page: Page, random: ReturnType<typeof generator>) {
   }, margin)
 }
 
+interface Fitted {
+  layout: { width: number; height: number }
+  natural: [number, number]
+  filled: boolean
+  box: { left: number; top: number; width: number; height: number }
+  window: [number, number]
+  stageTop: number
+  styles: string
+}
+
+/**
+ * Checks a fitted frame against the engine's own fit: the window without scrollbars, less
+ * the margin, never past the image's natural size unless presented at the full size's.
+ */
+function misfit({
+  layout,
+  natural,
+  filled,
+  box,
+  window,
+  stageTop,
+  styles,
+}: Fitted) {
+  const [clientWidth, clientHeight] = window
+  const bounds = {
+    left: margin,
+    top: margin,
+    width: clientWidth - margin * 2,
+    height: clientHeight - margin * 2,
+  }
+  const transform = fitBox(
+    { ...bounds, ...layout },
+    filled ? 0 : natural[0],
+    filled ? 0 : natural[1],
+    bounds
+  )
+  const scale = Number(transform?.match(/scale\(([^)]+)\)/)?.[1] ?? 1)
+  const problems: string[] = []
+  if (
+    Math.abs(box.width - layout.width * scale) > 1 ||
+    Math.abs(box.height - layout.height * scale) > 1
+  ) {
+    problems.push(
+      `frame ${Math.round(box.width)}×${Math.round(box.height)} not fitted to ${Math.round(layout.width * scale)}×${Math.round(layout.height * scale)} (${styles})`
+    )
+  }
+  const x = box.left + box.width / 2 - clientWidth / 2
+  const y = box.top + box.height / 2 - clientHeight / 2
+  if (Math.abs(x) > 1 || (Math.abs(y) > 1 && Math.abs(y - stageTop) > 1)) {
+    problems.push(
+      `frame ${Math.round(box.width)}×${Math.round(box.height)} off centre by ${Math.round(x)},${Math.round(y)} with the stage moved ${Math.round(stageTop)} (${styles})`
+    )
+  }
+  return problems
+}
+
 /** Waits until nothing moves, then lists what is wrong with the resting state. */
 async function settle(page: Page) {
   const resting = await page
@@ -181,8 +244,9 @@ async function settle(page: Page) {
         const state = window as unknown as { pose?: string; still?: number }
         const pose = [...open.querySelectorAll('img')]
           .map(image => {
+            // Exact: a spring's last frames move by less than a pixel.
             const { left, top, width } = image.getBoundingClientRect()
-            return `${Math.round(left)},${Math.round(top)},${Math.round(width)}`
+            return `${left},${top},${width}`
           })
           .join(' ')
         state.still = pose === state.pose ? (state.still ?? 0) + 1 : 0
@@ -206,8 +270,8 @@ async function settle(page: Page) {
       () => true,
       () => false
     )
-  return page.evaluate(
-    ({ resting, margin }) => {
+  const { problems, fitted } = await page.evaluate(
+    (resting): { problems: string[]; fitted?: Fitted } => {
       const open = document.querySelector('dialog')
       const moving = open
         ? [
@@ -246,13 +310,14 @@ async function settle(page: Page) {
         if (document.body.classList.contains('medium-zoom--opened')) {
           problems.push('body still marked open')
         }
-        if (document.documentElement.scrollWidth > innerWidth + 1) {
+        const root = document.documentElement
+        if (root.scrollWidth > root.clientWidth + 1) {
           problems.push('page scrolls sideways')
         }
-        return problems
+        return { problems }
       }
       if (!current) {
-        return [...problems, 'open without a current image']
+        return { problems: [...problems, 'open without a current image'] }
       }
       const index = images.indexOf(current)
       const alt = current.getAttribute('alt')
@@ -296,47 +361,8 @@ async function settle(page: Page) {
         problems.push(`focus on ${document.activeElement?.tagName}`)
       }
       if (!open.hasAttribute('data-medium-zoom-zoomed') && frames.length) {
-        const stage = open.getBoundingClientRect()
         const boxes = frames.map(frame => frame.getBoundingClientRect())
         const [box] = boxes
-        const width = stage.width - margin * 2
-        const height = stage.height - margin * 2
-        const left = box!.left - stage.left
-        const top = box!.top - stage.top
-        // An image smaller than the window is shown at its own size, never enlarged.
-        const media = frames[frames.length - 1]!
-        const natural =
-          Math.abs(box!.width - media.naturalWidth) <= 2 &&
-          Math.abs(box!.height - media.naturalHeight) <= 2
-        if (
-          box!.width > width + 1 ||
-          box!.height > height + 1 ||
-          (Math.abs(box!.width - width) > 2 &&
-            Math.abs(box!.height - height) > 2 &&
-            !natural)
-        ) {
-          problems.push(
-            `frame ${Math.round(box!.width)}×${Math.round(box!.height)} not fitted to ${width}×${height} (${frames.map(frame => `${frame.style.transform} | ${frame.style.translate} | ${frame.style.scale}`).join(' ; ')}; ${[...open.attributes].map(attribute => attribute.name).join(' ')})`
-          )
-        }
-        // Centred in the stage, or in the window for an image that entered after the stage
-        // started following the page's scroll.
-        const centred = (x: number, y: number, width: number, height: number) =>
-          Math.abs(x - (width - box!.width) / 2) <= 2 &&
-          Math.abs(y - (height - box!.height) / 2) <= 2
-        if (
-          !centred(left, top, stage.width, stage.height) &&
-          !centred(
-            box!.left,
-            box!.top,
-            document.documentElement.clientWidth,
-            document.documentElement.clientHeight
-          )
-        ) {
-          problems.push(
-            `frame ${Math.round(box!.width)}×${Math.round(box!.height)} off centre at ${Math.round(left)},${Math.round(top)} in ${Math.round(stage.width)}×${Math.round(stage.height)} (${frames.map(frame => `${frame.style.translate} | ${frame.style.scale}`).join(' ; ')})`
-          )
-        }
         if (
           boxes.some(
             other =>
@@ -346,11 +372,40 @@ async function settle(page: Page) {
         ) {
           problems.push('frame and its copy disagree')
         }
+        const primary = frames[0]!
+        const { width, height } = getComputedStyle(primary)
+        const { clientWidth, clientHeight } = document.documentElement
+        return {
+          problems,
+          fitted: {
+            layout: { width: parseFloat(width), height: parseFloat(height) },
+            natural: [primary.naturalWidth, primary.naturalHeight],
+            // loadHdImage answers at once without a full-size source, so only then is
+            // the frame fitted to its own size rather than presented at the full size's.
+            filled: current.hasAttribute('data-zoom-src'),
+            box: {
+              left: box!.left,
+              top: box!.top,
+              width: box!.width,
+              height: box!.height,
+            },
+            window: [clientWidth, clientHeight],
+            // Scroll-follow translates the whole stage, frames fitted before it included.
+            stageTop: open.getBoundingClientRect().top,
+            styles: frames
+              .map(
+                frame =>
+                  `${frame.style.transform} | ${frame.style.translate} | ${frame.style.scale}`
+              )
+              .join(' ; '),
+          },
+        }
       }
-      return problems
+      return { problems }
     },
-    { resting, margin }
+    resting
   )
+  return fitted ? [...problems, ...misfit(fitted)] : problems
 }
 
 type Action = [name: string, run: () => Promise<unknown>]
@@ -396,11 +451,15 @@ function actions(
     })
     await input.up()
   }
-  const button = (name: string) =>
-    page
-      .getByRole('button', { name })
-      .click({ force: true, timeout: 1_000 })
-      .catch(() => {})
+  // Phones tap where desktops click.
+  const tap = (x: number, y: number) =>
+    mobile ? page.touchscreen.tap(x, y) : page.mouse.click(x, y)
+  const press = (target: Locator) =>
+    (mobile
+      ? target.tap({ force: true, timeout: 1_000 })
+      : target.click({ force: true, timeout: 1_000 })
+    ).catch(() => {})
+  const button = (name: string) => press(page.getByRole('button', { name }))
   const key = (name: string) => page.keyboard.press(name)
   const hold = async (name: string) => {
     const until = Date.now() + random.between(150, 1_200)
@@ -419,7 +478,7 @@ function actions(
           .locator('body > img')
           .nth(Math.floor(random.next() * photos.length))
         await image.scrollIntoViewIfNeeded()
-        await image.click({ timeout: 1_000 }).catch(() => {})
+        await press(image)
       },
     ],
     [
@@ -465,7 +524,7 @@ function actions(
       'tap the image',
       async () => {
         const [x, y] = await centre()
-        await page.mouse.click(x, y)
+        await tap(x, y)
       },
     ],
     [
@@ -473,9 +532,9 @@ function actions(
       'double tap the image',
       async () => {
         const [x, y] = await centre()
-        await page.mouse.click(x, y)
+        await tap(x, y)
         await page.waitForTimeout(80)
-        await page.mouse.click(x, y)
+        await tap(x, y)
       },
     ],
     [2, 'zoom in', () => key('+')],
@@ -509,14 +568,15 @@ function actions(
         await page.keyboard.up('Control')
       },
     ],
+    // The page scrolls under the zoom with a wheel; touch drags never scroll it.
     [
-      1,
-      'scroll the page',
-      () =>
-        page.evaluate(
-          dy => scrollBy(0, dy),
-          Math.round(random.between(-30, 90))
-        ),
+      mobile ? 0 : 1,
+      'wheel',
+      async () => {
+        const [x, y] = await centre()
+        await page.mouse.move(x, y)
+        await page.mouse.wheel(0, Math.round(random.between(-30, 90)))
+      },
     ],
     [1, 'Escape', () => key('Escape')],
     [
@@ -524,7 +584,7 @@ function actions(
       'click the backdrop',
       async () => {
         const size = page.viewportSize()!
-        await page.mouse.click(4, size.height - 4)
+        await tap(4, size.height - 4)
       },
     ],
     [
