@@ -11,7 +11,7 @@ while IFS= read -r file; do
     examples/vitepress/docs/*.md) echo library && exit ;;
     *.md | .claude/* | .codex/*) ;;
     # Specs named website* test the site's pages: CI runs them as the website suite.
-    website/* | tests/analytics/* | tests/browser/website* | config/wrangler.jsonc)
+    website/* | tests/analytics/* | tests/browser/website*)
       scope=website ;;
     # Anything else, including bun.lock, can affect the library.
     *) echo library && exit ;;
