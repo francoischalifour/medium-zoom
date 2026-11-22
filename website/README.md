@@ -63,6 +63,10 @@ bun run test:browser website
 
 `bun run typecheck` compiles authored JavaScript and TSX snippets against the public API. The website suites check rendered pages, navigation, links, metadata, and live examples in Chromium, Firefox, and WebKit. To add a page, see [Add a page](#add-a-page).
 
+## Deploy
+
+Cloudflare Workers Builds deploys `main`: its build command runs `bun install --frozen-lockfile && bun run build:website`, and its deploy command runs `bun run deploy:website`. The dashboard names only these scripts, so the scripts say where the Worker's config lives. Keep both names when changing them.
+
 ## Analytics
 
 Set `VITE_ALTERTABLE_API_KEY` in `website/.env.local` (see `website/.env.example`) or the build environment to a public Altertable browser ingestion key. Vite embeds this value in browser code, so never use an admin credential.
