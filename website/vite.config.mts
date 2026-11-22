@@ -68,7 +68,6 @@ export default defineConfig(({ command }) =>
         ),
       },
     },
-    envDir: fileURLToPath(new URL('../', import.meta.url)),
     root: fileURLToPath(new URL('./', import.meta.url)),
     build: {
       manifest: true,

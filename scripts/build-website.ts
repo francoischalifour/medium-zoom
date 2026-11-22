@@ -11,7 +11,8 @@ const run = async (...command: string[]) => {
 
 await run('bun', 'scripts/build-registry.ts')
 // The site build empties website/dist; stories and examples then add their folders.
-await run('bun', 'run', '--cwd', 'website', 'build')
+await run('bunx', 'vite', 'build', 'website')
+await run('bun', 'scripts/prerender-website.ts')
 await Promise.all([
   run('bunx', 'vite', 'build', 'stories'),
   run('bun', 'scripts/build-examples.ts'),

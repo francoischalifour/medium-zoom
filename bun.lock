@@ -5,23 +5,31 @@
     "": {
       "name": "medium-zoom",
       "devDependencies": {
+        "@altertable/altertable-js": "1.5.0",
         "@arethetypeswrong/cli": "0.18.5",
         "@axe-core/playwright": "4.14.0",
         "@babel/core": "8.0.10",
         "@babel/preset-env": "8.0.7",
+        "@fontsource-variable/geist": "5.3.0",
+        "@fontsource/ibm-plex-mono": "5.3.0",
         "@mdx-js/rollup": "3.1.1",
         "@pierre/highlights": "0.3.0",
         "@playwright/test": "1.64.1",
         "@types/bun": "1.4.5",
         "@types/mdast": "4.0.4",
         "@types/node": "26.6.6",
+        "@types/react": "19.3.0",
+        "@types/react-dom": "19.3.0",
         "@vitejs/plugin-react": "6.1.2",
         "acorn": "8.19.0",
         "lightningcss": "1.33.0",
         "medium-zoom-baseline": "npm:medium-zoom@1.1.1",
+        "minisearch": "7.2.0",
         "oxlint": "1.90.0",
         "oxlint-tsgolint": "7.0.2005",
         "publint": "0.3.25",
+        "react": "19.3.1",
+        "react-dom": "19.3.1",
         "remark-gfm": "4.0.1",
         "remark-mdx": "3.1.1",
         "remark-parse": "11.0.0",
@@ -217,23 +225,6 @@
         "next": "16.4.6",
         "react": "19.3.1",
         "react-dom": "19.3.1",
-      },
-    },
-    "website": {
-      "name": "medium-zoom-website",
-      "version": "1.0.0",
-      "dependencies": {
-        "@altertable/altertable-js": "1.5.0",
-        "@fontsource-variable/geist": "5.3.0",
-        "@fontsource/ibm-plex-mono": "5.3.0",
-        "medium-zoom": "file:..",
-        "minisearch": "7.2.0",
-        "react": "19.3.1",
-        "react-dom": "19.3.1",
-      },
-      "devDependencies": {
-        "@types/react": "19.3.0",
-        "@types/react-dom": "19.3.0",
       },
     },
   },
@@ -1723,8 +1714,6 @@
 
     "medium-zoom-baseline": ["medium-zoom@1.1.1", "", {}, "sha512-jU/jkTbPGhdSRUNWgBbuT9BWmeifLxORhifi19LX1ExlQerSxSsLW+r6/7aUWNE/HjmZGPEJr/kPeYBAF1EXTQ=="],
 
-    "medium-zoom-website": ["medium-zoom-website@workspace:website"],
-
     "micromark": ["micromark@4.0.3", "", { "dependencies": { "@types/debug": "^4.0.0", "debug": "^4.0.0", "decode-named-character-reference": "^1.0.0", "devlop": "^1.0.0", "micromark-core-commonmark": "^2.0.0", "micromark-factory-space": "^2.0.0", "micromark-util-character": "^2.0.0", "micromark-util-chunked": "^2.0.0", "micromark-util-combine-extensions": "^2.0.0", "micromark-util-decode-numeric-character-reference": "^2.0.0", "micromark-util-edit-map": "^1.0.0", "micromark-util-encode": "^2.0.0", "micromark-util-normalize-identifier": "^2.0.0", "micromark-util-resolve-all": "^2.0.0", "micromark-util-sanitize-uri": "^2.0.0", "micromark-util-subtokenize": "^2.0.0", "micromark-util-symbol": "^2.0.0", "micromark-util-types": "^2.0.0" } }, "sha512-oGYfQzHSG5dOMovQcJ3fyTmZlWAWpi0XA0sJwJs+i6OT88o1+Jtw/8z0CmdowSLxGhhFK89rQ/oXph/wN02PNw=="],
 
     "micromark-core-commonmark": ["micromark-core-commonmark@2.0.4", "", { "dependencies": { "decode-named-character-reference": "^1.0.0", "devlop": "^1.0.0", "micromark-factory-destination": "^2.0.0", "micromark-factory-label": "^2.0.0", "micromark-factory-space": "^2.1.0", "micromark-factory-title": "^2.0.0", "micromark-factory-whitespace": "^2.0.0", "micromark-util-character": "^2.0.0", "micromark-util-chunked": "^2.0.0", "micromark-util-classify-character": "^2.0.0", "micromark-util-edit-map": "^1.0.0", "micromark-util-html-tag-name": "^2.0.0", "micromark-util-normalize-identifier": "^2.0.0", "micromark-util-resolve-all": "^2.0.0", "micromark-util-subtokenize": "^2.0.0", "micromark-util-symbol": "^2.0.0", "micromark-util-types": "^2.0.3" } }, "sha512-wxEeE8v8XVvOrxn1TZj74qYhAtTQsSqufHVS3uNVyT1MupXxhyaHk8/9xDNPh9BmL77QNDgWTkZ3RsYHB2ry7w=="],
@@ -2494,8 +2483,6 @@
     "mdast-util-mdx-jsx/@types/unist": ["@types/unist@3.0.3", "", {}, "sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q=="],
 
     "mdast-util-to-markdown/@types/unist": ["@types/unist@3.0.3", "", {}, "sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q=="],
-
-    "medium-zoom-website/medium-zoom": ["medium-zoom@root:", {}],
 
     "micromark-util-events-to-acorn/@types/unist": ["@types/unist@3.0.3", "", {}, "sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q=="],
 

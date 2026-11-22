@@ -13,7 +13,7 @@
   },
   "include": [
     "../.cache/worker-types.d.ts",
-    "../website/worker.ts",
+    "./worker.ts",
     "../tests/unit/registry-downloads.test.mts"
   ]
 }
