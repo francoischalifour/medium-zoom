@@ -1,8 +1,8 @@
 import type { ZoomContent } from 'medium-zoom/core'
 
-import { removeNode, resolveElement } from './dom'
-import type { LegacyContent } from './engine'
-import type { ZoomTarget } from './frame'
+import { removeNode, resolveElement } from '@/zoom/dom'
+import type { LegacyContent } from '@/zoom/engine'
+import type { ZoomTarget } from '@/zoom/frame'
 
 export interface TemplateOptions {
   /**

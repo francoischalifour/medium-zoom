@@ -1,7 +1,7 @@
 import type { ZoomContent } from 'medium-zoom/core'
 
-import { createGallery } from './controller'
-import { elementsWithOwnKeys, isGalleryKey } from './keyboard'
+import { createGallery } from '@/gallery/controller'
+import { elementsWithOwnKeys, isGalleryKey } from '@/gallery/keyboard'
 
 /**
  * What `bindGalleryGestures()` binds to: the view a `ZoomContent` receives will do. Aborting

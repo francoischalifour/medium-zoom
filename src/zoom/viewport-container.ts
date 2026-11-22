@@ -5,8 +5,7 @@ import type {
 } from 'medium-zoom/core'
 
 import { assign } from '#platform'
-
-import { isNode, resolveElement } from './dom'
+import { isNode, resolveElement } from '@/zoom/dom'
 
 /**
  * Explicit bounds to fit the zoomed image in, in viewport pixels. `width` and `height`

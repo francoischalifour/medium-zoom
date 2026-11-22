@@ -162,7 +162,7 @@ function stylesheet(profile: Profile): TsdownPlugin {
   return {
     name: 'medium-zoom-stylesheet',
     resolveId(source) {
-      if (source === '../zoom/medium-zoom.css') {
+      if (source === '@/zoom/medium-zoom.css') {
         return '\0medium-zoom-stylesheet'
       }
     },
@@ -325,6 +325,7 @@ function browserBundle(
     tsconfig: false,
     target: profiles[profile].target,
     alias: {
+      '@': fileURLToPath(new URL('../src', import.meta.url)),
       '#platform': fileURLToPath(
         new URL(`../src/platform/${profile}.ts`, import.meta.url)
       ),

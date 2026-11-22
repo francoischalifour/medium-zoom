@@ -1,8 +1,8 @@
 import type { ZoomContent } from 'medium-zoom/core'
 
-import { createGallery } from './controller'
-import { bindGalleryGestures } from './gestures'
-import { bindGalleryKeyboard } from './keyboard'
+import { createGallery } from '@/gallery/controller'
+import { bindGalleryGestures } from '@/gallery/gestures'
+import { bindGalleryKeyboard } from '@/gallery/keyboard'
 
 /** Options of `galleryControls()`. Every label defaults to English. */
 export interface GalleryControlsOptions {

@@ -24,6 +24,22 @@ export default defineConfig({
       },
     },
     {
+      files: ['src/**'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                regex: '^\\.\\.?(/|$)',
+                message: 'Use an absolute `@/` import.',
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
       // Examples are code to copy, in their own style: lint them for correctness only.
       files: ['examples/**'],
       rules: { curly: 'off', 'typescript/no-floating-promises': 'off' },

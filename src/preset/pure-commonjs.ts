@@ -1,1 +1,1 @@
-export { default } from './medium-zoom'
+export { default } from '@/preset/medium-zoom'

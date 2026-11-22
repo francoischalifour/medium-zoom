@@ -60,12 +60,16 @@ export default defineConfig(({ command }) =>
               ),
             }
           : {}),
+        // Before the library's `@/` source alias, which would otherwise capture it.
         '@/components/ui/image-zoom': fileURLToPath(
           new URL(
             '../examples/shadcn/src/components/ui/image-zoom.tsx',
             import.meta.url
           )
         ),
+        ...(command === 'serve'
+          ? { '@': fileURLToPath(new URL('../src', import.meta.url)) }
+          : {}),
       },
     },
     root: fileURLToPath(new URL('./', import.meta.url)),

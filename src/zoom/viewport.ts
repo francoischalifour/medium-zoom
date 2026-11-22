@@ -1,1 +1,1 @@
-export { containerBounds, type ZoomContainer } from './viewport-container'
+export { containerBounds, type ZoomContainer } from '@/zoom/viewport-container'

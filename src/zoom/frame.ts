@@ -1,6 +1,5 @@
 import { assign, getScrollX, getScrollY } from '#platform'
-
-import { fitBox, type ZoomBounds } from './geometry'
+import { fitBox, type ZoomBounds } from '@/zoom/geometry'
 
 declare const __PRESET__: boolean
 

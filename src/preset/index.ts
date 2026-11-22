@@ -1,6 +1,6 @@
-import mediumZoom from './medium-zoom'
+import mediumZoom from '@/preset/medium-zoom'
 
-import '../zoom/medium-zoom.css'
+import '@/zoom/medium-zoom.css'
 
 export default mediumZoom
 
@@ -10,4 +10,4 @@ export type {
   ZoomSelector,
   ZoomContainer,
   ZoomOpenOptions,
-} from './medium-zoom'
+} from '@/preset/medium-zoom'
