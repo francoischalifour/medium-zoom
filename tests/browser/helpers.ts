@@ -56,13 +56,13 @@ interface PackageOptions {
 }
 
 interface CandidateEntries {
-  core: typeof import('../../src/zoom')
-  loaders: typeof import('../../src/zoom/hd-image')
-  viewport: typeof import('../../src/zoom/viewport')
-  content: typeof import('../../src/zoom/content')
-  triggers: typeof import('../../src/zoom/triggers')
-  renderers: typeof import('../../src/zoom/dialog')
-  transitions: typeof import('../../src/gallery/transition')
+  core: typeof import('../../src/core')
+  loaders: typeof import('../../src/loaders')
+  viewport: typeof import('../../src/viewport')
+  content: typeof import('../../src/content')
+  triggers: typeof import('../../src/triggers')
+  renderers: typeof import('../../src/renderers')
+  transitions: typeof import('../../src/transitions')
   gallery: typeof import('../../src/gallery')
 }
 
@@ -72,9 +72,9 @@ declare global {
       name: Name
     ): Promise<CandidateEntries[Name]>
     /** The zoom under test in strategy specs. */
-    coreZoom: import('../../src/zoom').Zoom
+    coreZoom: import('../../src/core').Zoom
     /** The zoom under test in composed-entry specs: `createZoom()` with a renderer. */
-    modalZoom: import('../../src/zoom').ModalZoom
+    modalZoom: import('../../src/core').ModalZoom
   }
 }
 

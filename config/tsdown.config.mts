@@ -314,8 +314,7 @@ function browserBundle(
   fileName: string,
   format: Format,
   minify = true,
-  profile: Profile = defaultProfile,
-  preset = true
+  profile: Profile = defaultProfile
 ): UserConfig {
   return {
     cwd: fileURLToPath(new URL('../', import.meta.url)),
@@ -333,8 +332,7 @@ function browserBundle(
     dts: false,
     clean: false,
     unbundle: false,
-    // Fixed presets compile their capability checks away; composed core keeps them.
-    define: { __TEST__: 'false', __PRESET__: String(preset) },
+    define: { __TEST__: 'false' },
     // Tsdown applies the release banner after renderChunk via Rolldown postBanner.
     banner,
     failOnWarn: true,
@@ -366,8 +364,7 @@ function entryBundle(
       `${name}/index.${moduleExtensions[format]}`,
       format,
       true,
-      profile,
-      full
+      profile
     ),
     entry: { [`${name}/index`]: source },
     // Declarations reference shared contracts from their owning entry instead of copying them.

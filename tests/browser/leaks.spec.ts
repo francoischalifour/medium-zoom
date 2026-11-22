@@ -58,7 +58,7 @@ async function fixture(page: Page) {
     const { createGallery, bindGalleryKeyboard, galleryControls } =
       await window.loadEntry('gallery')
     const images = () => [...document.querySelectorAll('img')]
-    const settle = (zoom: import('../../src/zoom').ModalZoom) =>
+    const settle = (zoom: import('../../src/core').ModalZoom) =>
       new Promise<void>(resolve => {
         if (zoom.getSnapshot().status === 'closed') {
           resolve()

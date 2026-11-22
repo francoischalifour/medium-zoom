@@ -1,30 +1,24 @@
 import {
-  type CoreZoomOptions,
   createEngine,
   type Group,
   type ModalOpenOptions,
-  type Stage,
   type ZoomCloseOptions,
   type ZoomCloseReason,
   type ZoomEvent,
   type ZoomEventMap,
-  type ZoomInstance,
-  type ZoomLoader,
-  type ZoomSelector,
   type ZoomState,
-  type ZoomViewport,
-} from '@/zoom/engine'
-import { type Frame, isImage } from '@/zoom/frame'
-
-export type {
+} from '@/core/engine'
+import type { Stage } from '@/core/stage'
+import type {
   CoreZoomOptions,
   ZoomInstance,
-  ModalOpenOptions,
-  ZoomSelector,
-  ZoomOpenOptions,
   ZoomLoader,
-  ZoomLoadContext,
+  ZoomSelector,
   ZoomViewport,
+} from '@/zoom/types'
+
+export type {
+  ModalOpenOptions,
   ZoomCloseReason,
   ZoomCloseEventMap,
   ZoomCloseDetail,
@@ -33,8 +27,17 @@ export type {
   ZoomEventMap,
   ZoomState,
   ZoomStatus,
-} from '@/zoom/engine'
+} from '@/core/engine'
 export type { ZoomBounds } from '@/zoom/geometry'
+export type {
+  CoreZoomOptions,
+  ZoomInstance,
+  ZoomSelector,
+  ZoomOpenOptions,
+  ZoomLoader,
+  ZoomLoadContext,
+  ZoomViewport,
+} from '@/zoom/types'
 
 declare const rendererType: unique symbol
 /**
@@ -201,16 +204,6 @@ export interface CreateZoomOptions extends CoreZoomOptions {
   signal?: AbortSignal
 }
 
-// Application loaders return bare, detached images: give them the frame's presentation.
-const adoptMedia = (frame: Frame, media: HTMLImageElement): void => {
-  if (media.isConnected || !isImage(media)) {
-    throw new TypeError('ready(): detached image')
-  }
-  media.style.cssText = frame.style.cssText
-  // A loader may already have copied them, as loadHdImage does: add each class once.
-  media.classList.add(...frame.classList)
-}
-
 /**
  * Creates a zoom from explicit strategies. Unlike the `medium-zoom` default export, it does
  * not open on image clicks: call `open()`, or bind `bindZoomTriggers()` from `medium-zoom/triggers`.
@@ -237,14 +230,14 @@ export function createZoom(
     ...options
   }: CreateZoomOptions = {}
 ): Zoom {
-  const zoom = createEngine<CoreZoomOptions>(
+  const zoom = createEngine(
+    signal?.aborted ? null : images,
+    options,
     loader,
     viewport,
-    renderer as unknown as Stage,
-    undefined,
-    adoptMedia,
+    renderer as Stage | undefined,
     (group || undefined) as Group | undefined
-  )(signal?.aborted ? null : images, options) as Zoom
+  ) as unknown as Zoom
   signal?.addEventListener('abort', () => zoom.detach(), { once: true })
   return zoom
 }

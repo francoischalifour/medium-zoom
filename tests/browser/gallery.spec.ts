@@ -11,9 +11,9 @@ import {
 declare global {
   interface Window {
     createGalleryZoom(
-      selector?: import('../../src/zoom').ZoomSelector,
+      selector?: import('../../src/core').ZoomSelector,
       options?: import('../../src/preset/medium-zoom').ZoomOptions
-    ): import('../../src/zoom').ModalZoom
+    ): import('../../src/core').ModalZoom
   }
 }
 
@@ -509,7 +509,7 @@ test('detaching after pointer navigation hands the group to a fresh zoom', async
     const { createZoom } = await window.loadEntry('core')
     const { galleryControls } = await window.loadEntry('gallery')
     const { dialog } = await window.loadEntry('renderers')
-    const factory = (selector: import('../../src/zoom/engine').ZoomSelector) =>
+    const factory = (selector: import('../../src/zoom/types').ZoomSelector) =>
       createZoom(selector, {
         renderer: dialog({ content: galleryControls() }),
       })

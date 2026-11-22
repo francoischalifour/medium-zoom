@@ -1,8 +1,6 @@
 import { assign, getScrollX, getScrollY } from '#platform'
 import { fitBox, type ZoomBounds } from '@/zoom/geometry'
 
-declare const __PRESET__: boolean
-
 export type ZoomTarget = HTMLElement | SVGElement
 
 /**
@@ -51,8 +49,7 @@ export function fitImage(
   fill?: boolean
 ): string | null {
   // SVG files have no reliable intrinsic size: let them fill the viewport.
-  const vector =
-    (!__PRESET__ && fill) || isSvgSource(frame.currentSrc || frame.src)
+  const vector = fill || isSvgSource(frame.currentSrc || frame.src)
   return fitBox(
     frame.getBoundingClientRect(),
     vector ? 0 : frame.naturalWidth,

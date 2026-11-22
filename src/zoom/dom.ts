@@ -1,5 +1,5 @@
-import type { ZoomSelector } from '@/zoom/engine'
 import { isImage, type ZoomTarget } from '@/zoom/frame'
+import type { ZoomSelector } from '@/zoom/types'
 
 export const isNode = (selector: unknown): selector is ZoomTarget =>
   !!selector && (selector as Node).nodeType === 1
@@ -53,18 +53,6 @@ export const createOverlay = (
   overlay.style.background = background || ''
 
   return overlay
-}
-
-/** Computed on each call, so it follows whatever sets the page's theme. */
-export const pageBackground = (): string => {
-  for (const node of [document.body, document.documentElement]) {
-    const color = getComputedStyle(node).backgroundColor
-    // A transparent background computes to `rgba(…, 0)`: the color comes from further up.
-    if (!color.endsWith(', 0)')) {
-      return color
-    }
-  }
-  return 'Canvas'
 }
 
 export function removeNode(node: Node): void {

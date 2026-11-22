@@ -19,7 +19,7 @@
       "medium-zoom": ["../src/preset/medium-zoom.ts"],
       "medium-zoom/dist/pure": ["../src/preset/medium-zoom.ts"],
       "medium-zoom/dist/pure/index.js": ["../src/preset/medium-zoom.ts"],
-      "medium-zoom/core": ["../src/zoom/index.ts"],
+      "medium-zoom/core": ["../src/core/index.ts"],
       "#platform": ["../src/platform/compat.ts"]
     },
     "skipLibCheck": true,

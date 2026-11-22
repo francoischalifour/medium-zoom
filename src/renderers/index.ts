@@ -1,6 +1,6 @@
 import type { ModalZoom, ZoomContent, ZoomRenderer } from 'medium-zoom/core'
 
-import type { Stage } from '@/zoom/engine'
+import type { Stage } from '@/core/stage'
 import type { Frame } from '@/zoom/frame'
 
 /** A frame on stage with the transform that fits it. */
@@ -122,25 +122,6 @@ export function dialog({
         element.style.translate = `0 ${scrolled - scrollY}px`
         overlay!.style.translate = `0 ${scrollY - scrolled}px`
       }
-      // The engine appends its backdrop after mounting the stage.
-      queueMicrotask(() => {
-        overlay = element.querySelector('.medium-zoom-overlay')
-        if (disposed || !overlay) {
-          return
-        }
-        overlay.dataset.slot = 'medium-zoom-overlay'
-        addEventListener('scroll', follow, { passive: true, signal })
-        // Controls take the backdrop's color scheme, so light-dark() styles contrast with
-        // what is actually behind them, however the page sets its theme. A mostly
-        // see-through backdrop keeps the page's scheme.
-        const color = getComputedStyle(overlay).backgroundColor
-        const [red, green, blue, alpha = 1] =
-          (color.startsWith('rgb') && color.match(/[\d.]+/g)!.map(Number)) || []
-        if (alpha >= 0.5) {
-          element.style.colorScheme =
-            red! * 0.3 + green! * 0.6 + blue! * 0.1 < 128 ? 'dark' : 'light'
-        }
-      })
       element.addEventListener('submit', event => {
         const form = event.target as HTMLFormElement
         const submitter = (event as SubmitEvent)
@@ -168,7 +149,6 @@ export function dialog({
       let cleanup: void | (() => void) = undefined
       try {
         cleanup = content?.({ element, zoom: zoom as ModalZoom, close, signal })
-        element.showModal()
       } catch (error) {
         disposed = true
         try {
@@ -235,6 +215,26 @@ export function dialog({
           }
           describe(frame)
           element.setAttribute('aria-busy', 'true')
+          if (!element.open) {
+            // Shown with the backdrop and the frame inside: the layout that focusing forces
+            // is the one the engine fits the frame from.
+            element.showModal()
+            overlay = element.querySelector('.medium-zoom-overlay')!
+            // Controls take the backdrop's color scheme, so light-dark() styles contrast with
+            // what is actually behind them, however the page sets its theme. A mostly
+            // see-through backdrop keeps the page's scheme.
+            const color = getComputedStyle(overlay).backgroundColor
+            const [red, green, blue, alpha = 1] =
+              (color.startsWith('rgb') &&
+                color.match(/[\d.]+/g)!.map(Number)) ||
+              []
+            if (alpha >= 0.5) {
+              element.style.colorScheme =
+                red! * 0.3 + green! * 0.6 + blue! * 0.1 < 128 ? 'dark' : 'light'
+            }
+            overlay.dataset.slot = 'medium-zoom-overlay'
+            addEventListener('scroll', follow, { passive: true, signal })
+          }
         },
         present(frames, transform, done) {
           if (frames.length > 1) {
@@ -278,7 +278,7 @@ export function dialog({
           // With nothing visibly leaving, the effect would fade in from an empty backdrop:
           // show the next image at once instead.
           if (transform && transition && !stepped && leaving.length) {
-            const images = zoom.getImages()
+            const { images } = modal.getSnapshot()
             cancel = transition(
               {
                 outgoing: leaving,
