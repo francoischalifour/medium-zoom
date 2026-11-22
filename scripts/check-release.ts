@@ -1,6 +1,6 @@
 /**
  * The released package's built files, byte for byte, against the digests in
- * `config/release-digests.json`. Changes to the engine, the build or its dependencies
+ * `baselines/release.json`. Changes to the engine, the build or its dependencies
  * must leave the published v1 files alone unless the change is meant for v1.
  *
  *   bun run check:release                 Fail when a released file differs.
@@ -15,7 +15,7 @@ import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
-const digestsPath = 'config/release-digests.json'
+const digestsPath = 'baselines/release.json'
 const manifest = JSON.parse(readFileSync('package.json', 'utf8'))
 const files: string[] = manifest.files.filter((file: string) =>
   file.startsWith('dist/')

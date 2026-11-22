@@ -1,7 +1,7 @@
 /**
  * Runtime benchmark: the main-thread work that fixed workloads cost in Chromium, for the
  * compat and modern presets and the stock gallery, compared with
- * `config/bench-baseline.json`.
+ * `baselines/bench.json`.
  *
  *   bun run bench                 Print every workload and fail when a count grows.
  *   bun run bench --markdown      Print the workloads that changed, for a pull request.
@@ -21,7 +21,7 @@ import { type CDPSession, chromium, devices, type Page } from '@playwright/test'
 
 import { baselineSource, markdownTable, table } from './size-report'
 
-const baselinePath = 'config/bench-baseline.json'
+const baselinePath = 'baselines/bench.json'
 const updating = process.argv.includes('--update')
 const markdown = process.argv.includes('--markdown')
 const grep = process.argv.includes('--grep')

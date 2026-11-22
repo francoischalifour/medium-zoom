@@ -43,11 +43,11 @@ Browser suites need `bun run build:website && bun run test:examples` first.
 
 ## Measure
 
-| Command                 | Compares with                                            |
-| ----------------------- | -------------------------------------------------------- |
-| `bun run size`          | `config/size-baseline.json` and `config/size.config.mts` |
-| `bun run bench`         | `config/bench-baseline.json`                             |
-| `bun run check:release` | `config/release-digests.json`                            |
+| Command                 | Compares with                                      |
+| ----------------------- | -------------------------------------------------- |
+| `bun run size`          | `baselines/size.json` and `config/size.config.mts` |
+| `bun run bench`         | `baselines/bench.json`                             |
+| `bun run check:release` | `baselines/release.json`                           |
 
 Add `--update` to record an intended change. Add `--markdown` to `size` or `bench` for tables to paste in a pull request, and `--diff origin/main` to `check:release` to see what changed in the released files.
 

@@ -47,7 +47,7 @@ interface Baseline {
 }
 
 const baselinePath = fileURLToPath(
-  new URL('../config/size-baseline.json', import.meta.url)
+  new URL('../baselines/size.json', import.meta.url)
 )
 const baseline: Baseline = JSON.parse(readFileSync(baselinePath, 'utf8'))
 const updating = process.argv.includes('--update')
@@ -246,7 +246,7 @@ const ratioRows = ratios.map(({ consumer, reference, maxRatio }) => {
     ],
   }
 })
-const source = baselineSource('config/size-baseline.json')
+const source = baselineSource('baselines/size.json')
 
 if (updating) {
   const next: Baseline = {
@@ -259,7 +259,7 @@ if (updating) {
   }
   writeFileSync(baselinePath, `${JSON.stringify(next, null, 2)}\n`)
   console.log(
-    'Recorded the size baseline in config/size-baseline.json. Commit it with the change.'
+    'Recorded the size baseline in baselines/size.json. Commit it with the change.'
   )
 } else if (markdown) {
   const consumerRows = Object.entries(consumers).flatMap(([name, sizes]) => {
