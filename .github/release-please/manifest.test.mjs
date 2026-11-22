@@ -28,7 +28,7 @@ const websiteCommits = [
       'tests/browser/website-docs.spec.ts',
       'tests/server.ts',
       'scripts/prerender-website.ts',
-      'config/vite.website.config.mts',
+      'website/vite.config.mts',
     ],
   },
   {
@@ -75,7 +75,7 @@ async function build(commits) {
   return (await loadManifest(github)).buildPullRequests()
 }
 
-test('website-only history does not propose a library release', async () => {
+void test('website-only history does not propose a library release', async () => {
   assert.deepEqual(await build(websiteCommits), [])
 })
 
@@ -88,7 +88,7 @@ for (const [message, version] of [
     `${major + 1}.0.0`,
   ],
 ]) {
-  test(`mixed history preserves library release: ${message.split('\n')[0]}`, async () => {
+  void test(`mixed history preserves library release: ${message.split('\n')[0]}`, async () => {
     const [release] = await build([...websiteCommits, commit(message)])
     assert.equal(release.version.toString(), version)
     const changelog = release.updates.find(
@@ -114,7 +114,7 @@ for (const [message, version] of [
   })
 }
 
-test('library features remain eligible when their files are under website/', async () => {
+void test('library features remain eligible when their files are under website/', async () => {
   const [release] = await build([
     commit('feat: add library integration', ['website/src/demo.tsx']),
   ])

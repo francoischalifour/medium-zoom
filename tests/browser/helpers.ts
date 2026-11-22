@@ -7,6 +7,12 @@ export const expectNear = (actual: number, expected: number) =>
     `${actual} is within a pixel of ${expected}`
   ).toBeLessThanOrEqual(1)
 
+/** Boxes, as `[left, top, width, height]` or any same-length list, agree within a pixel. */
+export const expectSameBox = (actual: number[], expected: number[]) => {
+  expect(actual).toHaveLength(expected.length)
+  actual.forEach((value, index) => expectNear(value, expected[index]!))
+}
+
 interface Bundle {
   format: 'esm' | 'umd'
   file: string

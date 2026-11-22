@@ -2,14 +2,15 @@
  * Size benchmark: one report, two views.
  *
  *   bun run size                 Print both tables and fail when a budget is exceeded.
- *   bun run size:baseline        Record the current sizes as the comparison baseline.
+ *   bun run size --markdown      Print the sizes that changed, as tables for a pull request.
+ *   bun run size --update        Record the current sizes as the comparison baseline.
  *
  * Consumers are what a bundler ships for a set of imports: the built entries are
  * rebundled and minified together, so shared code is counted once. Artifacts are the
- * files in `dist`, each with a budget in `config/size.config.mts`.
+ * files in `dist`, each with a budget in `config/size.config.mts`, which also caps some
+ * consumers as a share of others.
  */
 import assert from 'node:assert/strict'
-import { execFileSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
@@ -25,13 +26,18 @@ import {
   profileEntries,
   releaseEntries,
 } from '../config/package.config.mts'
-import budgets from '../config/size.config.mts'
+import budgets, { compositions, ratios } from '../config/size.config.mts'
 import { pack } from './pack'
 import { packExperimental } from './pack-experimental'
-import { bytes, change, table } from './size-report'
+import {
+  baselineSource,
+  bytes,
+  change,
+  markdownTable,
+  table,
+} from './size-report'
 
 interface Baseline {
-  revision: string
   consumers: Record<string, { js: number; css: number }>
   artifacts: Record<string, number>
   packages: Record<
@@ -41,227 +47,108 @@ interface Baseline {
 }
 
 const baselinePath = fileURLToPath(
-  new URL('../config/size-baseline.json', import.meta.url)
+  new URL('../baselines/size.json', import.meta.url)
 )
 const baseline: Baseline = JSON.parse(readFileSync(baselinePath, 'utf8'))
-const updating = process.argv.includes('--update-baseline')
+const updating = process.argv.includes('--update')
+const markdown = process.argv.includes('--markdown')
 const gzip = (code: string | Uint8Array) => gzipSync(code, { level: 9 }).length
 const fileSize = (path: string) => gzip(readFileSync(path))
 
-interface Composition {
-  loader?: boolean
-  viewport?: boolean
-  content?: boolean
-  triggers?: boolean
-  dialog?: boolean
-  gallery?: boolean
-  keyboard?: boolean
-  gestures?: boolean
-  transition?: boolean
-  controls?: boolean
-  slide?: boolean
+// A consumer imports exports as `entry/export`, or a preset's default export.
+interface Consumer {
+  imports: string[]
+  preset?: string
 }
-const compositions: Record<string, Composition> = {
-  core: {},
-  'core + HD loader': { loader: true },
-  'core + container': { viewport: true },
-  'core + HD loader + container': { loader: true, viewport: true },
-  'core + dialog': { dialog: true },
-  'core + dialog + template': { dialog: true, content: true },
-  'core + dialog + triggers': { dialog: true, triggers: true },
-  'core + dialog + gallery': { dialog: true, gallery: true },
-  'core + dialog + gallery + keyboard': {
-    dialog: true,
-    gallery: true,
-    keyboard: true,
-  },
-  'core + dialog + gallery + gestures': {
-    dialog: true,
-    gallery: true,
-    gestures: true,
-  },
-  'core + dialog + gallery + custom transition': {
-    dialog: true,
-    gallery: true,
-    transition: true,
-  },
-  'everything composed': {
-    dialog: true,
-    gallery: true,
-    keyboard: true,
-    triggers: true,
-    loader: true,
-    viewport: true,
-    content: true,
-  },
-  'stock gallery: HD loader + dialog + controls + slide + triggers': {
-    loader: true,
-    dialog: true,
-    gallery: true,
-    controls: true,
-    slide: true,
-    triggers: true,
-  },
-}
-const presets: Record<string, { entry: string; css?: string }> = {
-  'medium-zoom': { entry: 'dist/medium-zoom.esm.js' },
-  'medium-zoom/dist/pure': {
-    entry: 'dist/pure/index.js',
-    css: 'dist/style.css',
-  },
-  'medium-zoom/modern': { entry: 'dist/modern/index.mjs' },
-}
+const exportOf = (entry: (typeof extensionEntries)[number]) =>
+  `${entry.name}/${entry.primaryExport}`
+const [core, ...extensions] = extensionEntries
+const importSets: Record<string, Consumer> = Object.fromEntries([
+  ...releaseEntries.map(({ path, esm }) => [
+    path,
+    { imports: [], preset: esm },
+  ]),
+  ...profileEntries
+    .filter(({ profile }) => profile === 'modern')
+    .map(({ path, esm }) => [path, { imports: [], preset: esm }]),
+  [core!.name, { imports: [exportOf(core!)] }],
+  ...extensions.map(entry => [
+    `${core!.name} + ${entry.name}`,
+    { imports: [exportOf(core!), exportOf(entry)] },
+  ]),
+  ['everything composed', { imports: extensionEntries.map(exportOf) }],
+  ...Object.entries(compositions).map(([name, imports]) => [name, { imports }]),
+])
 
-const entry = (name: string) =>
-  JSON.stringify(resolve(`dist/${name}/index.mjs`))
+/**
+ * Code that only some exports bring: a consumer's bundle contains the marker exactly when
+ * it imports one of them. `preset` stands for the fixed presets.
+ */
+const markers: [marker: string, exports: string[]][] = [
+  ['showModal', ['renderers/dialog']],
+  ['canPrevious', ['gallery/createGallery', 'gallery/galleryControls']],
+  [
+    'ArrowLeft',
+    [
+      'gallery/bindGalleryKeyboard',
+      'gallery/bindGalleryGestures',
+      'gallery/galleryControls',
+    ],
+  ],
+  ['pointerdown', ['gallery/bindGalleryGestures', 'gallery/galleryControls']],
+  ['medium-zoom-control', ['gallery/galleryControls']],
+  ['translateX(', ['transitions/slide']],
+  // The runner clears the effect's animations on every frame's subtree.
+  ['subtree:', ['transitions/galleryTransition', 'transitions/slide']],
+  ['isContentEditable', ['triggers/bindZoomTriggers']],
+  ['data-zoom-src', ['loaders/loadHdImage', 'preset']],
+  ['.content.cloneNode', ['content/templateContent', 'preset']],
+  ['right:0,bottom:0', ['viewport/containerBounds', 'preset']],
+  ['opacity 150ms', ['preset']],
+]
 
-function compositionSource(composition: Composition): string {
-  const {
-    loader,
-    viewport,
-    content,
-    triggers,
-    dialog,
-    gallery,
-    keyboard,
-    gestures,
-    transition,
-    controls,
-    slide,
-  } = composition
-  const contents = [
-    content && 'templateContent("#caption")(view)',
-    controls
-      ? 'galleryControls()(view)'
-      : keyboard &&
-        'bindGalleryKeyboard(view.element, createGallery(view.zoom))',
-    gestures && 'bindGalleryGestures(view)',
-  ].filter(Boolean)
-  return `
-    import { createZoom } from ${entry('core')}
-    ${loader ? `import { loadHdImage } from ${entry('loaders')}` : ''}
-    ${viewport ? `import { containerBounds } from ${entry('viewport')}` : ''}
-    ${content ? `import { templateContent } from ${entry('content')}` : ''}
-    ${triggers ? `import { bindZoomTriggers } from ${entry('triggers')}` : ''}
-    ${dialog ? `import { dialog } from ${entry('renderers')}` : ''}
-    ${gallery ? `import { createGallery, bindGalleryKeyboard${controls ? ', galleryControls' : ''}${gestures ? ', bindGalleryGestures' : ''} } from ${entry('gallery')}` : ''}
-    ${transition ? `import { galleryTransition } from ${entry('transitions')}` : ''}
-    ${slide ? `import { slide } from ${entry('transitions')}` : ''}
-    const zoom = createZoom('img', {
-      ${loader ? 'loader: loadHdImage,' : ''}
-      ${viewport ? 'viewport: containerBounds(document.body),' : ''}
-      ${
-        dialog
-          ? `renderer: dialog({
-        ${
-          contents.length
-            ? `content: view => { const cleanups = [${contents.join(', ')}]; return () => cleanups.forEach(cleanup => cleanup && cleanup()) },`
-            : ''
-        }
-        ${slide ? 'transition: slide(),' : ''}
-        ${
-          transition
-            ? 'transition: galleryTransition(({ incoming, signal }) => Promise.all(incoming.map(frame => { const animation = frame.element.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 120 }); signal.addEventListener("abort", () => animation.cancel()); return animation.finished })).then(() => {})),'
-            : ''
-        }
-      }),`
-          : ''
-      }
-    })
-    ${gallery ? 'globalThis.gallery = createGallery(zoom)' : ''}
-    ${triggers ? 'globalThis.unbind = bindZoomTriggers(zoom)' : ''}
-    globalThis.zoom = zoom`
-}
-
-function assertIsolation(
-  name: string,
-  code: string,
-  composition: Composition | undefined
-) {
-  const preset = !composition
-  const expected: [marker: string, present: boolean, capability: string][] = [
-    ['showModal', !!composition?.dialog, 'dialog'],
-    [
-      'ArrowLeft',
-      !!(
-        composition?.keyboard ||
-        composition?.controls ||
-        composition?.gestures
-      ),
-      'gallery keys',
-    ],
-    ['canPrevious', !!composition?.gallery, 'gallery'],
-    [
-      // The runner clears the effect's animations on every frame's subtree.
-      'subtree:',
-      !!(composition?.transition || composition?.slide),
-      'transition runner',
-    ],
-    ['medium-zoom-control', !!composition?.controls, 'gallery controls'],
-    [
-      'pointerdown',
-      !!(composition?.controls || composition?.gestures),
-      'gallery gestures',
-    ],
-    ['translateX(', !!composition?.slide, 'slide transition'],
-    ['isContentEditable', !!composition?.triggers, 'triggers'],
-    ['data-zoom-src', preset || !!composition?.loader, 'HD loader'],
-    [
-      '.content.cloneNode',
-      preset || !!composition?.content,
-      'template content',
-    ],
-    [
-      'right:0,bottom:0',
-      preset || !!composition?.viewport,
-      'container viewport',
-    ],
-    ['opacity 150ms', preset, 'v1 template fade'],
-  ]
-  for (const [marker, present, capability] of expected) {
-    assert.equal(
-      code.includes(marker),
-      present,
-      `${name}: ${capability} isolation`
-    )
+function entrySource({ imports, preset }: Consumer) {
+  if (preset) {
+    return `import zoom from ${JSON.stringify(resolve(preset))}\nglobalThis.zoom = zoom('img')`
   }
+  const names = imports.map(name => name.split('/')[1]!)
+  return `${imports
+    .map(name => {
+      const [entry, exported] = name.split('/')
+      return `import { ${exported} } from ${JSON.stringify(resolve(`dist/${entry}/index.mjs`))}`
+    })
+    .join('\n')}\nglobalThis.exports = [${names.join(', ')}]`
+}
+
+/** The stylesheets of the entries imported; presets inject theirs or ship `style.css`. */
+function css({ imports, preset }: Consumer) {
+  if (preset) {
+    const entry = [...releaseEntries, ...profileEntries].find(
+      ({ esm }) => esm === preset
+    )
+    return entry?.injected || !entry?.css ? 0 : fileSize(entry.css)
+  }
+  const files = new Set(
+    imports.flatMap(name => {
+      const entry = extensionEntries.find(
+        ({ name: entryName }) => entryName === name.split('/')[0]
+      )
+      return entry?.css ? [entry.css] : []
+    })
+  )
+  return [...files].reduce((total, file) => total + fileSize(file), 0)
 }
 
 async function measureConsumers() {
   const directory = mkdtempSync(join(tmpdir(), 'medium-zoom-size-'))
   const results: Record<string, { js: number; css: number }> = {}
-  const modernCss = fileSize('dist/modern/style.css')
-  // Stock controls load the combined stylesheet; a bare dialog adds its own to the core's.
-  const compositionCss = ({ dialog, controls }: Composition) =>
-    controls
-      ? fileSize('dist/gallery.css')
-      : modernCss + (dialog ? fileSize('dist/renderers/style.css') : 0)
   try {
-    const inputs: {
-      name: string
-      source: string
-      css: number
-      composition?: Composition
-    }[] = [
-      ...Object.entries(presets).map(([name, preset]) => ({
-        name,
-        source: `import zoom from ${JSON.stringify(resolve(preset.entry))}\nglobalThis.zoom = zoom('img')`,
-        css: preset.css ? fileSize(preset.css) : 0,
-      })),
-      ...Object.entries(compositions).map(([name, composition]) => ({
-        name,
-        source: compositionSource(composition),
-        css: compositionCss(composition),
-        composition,
-      })),
-    ]
-    for (const [
-      index,
-      { name, source, css, composition },
-    ] of inputs.entries()) {
+    for (const [index, [name, consumer]] of Object.entries(
+      importSets
+    ).entries()) {
       const input = join(directory, `${index}.ts`)
       const output = join(directory, `output-${index}`)
-      writeFileSync(input, source)
+      writeFileSync(input, entrySource(consumer))
       await build({
         config: false,
         entry: { index: input },
@@ -275,8 +162,15 @@ async function measureConsumers() {
         outputOptions: { entryFileNames: 'index.js' },
       })
       const code = readFileSync(join(output, 'index.js'), 'utf8')
-      assertIsolation(name, code, composition)
-      results[name] = { js: gzip(code), css }
+      const imported = consumer.preset ? ['preset'] : consumer.imports
+      for (const [marker, exports] of markers) {
+        assert.equal(
+          code.includes(marker),
+          exports.some(exported => imported.includes(exported)),
+          `${name}: ${marker} should appear only with ${exports.join(' or ')}`
+        )
+      }
+      results[name] = { js: gzip(code), css: css(consumer) }
     }
   } finally {
     rmSync(directory, { recursive: true, force: true })
@@ -340,15 +234,22 @@ function measurePackageSizes(create: () => ReturnType<typeof pack>) {
   }
 }
 
+const total = (name: string) => consumers[name]!.js + consumers[name]!.css
+const ratioRows = ratios.map(({ consumer, reference, maxRatio }) => {
+  const ratio = total(consumer) / total(reference)
+  return {
+    over: ratio > maxRatio,
+    cells: [
+      `${consumer} / ${reference}`,
+      `${(ratio * 100).toFixed(1)}%`,
+      `${(maxRatio * 100).toFixed(1)}%`,
+    ],
+  }
+})
+const source = baselineSource('baselines/size.json')
+
 if (updating) {
-  const revision = execFileSync('git', ['rev-parse', '--short', 'HEAD'], {
-    encoding: 'utf8',
-  })
-  const dirty = !!execFileSync('git', ['status', '--porcelain'], {
-    encoding: 'utf8',
-  }).trim()
   const next: Baseline = {
-    revision: `${revision.trim()}${dirty ? ' + local changes' : ''}`,
     consumers,
     artifacts,
     packages: {
@@ -358,13 +259,51 @@ if (updating) {
   }
   writeFileSync(baselinePath, `${JSON.stringify(next, null, 2)}\n`)
   console.log(
-    `Recorded ${next.revision} as the size baseline in config/size-baseline.json.`
+    'Recorded the size baseline in baselines/size.json. Commit it with the change.'
+  )
+} else if (markdown) {
+  const consumerRows = Object.entries(consumers).flatMap(([name, sizes]) => {
+    const before = baseline.consumers[name]
+    const now = sizes.js + sizes.css
+    const then = before && before.js + before.css
+    return now === then
+      ? []
+      : [[name, then ? bytes(then) : '—', bytes(now), change(now, then)]]
+  })
+  const artifactRows = budgets.flatMap(({ path, maxBytes }) => {
+    const size = artifacts[path]!
+    const before = baseline.artifacts[path]
+    return size === before
+      ? []
+      : [
+          [
+            `\`${path}\``,
+            before === undefined ? '—' : bytes(before),
+            bytes(size),
+            change(size, before),
+            bytes(maxBytes),
+          ],
+        ]
+  })
+  console.log(`Gzip level 9, compared with \`${source}\`.\n`)
+  if (consumerRows.length) {
+    markdownTable(['Imports', 'Before', 'After', 'Change'], consumerRows)
+    console.log()
+  }
+  if (artifactRows.length) {
+    markdownTable(['File', 'Before', 'After', 'Change', 'Budget'], artifactRows)
+    console.log()
+  }
+  if (!consumerRows.length && !artifactRows.length) {
+    console.log('No size changes.\n')
+  }
+  markdownTable(
+    ['Ratio', 'Now', 'Limit'],
+    ratioRows.map(({ cells }) => cells)
   )
 } else {
   assertCatalog()
-  console.log(
-    `medium-zoom size · gzip level 9 · compared with ${baseline.revision}\n`
-  )
+  console.log(`medium-zoom size · gzip level 9 · compared with ${source}\n`)
   console.log('CONSUMERS · what a bundler ships for these imports')
   table(
     ['Imports', 'JS', 'CSS', 'Total', 'Baseline', 'Change'],
@@ -406,5 +345,18 @@ if (updating) {
     0,
     `Over budget: ${over.map(({ path }) => path).join(', ')}. Shrink the code or change the budget on purpose.`
   )
-  console.log(`\n${budgets.length} artifacts within budget.`)
+  console.log('\nRATIOS · consumers capped as a share of another')
+  table(
+    ['Consumers', 'Ratio', 'Limit'],
+    ratioRows.map(({ cells }) => cells)
+  )
+  const overRatio = ratioRows.filter(({ over }) => over)
+  assert.equal(
+    overRatio.length,
+    0,
+    `Over ratio: ${overRatio.map(({ cells }) => cells[0]).join(', ')}. Shrink the code or change the limit on purpose.`
+  )
+  console.log(
+    `\n${budgets.length} artifacts within budget and every ratio within its limit.`
+  )
 }

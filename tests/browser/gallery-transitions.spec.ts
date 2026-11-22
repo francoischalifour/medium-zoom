@@ -1,7 +1,12 @@
 import { expect, type Page, test } from '@playwright/test'
 
 import type { GalleryController } from '../../src/gallery'
-import { addModernStyles, preparePage } from './helpers'
+import {
+  addModernStyles,
+  expectNear,
+  expectSameBox,
+  preparePage,
+} from './helpers'
 
 declare global {
   interface Window {
@@ -237,7 +242,7 @@ test('closing mid-effect zooms out from where the effect left the image', async 
   const frames = () =>
     page.evaluate(() =>
       [...document.querySelectorAll('dialog img')].map(frame => ({
-        left: Math.round(frame.getBoundingClientRect().left),
+        left: frame.getBoundingClientRect().left,
         opacity: Number(getComputedStyle(frame).opacity).toFixed(2),
       }))
     )
@@ -253,11 +258,12 @@ test('closing mid-effect zooms out from where the effect left the image', async 
     void window.modalZoom.close()
     const frame = document.querySelector('dialog img:last-of-type')!
     return {
-      left: Math.round(frame.getBoundingClientRect().left),
+      left: frame.getBoundingClientRect().left,
       opacity: Number(getComputedStyle(frame).opacity).toFixed(2),
     }
   })
-  expect(closing).toEqual(halfway[1])
+  expect(closing.opacity).toBe(halfway[1]!.opacity)
+  expectNear(closing.left, halfway[1]!.left)
   await expect(page.locator('dialog')).toHaveCount(0)
 })
 
@@ -377,7 +383,7 @@ test('the next image enters at once and sharpens in place once its effect settle
     .evaluateAll(frames =>
       frames.map(frame => {
         const { left, top, width, height } = frame.getBoundingClientRect()
-        return [left, top, width, height].map(Math.round)
+        return [left, top, width, height]
       })
     )
   expect(boxes).toHaveLength(1)
@@ -386,9 +392,9 @@ test('the next image enters at once and sharpens in place once its effect settle
     .last()
     .evaluate(frame => {
       const { left, top, width, height } = frame.getBoundingClientRect()
-      return [left, top, width, height].map(Math.round)
+      return [left, top, width, height]
     })
-  expect(boxes[0]).toEqual(preview)
+  expectSameBox(boxes[0]!, preview)
   await page.evaluate(() => window.modalZoom.close())
   await expect(page.locator('dialog')).toHaveCount(0)
 })

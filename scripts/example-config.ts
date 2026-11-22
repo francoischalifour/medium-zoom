@@ -8,7 +8,7 @@ import {
   type UserConfig,
 } from 'vite'
 
-import { libraryConfig } from './vite.shared.config.mts'
+import { libraryConfig } from '../config/vite.shared.config.mts'
 
 export async function localExampleConfig({
   name,
@@ -48,7 +48,6 @@ export async function localExampleConfig({
       },
     ],
     root,
-    envDir: fileURLToPath(new URL('../', import.meta.url)),
     base: `/examples/${name}/`,
     server: { host: '127.0.0.1' },
     build: {

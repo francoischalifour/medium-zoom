@@ -12,7 +12,7 @@ import { pathToFileURL } from 'node:url'
 
 import { build, mergeConfig, type UserConfig } from 'vite'
 
-import { localExampleConfig } from '../config/vite.examples.config.mts'
+import { localExampleConfig } from './example-config.ts'
 import { exampleNames } from './example-names.ts'
 
 const localPackage = resolve('.')

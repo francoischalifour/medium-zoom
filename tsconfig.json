@@ -32,15 +32,21 @@
   },
   "include": [
     "*.mts",
-    "src/**/*.ts",
-    "config/**/*.mts",
-    "scripts/**/*.ts",
-    "tests/**/*.ts",
-    "tests/geometry.test.mts",
-    "stories/catalogue/**/*.ts",
-    "playground/**/*.ts",
+    "src",
+    "config",
+    "tests",
+    "stories",
+    "playground",
+    "website/vite.config.mts",
     "examples/*/vite.config.ts",
-    "examples/shadcn/tests/experimental/**/*.tsx"
+    "examples/shadcn/tests/experimental"
   ],
-  "exclude": ["**/node_modules", "tests/fixtures/next/.next"]
+  "exclude": [
+    "**/node_modules",
+    "tests/fixtures",
+    "tests/unit/registry-downloads.test.mts",
+    "tests/**/types/*.cts",
+    "tests/**/types/*.mts",
+    "tests/server.ts"
+  ]
 }

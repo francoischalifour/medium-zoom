@@ -14,7 +14,7 @@ import {
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 
-const checks = ['format:check', 'lint']
+const checks = [['format', '--check'], ['lint']]
 
 const listed = spawnSync(
   'git',
@@ -76,23 +76,23 @@ try {
         ? 'fails'
         : 'differs between this checkout and a clean copy'
     return [
-      `bun run ${check} ${verdict} (in place: ${inPlace.code}, clean copy: ${isolated.code}).\n${isolated.output}`,
+      `bun run ${check.join(' ')} ${verdict} (in place: ${inPlace.code}, clean copy: ${isolated.code}).\n${isolated.output}`,
     ]
   })
   if (failures.length) {
     console.error(failures.join('\n'))
     process.exitCode = 1
   } else {
-    console.log(`${checks.join(' and ')} agree in place and in a clean copy.`)
+    console.log('Format and lint agree in place and in a clean copy.')
   }
 } finally {
   rmSync(directory, { recursive: true, force: true })
 }
 
-function run(script: string, cwd: string, env: NodeJS.ProcessEnv) {
+function run(script: string[], cwd: string, env: NodeJS.ProcessEnv) {
   return new Promise<{ code: number | null; output: string }>(
     (resolve, reject) => {
-      const child = spawn('bun', ['run', script], { cwd, env })
+      const child = spawn('bun', ['run', ...script], { cwd, env })
       let output = ''
       child.stdout.on('data', chunk => (output += chunk))
       child.stderr.on('data', chunk => (output += chunk))

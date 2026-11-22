@@ -1,6 +1,16 @@
+import { execFileSync } from 'node:child_process'
+
 import { type BrowserContext, expect, type Page, test } from '@playwright/test'
 
 import { testUrl } from '../server-urls.ts'
+
+// The test server reads the site, built with a test key, from .cache/analytics-site.
+test.beforeAll(() => {
+  test.setTimeout(120_000)
+  execFileSync('bun', ['scripts/build-analytics-fixture.ts'], {
+    stdio: 'inherit',
+  })
+})
 
 const origin = 'https://medium-zoom.francoischalifour.com'
 type Event = {

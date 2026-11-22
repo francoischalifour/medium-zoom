@@ -1,7 +1,12 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, type Page, test } from '@playwright/test'
 
-import { addModernStyles, expectNear, preparePage } from './helpers'
+import {
+  addModernStyles,
+  expectNear,
+  expectSameBox,
+  preparePage,
+} from './helpers'
 
 declare global {
   interface Window {
@@ -804,25 +809,37 @@ test('the zoom travels with the page as it scrolls, until the scroll closes it',
       target: document.querySelectorAll('img')[1]!,
     })
   })
+  // On a busy machine the opening transition can still run its last frames.
+  await page.waitForFunction(
+    () => !document.querySelector('dialog img')!.getAnimations().length
+  )
   const place = () =>
     page.evaluate(() => {
       const top = (selector: string) =>
-        Math.round(
-          document.querySelector(selector)!.getBoundingClientRect().top
-        )
-      return {
-        image: top('dialog img'),
-        next: top('.medium-zoom-control--next'),
-        overlay: top('.medium-zoom-overlay'),
-      }
+        document.querySelector(selector)!.getBoundingClientRect().top
+      return [
+        top('dialog img'),
+        top('.medium-zoom-control--next'),
+        top('.medium-zoom-overlay'),
+      ]
     })
   const before = await place()
-  await page.evaluate(() => window.scrollBy(0, 30))
-  await expect.poll(place).toEqual({
-    image: before.image - 30,
-    next: before.next - 30,
-    overlay: before.overlay,
+  const scrolled = await page.evaluate(() => {
+    const start = scrollY
+    window.scrollBy(0, 30)
+    return scrollY - start
   })
+  // Phones snap the scroll to device pixels, so it may not be exactly 30.
+  await expect
+    .poll(async () => {
+      const [image, next, overlay] = await place()
+      return [
+        image! - before[0]! + scrolled,
+        next! - before[1]! + scrolled,
+        overlay! - before[2]!,
+      ].every(offset => Math.abs(offset) <= 1)
+    })
+    .toBe(true)
   // The dialog moved up with the page; the backdrop still covers the window's bottom edge.
   expect(
     await page.evaluate(
@@ -1216,7 +1233,7 @@ test('a held arrow key accelerates and sharpens only where it stops, in place', 
     const box = () =>
       [...dialog.querySelectorAll('img')].map(frame => {
         const { left, width } = frame.getBoundingClientRect()
-        return [Math.round(left), Math.round(width)]
+        return [left, width]
       })[0]
     await new Promise(resolve => setTimeout(resolve, 150))
     const preview = box()
@@ -1261,7 +1278,7 @@ test('a held arrow key accelerates and sharpens only where it stops, in place', 
     expect([`/hd-${stop - 1}.jpg`, `/hd-${stop + 1}.jpg`]).toContain(path)
   }
   // The preview already had the sharpened image's size and place.
-  expect(held.sharpened).toEqual(held.preview)
+  expectSameBox(held.sharpened!, held.preview!)
   await expect(page.locator('dialog img')).toHaveCount(2)
   await expect
     .poll(() =>
