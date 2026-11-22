@@ -1,19 +1,9 @@
-import type {
-  CoreZoomOptions,
-  ModalZoom,
-  ZoomCommander,
-} from 'medium-zoom/core'
+import type { CoreZoomOptions, ModalZoom } from 'medium-zoom/core'
 
 import type { ZoomTarget } from './frame'
 
 /** Options of `bindZoomTriggers()`. */
-export interface ZoomTriggersOptions<Options extends CoreZoomOptions> {
-  /**
-   * What opens the zoom, such as a session coordinating it with other zooms.
-   *
-   * @default the zoom
-   */
-  commander?: ZoomCommander<Options>
+export interface ZoomTriggersOptions {
   /** Unbinds when aborted, as the returned function does. */
   signal?: AbortSignal
 }
@@ -26,15 +16,18 @@ const interactive =
  * Opens the zoom on click, Enter or Space on each attached image, current and future, and
  * announces it with `role="button"` and `aria-haspopup="dialog"`. Skips images inside
  * interactive elements, whose own activation is kept. A zoom has one binding: each call
- * returns an unbind function of its own, the first call's commander is kept, and the images'
- * attributes are restored once every caller has unbound.
+ * returns an unbind function of its own, and the images' attributes are restored once every
+ * caller has unbound.
  */
 export function bindZoomTriggers<Options extends CoreZoomOptions>(
   zoom: ModalZoom<Options>,
-  { commander = zoom, signal }: ZoomTriggersOptions<Options> = {}
+  { signal }: ZoomTriggersOptions = {}
 ): () => void {
+  if (signal?.aborted) {
+    return () => {}
+  }
   const binding = bindings.get(zoom) || {
-    unbind: bind(zoom, commander),
+    unbind: bind(zoom),
     count: 0,
   }
   bindings.set(zoom, binding)
@@ -43,6 +36,7 @@ export function bindZoomTriggers<Options extends CoreZoomOptions>(
   const unbind = () => {
     if (bound) {
       bound = false
+      signal?.removeEventListener('abort', unbind)
       if (!--binding.count) {
         bindings.delete(zoom)
         binding.unbind()
@@ -50,20 +44,16 @@ export function bindZoomTriggers<Options extends CoreZoomOptions>(
     }
   }
   signal?.addEventListener('abort', unbind)
-  if (signal?.aborted) {
-    unbind()
-  }
   return unbind
 }
 
 function bind<Options extends CoreZoomOptions>(
-  zoom: ModalZoom<Options>,
-  commander: ZoomCommander<Options>
+  zoom: ModalZoom<Options>
 ): () => void {
   const records = new Map<ZoomTarget, () => void>()
   const documents = new WeakMap<Document, number>()
   const activate = (target: HTMLElement) =>
-    commander.open({ target, trigger: target })
+    zoom.open({ target, trigger: target })
   const unmodified = (event: MouseEvent | KeyboardEvent) =>
     !event.defaultPrevented &&
     !event.altKey &&

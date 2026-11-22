@@ -29,7 +29,7 @@ for (const path of [
 assert.equal(typeof (await import('medium-zoom/dist/pure')).default, 'function')
 
 for (const [entry, names] of Object.entries({
-  core: ['createZoom'],
+  core: ['createZoom', 'createZoomGroup'],
   loaders: ['loadHdImage'],
   viewport: ['containerBounds'],
   content: ['templateContent'],
@@ -40,7 +40,6 @@ for (const [entry, names] of Object.entries({
     'bindGalleryGestures',
     'galleryControls',
   ],
-  session: ['createZoomSession'],
   transitions: ['galleryTransition', 'slide'],
   renderers: ['dialog'],
 })) {

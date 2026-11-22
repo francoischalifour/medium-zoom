@@ -73,6 +73,9 @@ export function bindGalleryGestures({
   zoom,
   signal,
 }: GalleryGestureView): () => void {
+  if (signal?.aborted) {
+    return () => {}
+  }
   const gallery = createGallery(zoom)
   const motion = matchMedia('(prefers-reduced-motion: reduce)')
   const pointers = new Map<number, number[]>()
@@ -783,6 +786,7 @@ export function bindGalleryGestures({
       return
     }
     bound = false
+    signal?.removeEventListener('abort', unbind)
     removeEventListener('resize', resized)
     stop()
     clearTimeout(tapTimer)
@@ -797,8 +801,5 @@ export function bindGalleryGestures({
     }
   }
   signal?.addEventListener('abort', unbind)
-  if (signal?.aborted) {
-    unbind()
-  }
   return unbind
 }

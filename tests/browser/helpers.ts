@@ -49,7 +49,6 @@ interface CandidateEntries {
   content: typeof import('../../src/zoom/content')
   triggers: typeof import('../../src/zoom/triggers')
   renderers: typeof import('../../src/zoom/dialog')
-  session: typeof import('../../src/zoom/session')
   transitions: typeof import('../../src/gallery/transition')
   gallery: typeof import('../../src/gallery')
 }

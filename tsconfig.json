@@ -21,7 +21,6 @@
       "medium-zoom/compat": ["./src/preset/index.ts"],
       "medium-zoom/compat/pure": ["./src/preset/pure.ts"],
       "medium-zoom/renderers": ["./src/zoom/dialog.ts"],
-      "medium-zoom/session": ["./src/zoom/session.ts"],
       "medium-zoom/transitions": ["./src/gallery/transition.ts"],
       "medium-zoom/gallery": ["./src/gallery/index.ts"],
       "medium-zoom/loaders": ["./src/zoom/hd-image.ts"],

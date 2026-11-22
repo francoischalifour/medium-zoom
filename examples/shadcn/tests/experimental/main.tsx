@@ -1,12 +1,7 @@
-import { createZoom } from 'medium-zoom/core'
-import {
-  bindGalleryKeyboard,
-  createGallery,
-  type GalleryController,
-} from 'medium-zoom/gallery'
+import { createZoom, type ModalZoom } from 'medium-zoom/core'
+import { bindGalleryKeyboard, createGallery } from 'medium-zoom/gallery'
 import { loadHdImage } from 'medium-zoom/loaders'
 import { dialog } from 'medium-zoom/renderers'
-import { createZoomSession, type ZoomSession } from 'medium-zoom/session'
 import * as React from 'react'
 import { createRoot } from 'react-dom/client'
 
@@ -14,27 +9,23 @@ import * as GalleryControls from './gallery-controls'
 
 import './style.css'
 
-type Owner = { session: ZoomSession; gallery: GalleryController }
 function Example() {
   const images = React.useRef<HTMLDivElement>(null)
-  const closing = React.useRef<Promise<void> | null>(null)
-  const [owner, setOwner] = React.useState<Owner | null>(null)
+  const [zoom, setZoom] = React.useState<ModalZoom | null>(null)
   React.useEffect(() => {
-    let disposed = false
-    let current: Owner | undefined
-    const attach = () => {
-      if (disposed) {
-        return
-      }
-      const zoom = createZoom(images.current!.querySelectorAll('img'), {
+    // One signal releases the zoom and everything bound to it. Under Strict Mode the next
+    // zoom shares the document's group, so it waits for this one to finish closing.
+    const lifetime = new AbortController()
+    setZoom(
+      createZoom(images.current!.querySelectorAll('img'), {
+        signal: lifetime.signal,
         loader: loadHdImage,
         renderer: dialog({
           content: ({ element, zoom, close, signal }) => {
             const node = document.createElement('div')
             element.append(node)
             const root = createRoot(node)
-            // A handle on the zoom's gallery, created with its session below; the content's
-            // signal releases it and the keyboard binding on close.
+            // The content's signal releases its gallery handle and keyboard on close.
             const gallery = createGallery(zoom, { signal })
             bindGalleryKeyboard(element, gallery, { signal })
             root.render(
@@ -64,25 +55,8 @@ function Example() {
         }),
         margin: 72,
       })
-      const session = createZoomSession(zoom)
-      current = {
-        session,
-        gallery: createGallery(zoom, { commander: session }),
-      }
-      setOwner(current)
-    }
-    if (closing.current) {
-      void closing.current.then(attach)
-    } else {
-      attach()
-    }
-    return () => {
-      disposed = true
-      if (current) {
-        current.gallery.dispose()
-        closing.current = current.session.dispose()
-      }
-    }
+    )
+    return () => lifetime.abort()
   }, [])
   return (
     <div className="photos" ref={images}>
@@ -95,10 +69,10 @@ function Example() {
           key={alt}
           className="photo-trigger"
           aria-label={`Open ${alt}`}
-          disabled={!owner}
+          disabled={!zoom}
           onClick={event => {
             const trigger = event.currentTarget
-            void owner?.session.open({
+            void zoom?.open({
               target: trigger.querySelector('img')!,
               trigger,
             })
@@ -127,8 +101,8 @@ function App() {
         Your own controls.
       </h1>
       <p className="intro">
-        React owns this toolbar. Sessions coordinate ownership, and the modal
-        renderer owns focus and image replacement.
+        React owns this toolbar. The zoom's group keeps one image open at a
+        time, and the modal renderer owns focus and image replacement.
       </p>
       <button className="toggle" onClick={() => setMounted(value => !value)}>
         {mounted ? 'Unmount gallery' : 'Mount gallery'}

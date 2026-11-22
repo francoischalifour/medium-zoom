@@ -122,8 +122,8 @@ export const extensionEntries: CandidateEntry[] = [
     'src/zoom/index.ts',
     'createZoom',
     'instance API',
-    'engine/contracts + frozen state, subscriptions, close reasons, signal',
-    [3_750, 3_750],
+    'engine/contracts + state, close reasons, signal, groups',
+    [4_120, 4_120],
     'dist/modern/style.css'
   ),
   optional(
@@ -176,14 +176,6 @@ export const extensionEntries: CandidateEntry[] = [
     ]
   ),
   optional(
-    'session',
-    'src/zoom/session.ts',
-    'createZoomSession',
-    'coordinator',
-    'releasable ownership; no UI',
-    [840, 840]
-  ),
-  optional(
     'transitions',
     'src/gallery/transition.ts',
     'galleryTransition',
@@ -199,7 +191,7 @@ export const extensionEntries: CandidateEntry[] = [
       'headless controller',
       'shared headless controller + keyboard/gestures; optional stock controls',
       // Gestures are about 3 KB of it, shaken out by consumers that do not bind them.
-      [5_410, 5_410]
+      [5_420, 5_420]
     ),
     [
       {

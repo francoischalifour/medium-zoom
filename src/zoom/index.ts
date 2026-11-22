@@ -1,6 +1,7 @@
 import {
   type CoreZoomOptions,
   createEngine,
+  type Group,
   type ModalOpenOptions,
   type Stage,
   type ZoomCloseReason,
@@ -136,15 +137,24 @@ export interface ModalZoom<
   preload(target: HTMLElement): void
 }
 
+declare const groupType: unique symbol
 /**
- * Whatever issues open requests for a rendered zoom: the zoom itself, or a session from
- * `medium-zoom/session` coordinating it with other zooms.
+ * Zooms that open one at a time: opening one first closes the group's open zoom, with the
+ * close reason `group`, and waits for it. While it waits, a newer request from the group
+ * supersedes it. Create one with `createZoomGroup()`.
  */
-export interface ZoomCommander<
-  Options extends CoreZoomOptions = CoreZoomOptions,
-> {
-  open(options?: ModalOpenOptions): Promise<ZoomInstance<Options>>
+export interface ZoomGroup {
+  readonly [groupType]: true
 }
+
+/**
+ * Creates a group of zooms that open one at a time. Every zoom belongs to the document's
+ * group unless created with a group of its own, or with `group: null`.
+ */
+export const createZoomGroup = (): ZoomGroup =>
+  ({ __mz_ticket: 0 }) satisfies Group as unknown as ZoomGroup
+
+const documentGroup = createZoomGroup()
 
 /** Options of `createZoom()`. The strategies are fixed at creation; `update()` ignores them. */
 export interface CreateZoomOptions extends CoreZoomOptions {
@@ -167,6 +177,12 @@ export interface CreateZoomOptions extends CoreZoomOptions {
    * @default the window minus `margin`
    */
   viewport?: ZoomViewport
+  /**
+   * The zooms this one opens one at a time with.
+   *
+   * @default the document's group, shared by every zoom created without one; `null` for none
+   */
+  group?: ZoomGroup | null
   /**
    * Detaches every image when aborted, closing the zoom first, so an effect can release the
    * zoom with the bindings and galleries it passed the same signal to.
@@ -201,14 +217,22 @@ export function createZoom(
 ): Zoom
 export function createZoom(
   images?: ZoomSelector,
-  { renderer, loader, viewport, signal, ...options }: CreateZoomOptions = {}
+  {
+    renderer,
+    loader,
+    viewport,
+    signal,
+    group = documentGroup,
+    ...options
+  }: CreateZoomOptions = {}
 ): Zoom {
   const zoom = createEngine<CoreZoomOptions>(
     loader,
     viewport,
     renderer as unknown as Stage,
     undefined,
-    adoptMedia
+    adoptMedia,
+    (group || undefined) as Group | undefined
   )(signal?.aborted ? null : images, options) as Zoom
   signal?.addEventListener('abort', () => zoom.detach(), { once: true })
   return zoom

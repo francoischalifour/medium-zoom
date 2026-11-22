@@ -271,3 +271,55 @@ test('the presets keep their v1 events and have no state', async ({ page }) => {
     images: true,
   })
 })
+
+test('a failing subscriber is reported and the zoom still opens and closes', async ({
+  page,
+}) => {
+  await modal(page)
+  const errors: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  await page.evaluate(() => {
+    window.modalZoom.subscribe(() => {
+      throw new Error('subscriber failed')
+    })
+  })
+  await page.evaluate(() => window.modalZoom.open())
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  expect(await page.evaluate(() => window.statuses)).toEqual([
+    'opening',
+    'open',
+    'closing',
+    'closed',
+  ])
+  expect(errors.length).toBe(4)
+  expect(new Set(errors)).toEqual(new Set(['subscriber failed']))
+})
+
+test('a once listener waits for its own zoom on a shared image', async ({
+  page,
+}) => {
+  await preparePage(page, { body })
+  await addModernStyles(page)
+  const heard = await page.evaluate(async () => {
+    const { createZoom } = await window.loadEntry('core')
+    const { dialog } = await window.loadEntry('renderers')
+    const own = createZoom('#first', { renderer: dialog(), group: null })
+    const other = createZoom('#first', { renderer: dialog(), group: null })
+    const heard: boolean[] = []
+    own.on(
+      'opened',
+      event => heard.push(event.detail.zoom === (own as unknown)),
+      { once: true }
+    )
+    await other.open()
+    await other.close()
+    await own.open()
+    await own.close()
+    await own.open()
+    await own.close()
+    return heard
+  })
+  expect(heard).toEqual([true])
+})

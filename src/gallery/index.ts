@@ -4,7 +4,6 @@ import type {
   ModalOpenOptions,
   ModalZoom,
   Zoom,
-  ZoomCommander,
 } from 'medium-zoom/core'
 
 /** An immutable view of the gallery; a new object whenever anything in it changes. */
@@ -53,20 +52,13 @@ export interface GalleryController<
 }
 
 /** Options of `createGallery()`. */
-export interface GalleryOptions<Options extends CoreZoomOptions> {
-  /**
-   * What opens the gallery's images, such as a session coordinating them with other zooms.
-   *
-   * @default the zoom
-   */
-  commander?: ZoomCommander<Options>
+export interface GalleryOptions {
   /** Releases the handle when aborted, as `dispose()` does. */
   signal?: AbortSignal
 }
 
 /** What every handle on a zoom's gallery shares. */
 interface SharedGallery {
-  readonly commander: ZoomCommander<never>
   readonly getSnapshot: () => GallerySnapshot
   readonly listeners: Set<() => void>
   count: number
@@ -78,14 +70,13 @@ const galleries = new WeakMap<object, SharedGallery>()
  * Headless traversal over a rendered zoom's attached images, in attach order. Creates no UI.
  * A zoom has one gallery: each call returns a handle of its own on it, so code that shares
  * a zoom, such as your controls and `galleryControls()`, can release its handle without
- * affecting the others. The first call's commander is kept: create the gallery with a
- * session before mounting `galleryControls()` to coordinate them.
+ * affecting the others.
  */
 export function createGallery<Options extends CoreZoomOptions>(
   zoom: ModalZoom<Options>,
-  { commander = zoom, signal }: GalleryOptions<Options> = {}
+  { signal }: GalleryOptions = {}
 ): GalleryController<Options> {
-  const shared = galleries.get(zoom) || share(zoom, commander)
+  const shared = galleries.get(zoom) || share(zoom)
   galleries.set(zoom, shared)
   shared.count++
   const { getSnapshot, listeners } = shared
@@ -94,12 +85,7 @@ export function createGallery<Options extends CoreZoomOptions>(
   const choose = (index: number, options?: ModalOpenOptions) => {
     const target = released ? undefined : getSnapshot().images[index]
     return (
-      target
-        ? (shared.commander as ZoomCommander<Options>).open({
-            ...options,
-            target,
-          })
-        : Promise.resolve(zoom)
+      target ? zoom.open({ ...options, target }) : Promise.resolve(zoom)
     ) as Promise<Zoom<Options>>
   }
   // Past either end, the index is -1: there is nothing to open.
@@ -127,6 +113,7 @@ export function createGallery<Options extends CoreZoomOptions>(
     dispose() {
       if (!released) {
         released = true
+        signal?.removeEventListener('abort', handle.dispose)
         own.forEach(entry => listeners.delete(entry))
         if (!--shared.count) {
           shared.stop()
@@ -143,8 +130,7 @@ export function createGallery<Options extends CoreZoomOptions>(
 }
 
 function share<Options extends CoreZoomOptions>(
-  zoom: ModalZoom<Options>,
-  commander: ZoomCommander<Options>
+  zoom: ModalZoom<Options>
 ): SharedGallery {
   const listeners = new Set<() => void>()
   // Derived from the zoom's frozen state, and frozen too: every subscriber shares it.
@@ -190,7 +176,6 @@ function share<Options extends CoreZoomOptions>(
     }
   })
   return {
-    commander: commander as ZoomCommander<never>,
     getSnapshot,
     listeners,
     count: 0,
@@ -201,6 +186,6 @@ function share<Options extends CoreZoomOptions>(
   }
 }
 
-export { bindGalleryKeyboard } from './keyboard'
+export { bindGalleryKeyboard, type GalleryKeyboardOptions } from './keyboard'
 export { bindGalleryGestures, type GalleryGestureView } from './gestures'
 export { galleryControls, type GalleryControlsOptions } from './controls'

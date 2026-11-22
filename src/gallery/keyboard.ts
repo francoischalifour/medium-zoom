@@ -20,6 +20,12 @@ export const isGalleryKey = (event: KeyboardEvent): boolean =>
   !event.metaKey &&
   !(event.target as HTMLElement).closest(elementsWithOwnKeys)
 
+/** Options of `bindGalleryKeyboard()`. */
+export interface GalleryKeyboardOptions {
+  /** Unbinds when aborted, as the returned function does. */
+  signal?: AbortSignal
+}
+
 /**
  * Opens the previous or next image on ArrowLeft and ArrowRight pressed inside `element`, and
  * the first or last on Home and End. A held arrow steps at a pace that accelerates the
@@ -30,7 +36,7 @@ export const isGalleryKey = (event: KeyboardEvent): boolean =>
 export function bindGalleryKeyboard<Options extends CoreZoomOptions>(
   element: HTMLElement,
   gallery: GalleryController<Options>,
-  { signal }: { signal?: AbortSignal } = {}
+  { signal }: GalleryKeyboardOptions = {}
 ): () => void {
   let pressed = 0
   let stepped = 0

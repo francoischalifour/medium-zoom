@@ -16,11 +16,9 @@ async function fixture(page: Page) {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.evaluate(async () => {
     const { createZoom } = await window.loadEntry('core')
-    const { createZoomSession } = await window.loadEntry('session')
     const { createGallery } = await window.loadEntry('gallery')
     const { dialog } = await window.loadEntry('renderers')
     window.modalZoom = createZoom('img', { renderer: dialog() })
-    createZoomSession(window.modalZoom)
     window.galleryController = createGallery(window.modalZoom)
   })
 }
@@ -97,32 +95,28 @@ test('controller follows the zoom collection and releases subscriptions', async 
   await page.evaluate(() => window.modalZoom.close())
 })
 
-test('sessions and gallery traversal are independent and idempotent', async ({
+test('gallery handles share traversal and closing stays with the zoom', async ({
   page,
 }) => {
   await fixture(page)
   expect(
     await page.evaluate(async () => {
       const { createGallery } = await window.loadEntry('gallery')
-      const { createZoomSession } = await window.loadEntry('session')
-      const first = createZoomSession(window.modalZoom)
-      const second = createZoomSession(window.modalZoom)
       // Each call is a handle of its own on the zoom's one gallery.
       const handle = createGallery(window.modalZoom)
       const shared =
         handle !== window.galleryController &&
         handle.getSnapshot() === window.galleryController.getSnapshot()
       handle.dispose()
-      await first.open()
+      await window.modalZoom.open()
       await window.galleryController.next()
-      await second.close()
+      await window.modalZoom.close()
       return {
-        sameSession: first === second,
         sharedGallery: shared,
         closed: !window.modalZoom.getZoomedImage(),
       }
     })
-  ).toEqual({ sameSession: true, sharedGallery: true, closed: true })
+  ).toEqual({ sharedGallery: true, closed: true })
 })
 
 test('direct instance mutations publish settled collection state and stale disposal stays inert', async ({
