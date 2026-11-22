@@ -1,5 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs'
-import { createServer } from 'node:http'
+import { existsSync, statSync } from 'node:fs'
 import { extname, resolve, sep } from 'node:path'
 
 import { buildGalleryExample } from '../scripts/build-gallery-example.ts'
@@ -24,94 +23,85 @@ const roots: Record<string, string> = {
 }
 const pageRedirects = readExactRedirects(resolve(roots.site, '_redirects'))
 const pageHeaders = readExactHeaders(resolve(roots.site, '_headers'))
+// Bun infers the rest from the extension; these match the production headers.
 const contentTypes: Record<string, string> = {
-  '.js': 'text/javascript',
-  '.mjs': 'text/javascript',
-  '.css': 'text/css',
-  '.html': 'text/html',
   '.md': 'text/markdown; charset=utf-8',
   '.txt': 'text/plain; charset=utf-8',
   '.xml': 'application/xml; charset=utf-8',
-  '.jpg': 'image/jpeg',
-  '.png': 'image/png',
-  '.webp': 'image/webp',
-  '.svg': 'image/svg+xml',
-  '.mp4': 'video/mp4',
 }
 
-const server = createServer((request, response) => {
-  const url = new URL(request.url || '/', 'http://127.0.0.1')
-  if (url.pathname === '/fixture.html') {
-    response.writeHead(200, { 'Content-Type': 'text/html' })
-    response.end(
-      '<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Medium Zoom package tests</title>'
-    )
-    return
-  }
-  const destination = pageRedirects.get(url.pathname)
-  if (destination) {
-    response.writeHead(301, { Location: destination + url.search }).end()
-    return
-  }
-  const [, root, ...segments] = decodeURIComponent(url.pathname).split('/')
-  const directory = roots[root] || roots.site
-  let relative = roots[root]
-    ? segments.join('/')
-    : [root, ...segments].join('/')
-  if (!relative || relative.endsWith('/')) {
-    relative += 'index.html'
-  }
-  let path = resolve(directory, relative)
-  if (!path.startsWith(`${directory}${sep}`)) {
-    response.writeHead(403).end()
-    return
-  }
-  if (!extname(path) && !existsSync(path)) {
-    path += '.html'
-  }
-  try {
-    const contents = readFileSync(path)
-    const contentType =
-      contentTypes[extname(path)] || 'application/octet-stream'
+const server = Bun.serve({
+  port: testPort,
+  hostname: '127.0.0.1',
+  fetch(request) {
+    const url = new URL(request.url)
+    if (url.pathname === '/fixture.html') {
+      return new Response(
+        '<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Medium Zoom package tests</title>',
+        { headers: { 'Content-Type': 'text/html' } }
+      )
+    }
+    const destination = pageRedirects.get(url.pathname)
+    if (destination) {
+      return Response.redirect(destination + url.search, 301)
+    }
+    const [, root, ...segments] = decodeURIComponent(url.pathname).split('/')
+    const directory = roots[root!] || roots.site!
+    let relative = roots[root!]
+      ? segments.join('/')
+      : [root, ...segments].join('/')
+    if (!relative || relative.endsWith('/')) {
+      relative += 'index.html'
+    }
+    let path = resolve(directory, relative)
+    if (!path.startsWith(`${directory}${sep}`)) {
+      return new Response(null, { status: 403 })
+    }
+    if (!extname(path) && !existsSync(path)) {
+      path += '.html'
+    }
+    const file = Bun.file(path)
+    if (!statSync(path, { throwIfNoEntry: false })?.isFile()) {
+      return new Response(Bun.file(resolve(roots.site!, '404.html')), {
+        status: 404,
+      })
+    }
+    const type = contentTypes[extname(path)] || file.type
     // Native video players (including WebKit) request byte ranges when loading media.
-    const range = request.headers.range?.match(/^bytes=(\d+)-(\d*)$/)
+    const range = request.headers.get('range')?.match(/^bytes=(\d+)-(\d*)$/)
     if (range) {
       const start = Number(range[1])
-      const end = Math.min(
-        Number(range[2] || contents.length - 1),
-        contents.length - 1
-      )
+      const end = Math.min(Number(range[2] || file.size - 1), file.size - 1)
       if (start > end) {
-        response
-          .writeHead(416, { 'Content-Range': `bytes */${contents.length}` })
-          .end()
-        return
+        return new Response(null, {
+          status: 416,
+          headers: { 'Content-Range': `bytes */${file.size}` },
+        })
       }
-      response.writeHead(206, {
-        'Content-Type': contentType,
-        'Content-Range': `bytes ${start}-${end}/${contents.length}`,
-        'Content-Length': end - start + 1,
-        'Accept-Ranges': 'bytes',
+      return new Response(file.slice(start, end + 1), {
+        status: 206,
+        headers: {
+          'Content-Type': type,
+          'Content-Range': `bytes ${start}-${end}/${file.size}`,
+          'Accept-Ranges': 'bytes',
+        },
       })
-      response.end(contents.subarray(start, end + 1))
-      return
     }
-    response.writeHead(200, {
-      ...pageHeaders.get(url.pathname),
-      'Content-Type': contentType,
-      'Content-Length': contents.length,
-      'Accept-Ranges': 'bytes',
+    return new Response(file, {
+      headers: {
+        ...pageHeaders.get(url.pathname),
+        'Content-Type': type,
+        'Accept-Ranges': 'bytes',
+      },
     })
-    response.end(contents)
-  } catch {
-    response.writeHead(404, { 'Content-Type': 'text/html' })
-    response.end(readFileSync(resolve(roots.site, '404.html')))
-  }
+  },
 })
 
-server.listen(testPort, '127.0.0.1')
 for (const signal of ['SIGTERM', 'SIGINT']) {
-  process.on(signal, () => server.close(() => process.exit()))
+  process.on(signal, () => {
+    void server.stop()
+    process.exit()
+  })
 }
 process.on('exit', () => {
   artifact.cleanup()
