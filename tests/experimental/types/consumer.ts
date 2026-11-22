@@ -40,9 +40,12 @@ void aliased
 import compat from 'medium-zoom/compat'
 import compatPure from 'medium-zoom/compat/pure'
 import modern from 'medium-zoom/modern'
-const profiles: Zoom[] = [
-  compat(image, options),
-  compatPure(image, options),
-  modern(image, options),
-]
+const profiles: Zoom[] = [compat(image, options), compatPure(image, options)]
+const modernZoom = modern(image, { margin: 16 })
+const modernOpening: Promise<void> = modernZoom.open(image)
+void modernOpening
+// @ts-expect-error Modern instances do not expose legacy convenience methods.
+modernZoom.clone()
+// @ts-expect-error Templates are composed separately, not default preset options.
+modern(image, { template: '#caption' })
 void profiles

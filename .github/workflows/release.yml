@@ -66,7 +66,8 @@ jobs:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: browser-build
-      - run: npm publish --access public --ignore-scripts
+      - run: node scripts/release-channel.ts latest
+      - run: npm publish --tag latest --access public --ignore-scripts
 
   sync-examples:
     needs: [release-please, publish]

@@ -10,6 +10,7 @@ const { testUrl, sveltePort, svelteDevUrl, shadcnPort, shadcnDevUrl, rscUrl } =
   await reserveTestPorts()
 const mobileSpecs = [
   'mobile',
+  'modern',
   'dialog',
   'gallery',
   'gallery-composition',
@@ -42,7 +43,7 @@ export default defineConfig({
     },
     {
       name: 'modern-chromium',
-      testMatch: ['**/api.spec.ts', '**/loading.spec.ts', '**/motion.spec.ts'],
+      testMatch: ['**/modern.spec.ts'],
       metadata: { preset: 'modern' },
       use: chromium(devices['Desktop Chrome']),
     },

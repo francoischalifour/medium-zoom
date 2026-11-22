@@ -3,7 +3,7 @@
 ## Principles
 
 - **v1 never changes by accident.** The published package keeps its files, entries, and [browser support](https://medium-zoom.francoischalifour.com/docs/javascript/#browser-support). A change meant for v1 says so in its pull request.
-- **The modern library stays private until its API is ready.** Candidate entries and the `modern` preset stay out of the release manifest and the user documentation.
+- **v2 previews are deliberate.** Candidate entries and the [modern preset](docs/modern-preset.md) stay out of the v1 release manifest and stable user documentation. A separately approved manual preview selects the modern contract in the same package on `next`; see [Preview releases](docs/preview-release.md). They stay private until that publication is authorized.
 - **Every change reports its cost.** Size and runtime are measured against recorded baselines. Raising a budget is a decision, not a fix.
 - **Tests wait on behavior, not time.** Pause the page clock with `page.clock` instead of waiting a fixed time.
 
@@ -31,7 +31,8 @@ One package holds two libraries. Each directory of `src` is one part of them:
 
 | Directory                     | Part                                                                                                                       |
 | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `src/preset/`                 | The v1 library: `mediumZoom()` and its options, built for the compat and modern profiles.                                  |
+| `src/preset/`                 | The v1 library: `mediumZoom()` and its options, built for the compat profile.                                              |
+| `src/modern/`                 | The v2 preset: a slim controller composing core, HD loading, native dialog and accessible triggers, with structural CSS.   |
 | `src/core/` to `src/gallery/` | The modern library, one directory per entry: `src/<entry>/index.ts` is `medium-zoom/<entry>`.                              |
 | `src/zoom/`                   | What both are made of: selectors, frames, geometry, transition waits, the HD loader, container bounds, and the stylesheet. |
 | `src/platform/`               | What the compat and modern profiles answer differently, imported as `#platform`.                                           |
@@ -39,6 +40,7 @@ One package holds two libraries. Each directory of `src` is one part of them:
 - **Neither library imports the other.** Both import `src/zoom`, so a change outside `src/zoom`, `src/platform`, and `src/preset` cannot change a released file.
 - **An entry's code stays in its bundle.** Entries share types through `medium-zoom/<entry>`. `src/core/stage.ts` is the one private contract between two entries: the engine drives it and a renderer implements it.
 - **Extensions use the public API.** Triggers and the gallery work on any zoom through its methods, state, events, and documented class names.
+- **The modern preset composes entries.** Only `src/modern/` bundles their runtime implementations together; it never imports `src/preset/`. Optional entries remain independently usable.
 
 `oxlint.config.mts` enforces the imports.
 
@@ -79,3 +81,5 @@ Use Conventional Commits and follow `.github/pull_request_template.md`. Include 
 ## Release
 
 Release Please opens a release pull request against `main`. Merging it tags the commit, creates the GitHub release, and publishes to npm through trusted publishing. A follow-up pull request updates the examples to the new version. If publication fails, fix the cause and rerun the failed job without moving the tag.
+
+The stable publisher accepts only final `1.x.y` versions and explicitly uses `latest`. The separate [manual v2 preview workflow](docs/preview-release.md) accepts only `2.0.0-next.N` and publishes a checked candidate tarball with `--tag next`. It does not run Release Please or synchronize examples. Neither workflow promotes previews to stable.

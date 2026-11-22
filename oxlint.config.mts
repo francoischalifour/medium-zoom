@@ -24,18 +24,22 @@ const entries = extensionEntries.map(({ name }) => name)
 // The boundaries CONTRIBUTING.md describes, as imports each part of `src` may not make.
 const boundaries = [
   restrict(['src/zoom/**', 'src/platform/**'], {
-    regex: `^(medium-zoom|@/(preset|${entries.join('|')})/)`,
+    regex: `^(medium-zoom|@/(preset|modern|${entries.join('|')})/)`,
     message: 'Shared mechanics import neither library.',
   }),
   restrict(['src/preset/**'], {
-    regex: `^(medium-zoom/|@/(${entries.join('|')})/)`,
+    regex: `^(medium-zoom/|@/(modern|${entries.join('|')})/)`,
     message: 'The v1 library imports only shared mechanics.',
+  }),
+  restrict(['src/modern/**'], {
+    regex: '^(#platform$|@/preset/)',
+    message: 'The modern preset composes entries, never the v1 library.',
   }),
   ...entries.map(entry =>
     restrict(
       [`src/${entry}/**`],
       {
-        regex: '^(#platform$|@/preset/)',
+        regex: '^(#platform$|@/(preset|modern)/)',
         message:
           'The modern library imports neither the v1 library nor its platform layer.',
       },
@@ -53,7 +57,10 @@ export default defineConfig({
   ignorePatterns: ['**/node_modules/**', 'tests/fixtures/next/.next/**'],
   categories: { correctness: 'error' },
   env: { browser: true, node: true },
-  globals: { __TEST__: 'readonly' },
+  globals: {
+    __TEST__: 'readonly',
+    __EVENTS__: 'readonly',
+  },
   rules: {
     curly: ['error', 'all'],
     'unicorn/numeric-separators-style': [

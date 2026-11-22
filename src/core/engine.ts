@@ -19,6 +19,8 @@ import type {
   ZoomViewport,
 } from '@/zoom/types'
 
+declare const __EVENTS__: boolean
+
 /** Open options of a zoom created with a renderer (`createZoom(…, { renderer })`). */
 export interface ModalOpenOptions extends ZoomOpenOptions {
   /**
@@ -189,6 +191,9 @@ export const createEngine = (
   group?: Group
 ): EngineZoom => {
   const dispatch = (image: ZoomTarget, type: string, closed?: Scene) => {
+    if (!__EVENTS__) {
+      return
+    }
     image.dispatchEvent(
       new CustomEvent(`medium-zoom:${type}`, {
         detail: closed
@@ -667,7 +672,9 @@ export const createEngine = (
         const content = media || primary
         if (media) {
           join(media)
-          media.animate({ opacity: [0, 1] }, 200)
+          if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            media.animate({ opacity: [0, 1] }, 200)
+          }
         }
         // Fitting measures the untransformed box, including the individual transform
         // properties a gesture may be zooming with: clear them without a transition, so the

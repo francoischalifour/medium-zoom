@@ -1,4 +1,4 @@
-import legacyFixture from '../tests/experimental/package.json' with { type: 'json' }
+import pkg from '../package.json' with { type: 'json' }
 
 export type Profile = 'modern' | 'compat'
 
@@ -77,11 +77,14 @@ function preset(
   budgets: readonly [number, number]
 ): CandidateEntry {
   const pure = name.includes('pure')
+  const directory = profile === 'modern' ? 'modern' : 'preset'
   const entry = optional(
     name,
     'default',
     `${profile} preset`,
-    'HD/container/template; no modal/gallery',
+    profile === 'modern'
+      ? 'HD + native dialog + accessible triggers; no theme/gallery/template/container'
+      : 'HD/container/template; no modal/gallery',
     budgets,
     `dist/${profileStylesheets[profile]}`
   )
@@ -91,8 +94,8 @@ function preset(
     injected,
     emitsCss: injected,
     source: {
-      esm: `src/preset/${pure ? 'pure' : 'index'}.ts`,
-      cjs: `src/preset/${pure ? 'pure' : 'index'}-commonjs.ts`,
+      esm: `src/${directory}/${pure ? 'pure' : 'index'}.ts`,
+      cjs: `src/${directory}/${pure ? 'pure' : 'index'}-commonjs.ts`,
     },
   }
 }
@@ -151,7 +154,7 @@ export const extensionEntries: CandidateEntry[] = [
     'bindZoomTriggers',
     'DOM binding',
     'pointer/keyboard activation; shared binding + signal',
-    [910, 910]
+    [920, 920]
   ),
   styled(
     optional(
@@ -183,7 +186,7 @@ export const extensionEntries: CandidateEntry[] = [
       'headless controller',
       'shared headless controller + keyboard/gestures; optional stock controls',
       // Gestures are about 3 KB of it, shaken out by consumers that do not bind them.
-      [5_630, 5_630]
+      [5_720, 5_720]
     ),
     [
       {
@@ -207,8 +210,8 @@ export const extensionEntries: CandidateEntry[] = [
 export const profileEntries: CandidateEntry[] = [
   preset('compat', 'compat', true, [3_410, 3_410]),
   preset('compat/pure', 'compat', false, [3_200, 3_200]),
-  preset('modern', 'modern', true, [3_225, 3_225]),
-  preset('pure', 'compat', false, [3_200, 3_200]),
+  preset('modern', 'modern', true, [6_600, 6_600]),
+  preset('modern/pure', 'modern', false, [6_300, 6_300]),
 ]
 export const candidateEntries = [...extensionEntries, ...profileEntries]
 export const candidateArtifacts = candidateEntries.flatMap(entry => [
@@ -223,12 +226,32 @@ export const candidateBudgets = candidateEntries.flatMap(entry => [
     maxBytes,
   })),
 ])
-export function candidateManifest() {
-  const exports: Record<string, unknown> = { ...legacyFixture.exports }
-  const types: Record<string, string[]> = {
-    ...legacyFixture.typesVersions['*'],
+export function candidateManifest(defaultProfile: Profile = 'compat') {
+  const exports: Record<string, unknown> = {
+    '.': {
+      types: './dist/medium-zoom.d.ts',
+      module: './dist/medium-zoom.esm.js',
+      default: './dist/medium-zoom.min.js',
+    },
+    './dist/pure': {
+      types: './dist/pure/index.d.ts',
+      default: './dist/pure/index.js',
+    },
+    './dist/medium-zoom': './dist/medium-zoom.js',
+    './dist/medium-zoom.min': './dist/medium-zoom.min.js',
+    './dist/medium-zoom.esm': './dist/medium-zoom.esm.js',
+    './dist/pure/index': './dist/pure/index.js',
+    './dist/pure/medium-zoom.umd': './dist/pure/medium-zoom.umd.js',
+    './dist/pure/medium-zoom.min.umd': './dist/pure/medium-zoom.min.umd.js',
+    './*': './*',
+    './compat/style.css': './dist/style.css',
+    './modern/style.css': './dist/modern/style.css',
   }
-  const sideEffects = [...legacyFixture.sideEffects]
+  const types: Record<string, string[]> = {
+    'dist/pure': ['dist/pure/index.d.ts'],
+    '*': ['*'],
+  }
+  const sideEffects = [...pkg.sideEffects]
   for (const entry of candidateEntries) {
     exports[`./${entry.name}`] = {
       import: {
@@ -250,8 +273,18 @@ export function candidateManifest() {
       exports[`./${fileName}`] = `./dist/${fileName}`
     }
   }
+  exports['./pure'] = exports[`./${defaultProfile}/pure`]
+  exports['./style.css'] = `./dist/${profileStylesheets[defaultProfile]}`
+  types.pure = types[`${defaultProfile}/pure`]!
+  if (defaultProfile === 'modern') {
+    exports['.'] = exports['./modern']
+  }
   return {
-    ...legacyFixture,
+    private: true,
+    files: ['dist', 'CHANGELOG.md'],
+    main: defaultProfile === 'modern' ? 'dist/modern/index.cjs' : pkg.main,
+    module: defaultProfile === 'modern' ? 'dist/modern/index.mjs' : pkg.module,
+    types: defaultProfile === 'modern' ? 'dist/modern/index.d.cts' : pkg.types,
     exports,
     typesVersions: { '*': types },
     sideEffects,

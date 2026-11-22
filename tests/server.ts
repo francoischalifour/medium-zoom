@@ -3,7 +3,9 @@ import { extname, resolve, sep } from 'node:path'
 
 import { buildGalleryExample } from '../scripts/build-gallery-example.ts'
 import { packExperimental } from '../scripts/pack-experimental.ts'
+import { packPreview } from '../scripts/pack-preview.ts'
 import { pack } from '../scripts/pack.ts'
+import { previewMajor } from '../scripts/release-channel.ts'
 import { readExactHeaders } from '../website/build/site-headers.ts'
 import { readExactRedirects } from '../website/build/site-redirects.ts'
 import { testPort } from './server-urls.ts'
@@ -11,9 +13,11 @@ import { testPort } from './server-urls.ts'
 await buildGalleryExample()
 const artifact = pack()
 const experimental = packExperimental()
+const preview = packPreview(`${previewMajor}.0.0-next.0`)
 const roots: Record<string, string> = {
   package: artifact.root,
   experimental: experimental.root,
+  preview: preview.root,
   experiments: resolve('tests/experimental'),
   composition: resolve('.cache/gallery-composition'),
   baseline: resolve('node_modules/medium-zoom-baseline'),
@@ -106,4 +110,5 @@ for (const signal of ['SIGTERM', 'SIGINT']) {
 process.on('exit', () => {
   artifact.cleanup()
   experimental.cleanup()
+  preview.cleanup()
 })

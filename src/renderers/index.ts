@@ -220,18 +220,6 @@ export function dialog({
             // is the one the engine fits the frame from.
             element.showModal()
             overlay = element.querySelector('.medium-zoom-overlay')!
-            // Controls take the backdrop's color scheme, so light-dark() styles contrast with
-            // what is actually behind them, however the page sets its theme. A mostly
-            // see-through backdrop keeps the page's scheme.
-            const color = getComputedStyle(overlay).backgroundColor
-            const [red, green, blue, alpha = 1] =
-              (color.startsWith('rgb') &&
-                color.match(/[\d.]+/g)!.map(Number)) ||
-              []
-            if (alpha >= 0.5) {
-              element.style.colorScheme =
-                red! * 0.3 + green! * 0.6 + blue! * 0.1 < 128 ? 'dark' : 'light'
-            }
             overlay.dataset.slot = 'medium-zoom-overlay'
             addEventListener('scroll', follow, { passive: true, signal })
           }

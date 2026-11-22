@@ -16,13 +16,18 @@ import type { pack } from './pack.ts'
 
 export async function checkConsumers(
   artifact: ReturnType<typeof pack>,
-  experimental = false
+  experimental = false,
+  modern = false
 ) {
   const consumer = join(artifact.directory, 'consumer')
   mkdirSync(join(consumer, 'node_modules'), { recursive: true })
   const packageRoot = join(consumer, 'node_modules/medium-zoom')
   cpSync(artifact.root, packageRoot, { recursive: true })
-  const fixtures = experimental ? 'tests/experimental/types' : 'tests/types'
+  const fixtures = modern
+    ? 'tests/preview/types'
+    : experimental
+      ? 'tests/experimental/types'
+      : 'tests/types'
   for (const file of [
     'consumer.ts',
     'commonjs.cts',
@@ -34,14 +39,14 @@ export async function checkConsumers(
 
   copyFileSync('tests/types/bundler.mjs', join(consumer, 'bundler.mjs'))
 
-  if (experimental) {
+  if (experimental && !modern) {
     for (const extension of ['ts', 'cts', 'mts']) {
       copyFileSync(
         join(fixtures, 'strategies-consumer.ts'),
         join(consumer, `strategies-consumer.${extension}`)
       )
     }
-  } else {
+  } else if (!experimental) {
     const unpublished = [
       ...new Set([
         ...candidateEntries.map(entry => entry.name),
@@ -64,8 +69,8 @@ export async function checkConsumers(
     )
   }
 
-  checkTypes(consumer, experimental)
-  await checkBundlerResolution(consumer, packageRoot, experimental)
+  checkTypes(consumer, experimental, modern)
+  await checkBundlerResolution(consumer, packageRoot, experimental, modern)
   await checkBundlerConsumer(consumer)
 
   // Use Node here because Bun can resolve imports that fail for Node consumers.
@@ -161,10 +166,12 @@ const typeCases: TypeCase[] = [
   },
 ]
 
-function checkTypes(consumer: string, experimental: boolean) {
+function checkTypes(consumer: string, experimental: boolean, modern: boolean) {
   const manifest = experimental ? 'candidate' : 'release'
   const cases = typeCases.filter(
-    typeCase => (typeCase.manifest ?? manifest) === manifest
+    typeCase =>
+      (typeCase.manifest ?? manifest) === manifest &&
+      !(modern && typeCase.name.startsWith('strategies-'))
   )
   for (const {
     name,
@@ -188,7 +195,7 @@ function checkTypes(consumer: string, experimental: boolean) {
           types: [],
           module,
           moduleResolution,
-          esModuleInterop,
+          esModuleInterop: modern || esModuleInterop,
           noEmit,
           outDir: './output',
         },
@@ -210,7 +217,8 @@ function checkTypes(consumer: string, experimental: boolean) {
 async function checkBundlerResolution(
   consumer: string,
   packageRoot: string,
-  experimental: boolean
+  experimental: boolean,
+  modern: boolean
 ) {
   const server = await createServer({
     configFile: false,
@@ -220,7 +228,10 @@ async function checkBundlerResolution(
   })
   try {
     const paths = [
-      ['medium-zoom', 'dist/medium-zoom.esm.js'],
+      [
+        'medium-zoom',
+        modern ? 'dist/modern/index.mjs' : 'dist/medium-zoom.esm.js',
+      ],
       ['medium-zoom/dist/pure', 'dist/pure/index.js'],
       ['medium-zoom/dist/pure/index.js', 'dist/pure/index.js'],
     ]
@@ -240,7 +251,14 @@ async function checkBundlerResolution(
         ),
         ['medium-zoom/modern/style.css', 'dist/modern/style.css'],
         ['medium-zoom/compat/style.css', 'dist/style.css'],
-        ['medium-zoom/style.css', 'dist/style.css']
+        [
+          'medium-zoom/pure',
+          modern ? 'dist/modern/pure/index.mjs' : 'dist/compat/pure/index.mjs',
+        ],
+        [
+          'medium-zoom/style.css',
+          modern ? 'dist/modern/style.css' : 'dist/style.css',
+        ]
       )
     }
     for (const [specifier, path] of paths) {

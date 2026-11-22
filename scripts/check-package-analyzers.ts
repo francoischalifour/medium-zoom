@@ -22,9 +22,13 @@ interface AttwAnalysis {
   >
 }
 
-export async function checkAnalyzers(archive: string, experimental = false) {
+export async function checkAnalyzers(
+  archive: string,
+  experimental = false,
+  modern = false
+) {
   await checkPublint(archive)
-  checkAttw(archive, experimental)
+  checkAttw(archive, experimental, modern)
 }
 
 async function checkPublint(archive: string) {
@@ -57,7 +61,7 @@ async function checkPublint(archive: string) {
   assert.deepEqual(reportedPaths, legacyEsmPaths)
 }
 
-function checkAttw(archive: string, experimental: boolean) {
+function checkAttw(archive: string, experimental: boolean, modern: boolean) {
   // Include legacy pure paths and every new typed entry. Other UMD paths
   // are runtime-only and are checked separately.
   const releaseEntrypoints = ['.', './dist/pure', './dist/pure/index.js']
@@ -99,13 +103,17 @@ function checkAttw(archive: string, experimental: boolean) {
   // v1's default-export types misdescribe the callable UMD. Switching to export =
   // would break legacy default imports and misdescribe the shared pure ESM types.
   assert.deepEqual(findings, [
-    {
-      kind: 'FalseExportDefault',
-      files: [
-        '/node_modules/medium-zoom/dist/medium-zoom.d.ts',
-        '/node_modules/medium-zoom/dist/medium-zoom.min.js',
-      ],
-    },
+    ...(!modern
+      ? [
+          {
+            kind: 'FalseExportDefault',
+            files: [
+              '/node_modules/medium-zoom/dist/medium-zoom.d.ts',
+              '/node_modules/medium-zoom/dist/medium-zoom.min.js',
+            ],
+          },
+        ]
+      : []),
     {
       kind: 'UnexpectedModuleSyntax',
       files: ['/node_modules/medium-zoom/dist/pure/index.js'],
@@ -121,7 +129,7 @@ function checkAttw(archive: string, experimental: boolean) {
         index => analysis.problems[index].kind
       )
       let expected: string[] = []
-      if (entry === '.') {
+      if (entry === '.' && !modern) {
         expected = ['FalseExportDefault']
       } else if (
         entry.startsWith('./dist/pure') &&
