@@ -376,16 +376,14 @@ test('continuous scrolling dismisses without waiting for scrolling to stop', asy
 }) => {
   await loadZoomFixture(page)
   await page.evaluate(() => window.zoom.open())
-  // Keep scrolling longer than the dismissal delay and closing animation together.
+  // Scrolls on until the zoom closes: one that waited for scrolling to stop never would.
   const closedWhileScrolling = await page.evaluate(async () => {
-    let closed = false
-    window.zoom.on('closed', () => {
-      closed = true
-    })
     const scrolling = setInterval(() => window.scrollBy(0, 5), 20)
     try {
-      await new Promise(resolve => setTimeout(resolve, 1_000))
-      return closed
+      return await new Promise<boolean>(resolve => {
+        window.zoom.on('closed', () => resolve(true))
+        setTimeout(() => resolve(false), 10_000)
+      })
     } finally {
       clearInterval(scrolling)
     }

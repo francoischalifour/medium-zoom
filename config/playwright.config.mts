@@ -61,6 +61,13 @@ export default defineConfig({
       use: { ...devices['Pixel 7'] },
     },
     {
+      // A slow phone: sparse, late events and long frames.
+      name: 'slow-mobile-chromium',
+      testMatch: ['**/gallery-gestures.spec.ts', '**/gallery-stress.spec.ts'],
+      metadata: { cpuThrottle: 6 },
+      use: { ...devices['Pixel 7'] },
+    },
+    {
       name: 'mobile-webkit',
       testMatch: mobileSpecs,
       use: { ...devices['iPhone 13'] },

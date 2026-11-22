@@ -7,7 +7,11 @@ import { candidateEntries } from './package.config.mts'
 const fromRoot = (path: string) =>
   fileURLToPath(new URL(`../${path}`, import.meta.url))
 
+// An inline PostCSS config stops Vite searching parent directories up to the home folder.
+export const noPostcssLookup = { postcss: {} }
+
 export const libraryConfig = defineConfig({
+  css: noPostcssLookup,
   resolve: {
     alias: {
       'medium-zoom': fileURLToPath(

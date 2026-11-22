@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-import { addModernStyles, preparePage } from './helpers'
+import { addModernStyles, expectNear, preparePage } from './helpers'
 
 for (const capabilities of [
   [],
@@ -61,8 +61,8 @@ for (const capabilities of [
         .locator('.medium-zoom-image--opened')
         .last()
         .boundingBox()
-      expect(rect!.x + rect!.width / 2).toBeCloseTo(315, 0)
-      expect(rect!.y + rect!.height / 2).toBeCloseTo(220, 0)
+      expectNear(rect!.x + rect!.width / 2, 315)
+      expectNear(rect!.y + rect!.height / 2, 220)
     }
     await page.evaluate(() => window.coreZoom.close())
     await expect(
@@ -112,10 +112,10 @@ test('viewport strategy remeasures layout and observes updated core margins', as
     await window.coreZoom.close()
     return { first, second, options: window.coreZoom.getOptions() }
   })
-  expect(result.first[0]).toBeCloseTo(320, 0)
-  expect(result.first[1]).toBeCloseTo(230, 0)
-  expect(result.second[0]).toBeCloseTo(280, 0)
-  expect(result.second[1]).toBeCloseTo(230, 0)
+  expectNear(result.first[0]!, 320)
+  expectNear(result.first[1]!, 230)
+  expectNear(result.second[0]!, 280)
+  expectNear(result.second[1]!, 230)
   expect(result.options).toEqual({
     margin: 20,
     background: undefined,

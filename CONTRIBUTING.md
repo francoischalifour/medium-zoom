@@ -43,6 +43,7 @@ For a focused check, use the commands below:
 
 - `bun run format` or `bun run format:check`: format or check maintained files; pass paths to limit either to those files.
 - `bun run lint`: check source, tests, and tooling with Oxlint.
+- `bun run check:isolated`: run the format and lint checks again in a copy of the repository's files under an empty home folder, and fail if the results differ from the checkout's. Tools look for configs, ignore files, and dependencies in parent directories, so a nested worktree can pass locally and fail in CI. Run `bun install` in each worktree: without its own `node_modules`, scripts resolve tools from the parent checkout.
 - `bun run typecheck`: check tooling, documentation snippets, and framework examples.
 - `bun run test:package`: verify the npm tarball's entries, declarations, CSS, and ES5 syntax and APIs, then the same for the private candidate package.
 - `bun run test:examples`: copy each example outside the workspace, install with npm, check types, and build against the published package.
@@ -50,7 +51,7 @@ For a focused check, use the commands below:
 - `bun run test:browser`: exercise the packed library, website, examples, and stories in Chromium, Firefox, and WebKit. Package rendering is compared with the published package.
 - `bun run test:stress`: run long seeded sequences of every gallery interaction (buttons, keys, swipes, taps, pinches, scrolls, resizes) with full-size images that arrive late or fail, checking on every frame that something is on screen and focus stays in the zoom, and at every rest that the counter, labels, buttons and fit agree. `test:browser` runs two short seeds. A failure names its seed and the actions before it: replay it with `MEDIUM_ZOOM_STRESS_SEED=<seed> bun run test:browser gallery-stress.spec.ts`.
 
-Before individual package checks, run `bun run build`. Before browser checks, run `bun run build:website && bun run test:examples`. Browser checks reserve the first free block of four ports from 4175 (4175, 4185, …), so worktrees can run them at the same time; set `MEDIUM_ZOOM_TEST_PORT` to choose the block. To select browsers, append `--project=chromium --project=webkit` to the browser test command.
+Before individual package checks, run `bun run build`. Before browser checks, run `bun run build:website && bun run test:examples`. Browser checks reserve the first free block of four ports from 4175 (4175, 4185, …), so worktrees can run them at the same time; set `MEDIUM_ZOOM_TEST_PORT` to choose the block. To select browsers, append `--project=chromium --project=webkit` to the browser test command. The `slow-mobile-chromium` project runs the gesture and stress suites with Chromium's CPU throttled six times, so events arrive sparse and late as on a slow phone or a loaded CI runner; Chromium gestures take their event times from the test, so a flick keeps its speed however slowly the page runs. Tests that depend on when something happens pause the page clock with `page.clock` instead of waiting a fixed time.
 
 For documentation changes, the [website guide](website/README.md#verify-changes) lists the checks for snippets, navigation, and metadata.
 
