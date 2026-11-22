@@ -32,18 +32,23 @@
   },
   "include": [
     "*.mts",
-    "src/**/*.ts",
-    "config/**/*.mts",
-    "scripts/**/*.ts",
-    "tests/**/*.ts",
-    "tests/unit/geometry.test.mts",
-    "stories/catalogue/**/*.ts",
-    "stories/vite.config.mts",
+    "src",
+    "config",
+    "scripts",
+    "tests",
+    "stories",
+    "playground",
     "website/vite.config.mts",
-    "playground/**/*.ts",
-    "playground/**/*.mts",
     "examples/*/vite.config.ts",
-    "examples/shadcn/tests/experimental/**/*.tsx"
+    "examples/shadcn/tests/experimental"
   ],
-  "exclude": ["**/node_modules", "tests/fixtures/next/.next"]
+  // Checked elsewhere: the Next.js fixture, the worker's test, and the package
+  // consumers, which test:package checks under Node resolution.
+  "exclude": [
+    "**/node_modules",
+    "tests/fixtures",
+    "tests/unit/registry-downloads.test.mts",
+    "tests/**/types/*.cts",
+    "tests/**/types/*.mts"
+  ]
 }
