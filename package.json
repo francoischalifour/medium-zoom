@@ -82,7 +82,7 @@
     "deploy:website": "bun run build:website && wrangler deploy --config website/wrangler.jsonc",
     "format": "bun fmt --no-config --flavor=prettier",
     "lint": "oxlint --config oxlint.config.mts --deny-warnings",
-    "typecheck": "bun check --no-script -p tsconfig.json && bun check --no-script -p website/tsconfig.json && bun scripts/check-docs.ts && bun run --filter \"@medium-zoom/*-example\" typecheck && mkdir -p .cache && wrangler types .cache/worker-types.d.ts --config website/wrangler.jsonc && bun check --no-script -p website/tsconfig.worker.json",
+    "typecheck": "bun check --no-script -p tsconfig.json && bun check --no-script -p scripts && bun check --no-script -p website/tsconfig.json && bun scripts/check-docs.ts && bun run --filter \"@medium-zoom/*-example\" typecheck && mkdir -p .cache && wrangler types .cache/worker-types.d.ts --config website/wrangler.jsonc && bun check --no-script -p website/tsconfig.worker.json",
     "test:browser": "playwright test --config config/playwright.config.mts",
     "test:stress": "MEDIUM_ZOOM_STRESS_SEEDS=${MEDIUM_ZOOM_STRESS_SEEDS:-12} MEDIUM_ZOOM_STRESS_STEPS=${MEDIUM_ZOOM_STRESS_STEPS:-80} bun run test:browser gallery-stress.spec.ts",
     "test:package": "bun scripts/check-package.ts",

@@ -127,6 +127,37 @@ function DocsBreadcrumb({
 
 type DocsPageEntry = (typeof docsPages)[number]
 
+const navigationGroups = new Map<string, DocsPageEntry[]>()
+for (const page of docsPages) {
+  const pages = navigationGroups.get(page.group)
+  if (pages) {
+    pages.push(page)
+  } else {
+    navigationGroups.set(page.group, [page])
+  }
+}
+
+function DocsNavigation({ path }: { path: string }) {
+  return (
+    <nav aria-label="Documentation">
+      {[...navigationGroups].map(([group, pages]) => (
+        <div className="docs-nav-group" key={group}>
+          <p>{group}</p>
+          {pages.map(page => (
+            <a
+              key={page.path}
+              href={page.path}
+              aria-current={page.path === path ? 'page' : undefined}
+            >
+              {page.title}
+            </a>
+          ))}
+        </div>
+      ))}
+    </nav>
+  )
+}
+
 const paginationLabels = { prev: 'Previous', next: 'Next' } as const
 
 function DocsPaginationLink({
@@ -179,35 +210,16 @@ export function DocsPage({
       revealInScrollArea(active.closest('.docs-nav-group') ?? active, active)
     }
   }, [path])
-  const page = docsPages.find(page => page.path === path)
+  const index = docsPages.findIndex(page => page.path === path)
+  const page = docsPages[index]
   if (!page) {
     throw new Error(`Unknown documentation page: ${path}`)
   }
   const { default: Content, outline, snippets } = article
   const isOverview = page.path === '/docs/'
-  const index = docsPages.findIndex(item => item.path === path)
   const previous = docsPages[index - 1]
   const next = docsPages[index + 1]
-  const navigation = (
-    <nav aria-label="Documentation">
-      {[...new Set(docsPages.map(item => item.group))].map(group => (
-        <div className="docs-nav-group" key={group}>
-          <p>{group}</p>
-          {docsPages
-            .filter(item => item.group === group)
-            .map(item => (
-              <a
-                key={item.path}
-                href={item.path}
-                aria-current={item.path === path ? 'page' : undefined}
-              >
-                {item.title}
-              </a>
-            ))}
-        </div>
-      ))}
-    </nav>
-  )
+  const navigation = <DocsNavigation path={path} />
   return (
     <div
       className={`site-shell docs-shell${isOverview ? ' docs-overview' : ''}`}

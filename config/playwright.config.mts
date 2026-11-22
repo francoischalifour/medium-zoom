@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig, devices } from '@playwright/test'
 
 import { reserveTestPorts } from '../tests/server-urls.ts'
+import { chromium } from './playwright-chromium.mts'
 
 const repositoryRoot = fileURLToPath(new URL('../', import.meta.url))
 const { testUrl, sveltePort, svelteDevUrl, shadcnPort, shadcnDevUrl, rscUrl } =
@@ -37,13 +38,13 @@ export default defineConfig({
     {
       name: 'chromium',
       testIgnore: '**/mobile.spec.ts',
-      use: { ...devices['Desktop Chrome'] },
+      use: chromium(devices['Desktop Chrome']),
     },
     {
       name: 'modern-chromium',
       testMatch: ['**/api.spec.ts', '**/loading.spec.ts', '**/motion.spec.ts'],
       metadata: { preset: 'modern' },
-      use: { ...devices['Desktop Chrome'] },
+      use: chromium(devices['Desktop Chrome']),
     },
     {
       name: 'firefox',
@@ -58,14 +59,14 @@ export default defineConfig({
     {
       name: 'mobile-chromium',
       testMatch: mobileSpecs,
-      use: { ...devices['Pixel 7'] },
+      use: chromium(devices['Pixel 7']),
     },
     {
       // A slow phone: sparse, late events and long frames.
       name: 'slow-mobile-chromium',
       testMatch: ['**/gallery-gestures.spec.ts', '**/gallery-stress.spec.ts'],
       metadata: { cpuThrottle: 6 },
-      use: { ...devices['Pixel 7'] },
+      use: chromium(devices['Pixel 7']),
     },
     {
       name: 'mobile-webkit',
@@ -77,14 +78,14 @@ export default defineConfig({
       name: 'rsc',
       testDir: '../tests/rsc',
       workers: 1,
-      use: { ...devices['Desktop Chrome'], baseURL: rscUrl },
+      use: { ...chromium(devices['Desktop Chrome']), baseURL: rscUrl },
     },
     {
       name: 'analytics',
       testDir: '../tests/analytics',
       // Clipboard permissions and focus are shared by the browser process.
       workers: 1,
-      use: { ...devices['Desktop Chrome'] },
+      use: chromium(devices['Desktop Chrome']),
     },
   ],
   webServer: [

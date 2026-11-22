@@ -1,13 +1,26 @@
 import { resolve } from 'node:path'
 
 import react from '@vitejs/plugin-react'
-import { build } from 'vite'
+import { build, type InlineConfig } from 'vite'
 
 import { candidateAliases } from '../config/vite.shared.config.mts'
 
 export async function buildGalleryExample() {
   const root = resolve('examples/shadcn/tests/experimental')
-  await build({
+  await build(config(root, 'production'))
+  // A development build, so the component's development warnings can be tested.
+  await build(config(root, 'development'))
+}
+
+function config(root: string, mode: 'development' | 'production') {
+  const pages: Record<string, string> =
+    mode === 'production'
+      ? {
+          index: resolve(root, 'index.html'),
+          playground: resolve(root, 'playground.html'),
+        }
+      : { details: resolve(root, 'details.html') }
+  return {
     configFile: false,
     root,
     base: '/composition/',
@@ -23,15 +36,14 @@ export async function buildGalleryExample() {
         },
       ],
     },
+    mode,
+    define: { 'process.env.NODE_ENV': JSON.stringify(mode) },
     build: {
       outDir: resolve('.cache/gallery-composition'),
-      emptyOutDir: true,
-      rolldownOptions: {
-        input: {
-          index: resolve(root, 'index.html'),
-          playground: resolve(root, 'playground.html'),
-        },
-      },
+      // The development build adds its page next to the production ones.
+      emptyOutDir: mode === 'production',
+      minify: mode === 'production',
+      rolldownOptions: { input: pages },
     },
-  })
+  } satisfies InlineConfig
 }

@@ -7,7 +7,7 @@
     "noEmit": true,
     "target": "ES2023",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
-    "types": ["bun", "node", "vite/client"],
+    "types": ["node", "vite/client"],
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "paths": {
@@ -34,7 +34,6 @@
     "*.mts",
     "src",
     "config",
-    "scripts",
     "tests",
     "stories",
     "playground",
@@ -42,13 +41,12 @@
     "examples/*/vite.config.ts",
     "examples/shadcn/tests/experimental"
   ],
-  // Checked elsewhere: the Next.js fixture, the worker's test, and the package
-  // consumers, which test:package checks under Node resolution.
   "exclude": [
     "**/node_modules",
     "tests/fixtures",
     "tests/unit/registry-downloads.test.mts",
     "tests/**/types/*.cts",
-    "tests/**/types/*.mts"
+    "tests/**/types/*.mts",
+    "tests/server.ts"
   ]
 }

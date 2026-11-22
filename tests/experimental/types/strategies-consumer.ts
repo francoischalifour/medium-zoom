@@ -14,6 +14,7 @@ import {
   bindGalleryGestures,
   bindGalleryKeyboard,
   createGallery,
+  type GalleryChangeReason,
   galleryControls,
 } from 'medium-zoom/gallery'
 import { loadHdImage } from 'medium-zoom/loaders'
@@ -105,15 +106,33 @@ zoom.on('closed', event => {
   const reason: ZoomCloseReason = event.detail.reason
   void reason
 })
-void zoom.close('control')
+zoom.on('close', ({ detail }) => {
+  // Checking the reason narrows the event.
+  if (detail.reason === 'escape-key') {
+    const key: string | undefined = detail.event?.key
+    void key
+  } else if (detail.reason === 'form') {
+    const submitter: HTMLElement | null | undefined = detail.event?.submitter
+    void submitter
+  }
+})
+void zoom.close({ reason: 'control' })
+void zoom.close({ reason: 'escape-key', event: new KeyboardEvent('keydown') })
+// @ts-expect-error A reason's event has the type that reason implies.
+void zoom.close({ reason: 'escape-key', event: new MouseEvent('click') })
 // @ts-expect-error Close reasons are a closed set.
-void zoom.close('swipe')
+void zoom.close({ reason: 'swipe' })
 const lifetime = new AbortController()
 const { signal } = lifetime
 const owned = createZoom('img', { renderer: dialog(), signal })
 const handle = createGallery(owned, { signal })
 bindZoomTriggers(owned, { signal })
 bindGalleryKeyboard(document.body, handle, { signal })
+const reason: GalleryChangeReason | null = handle.getSnapshot().reason
+void reason
+void handle.next({ reason: 'next-press' })
+// @ts-expect-error Gallery reasons are a closed set.
+void handle.select(0, { reason: 'escape-key' })
 dialog({
   content: view => {
     createGallery(view.zoom, { signal: view.signal })

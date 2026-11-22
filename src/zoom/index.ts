@@ -4,6 +4,7 @@ import {
   type Group,
   type ModalOpenOptions,
   type Stage,
+  type ZoomCloseOptions,
   type ZoomCloseReason,
   type ZoomEvent,
   type ZoomEventMap,
@@ -25,6 +26,9 @@ export type {
   ZoomLoadContext,
   ZoomViewport,
   ZoomCloseReason,
+  ZoomCloseEventMap,
+  ZoomCloseDetail,
+  ZoomCloseOptions,
   ZoomEvent,
   ZoomEventMap,
   ZoomState,
@@ -50,8 +54,11 @@ export type ZoomContent = (view: {
   readonly element: HTMLElement
   /** The zoom being presented. */
   readonly zoom: ModalZoom
-  /** Closes the zoom for an application control: the close reason is `control`. */
-  close: () => void
+  /**
+   * Closes the zoom for an application control: the close reason is `control`. Pass the
+   * DOM event behind it as `event`, or bind it as a listener, to report that event too.
+   */
+  close: (options?: { readonly event?: Event } | Event) => void
   /**
    * Aborts once the content is removed, after its cleanup: pass it to `addEventListener()`,
    * `createGallery()` and the gallery bindings to release them with the content.
@@ -77,9 +84,13 @@ export interface Zoom<
    * Closes the zoom. Does nothing while it is already closed. Never reads `this`, so it can
    * be passed around, as to an event listener.
    *
-   * @param reason - Why, as reported by the `close` and `closed` events. Defaults to `api`.
+   * @param options - Why, and the DOM event behind it, as reported by the `close` and
+   * `closed` events. The reason defaults to `api`.
    */
-  close(this: void, reason?: ZoomCloseReason): Promise<this>
+  close<Reason extends ZoomCloseReason>(
+    this: void,
+    options?: ZoomCloseOptions<Reason>
+  ): Promise<this>
   /** Registers a `medium-zoom:<type>` listener on every image, current and future. */
   on<Type extends keyof ZoomEventMap>(
     type: Type,

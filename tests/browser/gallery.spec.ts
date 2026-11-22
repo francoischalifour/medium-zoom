@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright'
 import { expect, type Page, test } from '@playwright/test'
 
 import {
@@ -1380,14 +1381,169 @@ test('a held arrow key presses its button for as long as it is down', async ({
   const next = page.getByRole('button', { name: 'Next image' })
   await page.keyboard.down('ArrowRight')
   await expect(page.getByRole('status')).toContainText('2 / 3')
-  await expect(next).toHaveAttribute('data-medium-zoom-pressed', '')
+  await expect(next).toHaveAttribute('data-pressed', '')
   await expect(next).toHaveCSS('scale', '0.9')
   await page.keyboard.up('ArrowRight')
-  await expect(next).not.toHaveAttribute('data-medium-zoom-pressed')
+  await expect(next).not.toHaveAttribute('data-pressed')
   await expect(next).toHaveCSS('scale', 'none')
   // Reaching the end disables the button, which then shows no press.
   await page.keyboard.down('ArrowRight')
   await expect(page.getByRole('status')).toContainText('3 / 3')
   await expect(next).toHaveCSS('scale', 'none')
   await page.keyboard.up('ArrowRight')
+})
+
+test('the gallery snapshot reports why it moved to each image', async ({
+  page,
+}) => {
+  await fixture(page)
+  await page.evaluate(async () => {
+    const { createGallery } = await window.loadEntry('gallery')
+    const gallery = createGallery(window.modalZoom)
+    const seen: string[] = []
+    ;(window as unknown as { seen: string[] }).seen = seen
+    gallery.subscribe(() => {
+      const { current, reason } = gallery.getSnapshot()
+      seen.push(`${current?.id ?? 'closed'}:${reason}`)
+    })
+    ;(window as unknown as { gallery: typeof gallery }).gallery = gallery
+  })
+  const seen = () =>
+    page.evaluate(() => (window as unknown as { seen: string[] }).seen)
+  await page.locator('#first').focus()
+  await page.keyboard.press('Enter')
+  const modal = page.getByRole('dialog')
+  await expect(modal).toBeVisible()
+  await modal.getByRole('button', { name: 'Next image' }).click()
+  await expect(page.getByRole('dialog', { name: 'Forest' })).toBeVisible()
+  await modal.getByRole('button', { name: 'Previous image' }).click()
+  await expect(page.getByRole('dialog', { name: 'Mountain' })).toBeVisible()
+  await page.keyboard.press('ArrowRight')
+  await expect(page.getByRole('dialog', { name: 'Forest' })).toBeVisible()
+  await page.keyboard.press('End')
+  await expect(page.getByRole('dialog', { name: 'Ocean' })).toBeVisible()
+  await page.keyboard.press('Home')
+  await expect(page.getByRole('dialog', { name: 'Mountain' })).toBeVisible()
+  await page.evaluate(() =>
+    (
+      window as unknown as { gallery: { select(index: number): unknown } }
+    ).gallery.select(1)
+  )
+  await expect(page.getByRole('dialog', { name: 'Forest' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(modal).toHaveCount(0)
+  expect(await seen()).toEqual([
+    'first:null',
+    'second:next-press',
+    'first:previous-press',
+    'second:arrow-key',
+    'third:end-key',
+    'first:home-key',
+    'second:api',
+    'closed:null',
+  ])
+})
+
+test('the dialog and controls expose their parts and state as data attributes', async ({
+  page,
+}) => {
+  await fixture(page)
+  await page.evaluate(() => {
+    const states: string[] = []
+    ;(window as unknown as { states: string[] }).states = states
+    // Recorded on every attribute change, so a state shown for a single frame counts.
+    new MutationObserver(records => {
+      for (const { target, addedNodes } of records) {
+        for (const element of [target, ...addedNodes] as HTMLElement[]) {
+          if (element.localName !== 'dialog') {
+            continue
+          }
+          const state = [
+            'data-starting-style',
+            'data-open',
+            'data-ending-style',
+          ]
+            .filter(name => element.hasAttribute(name))
+            .join(' ')
+          if (states[states.length - 1] !== state) {
+            states.push(state)
+          }
+        }
+      }
+    }).observe(document.body, {
+      attributes: true,
+      childList: true,
+      subtree: true,
+    })
+  })
+  await page.locator('#first').focus()
+  await page.keyboard.press('Enter')
+  const dialog = page.locator('dialog')
+  await expect(dialog).toHaveAttribute('data-slot', 'medium-zoom-dialog')
+  await expect(dialog).toHaveAttribute('data-open', '')
+  await expect(dialog).not.toHaveAttribute('data-starting-style')
+  await expect(dialog.locator('[data-slot="medium-zoom-overlay"]')).toHaveClass(
+    /medium-zoom-overlay/
+  )
+  const slots = await dialog
+    .locator('[data-slot]')
+    .evaluateAll(elements =>
+      elements.map(element => element.getAttribute('data-slot'))
+    )
+  expect(slots.sort((a, b) => a!.localeCompare(b!))).toEqual([
+    'medium-zoom-close',
+    'medium-zoom-navigation',
+    'medium-zoom-next',
+    'medium-zoom-overlay',
+    'medium-zoom-position',
+    'medium-zoom-previous',
+  ])
+  const previous = dialog.locator('[data-slot="medium-zoom-previous"]')
+  const next = dialog.locator('[data-slot="medium-zoom-next"]')
+  await expect(previous).toHaveAttribute('data-disabled', '')
+  await expect(next).not.toHaveAttribute('data-disabled')
+  await page.keyboard.press('End')
+  await expect(previous).not.toHaveAttribute('data-disabled')
+  await expect(next).toHaveAttribute('data-disabled', '')
+  await page.keyboard.press('Escape')
+  await expect(dialog).toHaveCount(0)
+  expect(
+    await page.evaluate(
+      () => (window as unknown as { states: string[] }).states
+    )
+  ).toEqual([
+    'data-starting-style data-open',
+    'data-open',
+    'data-ending-style',
+    '',
+  ])
+})
+
+test('the open gallery has no accessibility violations', async ({
+  page,
+}, testInfo) => {
+  await fixture(page)
+  await page.locator('#second').focus()
+  await page.keyboard.press('Enter')
+  const dialog = page.getByRole('dialog', { name: 'Forest' })
+  await expect(dialog.getByRole('status')).toContainText('Image 2 of 3')
+  await expect(dialog).toMatchAriaSnapshot(`
+    - dialog "Forest":
+      - button "Close"
+      - button "Previous image"
+      - status: Image 2 of 3
+      - button "Next image"
+      - textbox "Caption": Author text
+      - button "Details"
+      - img "Forest"
+  `)
+  const results = await new AxeBuilder({ page })
+    .include('dialog')
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+    .analyze()
+  await testInfo.attach('gallery-accessibility', {
+    body: JSON.stringify(results.violations, null, 2),
+    contentType: 'application/json',
+  })
+  expect(results.violations).toEqual([])
 })

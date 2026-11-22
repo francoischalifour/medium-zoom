@@ -63,7 +63,7 @@ const mediaSize = (media: Media) => [
  * A single click or tap still closes, after the double-tap pause. Reduced motion settles
  * gestures without animating. Creates no controls.
  *
- * Styling hooks on `element`: `data-medium-zoom-zoomed`, and `data-medium-zoom-gesture`
+ * Styling hooks on `element`: `data-zoomed`, and `data-gesture`
  * (`swipe`, `close`, `pan` or `pinch`).
  *
  * @returns A function that unbinds the gestures.
@@ -106,6 +106,7 @@ export function bindGalleryGestures({
   // A tap waiting for a possible second one: [pressed at, x, y]. `seconded` marks a second
   // press in time, which holds the close until its click arrives.
   let tap: number[] | undefined
+  let tapped: MouseEvent | undefined
   let seconded = false
   let pressed = 0
   let tapTimer: ReturnType<typeof setTimeout> | undefined
@@ -121,8 +122,8 @@ export function bindGalleryGestures({
     )
   const attribute = (name: string, value: string | false) =>
     value
-      ? element.setAttribute(`data-medium-zoom-${name}`, value)
-      : element.removeAttribute(`data-medium-zoom-${name}`)
+      ? element.setAttribute(`data-${name}`, value)
+      : element.removeAttribute(`data-${name}`)
   const span = () => width + gap
 
   /** Reads layout once per interaction, so pointer moves only write and never reflow. */
@@ -329,7 +330,10 @@ export function bindGalleryGestures({
         animate(rest)
       }
     }
-    const opening = gallery.select(index + direction, { instant: true })
+    const opening = gallery.select(index + direction, {
+      instant: true,
+      reason: 'swipe',
+    })
     // The engine swaps scenes at once unless the previous one is still mounting; by then
     // the moment has passed and the strip only settles.
     if (shown === target) {
@@ -571,12 +575,12 @@ export function bindGalleryGestures({
     } else if (ended === 'close') {
       const [, vy] = velocity
       if (Math.abs(y) > height / 6 || (vy! * y > 0 && Math.abs(vy!) > fling)) {
-        void zoom.close('gesture')
+        void zoom.close({ reason: 'gesture', event })
       } else {
         animate(rest)
       }
     } else if (k < 0.8) {
-      void zoom.close('gesture')
+      void zoom.close({ reason: 'gesture', event })
     } else {
       settle()
     }
@@ -605,6 +609,7 @@ export function bindGalleryGestures({
     }
     clearTimeout(tapTimer)
     tap = [pressed, cx, cy]
+    tapped = event
     // Timed from the press so the click's latency is not added. A scripted click, with no
     // press, closes at once.
     tapTimer = setTimeout(
@@ -625,14 +630,15 @@ export function bindGalleryGestures({
   }
   const decide = () => {
     const leave = k <= 1.01 && tap
+    const event = tapped
     forget()
     if (leave) {
-      void zoom.close('pointer')
+      void zoom.close({ reason: 'image-press', event })
     }
   }
   const forget = () => {
     clearTimeout(tapTimer)
-    tap = undefined
+    tap = tapped = undefined
     seconded = false
     attribute('gesture', mode !== 'pending' && mode)
   }

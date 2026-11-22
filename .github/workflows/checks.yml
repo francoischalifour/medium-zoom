@@ -191,6 +191,12 @@ jobs:
             *) filter='--grep-invert=API stories' ;;
           esac
           bun run test:browser "$filter" --project="*${{ matrix.browser }}" --shard="${{ matrix.shard }}/$TOTAL_SHARDS"
+      - name: Test the composable React component
+        if: ${{ matrix.shard == 1 && matrix.suite == 'api-and-examples' }}
+        env:
+          HOME: /root
+          MEDIUM_ZOOM_SHADCN: composable
+        run: bun run test:browser shadcn.spec.ts shadcn-composition.spec.ts --project="*${{ matrix.browser }}"
       - name: Test React Server Components
         if: ${{ matrix.browser == 'chromium' && matrix.shard == 1 && matrix.suite == 'api-and-examples' }}
         env:

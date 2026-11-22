@@ -217,7 +217,10 @@ declare global {
   }
 }
 
-const browser = await chromium.launch()
+// As config/playwright-chromium.mts: a matching browser when the preinstalled one is not.
+const browser = await chromium.launch({
+  executablePath: process.env.MEDIUM_ZOOM_CHROMIUM_PATH,
+})
 async function measure(workload: Workload): Promise<Measure> {
   const context = await browser.newContext(
     workload.phone

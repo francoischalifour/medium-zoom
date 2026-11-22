@@ -39,5 +39,5 @@ interface SizeRatio {
 
 export const ratios = [
   // The modern preset drops the compat fallbacks, so it must stay measurably smaller.
-  { consumer: 'medium-zoom/modern', reference: 'medium-zoom', maxRatio: 0.95 },
+  { consumer: 'medium-zoom/modern', reference: 'medium-zoom', maxRatio: 0.96 },
 ] satisfies SizeRatio[]

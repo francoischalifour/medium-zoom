@@ -83,9 +83,23 @@ const steps: Record<string, Step> = {
     needs: ['website', 'examples'],
     scope: 'website',
   },
+  composable: {
+    // The React component's suites again, on the component built on candidate entries.
+    command: [
+      'env',
+      'MEDIUM_ZOOM_SHADCN=composable',
+      'bun',
+      'run',
+      'test:browser',
+      'shadcn.spec.ts',
+      'shadcn-composition.spec.ts',
+    ],
+    needs: ['browser'],
+    scope: 'library',
+  },
   bench: {
     command: ['bun', 'run', 'bench'],
-    needs: ['browser'],
+    needs: ['composable'],
     scope: 'library',
   },
 }
