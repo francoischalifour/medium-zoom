@@ -2,14 +2,15 @@
  * Size benchmark: one report, two views.
  *
  *   bun run size                 Print both tables and fail when a budget is exceeded.
+ *   bun run size --markdown      Print the sizes that changed, as tables for a pull request.
  *   bun run size:baseline        Record the current sizes as the comparison baseline.
  *
  * Consumers are what a bundler ships for a set of imports: the built entries are
  * rebundled and minified together, so shared code is counted once. Artifacts are the
- * files in `dist`, each with a budget in `config/size.config.mts`.
+ * files in `dist`, each with a budget in `config/size.config.mts`, which also caps some
+ * consumers as a share of others.
  */
 import assert from 'node:assert/strict'
-import { execFileSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
@@ -25,13 +26,18 @@ import {
   profileEntries,
   releaseEntries,
 } from '../config/package.config.mts'
-import budgets from '../config/size.config.mts'
+import budgets, { ratios } from '../config/size.config.mts'
 import { pack } from './pack'
 import { packExperimental } from './pack-experimental'
-import { bytes, change, table } from './size-report'
+import {
+  baselineSource,
+  bytes,
+  change,
+  markdownTable,
+  table,
+} from './size-report'
 
 interface Baseline {
-  revision: string
   consumers: Record<string, { js: number; css: number }>
   artifacts: Record<string, number>
   packages: Record<
@@ -45,6 +51,7 @@ const baselinePath = fileURLToPath(
 )
 const baseline: Baseline = JSON.parse(readFileSync(baselinePath, 'utf8'))
 const updating = process.argv.includes('--update-baseline')
+const markdown = process.argv.includes('--markdown')
 const gzip = (code: string | Uint8Array) => gzipSync(code, { level: 9 }).length
 const fileSize = (path: string) => gzip(readFileSync(path))
 
@@ -340,15 +347,22 @@ function measurePackageSizes(create: () => ReturnType<typeof pack>) {
   }
 }
 
+const total = (name: string) => consumers[name]!.js + consumers[name]!.css
+const ratioRows = ratios.map(({ consumer, reference, maxRatio }) => {
+  const ratio = total(consumer) / total(reference)
+  return {
+    over: ratio > maxRatio,
+    cells: [
+      `${consumer} / ${reference}`,
+      `${(ratio * 100).toFixed(1)}%`,
+      `${(maxRatio * 100).toFixed(1)}%`,
+    ],
+  }
+})
+const source = baselineSource('config/size-baseline.json')
+
 if (updating) {
-  const revision = execFileSync('git', ['rev-parse', '--short', 'HEAD'], {
-    encoding: 'utf8',
-  })
-  const dirty = !!execFileSync('git', ['status', '--porcelain'], {
-    encoding: 'utf8',
-  }).trim()
   const next: Baseline = {
-    revision: `${revision.trim()}${dirty ? ' + local changes' : ''}`,
     consumers,
     artifacts,
     packages: {
@@ -358,13 +372,51 @@ if (updating) {
   }
   writeFileSync(baselinePath, `${JSON.stringify(next, null, 2)}\n`)
   console.log(
-    `Recorded ${next.revision} as the size baseline in config/size-baseline.json.`
+    'Recorded the size baseline in config/size-baseline.json. Commit it with the change.'
+  )
+} else if (markdown) {
+  const consumerRows = Object.entries(consumers).flatMap(([name, sizes]) => {
+    const before = baseline.consumers[name]
+    const now = sizes.js + sizes.css
+    const then = before && before.js + before.css
+    return now === then
+      ? []
+      : [[name, then ? bytes(then) : '—', bytes(now), change(now, then)]]
+  })
+  const artifactRows = budgets.flatMap(({ path, maxBytes }) => {
+    const size = artifacts[path]!
+    const before = baseline.artifacts[path]
+    return size === before
+      ? []
+      : [
+          [
+            `\`${path}\``,
+            before === undefined ? '—' : bytes(before),
+            bytes(size),
+            change(size, before),
+            bytes(maxBytes),
+          ],
+        ]
+  })
+  console.log(`Gzip level 9, compared with \`${source}\`.\n`)
+  if (consumerRows.length) {
+    markdownTable(['Imports', 'Before', 'After', 'Change'], consumerRows)
+    console.log()
+  }
+  if (artifactRows.length) {
+    markdownTable(['File', 'Before', 'After', 'Change', 'Budget'], artifactRows)
+    console.log()
+  }
+  if (!consumerRows.length && !artifactRows.length) {
+    console.log('No size changes.\n')
+  }
+  markdownTable(
+    ['Ratio', 'Now', 'Limit'],
+    ratioRows.map(({ cells }) => cells)
   )
 } else {
   assertCatalog()
-  console.log(
-    `medium-zoom size · gzip level 9 · compared with ${baseline.revision}\n`
-  )
+  console.log(`medium-zoom size · gzip level 9 · compared with ${source}\n`)
   console.log('CONSUMERS · what a bundler ships for these imports')
   table(
     ['Imports', 'JS', 'CSS', 'Total', 'Baseline', 'Change'],
@@ -406,5 +458,18 @@ if (updating) {
     0,
     `Over budget: ${over.map(({ path }) => path).join(', ')}. Shrink the code or change the budget on purpose.`
   )
-  console.log(`\n${budgets.length} artifacts within budget.`)
+  console.log('\nRATIOS · consumers capped as a share of another')
+  table(
+    ['Consumers', 'Ratio', 'Limit'],
+    ratioRows.map(({ cells }) => cells)
+  )
+  const overRatio = ratioRows.filter(({ over }) => over)
+  assert.equal(
+    overRatio.length,
+    0,
+    `Over ratio: ${overRatio.map(({ cells }) => cells[0]).join(', ')}. Shrink the code or change the limit on purpose.`
+  )
+  console.log(
+    `\n${budgets.length} artifacts within budget and every ratio within its limit.`
+  )
 }

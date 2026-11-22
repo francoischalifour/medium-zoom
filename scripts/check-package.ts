@@ -18,7 +18,7 @@ import { checkAnalyzers } from './check-package-analyzers.ts'
 import { checkConsumers } from './check-package-consumers.ts'
 import { packExperimental } from './pack-experimental.ts'
 import { pack } from './pack.ts'
-import { bytes, change, table } from './size-report'
+import { baselineSource, bytes, change, table } from './size-report'
 
 const packageRows: string[][] = []
 const entryFunctions = Object.fromEntries(
@@ -358,7 +358,7 @@ assert.equal(
 )
 
 console.log(
-  '\nPACKAGE CONTENTS · npm download/install cost, not browser bundle cost'
+  `\nPACKAGE CONTENTS · npm download/install cost, not browser bundle cost · compared with ${baselineSource('config/size-baseline.json')}`
 )
 table(
   [
@@ -366,7 +366,7 @@ table(
     'Files',
     'Tarball',
     'Unpacked',
-    `Δ tarball vs ${baseline.revision}`,
+    'Δ tarball',
     'Δ unpacked',
     'Contents',
   ],
