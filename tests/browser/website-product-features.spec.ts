@@ -1,5 +1,5 @@
+import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
-import { gzipSync } from 'node:zlib'
 
 import { version } from '../../package.json'
 import { expect, test } from './website-fixture'
@@ -26,9 +26,15 @@ for (const path of ['/', '/react']) {
         'href',
         `https://www.npmjs.com/package/medium-zoom/v/${version}`
       )
-      const gzipBytes = gzipSync(readFileSync('dist/medium-zoom.min.js'), {
-        level: 9,
-      }).length
+      // The size the site was built with: Node's gzip can disagree with Bun's.
+      const { sha256, gzipBytes } = JSON.parse(
+        readFileSync('.cache/library-size.json', 'utf8')
+      )
+      expect(sha256, 'run bun run build:website on this library build').toBe(
+        createHash('sha256')
+          .update(readFileSync('dist/medium-zoom.min.js'))
+          .digest('hex')
+      )
       if (path === '/') {
         await expect(features).toContainText(
           `${(gzipBytes / 1_000).toFixed(0)} kB. Zero dependencies.`

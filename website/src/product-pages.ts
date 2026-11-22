@@ -54,7 +54,7 @@ export type FeatureIcon =
 
 type ProductFeature = { icon: FeatureIcon; title: string; description: string }
 
-// Callers pass the gzip size: the app gets it from the Vite define, the Markdown from dist.
+// Callers pass the gzip size from `libraryGzipBytes()`: the app through the Vite define.
 export function productFeatures(
   page: SitePage,
   gzipBytes: number
