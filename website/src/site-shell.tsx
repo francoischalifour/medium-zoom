@@ -1,6 +1,5 @@
 import * as React from 'react'
 
-import { CommandPalette } from './command-palette'
 import { Icon, SiteLink } from './site-components'
 import {
   githubStarLabel,
@@ -8,6 +7,7 @@ import {
   repositoryUrl,
   type SitePage,
 } from './site-data'
+import { SiteSearch } from './site-search'
 import {
   getServerTheme,
   getTheme,
@@ -123,7 +123,7 @@ export function SiteHeader({
           {currentSection && <SectionSelect current={currentSection} />}
           <SectionLinks page={page} />
           <div className="nav-links">
-            <CommandPalette framework={searchFramework} />
+            <SiteSearch framework={searchFramework} dark={dark} />
             <SiteLink
               className="button button-ghost github-link"
               href={repositoryUrl}

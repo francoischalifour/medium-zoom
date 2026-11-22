@@ -30,7 +30,9 @@ bunx vite preview website --host 127.0.0.1 --port 5290
 
 The installable React component lives in `examples/shadcn/`. The root `registry.json` defines its registry entry. See the [component development guide](../examples/shadcn/README.md) for its build and verification commands.
 
-Documentation search uses MiniSearch, loaded when the command palette opens. The docs plugin indexes each page introduction and section’s prose, headings, and prop names. Tune aliases, field weights, and typo tolerance in `src/docs-search-index.ts`.
+Documentation search uses [Docspot](https://github.com/francoischalifour/docspot) for the dialog and MiniSearch for the index. `src/site-search.tsx` configures it: the trigger, actions such as copying install commands and switching the theme, the pages listed before typing, and ChatGPT and Claude handoffs. The index and the preview load once the page is idle or when the trigger is hovered, focused, or used. The preview shows the prerendered page at the matched section, so it falls back to the matched passage in development.
+
+The docs plugin indexes each page introduction and section’s prose, headings, and prop names. Tune aliases, field weights, and typo tolerance in `src/docs-search-index.ts`. Docspot is themed with the site's tokens in `src/site-search.css`.
 
 ## Generated files
 

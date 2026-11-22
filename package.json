@@ -113,6 +113,7 @@
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.1.2",
     "acorn": "8.19.0",
+    "docspot": "0.2.0",
     "lightningcss": "1.33.0",
     "medium-zoom-baseline": "npm:medium-zoom@1.1.1",
     "minisearch": "7.2.0",

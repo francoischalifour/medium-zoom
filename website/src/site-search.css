@@ -1,0 +1,183 @@
+/*
+ * Docspot, themed with the site's own tokens. They switch with `:root.dark`, and
+ * site-theme.ts mirrors the choice to `data-theme` so Docspot's dark-only parts (overlay,
+ * shadows, native scrollbars) follow the site's setting rather than the system's.
+ */
+:root {
+  --docspot-font: var(--font-sans);
+  --docspot-font-mono: var(--font-mono);
+  --docspot-tracking: -0.01em;
+  --docspot-text-xs: var(--text-xs);
+  --docspot-text-sm: var(--text-sm);
+  --docspot-text-md: var(--text-md);
+  --docspot-text-base: var(--text-base);
+  --docspot-text-lg: var(--text-lg);
+  --docspot-text-xl: var(--text-xl);
+  --docspot-background: var(--background);
+  --docspot-foreground: var(--foreground);
+  --docspot-muted: var(--muted-foreground);
+  --docspot-border: var(--border);
+  --docspot-border-strong: var(--border-strong);
+  --docspot-surface: var(--surface);
+  --docspot-accent: var(--hover);
+  --docspot-accent-active: color-mix(in srgb, var(--foreground) 9%, var(--background));
+  --docspot-focus: var(--ring);
+  --docspot-radius-control: 8px;
+  --docspot-radius-item: 8px;
+  --docspot-radius-surface: 14px;
+  --docspot-radius-floating: 14px;
+  /* Matches get a tint of the brand green behind the letters. */
+  --docspot-mark: color-mix(in srgb, var(--primary) 22%, transparent);
+  --docspot-mark-weight: inherit;
+  --docspot-mark-decoration: none;
+  --docspot-z-index: 100;
+}
+:root.dark {
+  --docspot-mark: color-mix(in srgb, var(--primary) 30%, transparent);
+}
+
+/* The preview shows the docs article at the dialog's scale. */
+.site-search-preview.docs-article {
+  font-size: var(--text-md);
+  line-height: 1.7;
+}
+.site-search-preview h1 {
+  margin: 0 0 12px;
+  font-size: var(--text-xl);
+  line-height: 1.35;
+}
+.site-search-preview h2 {
+  font-size: var(--text-lg);
+}
+.site-search-preview img,
+.site-search-preview video {
+  max-width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+.site-search-preview .docs-example-code[hidden] {
+  display: none;
+}
+
+/* The header trigger, unchanged from the previous palette. */
+.search-trigger {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 36px;
+  min-width: 176px;
+  padding: 0 9px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--foreground);
+  text-align: left;
+  font-size: var(--text-md);
+  font-weight: 500;
+  line-height: 1.25rem;
+  letter-spacing: -0.01em;
+  transition:
+    background-color 120ms ease-out,
+    border-color 120ms ease-out,
+    box-shadow 120ms ease-out;
+}
+.search-trigger > svg {
+  width: 16px;
+  height: 16px;
+  color: var(--muted-foreground);
+}
+.search-trigger kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  height: 22px;
+  margin-left: auto;
+  padding: 0 5px;
+  font: 500 var(--text-xs)/1.25rem var(--font-sans);
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+:root:not([data-shortcut-platform='apple']) [data-shortcut-label='apple'],
+:root[data-shortcut-platform='apple'] [data-shortcut-label='other'] {
+  display: none;
+}
+.search-trigger[aria-expanded='true'],
+.search-trigger:active {
+  border-color: var(--ring);
+  background: var(--selected);
+}
+.search-trigger[aria-expanded='true'] > svg {
+  color: var(--foreground);
+}
+.search-trigger:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+  box-shadow: none;
+}
+@media (min-width: 1101px) and (hover: hover) and (pointer: fine) {
+  .search-trigger:hover {
+    border-color: color-mix(in srgb, var(--foreground) 25%, var(--border));
+    background: var(--background);
+    box-shadow: var(--shadow-xs);
+  }
+  .search-trigger:hover > svg {
+    color: var(--foreground);
+  }
+  .search-trigger[aria-expanded='true']:hover,
+  .search-trigger:active:hover {
+    background: var(--selected);
+    border-color: var(--ring);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .search-trigger {
+    transition: none;
+  }
+}
+@media (max-width: 1100px) {
+  .search-trigger {
+    min-width: 36px;
+    padding: 0;
+    justify-content: center;
+    width: 36px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted-foreground);
+    box-shadow: none;
+  }
+  .search-trigger > svg {
+    width: 18px;
+    height: 18px;
+    color: inherit;
+  }
+  .search-trigger:focus-visible {
+    outline-offset: 2px;
+  }
+  .search-trigger:active {
+    transform: scale(0.97);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .search-trigger:hover {
+      background: var(--hover);
+      color: var(--foreground);
+    }
+  }
+  @supports (corner-shape: squircle) {
+    .search-trigger {
+      border-radius: 12px;
+      corner-shape: squircle;
+    }
+  }
+  .search-trigger > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .search-trigger > kbd {
+    display: none;
+  }
+}
