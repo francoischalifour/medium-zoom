@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url'
 
 import { defineConfig, devices } from '@playwright/test'
 
-import { reserveTestPorts } from './test-ports.mts'
+import { reserveTestPorts } from '../tests/server-urls.ts'
 
 const repositoryRoot = fileURLToPath(new URL('../', import.meta.url))
 const { testUrl, sveltePort, svelteDevUrl, shadcnPort, shadcnDevUrl, rscUrl } =
