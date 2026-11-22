@@ -58,12 +58,11 @@ Build the site before checking documentation, metadata, and analytics:
 
 ```sh
 bun run build:website
-bun run test:docs
-bun run test:seo
+bun run test:browser website
 bun run test:analytics
 ```
 
-The documentation checks compile authored JavaScript and TSX snippets against the public API, then check rendered pages, navigation, links, and live examples in Chromium, Firefox, and WebKit. To add a page, see [Add a page](#add-a-page).
+`bun run typecheck` compiles authored JavaScript and TSX snippets against the public API. The website suites check rendered pages, navigation, links, metadata, and live examples in Chromium, Firefox, and WebKit. To add a page, see [Add a page](#add-a-page).
 
 ## Analytics
 

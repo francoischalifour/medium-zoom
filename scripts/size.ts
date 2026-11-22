@@ -3,7 +3,7 @@
  *
  *   bun run size                 Print both tables and fail when a budget is exceeded.
  *   bun run size --markdown      Print the sizes that changed, as tables for a pull request.
- *   bun run size:baseline        Record the current sizes as the comparison baseline.
+ *   bun run size --update        Record the current sizes as the comparison baseline.
  *
  * Consumers are what a bundler ships for a set of imports: the built entries are
  * rebundled and minified together, so shared code is counted once. Artifacts are the
@@ -50,7 +50,7 @@ const baselinePath = fileURLToPath(
   new URL('../config/size-baseline.json', import.meta.url)
 )
 const baseline: Baseline = JSON.parse(readFileSync(baselinePath, 'utf8'))
-const updating = process.argv.includes('--update-baseline')
+const updating = process.argv.includes('--update')
 const markdown = process.argv.includes('--markdown')
 const gzip = (code: string | Uint8Array) => gzipSync(code, { level: 9 }).length
 const fileSize = (path: string) => gzip(readFileSync(path))

@@ -5,7 +5,7 @@
  *
  *   bun run bench                 Print every workload and fail when a count grows.
  *   bun run bench --markdown      Print the workloads that changed, for a pull request.
- *   bun run bench:baseline        Record the current counts as the baseline.
+ *   bun run bench --update        Record the current counts as the baseline.
  *   bun run bench --grep gallery  Run the workloads whose name matches.
  *
  * Layout and style recalculation counts follow from what the code does, so they are
@@ -15,16 +15,14 @@
  */
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import { createServer } from 'node:http'
-import type { AddressInfo } from 'node:net'
-import { extname, resolve } from 'node:path'
+import { resolve } from 'node:path'
 
 import { type CDPSession, chromium, devices, type Page } from '@playwright/test'
 
 import { baselineSource, markdownTable, table } from './size-report'
 
 const baselinePath = 'config/bench-baseline.json'
-const updating = process.argv.includes('--update-baseline')
+const updating = process.argv.includes('--update')
 const markdown = process.argv.includes('--markdown')
 const grep = process.argv.includes('--grep')
   ? new RegExp(process.argv[process.argv.indexOf('--grep') + 1]!, 'i')
@@ -72,39 +70,30 @@ const pages: Record<string, string> = {
     bindZoomTriggers(window.benchZoom)
   </script>`,
 }
-const contentTypes: Record<string, string> = {
-  '.js': 'text/javascript',
-  '.mjs': 'text/javascript',
-  '.css': 'text/css',
-  '.jpg': 'image/jpeg',
-}
 const roots: Record<string, string> = {
   dist: resolve('dist'),
   images: resolve('stories/images'),
 }
-const server = createServer((request, response) => {
-  const { pathname } = new URL(request.url || '/', 'http://127.0.0.1')
-  const [, root, ...rest] = pathname.split('/')
-  const name = pathname.slice(1, -'.html'.length)
-  if (pages[name]) {
-    response.writeHead(200, { 'Content-Type': 'text/html' })
-    response.end(
-      `<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>${name}</title><style>body{margin:24px;display:grid;gap:16px}img{max-width:100%;height:auto}</style>${images}${pages[name]}`
-    )
-    return
-  }
-  const path = roots[root!] && resolve(roots[root!]!, ...rest)
-  if (!path || !path.startsWith(roots[root!]!) || !existsSync(path)) {
-    response.writeHead(404).end()
-    return
-  }
-  response.writeHead(200, {
-    'Content-Type': contentTypes[extname(path)] || 'application/octet-stream',
-  })
-  response.end(readFileSync(path))
+const server = Bun.serve({
+  port: 0,
+  hostname: '127.0.0.1',
+  fetch(request) {
+    const { pathname } = new URL(request.url)
+    const name = pathname.slice(1, -'.html'.length)
+    if (pages[name]) {
+      return new Response(
+        `<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>${name}</title><style>body{margin:24px;display:grid;gap:16px}img{max-width:100%;height:auto}</style>${images}${pages[name]}`,
+        { headers: { 'Content-Type': 'text/html' } }
+      )
+    }
+    const [, root, ...rest] = pathname.split('/')
+    const directory = roots[root!]
+    const path = directory && resolve(directory, ...rest)
+    return path?.startsWith(directory) && existsSync(path)
+      ? new Response(Bun.file(path))
+      : new Response(null, { status: 404 })
+  },
 })
-await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
-const origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`
 
 type Point = readonly [number, number]
 interface Workload {
@@ -238,7 +227,7 @@ async function measure(workload: Workload): Promise<Measure> {
   const page = await context.newPage()
   const client = await context.newCDPSession(page)
   try {
-    await page.goto(`${origin}/${workload.page}.html`)
+    await page.goto(`${server.url}${workload.page}.html`)
     await page.waitForFunction(() => window.benchZoom)
     await page.evaluate(() =>
       Promise.all([...document.images].map(image => image.decode()))
@@ -301,7 +290,7 @@ try {
   }
 } finally {
   await browser.close()
-  server.close()
+  await server.stop()
 }
 
 const ms = (value: number) => `${value.toFixed(0)} ms`
@@ -385,7 +374,7 @@ if (updating) {
   assert.equal(
     grown.length,
     0,
-    `More layout or style work: ${grown.map(([name]) => name).join(', ')}. Find the cause, or record it with \`bun run bench:baseline\` and say why in the pull request.`
+    `More layout or style work: ${grown.map(([name]) => name).join(', ')}. Find the cause, or record it with \`bun run bench --update\` and say why in the pull request.`
   )
   console.log(
     `\nLayout and style counts within ${baselinePath} and its tolerance; times are this machine's.`

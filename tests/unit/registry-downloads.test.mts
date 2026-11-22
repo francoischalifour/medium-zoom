@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import packageJson from '../package.json' with { type: 'json' }
-import registry from '../registry.json' with { type: 'json' }
-import { siteOrigin } from '../website/src/site-url.ts'
-import worker from '../website/worker.ts'
+import packageJson from '../../package.json' with { type: 'json' }
+import registry from '../../registry.json' with { type: 'json' }
+import { siteOrigin } from '../../website/src/site-url.ts'
+import worker from '../../website/worker.ts'
 
 const origin = 'https://medium-zoom.francoischalifour.com'
 const path = '/r/image-zoom.json'

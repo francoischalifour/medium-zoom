@@ -10,7 +10,7 @@ while IFS= read -r file; do
     website/src/site-url.ts) echo library && exit ;;
     examples/vitepress/docs/*.md) echo library && exit ;;
     *.md | .claude/* | .codex/*) ;;
-    # Specs named website* test the site's pages: see test:browser:website.
+    # Specs named website* test the site's pages: CI runs them as the website suite.
     website/* | tests/analytics/* | tests/browser/website* | \
     config/playwright.analytics.config.mts | config/vite.website.config.mts | config/wrangler.jsonc)
       scope=website ;;

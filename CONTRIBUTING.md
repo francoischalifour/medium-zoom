@@ -31,30 +31,30 @@ Use the versions in `.node-version` and `.bun-version`. Run every command from t
 bun run check
 ```
 
-It runs everything CI runs. To check one thing, run `bun run build` first, then:
+It runs everything CI runs. To check one thing, run `bun run build` first:
 
-| Command          | Checks                                                       |
-| ---------------- | ------------------------------------------------------------ |
-| `format:check`   | Formatting; `format` fixes it                                |
-| `lint`           | Source, tests, and tooling                                   |
-| `typecheck`      | Tooling, documentation snippets, and examples                |
-| `check:isolated` | Format and lint agree outside this checkout                  |
-| `test:package`   | Both packages' entries, declarations, CSS, and legacy syntax |
-| `test:examples`  | Each example builds against the published package            |
-| `test:browser`   | Chromium, Firefox, and WebKit; filter with `--project`       |
-| `test:stress`    | Long random gallery sequences; replay one with its seed      |
+| Command                 | Checks                                                       |
+| ----------------------- | ------------------------------------------------------------ |
+| `bun run format`        | Formats files; add `--check` to only check                   |
+| `bun run lint`          | Source, tests, and tooling                                   |
+| `bun run typecheck`     | Tooling, documentation snippets, and examples                |
+| `bun test`              | Unit tests                                                   |
+| `bun run test:package`  | Both packages' entries, declarations, CSS, and legacy syntax |
+| `bun run test:examples` | Each example builds against the published package            |
+| `bun run test:browser`  | Chromium, Firefox, and WebKit; filter by file or `--project` |
+| `bun run test:stress`   | Long random gallery sequences; replay one with its seed      |
 
 Browser checks need `bun run build:website && bun run test:examples` first.
 
 ## Measure
 
-| Command                 | Compares with                                            | Record a change                  |
-| ----------------------- | -------------------------------------------------------- | -------------------------------- |
-| `bun run size`          | `config/size-baseline.json` and `config/size.config.mts` | `bun run size:baseline`          |
-| `bun run bench`         | `config/bench-baseline.json`                             | `bun run bench:baseline`         |
-| `bun run check:release` | `config/release-digests.json`                            | `bun run check:release --update` |
+| Command                 | Compares with                                            |
+| ----------------------- | -------------------------------------------------------- |
+| `bun run size`          | `config/size-baseline.json` and `config/size.config.mts` |
+| `bun run bench`         | `config/bench-baseline.json`                             |
+| `bun run check:release` | `config/release-digests.json`                            |
 
-Add `--markdown` to `size` or `bench` for tables to paste in a pull request. `bun run check:release --diff origin/main` shows what changed in the released files.
+Add `--update` to record an intended change. Add `--markdown` to `size` or `bench` for tables to paste in a pull request, and `--diff origin/main` to `check:release` to see what changed in the released files.
 
 ## Document
 

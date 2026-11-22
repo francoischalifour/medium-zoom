@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import { fitBox as fit } from '../src/zoom/geometry.ts'
+import { fitBox as fit } from '../../src/zoom/geometry.ts'
 
 const readGeometry = (transform: string) => {
   const [scale, translateX, translateY] = transform

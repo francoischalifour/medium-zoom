@@ -7,7 +7,7 @@
     "noEmit": true,
     "target": "ES2023",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
-    "types": ["node", "vite/client"],
+    "types": ["bun", "node", "vite/client"],
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "paths": {
@@ -36,7 +36,7 @@
     "config/**/*.mts",
     "scripts/**/*.ts",
     "tests/**/*.ts",
-    "tests/geometry.test.mts",
+    "tests/unit/geometry.test.mts",
     "stories/catalogue/**/*.ts",
     "playground/**/*.ts",
     "examples/*/vite.config.ts",

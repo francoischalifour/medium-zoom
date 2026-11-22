@@ -23,3 +23,7 @@ ignorePatterns = [
 [[fmt.overrides]]
 files = ["website/src/docs/examples/*.tsx", "website/src/docs/*.mdx"]
 options = { printWidth = 72 }
+
+[test]
+# Unit tests only; the browser suites run in Playwright.
+root = "tests/unit"

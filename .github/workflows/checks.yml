@@ -48,7 +48,7 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version-file: .bun-version
-      - run: bun run format:check
+      - run: bun run format --check
 
   validate:
     needs: changes
@@ -78,8 +78,8 @@ jobs:
       - run: bun run check:source
       - name: Check package
         if: ${{ needs.changes.outputs.scope == 'library' }}
-        run: bun run size && bun run check:release && bun run test:package && bun run test:geometry
-      - run: bun run test:registry
+        run: bun run size && bun run check:release && bun run test:package
+      - run: bun test
 
   build:
     needs: changes
@@ -184,7 +184,14 @@ jobs:
           # GitHub's /github/home belongs to the host runner, not the container's root user.
           HOME: /root
           TOTAL_SHARDS: ${{ matrix.suite == 'stories' && 1 || 2 }}
-        run: bun run test:browser:${{ matrix.suite }} --project="*${{ matrix.browser }}" --shard="${{ matrix.shard }}/$TOTAL_SHARDS"
+          SUITE: ${{ matrix.suite }}
+        run: |
+          case "$SUITE" in
+            website) filter=tests/browser/website ;;
+            stories) filter='--grep=API stories' ;;
+            *) filter='--grep-invert=API stories' ;;
+          esac
+          bun run test:browser "$filter" --project="*${{ matrix.browser }}" --shard="${{ matrix.shard }}/$TOTAL_SHARDS"
       - name: Test React Server Components
         if: ${{ matrix.browser == 'chromium' && matrix.shard == 1 && matrix.suite == 'api-and-examples' }}
         env:

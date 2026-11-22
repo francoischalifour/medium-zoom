@@ -26,7 +26,7 @@ The standalone playground uses shared photos from `assets/images/`. To develop t
 
 ## Registry and verification
 
-`registry.json` points to the component source in this example. `bun run build:registry` generates the published JSON in `website/public/r/`, with the medium-zoom version derived from the root package manifest.
+`registry.json` points to the component source in this example. `bun scripts/build-registry.ts` generates the published JSON in `website/public/r/`, with the medium-zoom version derived from the root package manifest.
 
 ```sh
 bun run test:browser shadcn --project=chromium
