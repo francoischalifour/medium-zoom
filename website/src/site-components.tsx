@@ -1,10 +1,11 @@
 import * as React from 'react'
 import snippets from 'virtual:highlighted-snippets'
 
+import type { HighlightedSnippets } from './code-snippets'
 import { splitInlineCode } from './product-pages'
 import { siteOrigin } from './site-url'
 
-export const CodeSnippets = React.createContext<Record<string, string>>({})
+export const CodeSnippets = React.createContext<HighlightedSnippets>({})
 
 const iconPaths = {
   feather: (
