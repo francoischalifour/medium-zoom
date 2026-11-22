@@ -58,8 +58,25 @@ function deferClick(event: MouseEvent) {
   })
 }
 
-function deferKeyDown(event: KeyboardEvent) {
+function isSearchShortcut(event: KeyboardEvent) {
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+    return true
+  }
+  // `/` opens search too, except where it types.
+  return (
+    event.key === '/' &&
+    !event.metaKey &&
+    !event.ctrlKey &&
+    !event.altKey &&
+    !(
+      event.target instanceof Element &&
+      event.target.closest('input, textarea, select, [contenteditable]')
+    )
+  )
+}
+
+function deferKeyDown(event: KeyboardEvent) {
+  if (isSearchShortcut(event)) {
     deferInteraction(event, document, () => {
       document.dispatchEvent(new KeyboardEvent('keydown', event))
     })

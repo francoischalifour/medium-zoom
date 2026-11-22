@@ -27,7 +27,8 @@ import './site-search.css'
 
 // The index and the preview load together: once the page is idle, when the trigger is hovered or
 // focused, or when search opens. Neither ships with the page.
-const loadIndex = () => import('virtual:docs-search').then(module => module.default)
+const loadIndex = () =>
+  import('virtual:docs-search').then(module => module.default)
 const loadPreview = () => import('./site-search-preview')
 const SearchPreview = React.lazy(loadPreview)
 const PageActions = React.lazy(() =>
@@ -80,7 +81,8 @@ function createHandoffs(framework: SitePage) {
   }: {
     query: string
     results: DocspotResult[]
-  }) => `${query}\n\nRead ${siteOrigin}${results[0]?.url ?? fallback} and answer`
+  }) =>
+    `${query}\n\nRead ${siteOrigin}${results[0]?.url ?? fallback} and answer`
   return [chatGptHandoff({ prompt }), claudeHandoff({ prompt })]
 }
 const handoffs = {
@@ -99,8 +101,17 @@ function copyCommand(commands: Record<string, string>) {
 const installJavaScript = defineItem({
   id: 'install-javascript',
   title: 'Copy JavaScript install command',
-  description: 'Copies the medium-zoom install command for your package manager.',
-  keywords: ['install', 'installation', 'npm', 'pnpm', 'yarn', 'bun', 'vanilla'],
+  description:
+    'Copies the medium-zoom install command for your package manager.',
+  keywords: [
+    'install',
+    'installation',
+    'npm',
+    'pnpm',
+    'yarn',
+    'bun',
+    'vanilla',
+  ],
   group: 'Actions',
   icon: <Icon name="copy" />,
   action: copyCommand(javascriptCommands),
@@ -111,7 +122,16 @@ const installReact = defineItem({
   title: 'Copy React install command',
   description:
     'Copies the shadcn/ui command that adds the <ImageZoom> component to your project.',
-  keywords: ['install', 'installation', 'shadcn', 'component', 'npm', 'pnpm', 'yarn', 'bun'],
+  keywords: [
+    'install',
+    'installation',
+    'shadcn',
+    'component',
+    'npm',
+    'pnpm',
+    'yarn',
+    'bun',
+  ],
   group: 'Actions',
   icon: <Icon name="copy" />,
   action: copyCommand(componentCommands),
@@ -121,7 +141,15 @@ function themeItem(dark: boolean): DocspotItem {
   return {
     id: 'theme',
     title: `Switch to ${dark ? 'light' : 'dark'} theme`,
-    keywords: ['theme', 'appearance', 'color', 'mode', 'light', 'dark', 'night'],
+    keywords: [
+      'theme',
+      'appearance',
+      'color',
+      'mode',
+      'light',
+      'dark',
+      'night',
+    ],
     group: 'Actions',
     icon: <Icon name={dark ? 'sun' : 'moon'} />,
     action: () => setTheme(!getTheme()),
@@ -134,9 +162,21 @@ const getStarted = {
 }
 const popular: DocspotResult[] = [
   { url: '/docs/guides/hd-images/', title: 'HD images', group: 'Popular' },
-  { url: '/docs/guides/multiple-images/', title: 'Multiple images', group: 'Popular' },
-  { url: '/docs/reference/javascript/options/', title: 'Options', group: 'Popular' },
-  { url: '/docs/reference/react/image-zoom/', title: '<ImageZoom>', group: 'Popular' },
+  {
+    url: '/docs/guides/multiple-images/',
+    title: 'Multiple images',
+    group: 'Popular',
+  },
+  {
+    url: '/docs/reference/javascript/options/',
+    title: 'Options',
+    group: 'Popular',
+  },
+  {
+    url: '/docs/reference/react/image-zoom/',
+    title: '<ImageZoom>',
+    group: 'Popular',
+  },
 ]
 
 function ResultIcon({ result }: DocspotResultIconProps) {
@@ -197,7 +237,11 @@ export function SiteSearch({
         ...popular,
       ]}
       handoffs={handoffs[framework]}
-      slots={{ preview: SearchPreview, pageActions: PageActions, resultIcon: ResultIcon }}
+      slots={{
+        preview: SearchPreview,
+        pageActions: PageActions,
+        resultIcon: ResultIcon,
+      }}
       messages={{ search: { placeholder: 'Search documentation…' } }}
       onEvent={onEvent}
     >

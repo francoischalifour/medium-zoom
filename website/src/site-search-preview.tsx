@@ -1,8 +1,8 @@
 import type { DocspotPageActionsProps, DocspotPreviewProps } from 'docspot'
 import * as React from 'react'
 
-// Scoped to `.docs-*`, so product pages can load it with the preview.
-import './docs/docs.css'
+// The preview reuses the docs article styles, which ship on every page in the site's one
+// stylesheet. Importing docs.css here would move it ahead of the styles it overrides.
 
 // Prerendered pages already hold the article with highlighted code, so the preview shows the page
 // exactly as it reads, from the same cached response the browser uses to open it.
@@ -13,6 +13,7 @@ const pageOnly = [
   'script',
   'style',
   'button',
+  '.copy-control',
   'dialog',
   'iframe',
   '.docs-breadcrumb',
@@ -36,7 +37,9 @@ function extractArticle(html: string) {
     element.setAttribute('data-docspot-anchor', element.id)
     element.removeAttribute('id')
   }
-  for (const element of article.querySelectorAll('[aria-controls], [aria-labelledby], [aria-describedby]')) {
+  for (const element of article.querySelectorAll(
+    '[aria-controls], [aria-labelledby], [aria-describedby]'
+  )) {
     element.removeAttribute('aria-controls')
     element.removeAttribute('aria-labelledby')
     element.removeAttribute('aria-describedby')

@@ -39,6 +39,7 @@ for (const shortcut of ['Meta+k', 'Control+k']) {
     await trigger.click()
     await expect(searchBox(page)).toHaveValue('')
     await searchBox(page).fill('margin')
+    await expect(first).toContainText('Options')
     await page.keyboard.press('Enter')
     await expect(page).toHaveURL(
       /\/docs\/reference\/javascript\/options\/#margin$/
@@ -163,8 +164,14 @@ test('search follows the site theme, not the system, in both directions', async 
       await dialog.evaluate(element => getComputedStyle(element).colorScheme)
     ).toContain(site)
     expect(
-      await dialog.evaluate(element => getComputedStyle(element).backgroundColor)
-    ).toBe(await page.evaluate(() => getComputedStyle(document.body).backgroundColor))
+      await dialog.evaluate(
+        element => getComputedStyle(element).backgroundColor
+      )
+    ).toBe(
+      await page.evaluate(
+        () => getComputedStyle(document.documentElement).backgroundColor
+      )
+    )
   }
 })
 
@@ -264,7 +271,11 @@ test('search excerpts display page text, never MDX imports or expressions', asyn
   await page.goto('/docs/react/')
   await page.getByRole('button', { name: /Search docs/ }).click()
   for (const [query, path, text] of [
-    ['plain html', '/docs/', 'Use the library with plain HTML or any framework.'],
+    [
+      'plain html',
+      '/docs/',
+      'Use the library with plain HTML or any framework.',
+    ],
     [
       'keyboard support',
       '/docs/',
@@ -345,9 +356,9 @@ test('search loading failures leave actions and handoffs available', async ({
   await page.goto('/docs/react/')
   await page.getByRole('button', { name: /Search docs/ }).click()
   await searchBox(page).fill('theme')
-  await expect(
-    page.getByRole('dialog').getByRole('status')
-  ).toContainText('unavailable')
+  await expect(page.getByRole('dialog').getByRole('status')).toContainText(
+    'unavailable'
+  )
   await expect(page.getByRole('option', { name: /Ask Claude/ })).toBeVisible()
   await page.getByRole('option', { name: /Switch to .* theme/ }).click()
   await expect(page.getByRole('dialog')).not.toBeVisible()
@@ -415,6 +426,8 @@ test('defaults list getting started, actions, and popular pages, then recent one
     'Copy React install command'
   )
   await searchBox(page).fill('margin')
+  // Enter acts on the highlighted result, so wait for this query's results.
+  await expect(page.getByRole('option').first()).toContainText('margin')
   await page.keyboard.press('Enter')
   await expect(page).toHaveURL(/#margin$/)
   await page.getByRole('button', { name: /Search docs/ }).click()
@@ -429,7 +442,7 @@ test('the preview shows the rendered page at the matched section', async ({
   context,
 }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
-  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.setViewportSize({ width: 1_280, height: 800 })
   await page.goto('/docs/react/')
   await page.getByRole('button', { name: /Search docs/ }).click()
   await searchBox(page).fill('margin')
@@ -439,17 +452,24 @@ test('the preview shows the rendered page at the matched section', async ({
   // Page-only controls stay out, and ids move so the page keeps unique ones.
   await expect(article.locator('button, script')).toHaveCount(0)
   await expect(article.locator('[id]')).toHaveCount(0)
-  await expect(article.locator('[data-docspot-anchor="margin"]')).toBeInViewport()
+  await expect(
+    article.locator('[data-docspot-anchor="margin"]')
+  ).toBeInViewport()
   await preview.getByRole('button', { name: 'Copy Markdown' }).click()
-  await expect(page.getByRole('dialog').getByRole('status')).toContainText(
-    'copied as Markdown'
-  )
+  await expect(
+    page
+      .getByRole('dialog')
+      .getByRole('status')
+      .filter({ hasText: 'copied as Markdown' })
+  ).toBeVisible()
   expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(
     /^# Options/
   )
   // Links in the preview open their page and close search.
   await article.getByRole('link', { name: 'update()' }).first().click()
-  await expect(page).toHaveURL(/\/docs\/reference\/javascript\/methods\/#update$/)
+  await expect(page).toHaveURL(
+    /\/docs\/reference\/javascript\/methods\/#update$/
+  )
   await expect(page.getByRole('dialog')).not.toBeVisible()
 })
 
@@ -516,7 +536,7 @@ test('documentation results open in another tab with a modifier', async ({
 test('the search trigger keeps its accessible name at full and compact widths', async ({
   page,
 }) => {
-  for (const width of [1280, 390]) {
+  for (const width of [1_280, 390]) {
     await page.setViewportSize({ width, height: 800 })
     await page.goto('/docs/')
     await expect(

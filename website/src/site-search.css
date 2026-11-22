@@ -20,7 +20,11 @@
   --docspot-border-strong: var(--border-strong);
   --docspot-surface: var(--surface);
   --docspot-accent: var(--hover);
-  --docspot-accent-active: color-mix(in srgb, var(--foreground) 9%, var(--background));
+  --docspot-accent-active: color-mix(
+    in srgb,
+    var(--foreground) 9%,
+    var(--background)
+  );
   --docspot-focus: var(--ring);
   --docspot-radius-control: 8px;
   --docspot-radius-item: 8px;
