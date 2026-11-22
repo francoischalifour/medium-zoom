@@ -31,7 +31,6 @@ async function fixture(
     const { createZoom } = await window.loadEntry('core')
     const { dialog } = await window.loadEntry('renderers')
     const { createGallery } = await window.loadEntry('gallery')
-    const { createZoomSession } = await window.loadEntry('session')
     const { galleryTransition } = await window.loadEntry('transitions')
     window.transitionLog = []
     window.finishTransitions = []
@@ -96,11 +95,10 @@ async function fixture(
         ),
       }),
     })
-    const session = createZoomSession(window.modalZoom)
-    window.transitionGallery = createGallery(window.modalZoom, {
-      commander: session,
+    window.transitionGallery = createGallery(window.modalZoom)
+    await window.modalZoom.open({
+      trigger: document.querySelector('#trigger')!,
     })
-    await session.open({ trigger: document.querySelector('#trigger')! })
   }, mode)
 }
 

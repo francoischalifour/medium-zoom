@@ -122,8 +122,8 @@ export const extensionEntries: CandidateEntry[] = [
     'src/zoom/index.ts',
     'createZoom',
     'instance API',
-    'engine/contracts; strategies imported separately',
-    [3_470, 3_470],
+    'engine/contracts + state, close reasons, signal, groups',
+    [4_120, 4_120],
     'dist/modern/style.css'
   ),
   optional(
@@ -155,8 +155,8 @@ export const extensionEntries: CandidateEntry[] = [
     'src/zoom/triggers.ts',
     'bindZoomTriggers',
     'DOM binding',
-    'pointer/keyboard activation + cleanup',
-    [840, 840]
+    'pointer/keyboard activation; shared binding + signal',
+    [910, 910]
   ),
   styled(
     optional(
@@ -165,7 +165,7 @@ export const extensionEntries: CandidateEntry[] = [
       'dialog',
       'modal renderer',
       'native dialog + scene replacement',
-      [1_660, 1_660]
+      [1_700, 1_700]
     ),
     [
       {
@@ -174,14 +174,6 @@ export const extensionEntries: CandidateEntry[] = [
         maxBytes: 180,
       },
     ]
-  ),
-  optional(
-    'session',
-    'src/zoom/session.ts',
-    'createZoomSession',
-    'coordinator',
-    'releasable ownership; no UI',
-    [840, 840]
   ),
   optional(
     'transitions',
@@ -197,9 +189,9 @@ export const extensionEntries: CandidateEntry[] = [
       'src/gallery/index.ts',
       'createGallery',
       'headless controller',
-      'headless controller + keyboard/gestures; optional stock controls',
+      'shared headless controller + keyboard/gestures; optional stock controls',
       // Gestures are about 3 KB of it, shaken out by consumers that do not bind them.
-      [5_330, 5_330]
+      [5_420, 5_420]
     ),
     [
       {

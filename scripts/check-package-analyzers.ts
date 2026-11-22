@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { closeSync, mkdtempSync, openSync, readFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
 
 import { publint } from 'publint'
 import { formatMessage } from 'publint/utils'
@@ -66,14 +67,26 @@ function checkAttw(archive: string, experimental: boolean) {
         ...candidateEntries.map(entry => `./${entry.name}`),
       ]
     : releaseEntrypoints
-  const attw = spawnSync(
-    resolve('node_modules/.bin/attw'),
-    [archive, '--entrypoints', ...entrypoints, '--format', 'json'],
-    { encoding: 'utf8' }
-  )
-  assert.ifError(attw.error)
-  assert(attw.status === 0 || attw.status === 1, attw.stderr)
-  const { analysis } = JSON.parse(attw.stdout) as { analysis: AttwAnalysis }
+  // attw exits before a pipe drains, cutting its report at 64 KiB: write it to a file.
+  const directory = mkdtempSync(join(tmpdir(), 'medium-zoom-attw-'))
+  const report = join(directory, 'report.json')
+  const output = openSync(report, 'w')
+  let analysis: AttwAnalysis
+  try {
+    const attw = spawnSync(
+      resolve('node_modules/.bin/attw'),
+      [archive, '--entrypoints', ...entrypoints, '--format', 'json'],
+      { encoding: 'utf8', stdio: ['ignore', output, 'pipe'] }
+    )
+    assert.ifError(attw.error)
+    assert(attw.status === 0 || attw.status === 1, attw.stderr)
+    ;({ analysis } = JSON.parse(readFileSync(report, 'utf8')) as {
+      analysis: AttwAnalysis
+    })
+  } finally {
+    closeSync(output)
+    rmSync(directory, { recursive: true, force: true })
+  }
   const findings = analysis.problems.map(problem => ({
     kind: problem.kind,
     files: [

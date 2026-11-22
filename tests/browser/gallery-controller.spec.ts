@@ -16,11 +16,9 @@ async function fixture(page: Page) {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.evaluate(async () => {
     const { createZoom } = await window.loadEntry('core')
-    const { createZoomSession } = await window.loadEntry('session')
     const { createGallery } = await window.loadEntry('gallery')
     const { dialog } = await window.loadEntry('renderers')
     window.modalZoom = createZoom('img', { renderer: dialog() })
-    createZoomSession(window.modalZoom)
     window.galleryController = createGallery(window.modalZoom)
   })
 }
@@ -69,7 +67,7 @@ test('headless traversal creates no controls, retains modal focus and publishes 
   })
 })
 
-test('controller owns dynamic collection bounds and releases subscriptions', async ({
+test('controller follows the zoom collection and releases subscriptions', async ({
   page,
 }) => {
   await fixture(page)
@@ -81,10 +79,10 @@ test('controller owns dynamic collection bounds and releases subscriptions', asy
         .cloneNode() as HTMLImageElement
       extra.id = 'third'
       document.body.append(extra)
-      gallery.attach(extra)
+      window.modalZoom.attach(extra)
       await gallery.select(2)
       const count = gallery.getSnapshot().images.length
-      gallery.detach(extra)
+      window.modalZoom.detach(extra)
       await window.modalZoom.close()
       let notified = 0
       gallery.subscribe(() => notified++)
@@ -97,27 +95,28 @@ test('controller owns dynamic collection bounds and releases subscriptions', asy
   await page.evaluate(() => window.modalZoom.close())
 })
 
-test('sessions and gallery traversal are independent and idempotent', async ({
+test('gallery handles share traversal and closing stays with the zoom', async ({
   page,
 }) => {
   await fixture(page)
   expect(
     await page.evaluate(async () => {
       const { createGallery } = await window.loadEntry('gallery')
-      const { createZoomSession } = await window.loadEntry('session')
-      const first = createZoomSession(window.modalZoom)
-      const second = createZoomSession(window.modalZoom)
-      const same = createGallery(window.modalZoom) === window.galleryController
-      await first.open()
+      // Each call is a handle of its own on the zoom's one gallery.
+      const handle = createGallery(window.modalZoom)
+      const shared =
+        handle !== window.galleryController &&
+        handle.getSnapshot() === window.galleryController.getSnapshot()
+      handle.dispose()
+      await window.modalZoom.open()
       await window.galleryController.next()
-      await second.close()
+      await window.modalZoom.close()
       return {
-        sameSession: first === second,
-        sameController: same,
+        sharedGallery: shared,
         closed: !window.modalZoom.getZoomedImage(),
       }
     })
-  ).toEqual({ sameSession: true, sameController: true, closed: true })
+  ).toEqual({ sharedGallery: true, closed: true })
 })
 
 test('direct instance mutations publish settled collection state and stale disposal stays inert', async ({

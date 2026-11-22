@@ -332,15 +332,16 @@ test('loader only supplies detached media and the engine owns its presentation a
   ).toEqual({ contract: ['clone', 'original'], displayed: true, removed: true })
 })
 
-test('content cleanup errors release the modal and session before rejecting close', async ({
+test('content cleanup errors release the modal and group before rejecting close', async ({
   page,
 }) => {
-  await preparePage(page)
+  await preparePage(page, {
+    body: '<img id="image" src="/images/image-1.jpg" width="160" alt="Zoom fixture"><img id="other" src="/images/image-2.jpg" width="160" alt="Other">',
+  })
   expect(
     await page.evaluate(async () => {
       const { createZoom } = await window.loadEntry('core')
       const { dialog } = await window.loadEntry('renderers')
-      const { createZoomSession } = await window.loadEntry('session')
       const zoom = createZoom('#image', {
         renderer: dialog({
           content: () => () => {
@@ -348,22 +349,27 @@ test('content cleanup errors release the modal and session before rejecting clos
           },
         }),
       })
-      const session = createZoomSession(zoom)
-      await session.open()
+      await zoom.open()
       let message = ''
       try {
-        await session.close()
+        await zoom.close()
       } catch (error) {
         message = (error as Error).message
       }
-      await session.dispose()
-      return {
-        message,
-        current: zoom.getZoomedImage(),
-        removed: !document.querySelector('dialog,.medium-zoom-overlay'),
-      }
+      const removed = !document.querySelector('dialog,.medium-zoom-overlay')
+      // The failed close still left the group: another zoom opens at once.
+      const other = createZoom('#other', { renderer: dialog() })
+      await other.open()
+      const next = other.getSnapshot().status
+      await other.close()
+      return { message, current: zoom.getZoomedImage(), removed, next }
     })
-  ).toEqual({ message: 'cleanup failed', current: null, removed: true })
+  ).toEqual({
+    message: 'cleanup failed',
+    current: null,
+    removed: true,
+    next: 'open',
+  })
 })
 
 test('backdrop dismissal remains available across repeated openings', async ({

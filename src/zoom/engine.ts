@@ -184,6 +184,49 @@ export interface ZoomInstance<
 }
 
 /**
+ * Why a zoom closed: `api` for `close()` without a reason, `control` for an application
+ * control such as a close button, `pointer` for a click on the image or backdrop, `escape`,
+ * `form` for a `method="dialog"` form, `gesture`, `scroll`, `detach` when images were
+ * detached while it was open, and `group` when another zoom of its group opened.
+ */
+export type ZoomCloseReason =
+  | 'api'
+  | 'control'
+  | 'pointer'
+  | 'escape'
+  | 'form'
+  | 'gesture'
+  | 'scroll'
+  | 'detach'
+  | 'group'
+
+/** Where a zoom is in its lifecycle. Replacing the open image goes back to `opening`. */
+export type ZoomStatus = 'closed' | 'opening' | 'open' | 'closing'
+
+/** An immutable view of a zoom: a new frozen object whenever anything in it changes. */
+export interface ZoomState {
+  readonly status: ZoomStatus
+  /** The open image, or `null` while the zoom is closed. */
+  readonly image: HTMLElement | null
+  /** The attached images, in attach order. The same array until the collection changes. */
+  readonly images: readonly HTMLElement[]
+}
+
+/** The `detail` of each `medium-zoom:<type>` event, by type. */
+export interface ZoomEventMap {
+  open: { readonly zoom: ZoomInstance }
+  opened: { readonly zoom: ZoomInstance }
+  close: { readonly zoom: ZoomInstance; readonly reason: ZoomCloseReason }
+  closed: { readonly zoom: ZoomInstance; readonly reason: ZoomCloseReason }
+  attach: { readonly zoom: ZoomInstance }
+  detach: { readonly zoom: ZoomInstance }
+  update: { readonly zoom: ZoomInstance }
+}
+/** A zoom event, dispatched on the image it concerns. */
+export type ZoomEvent<Type extends keyof ZoomEventMap = keyof ZoomEventMap> =
+  CustomEvent<ZoomEventMap[Type]>
+
+/**
  * Creates a zoom on the images matching `selector`. The selector can be omitted:
  * `factory(options)` creates a zoom without images.
  */
@@ -215,6 +258,7 @@ export interface Scene {
   __mz_refit?: () => void
   __mz_release?: () => void
   __mz_requested?: number
+  __mz_reason?: ZoomCloseReason
 }
 
 /** What a loader works from when a zoom opens. */
@@ -258,7 +302,8 @@ export interface LegacyAdapter<Options extends CoreZoomOptions> {
 export interface Stage {
   mount(context: {
     readonly zoom: ZoomInstance
-    close: () => void
+    /** Closes the zoom; the reason defaults to `control`. */
+    close: (reason?: ZoomCloseReason) => void
     readonly trigger?: HTMLElement
   }): StageView
 }
@@ -283,6 +328,14 @@ export interface StageView {
   dispose(): void
 }
 
+/** The zooms of a group open one at a time; `ZoomGroup` is its public, opaque type. */
+export interface Group {
+  /** The zoom that claimed the group: opening, open or closing. */
+  __mz_shown?: ZoomInstance
+  /** Bumped by every request that has to wait, so only the latest one opens. */
+  __mz_ticket: number
+}
+
 /** Fixed presets replace this flag at build time so the bundler can remove strategy checks. */
 declare const __PRESET__: boolean
 
@@ -294,7 +347,8 @@ export const createEngine = <Options extends CoreZoomOptions>(
   measureViewport?: ZoomViewport,
   stageOption?: Stage,
   legacy?: LegacyAdapter<Options>,
-  adoptMedia?: (frame: Frame, media: HTMLImageElement) => void
+  adoptMedia?: (frame: Frame, media: HTMLImageElement) => void,
+  group?: Group
 ): ZoomFactory<Options> => {
   const stage = __PRESET__ ? undefined : stageOption
   const mediumZoom = (
@@ -304,7 +358,41 @@ export const createEngine = <Options extends CoreZoomOptions>(
     const Promise = getPromise()
 
     const _dispatchEvent = (image: ZoomTarget, type: string) => {
-      image.dispatchEvent(createCustomEvent(`medium-zoom:${type}`, { zoom }))
+      image.dispatchEvent(
+        createCustomEvent(
+          `medium-zoom:${type}`,
+          // Only `close` and `closed` start with a "c" and carry the reason.
+          __PRESET__
+            ? { zoom }
+            : { zoom, reason: type[0] === 'c' ? reported : undefined }
+        )
+      )
+    }
+
+    // Composed zooms keep a frozen state for subscribers and report why they close; the
+    // presets do neither. `requested` is the reason given to the next close, `reported` the
+    // one carried by the close event being dispatched.
+    let requested: ZoomCloseReason | undefined
+    let reported: ZoomCloseReason | undefined
+    let status: ZoomStatus = 'closed'
+    let state: ZoomState
+    const subscribers = __PRESET__ ? undefined : new Set<() => void>()
+    const commit = (next = status) => {
+      status = next
+      release()
+      state = Object.freeze({
+        status,
+        image: (active.__mz_original || null) as HTMLElement | null,
+        images: images as readonly HTMLElement[],
+      })
+      // A failing subscriber must not interrupt the lifecycle that notifies it.
+      subscribers!.forEach(listener => {
+        try {
+          listener()
+        } catch (error) {
+          reportError(error)
+        }
+      })
     }
 
     const isAttached = (image: ZoomTarget) => images.indexOf(image) !== -1
@@ -314,7 +402,11 @@ export const createEngine = <Options extends CoreZoomOptions>(
       if (__PRESET__ && isAttached(target)) {
         void toggle({ target })
       } else if (target === overlay) {
-        _close()
+        if (__PRESET__) {
+          _close()
+        } else {
+          closeOnPointer()
+        }
       }
     }
 
@@ -345,7 +437,10 @@ export const createEngine = <Options extends CoreZoomOptions>(
         Math.abs(scrollTop - currentScroll) > zoomOptions.scrollOffset! &&
         !active.__mz_scrollTimer
       ) {
-        active.__mz_scrollTimer = setTimeout(_close, 150)
+        active.__mz_scrollTimer = setTimeout(
+          __PRESET__ ? _close : closeOnScroll,
+          150
+        )
       }
     }
 
@@ -365,7 +460,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
 
     const _handleKeyUp = (event: KeyboardEvent) => {
       if (isEscape(event)) {
-        void close()
+        void (__PRESET__ ? close() : closeFor('escape'))
       }
     }
 
@@ -401,6 +496,9 @@ export const createEngine = <Options extends CoreZoomOptions>(
         document.addEventListener('click', handleClick)
       }
       images = images.concat(newImages)
+      if (!__PRESET__) {
+        Object.freeze(images)
+      }
       newImages.forEach(image => {
         if (__PRESET__) {
           image.classList.add('medium-zoom-image')
@@ -411,12 +509,15 @@ export const createEngine = <Options extends CoreZoomOptions>(
       })
 
       newImages.forEach(image => _dispatchEvent(image, 'attach'))
+      if (!__PRESET__ && newImages.length) {
+        commit()
+      }
       return zoom
     }
 
     const detach: ZoomInstance<Options>['detach'] = function () {
       if (active.__mz_original) {
-        void close()
+        void (__PRESET__ ? close() : closeFor('detach'))
       }
 
       const detached = arguments.length
@@ -429,8 +530,14 @@ export const createEngine = <Options extends CoreZoomOptions>(
         _dispatchEvent(image, 'detach')
       })
       images = images.filter(image => detached.indexOf(image) === -1)
+      if (!__PRESET__) {
+        Object.freeze(images)
+      }
       if (__PRESET__ && !images.length) {
         document.removeEventListener('click', handleClick)
+      }
+      if (!__PRESET__ && detached.length) {
+        commit()
       }
       return zoom
     }
@@ -442,21 +549,55 @@ export const createEngine = <Options extends CoreZoomOptions>(
       (add: boolean): ZoomInstance<Options>['on'] =>
       (type, listener, options = {}) => {
         const eventType = `medium-zoom:${type}`
+        const once =
+          !__PRESET__ && typeof options === 'object' && !!options.once
+        // Composed zooms register a filter, so a listener hears only this zoom, even on an
+        // image another zoom shares, as one recreated on the same image does.
+        const registered =
+          !__PRESET__ &&
+          eventListeners.find(
+            entry =>
+              entry[0] === eventType &&
+              entry[3] === listener &&
+              capture(entry[2]) === capture(options)
+          )
+        const filter = registered
+          ? registered[1]
+          : (event: Event) => {
+              if ((event as CustomEvent).detail.zoom === zoom) {
+                // `once` applies to this zoom's events: the filter itself stays registered.
+                if (once) {
+                  zoom.off(type, listener, options)
+                }
+                if (typeof listener === 'function') {
+                  listener.call(event.currentTarget, event)
+                } else {
+                  listener.handleEvent(event)
+                }
+              }
+            }
+        const handler = __PRESET__ ? listener : filter
         images.forEach(image =>
           image[add ? 'addEventListener' : 'removeEventListener'](
             eventType,
-            listener,
-            options
+            __PRESET__ ? listener : handler,
+            __PRESET__ || !once
+              ? options
+              : { ...(options as object), once: false }
           )
         )
         if (add) {
-          eventListeners.push([eventType, listener, options])
+          if (__PRESET__) {
+            eventListeners.push([eventType, listener, options])
+          } else if (!registered) {
+            eventListeners.push([eventType, handler, options, listener])
+          }
         } else {
           eventListeners = eventListeners.filter(
             ([type, callback, registered]) =>
               !(
                 type === eventType &&
-                callback === listener &&
+                callback === (__PRESET__ ? listener : handler) &&
                 capture(registered) === capture(options)
               )
           )
@@ -570,6 +711,9 @@ export const createEngine = <Options extends CoreZoomOptions>(
           resolve(zoom)
           if (opened) {
             document.body.classList.add('medium-zoom--opened')
+            if (!__PRESET__) {
+              commit('open')
+            }
             _dispatchEvent(current.__mz_original!, 'opened')
             if (!__PRESET__ && arrived) {
               upgrade(arrived.media)
@@ -593,6 +737,13 @@ export const createEngine = <Options extends CoreZoomOptions>(
           ? window.visualViewport.scale
           : 1
         _updateGlobalEvents(true)
+        if (!__PRESET__) {
+          commit('opening')
+          // A subscriber may have closed it already: then it never opened.
+          if (!current.__mz_cancelOpen) {
+            return
+          }
+        }
         _dispatchEvent(current.__mz_original!, 'open')
         if (!current.__mz_cancelOpen) {
           return
@@ -605,13 +756,18 @@ export const createEngine = <Options extends CoreZoomOptions>(
         )
         current.__mz_frames = [primary]
         // Listen on the frame because mobile WebKit can fail to deliver its click to the document.
-        primary.addEventListener('click', _close)
+        primary.addEventListener('click', __PRESET__ ? _close : closeOnPointer)
 
         try {
           if (stage) {
             current.__mz_view =
               current.__mz_view ||
-              stage.mount({ zoom, close: _close, trigger: options.trigger })
+              stage.mount({
+                zoom,
+                // Bound as a listener, it receives an event: that is a control.
+                close: reason => void closeFor(reason, 'control'),
+                trigger: options.trigger,
+              })
             current.__mz_view.enter(primary)
           }
         } catch (error) {
@@ -623,6 +779,9 @@ export const createEngine = <Options extends CoreZoomOptions>(
           removeNode(primary)
           active = {}
           _updateGlobalEvents(false)
+          if (!__PRESET__) {
+            commit('closed')
+          }
           return
         }
         if (!current.__mz_cancelOpen) {
@@ -695,7 +854,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
           }
           // An authored load handler may have replaced the copied classes.
           media.classList.add('medium-zoom-image--opened')
-          media.addEventListener('click', _close)
+          media.addEventListener('click', __PRESET__ ? _close : closeOnPointer)
           host.appendChild(media)
           current.__mz_frames!.push(media)
         }
@@ -892,8 +1051,12 @@ export const createEngine = <Options extends CoreZoomOptions>(
         }
 
         current.__mz_closing = true
-        if (!__PRESET__ && current.__mz_release) {
-          current.__mz_release()
+        if (!__PRESET__) {
+          current.__mz_reason = requested || 'api'
+          requested = undefined
+          if (current.__mz_release) {
+            current.__mz_release()
+          }
         }
         if (current.__mz_cancelOpen) {
           current.__mz_cancelOpen()
@@ -907,6 +1070,9 @@ export const createEngine = <Options extends CoreZoomOptions>(
           active = {}
           closing = undefined
           _updateGlobalEvents(false)
+          if (!__PRESET__) {
+            commit('closed')
+          }
           try {
             if (__PRESET__ && current.__mz_closeContent) {
               current.__mz_closeContent(true)
@@ -917,6 +1083,9 @@ export const createEngine = <Options extends CoreZoomOptions>(
           } catch (error) {
             reject(error)
           } finally {
+            if (!__PRESET__) {
+              reported = current.__mz_reason
+            }
             _dispatchEvent(current.__mz_original!, 'closed')
           }
         }
@@ -935,6 +1104,10 @@ export const createEngine = <Options extends CoreZoomOptions>(
           }
         } catch (error) {
           reject(error)
+        }
+        if (!__PRESET__) {
+          commit('closing')
+          reported = current.__mz_reason
         }
         _dispatchEvent(current.__mz_original!, 'close')
         if (!primary) {
@@ -955,9 +1128,66 @@ export const createEngine = <Options extends CoreZoomOptions>(
       return open(options)
     }
 
-    const getOptions = () => zoomOptions
+    // Composed zooms only: opening first closes the group's shown zoom and waits for it.
+    let waiting: Promise<ZoomInstance<Options>> | undefined
+    let ticket = 0
+    const release = () => {
+      if (group && status === 'closed' && group.__mz_shown === zoom) {
+        group.__mz_shown = undefined
+      }
+    }
+    const claim = (options?: ModalOpenOptions) => {
+      if (group) {
+        group.__mz_shown = zoom
+      }
+      const opening = open(options)
+      void opening.then(release, release)
+      return opening
+    }
+    let latest: ModalOpenOptions | undefined
+    // Whether this zoom waits for its group with a request nothing has superseded.
+    const queued = () => !!waiting && ticket === group!.__mz_ticket
+    const request = (
+      options?: ModalOpenOptions
+    ): Promise<ZoomInstance<Options>> => {
+      const target = options && options.target
+      // A request that cannot open leaves the group alone.
+      if (!images.length || (target && !isAttached(target))) {
+        return Promise.resolve(zoom)
+      }
+      latest = options
+      const shown = group && group.__mz_shown
+      if (queued()) {
+        return waiting!
+      }
+      if (!shown || shown === zoom) {
+        // Opening while nothing is shown supersedes any request still waiting.
+        if (group && !shown) {
+          group.__mz_ticket++
+        }
+        return claim(options)
+      }
+      // A newer request, from any zoom of the group, supersedes this one while it waits; a
+      // repeated one from this zoom updates what it opens.
+      const own = (ticket = ++group!.__mz_ticket)
+      const finish = ():
+        Promise<ZoomInstance<Options>> | ZoomInstance<Options> => {
+        if (waiting === pending) {
+          waiting = undefined
+        }
+        return own === group!.__mz_ticket ? request(latest) : zoom
+      }
+      const pending = (
+        shown.close as (reason: ZoomCloseReason) => Promise<unknown>
+      )('group').then(finish, finish)
+      return (waiting = pending)
+    }
 
-    const getImages = () => images
+    // Composed zooms hand out copies: their own options and images change only through the zoom.
+    const getOptions = () =>
+      __PRESET__ ? zoomOptions : assign({}, zoomOptions)
+
+    const getImages = () => (__PRESET__ ? images : images.slice())
 
     const getZoomedImage = () => active.__mz_original || null
 
@@ -966,6 +1196,8 @@ export const createEngine = <Options extends CoreZoomOptions>(
       type: string,
       listener: EventListenerOrEventListenerObject,
       options: boolean | AddEventListenerOptions,
+      /** The listener given to `on()`, which composed zooms register a filter for. */
+      original?: EventListenerOrEventListenerObject,
     ][] = []
     let scrollTop = 0
     let zoomOptions: Options = options
@@ -989,6 +1221,21 @@ export const createEngine = <Options extends CoreZoomOptions>(
     const _close = () => {
       void close()
     }
+    // Composed zooms only: records why the next close happens, unless one is under way.
+    const closeFor = (reason?: unknown, fallback: ZoomCloseReason = 'api') => {
+      // Closing cancels an opening still waiting for another zoom of the group.
+      if (queued()) {
+        group!.__mz_ticket++
+      }
+      if (active.__mz_original && !active.__mz_closing) {
+        // Bound as a listener, close() receives an event rather than a reason.
+        requested =
+          typeof reason === 'string' ? (reason as ZoomCloseReason) : fallback
+      }
+      return close()
+    }
+    const closeOnPointer = () => void closeFor('pointer')
+    const closeOnScroll = () => void closeFor('scroll')
 
     const _refit = () => {
       if (active.__mz_refit) {
@@ -997,6 +1244,25 @@ export const createEngine = <Options extends CoreZoomOptions>(
     }
 
     if (!__PRESET__) {
+      const composed = zoom as Omit<
+        ZoomInstance<Options>,
+        'close' | 'open' | 'toggle'
+      > & {
+        close: (reason?: ZoomCloseReason) => Promise<unknown>
+        open: typeof request
+        toggle: (options?: ModalOpenOptions) => Promise<unknown>
+        getSnapshot: () => ZoomState
+        subscribe: (listener: () => void) => () => void
+      }
+      composed.close = reason => closeFor(reason)
+      composed.open = request
+      composed.toggle = options =>
+        queued() || active.__mz_original ? closeFor() : request(options)
+      composed.getSnapshot = () => state
+      composed.subscribe = listener => {
+        subscribers!.add(listener)
+        return () => subscribers!.delete(listener)
+      }
       ;(zoom as ZoomInstance<Options> & { preload: Preload }).preload =
         target => {
           if (loader && images.indexOf(target as ZoomTarget) > -1) {
@@ -1027,6 +1293,10 @@ export const createEngine = <Options extends CoreZoomOptions>(
     )
 
     const overlay = createOverlay(zoomOptions.background)
+    // Attaching at construction already committed the first state.
+    if (!__PRESET__ && !state!) {
+      commit()
+    }
 
     return zoom
   }

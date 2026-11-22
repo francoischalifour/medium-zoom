@@ -41,8 +41,9 @@ export function galleryControls({
   nextLabel = 'Next image',
   positionLabel = (position, total) => `Image ${position} of ${total}`,
 }: GalleryControlsOptions = {}): ZoomContent {
-  return ({ element, zoom, close }) => {
-    const gallery = createGallery(zoom)
+  return ({ element, zoom, close, signal }) => {
+    // Every handle and binding here is released with the content, through its signal.
+    const gallery = createGallery(zoom, { signal })
     const control = (
       name: keyof typeof icons,
       label: string,
@@ -102,9 +103,9 @@ export function galleryControls({
       element.addEventListener(type, wake)
     }
     wake()
-    const unsubscribe = gallery.subscribe(update)
-    bindGalleryKeyboard(element, gallery)
-    const unbindGestures = bindGalleryGestures({ element, zoom, close })
+    gallery.subscribe(update)
+    bindGalleryKeyboard(element, gallery, { signal })
+    bindGalleryGestures({ element, zoom, signal })
     // Registered after bindGalleryKeyboard(), so defaultPrevented means it stepped. A zoomed
     // image pans with the arrows instead, so no button shows pressed.
     const press = (event: KeyboardEvent) => {
@@ -139,8 +140,6 @@ export function galleryControls({
     return () => {
       clearTimeout(announcing)
       clearTimeout(idle)
-      unsubscribe()
-      unbindGestures()
     }
   }
 }

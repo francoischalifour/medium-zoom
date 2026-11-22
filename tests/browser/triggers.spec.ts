@@ -52,14 +52,19 @@ test('bindings follow attach/detach without replacing instance methods', async (
       const { bindZoomTriggers } = await window.loadEntry('triggers')
       // oxlint-disable-next-line typescript/unbound-method -- Compare identity, never invoke as a method.
       const attach = window.modalZoom.attach
-      const same = bindZoomTriggers(window.modalZoom) === window.unbindTriggers
+      // A second caller gets an unbind of its own on the same binding.
+      const unbindSecond = bindZoomTriggers(window.modalZoom)
+      const separate = unbindSecond !== window.unbindTriggers
       window.modalZoom.attach('#second')
       const role = document.querySelector('#second')!.getAttribute('role')
       window.modalZoom.detach('#second')
       const restored = !document.querySelector('#second')!.hasAttribute('role')
       window.unbindTriggers()
+      const stillBound = document.querySelector('#first')!.getAttribute('role')
+      unbindSecond()
       return {
-        same,
+        separate,
+        stillBound,
         role,
         restored,
         methods: attach === window.modalZoom.attach,
@@ -69,7 +74,8 @@ test('bindings follow attach/detach without replacing instance methods', async (
       }
     })
   ).toEqual({
-    same: true,
+    separate: true,
+    stillBound: 'button',
     role: 'button',
     restored: true,
     methods: true,

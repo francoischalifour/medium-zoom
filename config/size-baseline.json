@@ -29,10 +29,6 @@
       "js": 3976,
       "css": 245
     },
-    "core + session": {
-      "js": 4269,
-      "css": 245
-    },
     "core + dialog": {
       "js": 4484,
       "css": 245
@@ -47,18 +43,6 @@
     },
     "core + dialog + gallery": {
       "js": 4924,
-      "css": 245
-    },
-    "core + dialog + gallery + session": {
-      "js": 5580,
-      "css": 245
-    },
-    "core + dialog + gallery + session + keyboard": {
-      "js": 5774,
-      "css": 245
-    },
-    "core + dialog + gallery + session + custom transition": {
-      "js": 5660,
       "css": 245
     },
     "everything composed": {
@@ -79,8 +63,6 @@
     "dist/triggers/index.cjs": 853,
     "dist/renderers/index.mjs": 1327,
     "dist/renderers/index.cjs": 1328,
-    "dist/session/index.mjs": 949,
-    "dist/session/index.cjs": 949,
     "dist/gallery/index.mjs": 880,
     "dist/gallery/index.cjs": 880,
     "dist/compat/index.mjs": 3697,

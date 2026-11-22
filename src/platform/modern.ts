@@ -1,11 +1,13 @@
 import type { ZoomInstance } from '../zoom/engine'
 
+type ZoomEventDetail = { zoom: ZoomInstance; reason?: string }
+
 export const getPromise = (): PromiseConstructor => Promise
 
 export const createCustomEvent = (
   type: string,
-  detail: { zoom: ZoomInstance }
-): CustomEvent<{ zoom: ZoomInstance }> => {
+  detail: ZoomEventDetail
+): CustomEvent<ZoomEventDetail> => {
   return new CustomEvent(type, { detail })
 }
 

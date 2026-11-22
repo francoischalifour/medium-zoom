@@ -4,8 +4,6 @@ import type {
   ModalOpenOptions,
   ModalZoom,
   Zoom,
-  ZoomCommander,
-  ZoomSelector,
 } from 'medium-zoom/core'
 
 /** An immutable view of the gallery; a new object whenever anything in it changes. */
@@ -46,161 +44,148 @@ export interface GalleryController<
     index: number,
     options?: Omit<ModalOpenOptions, 'target'>
   ): Promise<Zoom<Options>>
-  /** Attaches images to the zoom, after the current ones. */
-  attach(...selectors: ZoomSelector[]): void
-  /** Releases images from the zoom. */
-  detach(...selectors: ZoomSelector[]): void
-  /** Removes listeners and subscriptions. Does not close or detach the zoom. */
-  dispose(): void
+  /**
+   * Releases this handle: its subscriptions end and its commands stop opening images. The
+   * zoom's gallery stops once every handle is released. Does not close or detach the zoom.
+   */
+  dispose(this: void): void
 }
 
 /** Options of `createGallery()`. */
-export interface GalleryOptions<Options extends CoreZoomOptions> {
-  /**
-   * What opens the gallery's images, such as a session coordinating them with other zooms.
-   *
-   * @default the zoom
-   */
-  commander?: ZoomCommander<Options>
+export interface GalleryOptions {
+  /** Releases the handle when aborted, as `dispose()` does. */
+  signal?: AbortSignal
 }
 
-const galleries = new WeakMap<object, unknown>()
+/** What every handle on a zoom's gallery shares. */
+interface SharedGallery {
+  readonly getSnapshot: () => GallerySnapshot
+  readonly listeners: Set<() => void>
+  count: number
+  stop(): void
+}
+const galleries = new WeakMap<object, SharedGallery>()
 
 /**
  * Headless traversal over a rendered zoom's attached images, in attach order. Creates no UI.
- * Returns the zoom's existing gallery when it has one, with the commander it was created
- * with: create it with a session before mounting `galleryControls()` to coordinate them.
+ * A zoom has one gallery: each call returns a handle of its own on it, so code that shares
+ * a zoom, such as your controls and `galleryControls()`, can release its handle without
+ * affecting the others.
  */
 export function createGallery<Options extends CoreZoomOptions>(
   zoom: ModalZoom<Options>,
-  { commander = zoom }: GalleryOptions<Options> = {}
+  { signal }: GalleryOptions = {}
 ): GalleryController<Options> {
-  const existing = galleries.get(zoom) as GalleryController<Options> | undefined
-  if (existing) {
-    return existing
+  const shared = galleries.get(zoom) || share(zoom)
+  galleries.set(zoom, shared)
+  shared.count++
+  const { getSnapshot, listeners } = shared
+  const own = new Set<() => void>()
+  let released = false
+  const choose = (index: number, options?: ModalOpenOptions) => {
+    const target = released ? undefined : getSnapshot().images[index]
+    return (
+      target ? zoom.open({ ...options, target }) : Promise.resolve(zoom)
+    ) as Promise<Zoom<Options>>
   }
+  // Past either end, the index is -1: there is nothing to open.
+  const step = (by: number) => () => {
+    const { index, canPrevious, canNext } = getSnapshot()
+    return choose((by > 0 ? canNext : canPrevious) ? index + by : -1)
+  }
+  const handle: GalleryController<Options> = {
+    getSnapshot,
+    subscribe(listener) {
+      // Wrapped, so two handles subscribing the same function stay independent.
+      const entry = () => listener()
+      if (!released) {
+        listeners.add(entry)
+        own.add(entry)
+      }
+      return () => {
+        listeners.delete(entry)
+        own.delete(entry)
+      }
+    },
+    previous: step(-1),
+    next: step(1),
+    select: choose,
+    dispose() {
+      if (!released) {
+        released = true
+        signal?.removeEventListener('abort', handle.dispose)
+        own.forEach(entry => listeners.delete(entry))
+        if (!--shared.count) {
+          shared.stop()
+          galleries.delete(zoom)
+        }
+      }
+    },
+  }
+  signal?.addEventListener('abort', handle.dispose)
+  if (signal?.aborted) {
+    handle.dispose()
+  }
+  return handle
+}
+
+function share<Options extends CoreZoomOptions>(
+  zoom: ModalZoom<Options>
+): SharedGallery {
   const listeners = new Set<() => void>()
-  let disposed = false
-  let snapshot: GallerySnapshot = {
+  // Derived from the zoom's frozen state, and frozen too: every subscriber shares it.
+  let snapshot: GallerySnapshot = Object.freeze({
     images: [],
     current: null,
     index: -1,
     canPrevious: false,
     canNext: false,
-  }
+  })
   const getSnapshot = () => {
-    const images = zoom.getImages()
-    const current = zoom.getZoomedImage()
-    if (
-      current !== snapshot.current ||
-      images.length !== snapshot.images.length ||
-      images.some((image, index) => image !== snapshot.images[index])
-    ) {
-      const index = images.indexOf(current!)
-      snapshot = {
-        images: images.slice(),
+    const { images, image: current } = zoom.getSnapshot()
+    if (images !== snapshot.images || current !== snapshot.current) {
+      const index = current ? images.indexOf(current) : -1
+      snapshot = Object.freeze({
+        images,
         current,
         index,
         canPrevious: index > 0,
         canNext: index >= 0 && index < images.length - 1,
-      }
+      })
     }
     return snapshot
   }
   let preloading: ReturnType<typeof setTimeout> | undefined
-  const notify = () => {
+  const unsubscribe = zoom.subscribe(() => {
     clearTimeout(preloading)
-    getSnapshot()
-    listeners.forEach(listener => listener())
-  }
-  // Once the user pauses on an image, both neighbours load ahead so they open sharp. Not
-  // while stepping, so images passed on the way are never downloaded.
-  const preload = () => {
-    preloading = setTimeout(() => {
-      const { images, index } = getSnapshot()
-      for (const image of [images[index + 1], images[index - 1]]) {
-        if (image) {
-          zoom.preload(image)
+    // Once the user pauses on an image, both neighbours load ahead so they open sharp. Not
+    // while stepping, so images passed on the way are never downloaded.
+    if (zoom.getSnapshot().status === 'open') {
+      preloading = setTimeout(() => {
+        const { images, index } = getSnapshot()
+        for (const image of [images[index + 1], images[index - 1]]) {
+          if (image) {
+            zoom.preload(image)
+          }
         }
-      }
-    }, 300)
-  }
-  const choose = (index: number, options?: ModalOpenOptions) => {
-    const target = getSnapshot().images[index]
-    return !disposed && target
-      ? commander.open({ ...options, target })
-      : Promise.resolve(zoom)
-  }
-  let queued = false
-  const collectionChanged = () => {
-    if (queued) {
-      return
+      }, 300)
     }
-    queued = true
-    // Defer until the batch ends because v1 emits detach events before updating the collection.
-    queueMicrotask(() => {
-      queued = false
-      if (!disposed) {
-        notify()
-      }
-    })
-  }
-  zoom
-    .on('open', notify)
-    .on('opened', preload)
-    .on('closed', notify)
-    .on('attach', collectionChanged)
-    .on('detach', collectionChanged)
-  const controller: GalleryController<Options> = {
+    const previous = snapshot
+    if (getSnapshot() !== previous) {
+      listeners.forEach(listener => listener())
+    }
+  })
+  return {
     getSnapshot,
-    subscribe(listener) {
-      if (disposed) {
-        return () => {}
-      }
-      listeners.add(listener)
-      return () => listeners.delete(listener)
-    },
-    previous() {
-      return getSnapshot().canPrevious
-        ? choose(snapshot.index - 1)
-        : Promise.resolve(zoom)
-    },
-    next() {
-      return getSnapshot().canNext
-        ? choose(snapshot.index + 1)
-        : Promise.resolve(zoom)
-    },
-    select: choose,
-    attach(...selectors) {
-      if (!disposed) {
-        zoom.attach(...selectors)
-      }
-    },
-    detach(...selectors) {
-      if (!disposed) {
-        zoom.detach(...selectors)
-      }
-    },
-    dispose() {
-      if (disposed) {
-        return
-      }
-      disposed = true
+    listeners,
+    count: 0,
+    stop() {
       clearTimeout(preloading)
-      zoom
-        .off('open', notify)
-        .off('opened', preload)
-        .off('closed', notify)
-        .off('attach', collectionChanged)
-        .off('detach', collectionChanged)
-      listeners.clear()
-      galleries.delete(zoom)
+      unsubscribe()
     },
   }
-  galleries.set(zoom, controller)
-  return controller
 }
 
-export { bindGalleryKeyboard } from './keyboard'
+export { bindGalleryKeyboard, type GalleryKeyboardOptions } from './keyboard'
 export { bindGalleryGestures, type GalleryGestureView } from './gestures'
 export { galleryControls, type GalleryControlsOptions } from './controls'

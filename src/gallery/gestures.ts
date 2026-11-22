@@ -3,8 +3,14 @@ import type { ZoomContent } from 'medium-zoom/core'
 import { createGallery } from './index'
 import { elementsWithOwnKeys, isGalleryKey } from './keyboard'
 
-/** The view a `ZoomContent` receives, which `bindGalleryGestures()` binds to. */
-export type GalleryGestureView = Parameters<ZoomContent>[0]
+/**
+ * What `bindGalleryGestures()` binds to: the view a `ZoomContent` receives will do. Aborting
+ * `signal`, as the view's own does on close, unbinds the gestures.
+ */
+export type GalleryGestureView = Pick<
+  Parameters<ZoomContent>[0],
+  'element' | 'zoom'
+> & { readonly signal?: AbortSignal }
 
 /** The open image over its fitted box: screen = fitted × k + (x, y). */
 type Placement = [x: number, y: number, k: number]
@@ -65,8 +71,11 @@ const mediaSize = (media: Media) => [
 export function bindGalleryGestures({
   element,
   zoom,
-  close,
+  signal,
 }: GalleryGestureView): () => void {
+  if (signal?.aborted) {
+    return () => {}
+  }
   const gallery = createGallery(zoom)
   const motion = matchMedia('(prefers-reduced-motion: reduce)')
   const pointers = new Map<number, number[]>()
@@ -562,12 +571,12 @@ export function bindGalleryGestures({
     } else if (ended === 'close') {
       const [, vy] = velocity
       if (Math.abs(y) > height / 6 || (vy! * y > 0 && Math.abs(vy!) > fling)) {
-        close()
+        void zoom.close('gesture')
       } else {
         animate(rest)
       }
     } else if (k < 0.8) {
-      close()
+      void zoom.close('gesture')
     } else {
       settle()
     }
@@ -618,7 +627,7 @@ export function bindGalleryGestures({
     const leave = k <= 1.01 && tap
     forget()
     if (leave) {
-      close()
+      void zoom.close('pointer')
     }
   }
   const forget = () => {
@@ -771,12 +780,19 @@ export function bindGalleryGestures({
   }
   addEventListener('resize', resized)
   zoom.on('close', closed)
-  return () => {
+  let bound = true
+  const unbind = () => {
+    if (!bound) {
+      return
+    }
+    bound = false
+    signal?.removeEventListener('abort', unbind)
     removeEventListener('resize', resized)
     stop()
     clearTimeout(tapTimer)
     drop()
     unsubscribe()
+    gallery.dispose()
     zoom.off('close', closed)
     style.touchAction = touchAction
     style.userSelect = userSelect
@@ -784,4 +800,6 @@ export function bindGalleryGestures({
       element.removeEventListener(type, listener as EventListener, capture)
     }
   }
+  signal?.addEventListener('abort', unbind)
+  return unbind
 }

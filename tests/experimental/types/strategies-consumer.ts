@@ -2,8 +2,12 @@ import { templateContent } from 'medium-zoom/content'
 import {
   type CoreZoomOptions,
   createZoom,
+  createZoomGroup,
   type Zoom,
+  type ZoomCloseReason,
   type ZoomLoader,
+  type ZoomState,
+  type ZoomStatus,
   type ZoomViewport,
 } from 'medium-zoom/core'
 import {
@@ -14,7 +18,6 @@ import {
 } from 'medium-zoom/gallery'
 import { loadHdImage } from 'medium-zoom/loaders'
 import { dialog } from 'medium-zoom/renderers'
-import { createZoomSession } from 'medium-zoom/session'
 import { slide } from 'medium-zoom/transitions'
 import { bindZoomTriggers } from 'medium-zoom/triggers'
 import { containerBounds } from 'medium-zoom/viewport'
@@ -42,10 +45,16 @@ const zoom = createZoom('img', {
   margin: 24,
 })
 createZoom('img', { loader: loadHdImage, viewport })
-const session = createZoomSession(zoom)
-// A session is a commander: triggers and galleries can route their requests through it.
-const unbind = bindZoomTriggers(zoom, { commander: session })
-const gallery = createGallery(zoom, { commander: session })
+// Zooms share the document's group by default: no coordinator to pass around.
+const unbind = bindZoomTriggers(zoom)
+const gallery = createGallery(zoom)
+const group = createZoomGroup()
+createZoom('img', { renderer: dialog(), group })
+createZoom('img', { group: null })
+// @ts-expect-error Groups are made by createZoomGroup().
+createZoom('img', { group: {} })
+// @ts-expect-error Coordination belongs to the zoom, not to its bindings.
+bindZoomTriggers(zoom, { commander: zoom })
 const keys = bindGalleryKeyboard(document.createElement('div'), gallery)
 const gestures = createZoom('img', {
   renderer: dialog({ content: view => bindGalleryGestures(view) }),
@@ -64,14 +73,13 @@ createZoom('img', {
 })
 // @ts-expect-error Labels are strings.
 galleryControls({ closeLabel: 42 })
-void session.toggle()
-void session.open({ trigger: document.createElement('button') })
+void zoom.toggle()
+void zoom.open({ trigger: document.createElement('button') })
 void gallery.next()
 keys()
 void gestures
 unbind()
 gallery.dispose()
-void session.dispose()
 // @ts-expect-error A gallery replaces the open image, which needs a renderer.
 createGallery(createZoom('img'))
 // @ts-expect-error Trigger bindings announce a dialog, which needs a renderer.
@@ -86,3 +94,31 @@ dialog({ label: 42 })
 dialog({ closeLabel: 'Close' })
 // @ts-expect-error Keyboard binding requires a DOM host.
 bindGalleryKeyboard({}, gallery)
+const state: ZoomState = zoom.getSnapshot()
+const status: ZoomStatus = state.status
+void status
+// @ts-expect-error Snapshots are read-only.
+state.images.push(document.createElement('img'))
+const stopObserving: () => void = zoom.subscribe(() => {})
+stopObserving()
+zoom.on('closed', event => {
+  const reason: ZoomCloseReason = event.detail.reason
+  void reason
+})
+void zoom.close('control')
+// @ts-expect-error Close reasons are a closed set.
+void zoom.close('swipe')
+const lifetime = new AbortController()
+const { signal } = lifetime
+const owned = createZoom('img', { renderer: dialog(), signal })
+const handle = createGallery(owned, { signal })
+bindZoomTriggers(owned, { signal })
+bindGalleryKeyboard(document.body, handle, { signal })
+dialog({
+  content: view => {
+    createGallery(view.zoom, { signal: view.signal })
+  },
+})
+// @ts-expect-error The gallery navigates; the zoom manages its images.
+handle.attach('img')
+lifetime.abort()

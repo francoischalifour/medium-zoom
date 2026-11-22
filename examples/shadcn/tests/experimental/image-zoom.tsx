@@ -1,9 +1,12 @@
 'use client'
 
-import { type CoreZoomOptions, createZoom } from 'medium-zoom/core'
+import {
+  type CoreZoomOptions,
+  createZoom,
+  type ModalZoom,
+} from 'medium-zoom/core'
 import { loadHdImage } from 'medium-zoom/loaders'
 import { dialog } from 'medium-zoom/renderers'
-import { createZoomSession, type ZoomSession } from 'medium-zoom/session'
 import { containerBounds } from 'medium-zoom/viewport'
 import * as React from 'react'
 
@@ -55,8 +58,6 @@ function useZoomContext() {
   return context
 }
 
-type Session = ZoomSession<CoreZoomOptions>
-
 export function Root({
   children,
   disabled = false,
@@ -71,8 +72,7 @@ export function Root({
   const wantedRef = React.useRef(wantedOpen)
   const changeRef = React.useRef(onOpenChange)
   const requestedRef = React.useRef(wantedOpen)
-  const sessionRef = React.useRef<Session | null>(null)
-  const closingRef = React.useRef<Promise<void> | null>(null)
+  const zoomRef = React.useRef<ModalZoom | null>(null)
   const optionsRef = React.useRef(options)
   // React must preserve the library's classes when consumers change className while zoomed.
   const [zoomed, setZoomed] = React.useState(false)
@@ -88,7 +88,7 @@ export function Root({
 
   const close = React.useCallback(() => {
     requestOpen(false)
-    void sessionRef.current?.close()
+    void zoomRef.current?.close()
   }, [requestOpen])
 
   React.useEffect(() => {
@@ -109,11 +109,21 @@ export function Root({
     if (disabled || !image) {
       return
     }
-    let disposed = false
-    let session: Session | null = null
+    // Strict Mode and Activity can restart this effect while the previous zoom is still
+    // closing: the new zoom shares its group, so it opens only once that close ends.
+    const lifetime = new AbortController()
+    const zoom = createZoom(image, {
+      signal: lifetime.signal,
+      renderer: dialog(),
+      loader: loadHdImage,
+      viewport: (bounds, core) =>
+        containerBounds(optionsRef.current?.container ?? null)(bounds, core),
+    })
+    zoomRef.current = zoom
+    // Listeners from on() hear this zoom only, even once a new zoom takes the image.
     const onOpen = () => setZoomed(true)
     const onClose = () => {
-      if (!disposed) {
+      if (!lifetime.signal.aborted) {
         requestOpen(false)
       }
     }
@@ -121,66 +131,43 @@ export function Root({
       if (image.isConnected) {
         setZoomed(false)
       }
-    }
-
-    const attach = () => {
-      if (disposed) {
-        return
-      }
-      setZoomed(false)
-      const zoom = createZoom(image, {
-        renderer: dialog(),
-        loader: loadHdImage,
-        viewport: (bounds, core) =>
-          containerBounds(optionsRef.current?.container ?? null)(bounds, core),
-      })
-      image.addEventListener('medium-zoom:open', onOpen)
-      image.addEventListener('medium-zoom:close', onClose)
-      image.addEventListener('medium-zoom:closed', onClosed)
-      session = createZoomSession(zoom)
-      sessionRef.current = session
-      if (wantedRef.current) {
-        openSession()
+      if (lifetime.signal.aborted) {
+        release()
       }
     }
-
-    // Strict Mode and Activity can restart effects while the previous close is animating.
-    if (closingRef.current) {
-      void closingRef.current.then(attach)
-    } else {
-      attach()
+    const release = () =>
+      zoom.off('open', onOpen).off('close', onClose).off('closed', onClosed)
+    zoom.on('open', onOpen).on('close', onClose).on('closed', onClosed)
+    setZoomed(false)
+    if (wantedRef.current) {
+      openZoom()
     }
-
     return () => {
-      disposed = true
-      if (!session) {
-        return
-      }
-      const previous = session
-      sessionRef.current = null
+      zoomRef.current = null
       setUncontrolledOpen(false)
-      closingRef.current = previous.dispose().then(() => {
-        image.removeEventListener('medium-zoom:open', onOpen)
-        image.removeEventListener('medium-zoom:close', onClose)
-        image.removeEventListener('medium-zoom:closed', onClosed)
-      })
+      const shown = zoom.getSnapshot().status !== 'closed'
+      lifetime.abort()
+      // A shown zoom releases its listeners once its close ends, in onClosed.
+      if (!shown) {
+        release()
+      }
     }
   }, [disabled, image, requestOpen])
 
-  function openSession() {
-    const session = sessionRef.current
-    if (!session || !image || session.zoom.getZoomedImage()) {
+  function openZoom() {
+    const zoom = zoomRef.current
+    if (!zoom || !image || zoom.getSnapshot().status !== 'closed') {
       return
     }
-    session.zoom.update(resolveOptions(image, optionsRef.current))
-    void session.open({ trigger: image.closest('button') ?? undefined })
+    zoom.update(resolveOptions(image, optionsRef.current))
+    void zoom.open({ trigger: image.closest('button') ?? undefined })
   }
 
   React.useEffect(() => {
     if (wantedOpen) {
-      openSession()
+      openZoom()
     } else {
-      void sessionRef.current?.close()
+      void zoomRef.current?.close()
     }
   })
 

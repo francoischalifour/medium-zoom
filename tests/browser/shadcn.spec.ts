@@ -12,7 +12,7 @@ import {
 } from './helpers.ts'
 
 // MEDIUM_ZOOM_SHADCN=composable runs this suite against the component rewritten on the
-// composable entries (core, loaders, viewport, session) instead of the published one.
+// composable entries (core, loaders, renderers, viewport) instead of the published one.
 const composable = process.env.MEDIUM_ZOOM_SHADCN === 'composable'
 const demo = `${composable ? '/composition/playground.html' : '/examples/shadcn/playground.html'}`
 const firstName = 'Zoom image: Ocean sunset'

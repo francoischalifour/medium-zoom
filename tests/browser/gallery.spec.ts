@@ -11,7 +11,7 @@ declare global {
   }
 }
 
-async function fixture(page: Page, sharedSession = false) {
+async function fixture(page: Page) {
   await preparePage(page, {
     body: `
     <button id="before">Before</button>
@@ -31,14 +31,13 @@ async function fixture(page: Page, sharedSession = false) {
       )
   )
   await addModernStyles(page)
-  await page.evaluate(async sharedSession => {
+  await page.evaluate(async () => {
     const { createZoom } = await window.loadEntry('core')
     const { loadHdImage } = await window.loadEntry('loaders')
     const { bindZoomTriggers } = await window.loadEntry('triggers')
     const { templateContent } = await window.loadEntry('content')
     const { galleryControls } = await window.loadEntry('gallery')
     const { dialog } = await window.loadEntry('renderers')
-    const { createZoomSession } = await window.loadEntry('session')
     window.createGalleryZoom = (selector, { template, ...options } = {}) => {
       const zoom = createZoom(selector, {
         ...options,
@@ -56,73 +55,57 @@ async function fixture(page: Page, sharedSession = false) {
           },
         }),
       })
-      // Triggers open through the shared session, or through a new one per open.
-      const session = createZoomSession(zoom)
-      if (sharedSession) {
-        bindZoomTriggers(zoom, { commander: session })
-      } else {
-        bindZoomTriggers(zoom, {
-          commander: {
-            open: options => createZoomSession(zoom).open(options),
-          },
-        })
-      }
-      return Object.assign(Object.create(zoom), {
-        open: session.open,
-        close: session.close,
-        toggle: session.toggle,
-      })
+      bindZoomTriggers(zoom)
+      return zoom
     }
     window.modalZoom = window.createGalleryZoom('#first, #second, #third', {
       template: '#caption',
     })
-  }, sharedSession)
-}
-
-for (const sharedSession of [false, true]) {
-  test(`composed gallery preserves its modal, controls and focus (${sharedSession ? 'shared session' : 'session per open'})`, async ({
-    page,
-  }) => {
-    await fixture(page, sharedSession)
-    await page.locator('#first').focus()
-    await page.keyboard.press('Enter')
-    const modal = page.getByRole('dialog', { name: 'Mountain' })
-    await expect(modal).toBeVisible()
-    await expect(modal.getByRole('img')).toHaveAttribute('alt', 'Mountain')
-    await expect(page.locator('dialog')).toBeFocused()
-    await expect(modal.getByRole('status')).toContainText('Image 1 of 3')
-    await expect(
-      modal.getByRole('button', { name: 'Previous image' })
-    ).toHaveAttribute('aria-disabled', 'true')
-    await page.evaluate(() => {
-      document.querySelector('dialog')!.dataset.identity = 'retained'
-    })
-    await page.keyboard.press('ArrowRight')
-    const nextModal = page.getByRole('dialog', { name: 'Forest' })
-    await expect(nextModal).toHaveAttribute('data-identity', 'retained')
-    await expect(nextModal.getByRole('status')).toContainText('Image 2 of 3')
-    await expect(nextModal.getByRole('img')).toHaveAttribute('alt', 'Forest')
-    await expect(
-      nextModal.getByRole('textbox', { name: 'Caption' })
-    ).toBeVisible()
-    await expect(page.locator('dialog')).toBeFocused()
-    await nextModal.getByRole('button', { name: 'Next image' }).focus()
-    await page.keyboard.press('Enter')
-    await expect(page.getByRole('status')).toContainText('Image 3 of 3')
-    await expect(page.getByRole('button', { name: 'Next image' })).toBeFocused()
-    await expect(
-      page.getByRole('button', { name: 'Next image' })
-    ).toHaveAttribute('aria-disabled', 'true')
-    await page.keyboard.press('ArrowRight')
-    await expect(page.getByRole('status')).toContainText('Image 3 of 3')
-    await page.keyboard.press('ArrowLeft')
-    await expect(page.getByRole('status')).toContainText('Image 2 of 3')
-    await page.keyboard.press('Escape')
-    await expect(page.locator('dialog')).toHaveCount(0)
-    await expect(page.locator('#second')).toBeFocused()
-    await expect(page.locator('.medium-zoom-image--hidden')).toHaveCount(0)
   })
 }
+
+test('composed gallery preserves its modal, controls and focus', async ({
+  page,
+}) => {
+  await fixture(page)
+  await page.locator('#first').focus()
+  await page.keyboard.press('Enter')
+  const modal = page.getByRole('dialog', { name: 'Mountain' })
+  await expect(modal).toBeVisible()
+  await expect(modal.getByRole('img')).toHaveAttribute('alt', 'Mountain')
+  await expect(page.locator('dialog')).toBeFocused()
+  await expect(modal.getByRole('status')).toContainText('Image 1 of 3')
+  await expect(
+    modal.getByRole('button', { name: 'Previous image' })
+  ).toHaveAttribute('aria-disabled', 'true')
+  await page.evaluate(() => {
+    document.querySelector('dialog')!.dataset.identity = 'retained'
+  })
+  await page.keyboard.press('ArrowRight')
+  const nextModal = page.getByRole('dialog', { name: 'Forest' })
+  await expect(nextModal).toHaveAttribute('data-identity', 'retained')
+  await expect(nextModal.getByRole('status')).toContainText('Image 2 of 3')
+  await expect(nextModal.getByRole('img')).toHaveAttribute('alt', 'Forest')
+  await expect(
+    nextModal.getByRole('textbox', { name: 'Caption' })
+  ).toBeVisible()
+  await expect(page.locator('dialog')).toBeFocused()
+  await nextModal.getByRole('button', { name: 'Next image' }).focus()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('status')).toContainText('Image 3 of 3')
+  await expect(page.getByRole('button', { name: 'Next image' })).toBeFocused()
+  await expect(
+    page.getByRole('button', { name: 'Next image' })
+  ).toHaveAttribute('aria-disabled', 'true')
+  await page.keyboard.press('ArrowRight')
+  await expect(page.getByRole('status')).toContainText('Image 3 of 3')
+  await page.keyboard.press('ArrowLeft')
+  await expect(page.getByRole('status')).toContainText('Image 2 of 3')
+  await page.keyboard.press('Escape')
+  await expect(page.locator('dialog')).toHaveCount(0)
+  await expect(page.locator('#second')).toBeFocused()
+  await expect(page.locator('.medium-zoom-image--hidden')).toHaveCount(0)
+})
 
 test('bare keyboard triggers restore attributes and listeners after detach and reattach', async ({
   page,
@@ -255,17 +238,16 @@ test('navigation cancels stale HD loading while retaining one modal and one acce
   await expect(page.locator('.medium-zoom-image--hidden')).toHaveCount(0)
 })
 
-test('clones retain rendering strategies with explicit bindings and independent sessions', async ({
+test('clones retain rendering strategies with explicit bindings', async ({
   page,
 }) => {
   await fixture(page)
   await page.evaluate(async () => {
     const { bindZoomTriggers } = await window.loadEntry('triggers')
-    const { createZoomSession } = await window.loadEntry('session')
     const clone = window.modalZoom.clone().attach('#linked')
     window.modalZoom.detach()
     clone.attach('#first', '#second', '#third')
-    bindZoomTriggers(clone, { commander: createZoomSession(clone) })
+    bindZoomTriggers(clone)
     window.modalZoom = clone
   })
   await page.locator('#second').focus()
@@ -507,7 +489,7 @@ test('a framework-hidden source becomes accessible in the modal', async ({
   await expect(page.locator('#second')).toHaveAttribute('aria-hidden', 'true')
 })
 
-test('disposing after pointer navigation hands ownership to a fresh session', async ({
+test('detaching after pointer navigation hands the group to a fresh zoom', async ({
   page,
 }) => {
   await fixture(page)
@@ -517,27 +499,27 @@ test('disposing after pointer navigation hands ownership to a fresh session', as
     const { createZoom } = await window.loadEntry('core')
     const { galleryControls } = await window.loadEntry('gallery')
     const { dialog } = await window.loadEntry('renderers')
-    const { createZoomSession } = await window.loadEntry('session')
     const factory = (selector: import('../../src/zoom/engine').ZoomSelector) =>
       createZoom(selector, {
         renderer: dialog({ content: galleryControls() }),
       })
-    const first = createZoomSession(factory('#first, #second'))
+    const first = factory('#first, #second')
     await first.open()
     document
       .querySelector('.medium-zoom-control--next')!
       .dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }))
-    const disposing = first.dispose()
-    const second = createZoomSession(factory('#third'))
+    first.detach()
+    const second = factory('#third')
+    // The group waits for the first zoom to finish closing.
     await second.open()
-    await disposing
     if (document.querySelectorAll('dialog').length !== 1) {
       throw new Error('Old host survived disposal')
     }
     if (document.querySelector('dialog')!.hasAttribute('aria-busy')) {
       throw new Error('Stale busy state')
     }
-    await second.dispose()
+    await second.close()
+    second.detach()
   })
   await expect(
     page.locator(

@@ -52,7 +52,6 @@ interface Composition {
   content?: boolean
   triggers?: boolean
   dialog?: boolean
-  session?: boolean
   gallery?: boolean
   keyboard?: boolean
   gestures?: boolean
@@ -65,20 +64,13 @@ const compositions: Record<string, Composition> = {
   'core + HD loader': { loader: true },
   'core + container': { viewport: true },
   'core + HD loader + container': { loader: true, viewport: true },
-  'core + session': { session: true },
   'core + dialog': { dialog: true },
   'core + dialog + template': { dialog: true, content: true },
   'core + dialog + triggers': { dialog: true, triggers: true },
   'core + dialog + gallery': { dialog: true, gallery: true },
-  'core + dialog + gallery + session': {
+  'core + dialog + gallery + keyboard': {
     dialog: true,
     gallery: true,
-    session: true,
-  },
-  'core + dialog + gallery + session + keyboard': {
-    dialog: true,
-    gallery: true,
-    session: true,
     keyboard: true,
   },
   'core + dialog + gallery + gestures': {
@@ -86,16 +78,14 @@ const compositions: Record<string, Composition> = {
     gallery: true,
     gestures: true,
   },
-  'core + dialog + gallery + session + custom transition': {
+  'core + dialog + gallery + custom transition': {
     dialog: true,
     gallery: true,
-    session: true,
     transition: true,
   },
   'everything composed': {
     dialog: true,
     gallery: true,
-    session: true,
     keyboard: true,
     triggers: true,
     loader: true,
@@ -130,7 +120,6 @@ function compositionSource(composition: Composition): string {
     content,
     triggers,
     dialog,
-    session,
     gallery,
     keyboard,
     gestures,
@@ -153,7 +142,6 @@ function compositionSource(composition: Composition): string {
     ${content ? `import { templateContent } from ${entry('content')}` : ''}
     ${triggers ? `import { bindZoomTriggers } from ${entry('triggers')}` : ''}
     ${dialog ? `import { dialog } from ${entry('renderers')}` : ''}
-    ${session ? `import { createZoomSession } from ${entry('session')}` : ''}
     ${gallery ? `import { createGallery, bindGalleryKeyboard${controls ? ', galleryControls' : ''}${gestures ? ', bindGalleryGestures' : ''} } from ${entry('gallery')}` : ''}
     ${transition ? `import { galleryTransition } from ${entry('transitions')}` : ''}
     ${slide ? `import { slide } from ${entry('transitions')}` : ''}
@@ -178,9 +166,8 @@ function compositionSource(composition: Composition): string {
           : ''
       }
     })
-    ${session ? 'const session = globalThis.session = createZoomSession(zoom)' : ''}
-    ${gallery ? `globalThis.gallery = createGallery(zoom${session ? ', { commander: session }' : ''})` : ''}
-    ${triggers ? `globalThis.unbind = bindZoomTriggers(zoom${session ? ', { commander: session }' : ''})` : ''}
+    ${gallery ? 'globalThis.gallery = createGallery(zoom)' : ''}
+    ${triggers ? 'globalThis.unbind = bindZoomTriggers(zoom)' : ''}
     globalThis.zoom = zoom`
 }
 
@@ -201,9 +188,10 @@ function assertIsolation(
       ),
       'gallery keys',
     ],
-    ['getSnapshot', !!composition?.gallery, 'gallery'],
+    ['canPrevious', !!composition?.gallery, 'gallery'],
     [
-      'AbortController',
+      // The runner clears the effect's animations on every frame's subtree.
+      'subtree:',
       !!(composition?.transition || composition?.slide),
       'transition runner',
     ],
