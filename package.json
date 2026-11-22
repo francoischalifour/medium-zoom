@@ -79,7 +79,7 @@
     "build": "bun scripts/clean.ts && tsdown --config config/tsdown.config.mts",
     "build:website": "bun run build && bun scripts/build-website.ts",
     "preview:website": "bun run build:website && wrangler dev --config website/wrangler.jsonc",
-    "deploy:website": "bun run build:website && wrangler deploy --config website/wrangler.jsonc",
+    "deploy:website": "wrangler deploy --config website/wrangler.jsonc",
     "format": "bun fmt --no-config --flavor=prettier",
     "lint": "oxlint --config oxlint.config.mts --deny-warnings",
     "typecheck": "bun check --no-script -p tsconfig.json && bun check --no-script -p scripts && bun check --no-script -p website/tsconfig.json && bun scripts/check-docs.ts && bun run --filter \"@medium-zoom/*-example\" typecheck && mkdir -p .cache && wrangler types .cache/worker-types.d.ts --config website/wrangler.jsonc && bun check --no-script -p website/tsconfig.worker.json",
