@@ -27,9 +27,22 @@ import './site-search.css'
 
 // The index and the preview load together: once the page is idle, when the trigger is hovered or
 // focused, or when search opens. Neither ships with the page.
-const loadIndex = () =>
+// Each starts one import and shares it: WebKit can fetch a module again for overlapping imports.
+function once<T>(load: () => Promise<T>) {
+  let loading: Promise<T> | undefined
+  return () => {
+    loading ??= load().catch((error: unknown) => {
+      // A failed load retries on the next call.
+      loading = undefined
+      throw error
+    })
+    return loading
+  }
+}
+const loadIndex = once(() =>
   import('virtual:docs-search').then(module => module.default)
-const loadPreview = () => import('./site-search-preview')
+)
+const loadPreview = once(() => import('./site-search-preview'))
 const SearchPreview = React.lazy(loadPreview)
 const PageActions = React.lazy(() =>
   loadPreview().then(module => ({ default: module.PageActions }))
