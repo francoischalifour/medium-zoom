@@ -43,7 +43,7 @@ for (const capabilities of [
     await addModernStyles(page)
     expect(await page.evaluate(() => window.coreZoom.getOptions())).toEqual({
       margin: 12,
-      background: '#fff',
+      background: undefined,
       scrollOffset: 40,
     })
     await page.evaluate(() => window.coreZoom.open())
@@ -118,7 +118,7 @@ test('viewport strategy remeasures layout and observes updated core margins', as
   expect(result.second[1]).toBeCloseTo(230, 0)
   expect(result.options).toEqual({
     margin: 20,
-    background: '#fff',
+    background: undefined,
     scrollOffset: 40,
   })
 })
@@ -399,13 +399,16 @@ test('HD request attributes apply before fetching the replacement', async ({
       headers: { 'Access-Control-Allow-Origin': '*' },
     })
   })
+  // The zoom opens without waiting for the replacement: close only once it was requested.
+  const requested = page.waitForRequest('https://photos.example/hd.jpg')
   await page.evaluate(async () => {
     const { createZoom } = await window.loadEntry('core')
     const { loadHdImage } = await window.loadEntry('loaders')
-    const zoom = createZoom('#image', { loader: loadHdImage })
-    await zoom.open()
-    await zoom.close()
+    window.coreZoom = createZoom('#image', { loader: loadHdImage })
+    await window.coreZoom.open()
   })
+  await requested
+  await page.evaluate(() => window.coreZoom.close())
   expect(origin).toBe(new URL(page.url()).origin)
   expect(referrer).toBeUndefined()
 })
@@ -446,15 +449,12 @@ for (const kind of ['connected', 'incompatible'] as const) {
   })
 }
 
-test('HD cancellation removes native callbacks before a late load error', async ({
+test('HD cancellation aborts the download without running callbacks', async ({
   page,
+  browserName,
 }) => {
   await preparePage(page, {
     body: '<img id="image" src="/images/image-1.jpg" width="160" alt="Photo" onerror="document.documentElement.dataset.hdError=\'dispatched\'">',
-  })
-  let release!: () => void
-  const gate = new Promise<void>(resolve => {
-    release = resolve
   })
   const warnings: string[] = []
   page.on('console', message => {
@@ -462,16 +462,29 @@ test('HD cancellation removes native callbacks before a late load error', async 
       warnings.push(message.text())
     }
   })
-  await page.route('**/cancelled-hd.jpg', async route => {
+  // Only Chromium exposes the network events that show the browser cancelling the request.
+  const client =
+    browserName === 'chromium' ? await page.context().newCDPSession(page) : null
+  const failures: string[] = []
+  client?.on('Network.loadingFailed', ({ errorText, canceled }) =>
+    failures.push(`${errorText}${canceled ? ' (canceled)' : ''}`)
+  )
+  await client?.send('Network.enable')
+  // The response only arrives after cancelling: a download still running would then fail
+  // and run its callbacks.
+  let release!: () => void
+  const gate = new Promise<void>(resolve => (release = resolve))
+  await page.route('**/slow-hd.jpg', async route => {
     await gate
-    await route.fulfill({ status: 404, body: '' })
+    await route.fulfill({ status: 404, body: '' }).catch(() => {})
   })
+  const requested = page.waitForRequest('**/slow-hd.jpg')
   await page.evaluate(async () => {
     const { loadHdImage } = await window.loadEntry('loaders')
     const source = document.querySelector<HTMLImageElement>('#image')!
-    source.setAttribute('data-zoom-src', '/cancelled-hd.jpg')
-    const pending = window as Window & { cancelHd?: () => void }
+    source.setAttribute('data-zoom-src', '/slow-hd.jpg')
     document.documentElement.dataset.hdCompletions = '0'
+    const pending = window as Window & { cancelHd?: () => void }
     pending.cancelHd =
       loadHdImage(
         { original: source, clone: source.cloneNode() as HTMLImageElement },
@@ -479,16 +492,16 @@ test('HD cancellation removes native callbacks before a late load error', async 
           document.documentElement.dataset.hdCompletions = '1'
         }
       ) || undefined
-    pending.cancelHd?.()
   })
-  release()
-  await expect(page.locator('html')).toHaveAttribute(
-    'data-hd-error',
-    'dispatched'
+  await requested
+  await page.evaluate(() =>
+    (window as Window & { cancelHd?: () => void }).cancelHd?.()
   )
+  release()
+  if (client) {
+    await expect.poll(() => failures).toEqual(['net::ERR_ABORTED (canceled)'])
+  }
+  await expect(page.locator('html')).not.toHaveAttribute('data-hd-error')
   await expect(page.locator('html')).toHaveAttribute('data-hd-completions', '0')
   expect(warnings).toEqual([])
-  await page.evaluate(() => {
-    delete (window as Window & { cancelHd?: () => void }).cancelHd
-  })
 })

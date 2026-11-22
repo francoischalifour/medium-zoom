@@ -6,6 +6,16 @@ import type {
 
 import type { ZoomTarget } from './frame'
 
+/** Options of `bindZoomTriggers()`. */
+export interface ZoomTriggersOptions<Options extends CoreZoomOptions> {
+  /**
+   * What opens the zoom, such as a session coordinating it with other zooms.
+   *
+   * @default the zoom
+   */
+  commander?: ZoomCommander<Options>
+}
+
 const bindings = new WeakMap<object, () => void>()
 const interactive =
   'button,a[href],input,select,textarea,summary,label,[role="button"],[role="link"],[role="checkbox"],[role="radio"],[role="switch"],[role="menuitem"],[contenteditable]'
@@ -13,13 +23,12 @@ const interactive =
 /**
  * Opens the zoom on click, Enter or Space on each attached image, current and future, and
  * announces it with `role="button"` and `aria-haspopup="dialog"`. Skips images inside
- * interactive elements, whose own activation is kept. Pass a session as `commander` to
- * coordinate these requests with other zooms. Returns the unbind function, which restores
- * the images' attributes.
+ * interactive elements, whose own activation is kept. Returns the unbind function, which
+ * restores the images' attributes.
  */
 export function bindZoomTriggers<Options extends CoreZoomOptions>(
   zoom: ModalZoom<Options>,
-  commander: ZoomCommander<Options> = zoom
+  { commander = zoom }: ZoomTriggersOptions<Options> = {}
 ): () => void {
   const existing = bindings.get(zoom)
   if (existing) {

@@ -1,0 +1,110 @@
+:root {
+  color-scheme: light dark;
+  --text: #1c1c1a;
+  --muted: #6b6a65;
+  --background: #fbfbf9;
+  --focus: #1c1c1a;
+  --placeholder: #efeeea;
+  font-family:
+    ui-sans-serif,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  color: var(--text);
+  background: var(--background);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #ededea;
+    --muted: #9a9993;
+    --background: #111110;
+    --focus: #ededea;
+    --placeholder: #1d1d1b;
+  }
+}
+
+body {
+  margin: 0;
+}
+
+main,
+footer {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+main {
+  padding-top: 96px;
+}
+
+header {
+  margin-bottom: 48px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+header p {
+  margin: 2px 0 0;
+  color: var(--muted);
+}
+
+/* Justified rows instead of cropped tiles: the zoom enlarges the thumbnail box as laid out. */
+.gallery {
+  --row: 220px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gallery img {
+  flex: calc(var(--ratio) * 100) 1 calc(var(--ratio) * var(--row));
+  width: 0;
+  height: auto;
+  background: var(--placeholder);
+}
+
+/* Keeps the last row at its natural height instead of stretching it. */
+.gallery::after {
+  content: '';
+  flex: 999 1 0;
+}
+
+@media (max-width: 600px) {
+  .gallery {
+    --row: 120px;
+    gap: 4px;
+  }
+}
+
+footer {
+  padding-block: 48px 64px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+footer p {
+  margin: 0;
+  max-width: 60ch;
+}
+
+footer a {
+  color: inherit;
+  text-underline-offset: 2px;
+}
+
+.medium-zoom-image:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}

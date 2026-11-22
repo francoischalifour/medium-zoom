@@ -41,13 +41,14 @@ This checks formatting, lint, types, package contents, bundle sizes, website and
 
 For a focused check, use the commands below:
 
-- `bun run format` or `bun run format:check`: format maintained files or check formatting.
+- `bun run format` or `bun run format:check`: format or check maintained files; pass paths to limit either to those files.
 - `bun run lint`: check source, tests, and tooling with Oxlint.
 - `bun run typecheck`: check tooling, documentation snippets, and framework examples.
 - `bun run test:package`: verify the npm tarball's entries, declarations, CSS, and ES5 syntax and APIs, then the same for the private candidate package.
 - `bun run test:examples`: copy each example outside the workspace, install with npm, check types, and build against the published package.
 - `bun run size`: check gzip budgets and compare each import set and `dist` file with `config/size-baseline.json`. After an intended size change, run `bun run size:baseline` to record the new sizes.
 - `bun run test:browser`: exercise the packed library, website, examples, and stories in Chromium, Firefox, and WebKit. Package rendering is compared with the published package.
+- `bun run test:stress`: run long seeded sequences of every gallery interaction (buttons, keys, swipes, taps, pinches, scrolls, resizes) with full-size images that arrive late or fail, checking on every frame that something is on screen and focus stays in the zoom, and at every rest that the counter, labels, buttons and fit agree. `test:browser` runs two short seeds. A failure names its seed and the actions before it: replay it with `MEDIUM_ZOOM_STRESS_SEED=<seed> bun run test:browser gallery-stress.spec.ts`.
 
 Before individual package checks, run `bun run build`. Before browser checks, run `bun run build:website && bun run test:examples`. Browser checks reserve the first free block of four ports from 4175 (4175, 4185, …), so worktrees can run them at the same time; set `MEDIUM_ZOOM_TEST_PORT` to choose the block. To select browsers, append `--project=chromium --project=webkit` to the browser test command.
 
@@ -59,7 +60,7 @@ Preserve the [documented browser support](https://medium-zoom.francoischalifour.
 
 The build uses Babel and Terser to retain ES5 syntax after bundling with tsdown. Keep the older-browser CSS fallbacks and existing bundle-size budgets.
 
-Candidate entries are private: `config/package.config.mts` defines the composable entries (`core`, `loaders`, `viewport`, `content`, `triggers`, `renderers`, `transitions`, `session`, `gallery`) and the `compat`, `compat/pure`, `modern`, and `pure` presets. Keep them out of the release manifest and the user documentation until their API is ready. `bun run test:package` packs them from the fixture in `tests/experimental`. `bun run test:browser:shadcn-composable` runs the React component's browser suites against `examples/shadcn/tests/experimental/image-zoom.tsx`, the same component built on those entries.
+Candidate entries are private: `config/package.config.mts` defines the composable entries (`core`, `loaders`, `viewport`, `content`, `triggers`, `renderers`, `transitions`, `session`, `gallery`) and the `compat`, `compat/pure`, `modern`, and `pure` presets. Keep them out of the release manifest and the user documentation until their API is ready. `bun run test:package` packs them from the fixture in `tests/experimental`. `bun run test:browser:shadcn-composable` runs the React component's browser suites against `examples/shadcn/tests/experimental/image-zoom.tsx`, the same component built on those entries. `bun run dev:gallery` builds the library and serves the gallery playground in `playground/gallery` against those entries; run `bun run dev` alongside it to rebuild on change. Candidate entries ship their CSS as stylesheets to import, such as `medium-zoom/renderers/style.css`, `medium-zoom/gallery/style.css`, and the combined `medium-zoom/gallery.css`, instead of injecting it.
 
 ## Release
 

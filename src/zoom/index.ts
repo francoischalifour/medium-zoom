@@ -73,6 +73,11 @@ export interface ModalZoom<
    * and no images.
    */
   clone(options?: Options): this
+  /**
+   * Loads an attached image's high-resolution media with the zoom's loader, ahead of
+   * opening it, so it shows sharp sooner. Does nothing without a loader.
+   */
+  preload(target: HTMLElement): void
 }
 
 /**
@@ -114,7 +119,8 @@ const adoptMedia = (frame: Frame, media: HTMLImageElement): void => {
     throw new TypeError('ready(): detached image')
   }
   media.style.cssText = frame.style.cssText
-  media.className += ` ${frame.className}`
+  // A loader may already have copied them, as loadHdImage does: add each class once.
+  media.classList.add(...frame.classList)
 }
 
 /**

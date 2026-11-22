@@ -1,35 +1,20 @@
-import type { SceneTransition } from 'medium-zoom/renderers'
+import type { SceneChange, SceneTransition } from 'medium-zoom/renderers'
 
-import { type FrameGeometry, readGeometry } from '../zoom/geometry'
-
-export type { FrameGeometry } from '../zoom/geometry'
-
-/** A frame on stage, fitted to the viewport. */
-export interface PreparedFrame {
-  /** The positioned frame element to animate. */
-  readonly element: HTMLElement
-  /** The frame's fitted transform, decomposed. */
-  readonly geometry: FrameGeometry
-}
-/** The frames leaving and entering the dialog, and the gallery direction. */
-export interface PreparedTransition {
-  readonly outgoing: readonly PreparedFrame[]
-  readonly incoming: readonly PreparedFrame[]
-  /** `1` when the incoming image comes after the outgoing one in attach order, else `-1`. */
-  readonly direction: -1 | 1
-}
-/** Prepared frame references are a lease: they become stale when the signal aborts. */
-export interface GalleryTransitionContext extends PreparedTransition {
+/**
+ * The frames leaving and entering the dialog and the gallery direction, plus a signal.
+ * Frame references are a lease, valid until the effect settles or the signal aborts.
+ */
+export interface GalleryTransitionContext extends SceneChange {
   /** Aborts when another navigation, a close or reduced motion interrupts the effect. */
   readonly signal: AbortSignal
 }
 /**
  * An application effect, such as Web Animations on the frames. Settle the returned promise
- * when it ends; the runner cancels the frames' animations afterwards.
+ * when it ends, whatever its value; the runner cancels the frames' animations afterwards.
  */
 export type GalleryTransition = (
   context: GalleryTransitionContext
-) => void | PromiseLike<void>
+) => void | PromiseLike<unknown>
 
 /**
  * Turns an application effect into a transition for `dialog({ transition })`. The dialog
@@ -40,29 +25,23 @@ export function galleryTransition(
   strategy: GalleryTransition
 ): SceneTransition {
   return (change, done) => {
-    // Pass only the public frame fields so effects cannot access the stage's internal references.
-    const prepare = (frames: typeof change.incoming): PreparedFrame[] =>
-      frames.map(({ element, transform }) => ({
-        element,
-        geometry: readGeometry(transform),
-      }))
     const controller = new AbortController()
-    const motion = matchMedia('(prefers-reduced-motion: reduce)')
+    const motion = matchMedia('(prefers-reduced-motion)')
     let settled = false
-    const clearEffects = () =>
-      [...change.outgoing, ...change.incoming].forEach(({ element }) =>
+    const stop = () => {
+      settled = true
+      motion.removeEventListener('change', reduce)
+      ;[...change.outgoing, ...change.incoming].forEach(({ element }) =>
         element
           .getAnimations?.({ subtree: true })
           .forEach(animation => animation.cancel())
       )
+    }
     const finish = (error?: unknown) => {
-      if (settled) {
-        return
+      if (!settled) {
+        stop()
+        done(error)
       }
-      settled = true
-      motion.removeEventListener('change', reduce)
-      clearEffects()
-      done(error)
     }
     const reduce = () => {
       if (motion.matches) {
@@ -81,12 +60,7 @@ export function galleryTransition(
         }
         try {
           void Promise.resolve(
-            strategy({
-              outgoing: prepare(change.outgoing),
-              incoming: prepare(change.incoming),
-              direction: change.direction,
-              signal: controller.signal,
-            })
+            strategy({ ...change, signal: controller.signal })
           ).then(() => finish(), finish)
         } catch (error) {
           finish(error)
@@ -94,13 +68,62 @@ export function galleryTransition(
       })
     }
     return () => {
-      if (settled) {
-        return
+      if (!settled) {
+        stop()
+        controller.abort()
       }
-      settled = true
-      motion.removeEventListener('change', reduce)
-      controller.abort()
-      clearEffects()
     }
   }
+}
+
+/** Options of `slide()`. */
+export interface SlideOptions {
+  /** How far each image travels, in CSS pixels. @default 8% of the viewport width */
+  distance?: number
+  /** In milliseconds. @default 220 */
+  duration?: number
+  /** The zoom's own curve by default. @default "cubic-bezier(0.2, 0, 0.2, 1)" */
+  easing?: string
+}
+
+/**
+ * The images move like a strip: the outgoing one leaves towards the side the user moves away
+ * from while the incoming one arrives from the other, both fading. Pass it to
+ * `dialog({ transition })`.
+ */
+export function slide({
+  distance,
+  duration = 220,
+  easing = 'cubic-bezier(0.2, 0, 0.2, 1)',
+}: SlideOptions = {}): SceneTransition {
+  return galleryTransition(({ outgoing, incoming, direction }) => {
+    const options = { duration, easing }
+    const offset = direction * (distance ?? innerWidth * 0.08)
+    return Promise.all([
+      // An end keyframe alone lets an interrupted frame leave from where it was left.
+      ...outgoing.map(
+        ({ element, transform }) =>
+          element.animate(
+            {
+              opacity: 0,
+              transform: `translateX(${-offset}px) ${transform}`,
+            },
+            options
+          ).finished
+      ),
+      ...incoming.map(
+        ({ element, transform }) =>
+          element.animate(
+            [
+              {
+                opacity: 0,
+                transform: `translateX(${offset}px) ${transform}`,
+              },
+              { opacity: 1, transform },
+            ],
+            options
+          ).finished
+      ),
+    ])
+  })
 }

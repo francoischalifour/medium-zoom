@@ -4,7 +4,7 @@ import { siteOrigin } from './site-url.ts'
 export const registryUrl = `${siteOrigin}/r/image-zoom.json`
 
 // The shadcn registry index maps the @medium-zoom namespace to this site's /r/{name}.json.
-export const registryItem = '@medium-zoom/image-zoom'
+const registryItem = '@medium-zoom/image-zoom'
 
 export const javascriptCommands = {
   npm: 'npm install medium-zoom',

@@ -2,7 +2,7 @@ import type { CoreZoomOptions, ModalOpenOptions, Zoom } from 'medium-zoom/core'
 
 /**
  * Coordinated access to one zoom. Methods never read `this`: pass them around freely, or
- * pass the session as the `commander` of `bindZoomTriggers()` and `createGallery()`.
+ * pass the session as the `commander` option of `bindZoomTriggers()` and `createGallery()`.
  */
 export interface ZoomSession<
   Options extends CoreZoomOptions = CoreZoomOptions,

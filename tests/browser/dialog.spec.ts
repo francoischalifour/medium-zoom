@@ -32,7 +32,7 @@ async function fixture(page: Page, hd = false) {
     const { templateContent } = await window.loadEntry('content')
     const { dialog } = await window.loadEntry('renderers')
     const { mountCloseControl } = await import(
-      String('/experiments/gallery-controls.mjs')
+      String('/experiments/close-control.mjs')
     )
     let selected: import('../../src/preset/medium-zoom').ZoomOptions = {}
     window.modalZoom = createZoom('#image', {
@@ -188,7 +188,6 @@ test('top layer and scrolled geometry with custom container, backdrop and image 
       document.querySelector('dialog')!.matches(':modal')
     )
   ).toBe(true)
-  await page.screenshot({ path: '.cache/dialog.png' })
   await page.locator('dialog img').click()
   await expect(page.locator('dialog')).toHaveCount(0)
   await page.evaluate(() => window.modalZoom.open())
@@ -370,7 +369,7 @@ test('clone retains the renderer and owns independent sessions; detach cleans up
   })
 })
 
-test('touch controls and viewport dismissal clean up the modal', async ({
+test('touch controls clean up the modal, and rotating refits the open image', async ({
   page,
   isMobile,
 }) => {
@@ -390,6 +389,22 @@ test('touch controls and viewport dismissal clean up the modal', async ({
   )
   const viewport = page.viewportSize()!
   await page.setViewportSize({ width: viewport.height, height: viewport.width })
+  // Rotating keeps the zoom open, centred inside the new window.
+  await expect(page.locator('dialog')).toHaveCount(1)
+  await expect
+    .poll(() =>
+      page.locator('dialog img').evaluate(frame => {
+        const box = frame.getBoundingClientRect()
+        return (
+          box.right <= innerWidth + 1 &&
+          box.bottom <= innerHeight + 1 &&
+          Math.abs(box.left + box.width / 2 - innerWidth / 2) <= 1 &&
+          Math.abs(box.top + box.height / 2 - innerHeight / 2) <= 1
+        )
+      })
+    )
+    .toBe(true)
+  await page.getByRole('button', { name: 'Close image' }).tap()
   await expect(page.locator('dialog')).toHaveCount(0)
   await expect(page.locator('#image')).toBeVisible()
 })

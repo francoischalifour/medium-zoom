@@ -50,6 +50,18 @@ export const createOverlay = (
   return overlay
 }
 
+/** Computed on each call, so it follows whatever sets the page's theme. */
+export const pageBackground = (): string => {
+  for (const node of [document.body, document.documentElement]) {
+    const color = getComputedStyle(node).backgroundColor
+    // A transparent background computes to `rgba(…, 0)`: the color comes from further up.
+    if (!color.endsWith(', 0)')) {
+      return color
+    }
+  }
+  return 'Canvas'
+}
+
 export function removeNode(node: Node): void {
   const parent = node.parentNode
   if (parent) {

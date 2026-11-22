@@ -205,10 +205,6 @@ async function checkPackage(
       'pure/medium-zoom.umd.js',
       'style.css',
     ]
-    assert(
-      !files.some(path => path.startsWith('controls/')),
-      'The runtime package must not contain built-in controls or their stylesheet'
-    )
     if (!experimental) {
       assert.deepEqual(
         packedFiles.sort(),
@@ -318,6 +314,22 @@ async function checkPackage(
       assert(
         modernCss.includes('cursor:zoom-in') &&
           modernCss.includes('cursor:zoom-out')
+      )
+      const galleryCss = readFileSync(
+        join(artifact.root, 'dist/gallery.css'),
+        'utf8'
+      )
+      assert(
+        [
+          '.medium-zoom-overlay',
+          '.medium-zoom-dialog',
+          '.medium-zoom-control',
+        ].every(selector => galleryCss.includes(selector)),
+        'gallery.css must inline the core, dialog and gallery styles'
+      )
+      assert(
+        galleryCss.includes('light-dark('),
+        'gallery.css must keep light-dark() native'
       )
     }
 

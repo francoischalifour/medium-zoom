@@ -229,6 +229,15 @@ async function checkBundlerResolution(
         ...candidateEntries.map(
           entry => [entry.path, entry.esm] as [string, string]
         ),
+        ...candidateEntries.flatMap(({ stylesheets = [] }) =>
+          stylesheets.map(
+            ({ fileName }) =>
+              [`medium-zoom/${fileName}`, `dist/${fileName}`] as [
+                string,
+                string,
+              ]
+          )
+        ),
         ['medium-zoom/modern/style.css', 'dist/modern/style.css'],
         ['medium-zoom/compat/style.css', 'dist/style.css'],
         ['medium-zoom/style.css', 'dist/style.css']

@@ -13,6 +13,8 @@ const mobileSpecs = [
   'gallery',
   'gallery-composition',
   'gallery-controller',
+  'gallery-gestures',
+  'gallery-stress',
   'gallery-transitions',
   'frames',
   'strategies',

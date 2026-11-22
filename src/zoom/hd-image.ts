@@ -18,11 +18,18 @@ export const loadHdImage: ZoomLoader = ({ original, clone }, ready) => {
       hd.setAttribute(name, value)
     }
   })
+  let done = false
   const cleanup = () => {
     hd.removeEventListener('load', finish)
     hd.removeEventListener('error', finish)
+    // Clearing the source aborts a download the zoom no longer needs.
+    if (!done) {
+      hd.removeAttribute('srcset')
+      hd.removeAttribute('src')
+    }
   }
   const finish = () => {
+    done = true
     cleanup()
     if (!hd.naturalWidth) {
       console.warn(`Cannot load ${hd.currentSrc || hd.src}`)

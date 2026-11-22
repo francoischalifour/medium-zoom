@@ -21,7 +21,9 @@ test('shadcn compound controls reuse the headless model without stock UI', async
   await openImage(page, trigger.locator('img'), { via: 'keyboard', trigger })
   await expect(page.getByRole('dialog', { name: 'Ocean sunset' })).toBeVisible()
   await expect(page.getByRole('status')).toHaveText('1 / 3')
-  await expect(page.locator('.medium-zoom-gallery')).toHaveCount(0)
+  await expect(
+    page.locator('.medium-zoom-navigation, .medium-zoom-control')
+  ).toHaveCount(0)
   await finishAnimations(page)
   const host = await page.locator('dialog').evaluate(node => {
     node.dataset.identity = 'react-owned'
@@ -49,7 +51,9 @@ test('shadcn compound controls reuse the headless model without stock UI', async
   await expect(page.getByRole('status')).toHaveText('3 / 3')
   await page.keyboard.press('Escape')
   await expect(page.locator('dialog')).toHaveCount(0)
-  await expect(trigger).toBeFocused()
+  await expect(
+    page.getByRole('button', { name: 'Open Evening waves', exact: true })
+  ).toBeFocused()
   expect(errors).toEqual([])
 })
 

@@ -6,12 +6,19 @@ import type { Frame } from './frame'
 /** A frame on stage with the transform that fits it. */
 export interface StagedFrame {
   readonly element: HTMLElement
-  /** The CSS transform that fits the frame, already applied. */
+  /**
+   * The CSS transform applied to the frame: the fitted one, or wherever an interrupted change
+   * left it. Prepend screen-space offsets, such as `translateX(8px) ${transform}`.
+   */
   readonly transform: string
 }
 /** One scene replacing another inside the dialog. */
 export interface SceneChange {
-  /** The frames of the replaced image; the dialog removes them once the change settles. */
+  /**
+   * The frames of the replaced images; the dialog removes them once the change settles.
+   * After an interruption they are held where they were, so animate them towards an end
+   * state rather than from a fixed starting keyframe.
+   */
   readonly outgoing: readonly StagedFrame[]
   /** The frames of the new image. */
   readonly incoming: readonly StagedFrame[]
@@ -40,8 +47,9 @@ export interface DialogOptions {
    */
   label?: string
   /**
-   * How one image replaces another while the dialog stays open, such as
-   * `galleryTransition()` from `medium-zoom/transitions`.
+   * How one image replaces another while the dialog stays open, such as `slide()` from
+   * `medium-zoom/transitions`. Quick successive changes, as while holding an arrow key,
+   * swap at once so effects never pile up.
    *
    * @default instant
    */
@@ -52,8 +60,10 @@ export interface DialogOptions {
 
 /**
  * Presents the zoom in a native modal `<dialog>`: focus stays inside, Escape and `method="dialog"`
- * forms close it, and focus returns to the trigger on close. Pass it to `createZoom(…, { renderer })`.
+ * forms close it, and on close focus returns to whatever opens the last image shown, so a
+ * gallery hands focus back where the user left off. Pass it to `createZoom(…, { renderer })`.
  * Requires `HTMLDialogElement.showModal()`; opening throws without it, and no polyfill is installed.
+ * Import `medium-zoom/renderers/style.css` for its backdrop and closing styles.
  */
 export function dialog({
   label,
@@ -71,11 +81,36 @@ export function dialog({
       element.className = 'medium-zoom-dialog'
       // Viewport coordinates keep the top-layer host independent of document scroll.
       element.style.cssText =
-        'position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;color:inherit;overflow:hidden;'
-      const style = document.createElement('style')
-      style.textContent =
-        '.medium-zoom-dialog::backdrop{background:transparent}.medium-zoom-dialog>.medium-zoom-overlay{z-index:-1}'
+        'position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;color:inherit;overflow:visible;'
       let disposed = false
+      // The page still scrolls under the modal: move the image and controls with it, as the
+      // zoom does in the document, while the backdrop stays put until the scroll closes it.
+      // The dialog must not clip, or shifting it would cut off the counter-shifted backdrop.
+      const scrolled = scrollY
+      // The engine reuses its backdrop for later openings: reset what is set on it here.
+      let overlay: HTMLElement | null
+      const follow = () => {
+        element.style.translate = `0 ${scrolled - scrollY}px`
+        overlay!.style.translate = `0 ${scrollY - scrolled}px`
+      }
+      // The engine appends its backdrop after mounting the stage.
+      queueMicrotask(() => {
+        overlay = element.querySelector('.medium-zoom-overlay')
+        if (disposed || !overlay) {
+          return
+        }
+        addEventListener('scroll', follow, { passive: true })
+        // Controls take the backdrop's color scheme, so light-dark() styles contrast with
+        // what is actually behind them, however the page sets its theme. A mostly
+        // see-through backdrop keeps the page's scheme.
+        const color = getComputedStyle(overlay).backgroundColor
+        const [red, green, blue, alpha = 1] =
+          (color.startsWith('rgb') && color.match(/[\d.]+/g)!.map(Number)) || []
+        if (alpha >= 0.5) {
+          element.style.colorScheme =
+            red! * 0.3 + green! * 0.6 + blue! * 0.1 < 128 ? 'dark' : 'light'
+        }
+      })
       element.addEventListener('submit', event => {
         const form = event.target as HTMLFormElement
         const submitter = (event as SubmitEvent)
@@ -97,13 +132,13 @@ export function dialog({
         event.preventDefault()
         close()
       })
-      element.appendChild(style)
       document.body.appendChild(element)
       let cleanup: void | (() => void) = undefined
       try {
         cleanup = content?.({ element, zoom: zoom as ModalZoom, close })
         element.showModal()
       } catch (error) {
+        disposed = true
         try {
           cleanup?.()
         } finally {
@@ -111,9 +146,10 @@ export function dialog({
         }
         throw error
       }
-      const transforms = new WeakMap<Frame, string>()
       let outgoing: Frame[] = []
       let replaced: HTMLElement | SVGElement | undefined
+      let opener = trigger
+      let stepped = false
       // The engine dismisses on the frames it holds; the frames kept here are the stage's.
       element.addEventListener('click', event => {
         if (outgoing.indexOf(event.target as Frame) !== -1) {
@@ -142,13 +178,27 @@ export function dialog({
       }
       return {
         element,
-        take(frames, source) {
+        take(frames, source, stepping) {
           replaced = source
+          stepped = stepping
+          // Leave from where the frames are on screen, even mid-zoom. Stepping swaps them out
+          // in this same task, so freezing would be wasted layout work.
+          if (!stepping) {
+            freeze(frames)
+          }
+          frames.forEach(frame =>
+            frame.classList.add('medium-zoom-image--leaving')
+          )
           outgoing = frames.concat(outgoing).filter(frame => frame.isConnected)
         },
         enter(frame) {
           if (replaced) {
             frame.style.visibility = 'hidden'
+            opener =
+              (zoom
+                .getZoomedImage()
+                ?.closest('a[href],button,[tabindex]') as HTMLElement) ||
+              trigger
           }
           describe(frame)
           element.setAttribute('aria-busy', 'true')
@@ -158,19 +208,13 @@ export function dialog({
             describe(frames[frames.length - 1]!, frames[0])
           }
           element.removeAttribute('aria-busy')
-          if (transform) {
-            frames.forEach(frame => transforms.set(frame, transform))
-          }
           const source = replaced
           if (!source) {
             return
           }
           replaced = undefined
-          frames.forEach(frame => commitFrame(frame, transform))
-          outgoing.forEach(frame => {
-            frame.setAttribute('aria-hidden', 'true')
-            commitFrame(frame, transforms.get(frame))
-          })
+          commitFrames(frames, transform)
+          outgoing.forEach(frame => frame.setAttribute('aria-hidden', 'true'))
           let cancelled = false
           let cancel: (() => void) | undefined
           const complete = (error?: unknown) => {
@@ -181,18 +225,30 @@ export function dialog({
             outgoing = []
             done(error)
           }
-          if (transform && transition) {
+          // Frames replaced before they were fitted, or swiped off screen, are never seen
+          // leaving: keep them out of the effect.
+          const staged = (elements: readonly Frame[]) =>
+            elements
+              .filter(element => {
+                const box = element.getBoundingClientRect()
+                return (
+                  element.style.transform &&
+                  box.right > 0 &&
+                  box.left < innerWidth
+                )
+              })
+              .map(element => ({
+                element,
+                transform: element.style.transform,
+              }))
+          const leaving = staged(outgoing)
+          // With nothing visibly leaving, the effect would fade in from an empty backdrop:
+          // show the next image at once instead.
+          if (transform && transition && !stepped && leaving.length) {
             const images = zoom.getImages()
-            const staged = (elements: readonly Frame[]) =>
-              elements
-                .filter(element => transforms.has(element))
-                .map(element => ({
-                  element,
-                  transform: transforms.get(element)!,
-                }))
             cancel = transition(
               {
-                outgoing: staged(outgoing),
+                outgoing: leaving,
                 incoming: staged(frames),
                 direction:
                   images.indexOf(zoom.getZoomedImage()!) >
@@ -203,22 +259,32 @@ export function dialog({
               complete
             )
           } else {
-            complete()
+            // A frame still decoding paints nothing: keep the outgoing frames beneath it until
+            // it can, or the backdrop flashes through.
+            const finish = () => complete()
+            void Promise.resolve(
+              (frames[0] as HTMLImageElement).decode?.()
+            ).then(finish, finish)
           }
           return () => {
             cancelled = true
+            // Freeze before the effect clears its animations, or frames jump to their end state.
+            freeze(frames.concat(outgoing))
             cancel?.()
           }
         },
         dispose() {
           disposed = true
+          removeEventListener('scroll', follow)
+          overlay?.style.removeProperty('translate')
           try {
             cleanup?.()
           } finally {
             element.close()
             element.remove()
-            if (trigger?.isConnected) {
-              trigger.focus({ preventScroll: true })
+            if (opener?.isConnected) {
+              opener.focus({ preventScroll: true })
+              opener.scrollIntoView({ block: 'nearest' })
             }
           }
         },
@@ -228,23 +294,39 @@ export function dialog({
   return stage as unknown as ZoomRenderer
 }
 
-const commitFrame = (
-  frame: Frame,
-  transform: string | undefined | null
+/**
+ * Applies styles without running CSS transitions, forcing a single layout for all frames.
+ * Inline transitions are dropped rather than restored: the stylesheet's !important one wins.
+ */
+const withoutTransitions = (
+  frames: readonly Frame[],
+  apply: (frame: Frame, index: number) => void
 ): void => {
-  if (!transform) {
-    return
-  }
-  const style = frame.style
-  const transition = style.getPropertyValue('transition')
-  const priority = style.getPropertyPriority('transition')
-  style.setProperty('transition', 'none', 'important')
-  style.transform = transform
-  style.visibility = ''
-  frame.getBoundingClientRect()
-  if (transition) {
-    style.setProperty('transition', transition, priority)
-  } else {
-    style.removeProperty('transition')
-  }
+  frames.forEach((frame, index) => {
+    frame.style.setProperty('transition', 'none', 'important')
+    apply(frame, index)
+  })
+  frames[0]?.getBoundingClientRect()
+  frames.forEach(({ style }) => style.removeProperty('transition'))
+}
+
+/** Without transitions, a new scene's frames would replay the zoom from their thumbnail. */
+const commitFrames = (frames: readonly Frame[], transform: string | null) =>
+  withoutTransitions(frames, frame => {
+    // A frame that could not be fitted still shows, in its own box.
+    if (transform) {
+      frame.style.transform = transform
+    }
+    frame.style.visibility = ''
+  })
+
+/** Holds frames where they are on screen, reading every style before writing any: one layout. */
+const freeze = (frames: readonly Frame[]): void => {
+  const shown = frames.map(frame => {
+    const { transform, opacity } = getComputedStyle(frame)
+    return { transform: transform === 'none' ? '' : transform, opacity }
+  })
+  withoutTransitions(frames, (frame, index) => {
+    Object.assign(frame.style, shown[index])
+  })
 }
