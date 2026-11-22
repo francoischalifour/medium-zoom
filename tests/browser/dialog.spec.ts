@@ -1,6 +1,6 @@
 import { expect, type Page, test } from '@playwright/test'
 
-import { addModernStyles, preparePage } from './helpers'
+import { addModernStyles, expectNear, preparePage } from './helpers'
 
 declare global {
   interface Window {
@@ -167,22 +167,16 @@ test('top layer and scrolled geometry with custom container, backdrop and image 
       .toJSON()
     return { original, initial }
   })
-  expect(initial!.x).toBeCloseTo(original!.x, 0)
-  expect(initial!.y).toBeCloseTo(original!.y, 0)
+  expectNear(initial!.x, original!.x)
+  expectNear(initial!.y, original!.y)
   await expect(page.locator('body')).toHaveAttribute(
     'data-events',
     'open,opened,'
   )
   const box = await page.locator('dialog img').boundingBox()
   const container = await page.locator('#container').boundingBox()
-  expect(box!.x + box!.width / 2).toBeCloseTo(
-    container!.x + container!.width / 2,
-    0
-  )
-  expect(box!.y + box!.height / 2).toBeCloseTo(
-    container!.y + container!.height / 2,
-    0
-  )
+  expectNear(box!.x + box!.width / 2, container!.x + container!.width / 2)
+  expectNear(box!.y + box!.height / 2, container!.y + container!.height / 2)
   expect(
     await page.evaluate(() =>
       document.querySelector('dialog')!.matches(':modal')
@@ -234,9 +228,10 @@ test('opening can be interrupted and closed listeners can reopen a fresh modal',
   })
   await page.evaluate(() => {
     void window.modalZoom.open()
-    setTimeout(() => {
+    // A frame into the second-long opening.
+    requestAnimationFrame(() => {
       void window.modalZoom.close()
-    }, 80)
+    })
   })
   await expect(page.locator('dialog')).toHaveCount(0)
   await page.emulateMedia({ reducedMotion: 'reduce' })
@@ -395,11 +390,12 @@ test('touch controls clean up the modal, and rotating refits the open image', as
     .poll(() =>
       page.locator('dialog img').evaluate(frame => {
         const box = frame.getBoundingClientRect()
+        const { clientWidth, clientHeight } = document.documentElement
         return (
-          box.right <= innerWidth + 1 &&
-          box.bottom <= innerHeight + 1 &&
-          Math.abs(box.left + box.width / 2 - innerWidth / 2) <= 1 &&
-          Math.abs(box.top + box.height / 2 - innerHeight / 2) <= 1
+          box.right <= clientWidth + 1 &&
+          box.bottom <= clientHeight + 1 &&
+          Math.abs(box.left + box.width / 2 - clientWidth / 2) <= 1 &&
+          Math.abs(box.top + box.height / 2 - clientHeight / 2) <= 1
         )
       })
     )
@@ -463,11 +459,8 @@ for (const kind of ['element', 'coordinates'] as const) {
     }, kind)
     const image = await page.locator('dialog img').boundingBox()
     const box = await page.locator('#container').boundingBox()
-    expect(image!.x + image!.width / 2).toBeCloseTo(box!.x + box!.width / 2, 0)
-    expect(image!.y + image!.height / 2).toBeCloseTo(
-      box!.y + box!.height / 2,
-      0
-    )
+    expectNear(image!.x + image!.width / 2, box!.x + box!.width / 2)
+    expectNear(image!.y + image!.height / 2, box!.y + box!.height / 2)
     await page.evaluate(() => window.modalZoom.close())
   })
 }

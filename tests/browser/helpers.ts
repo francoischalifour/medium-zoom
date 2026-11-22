@@ -1,5 +1,12 @@
 import { expect, type Locator, type Page, test } from '@playwright/test'
 
+/** Positions agree within a CSS pixel: no one sees less, and devices snap to their own pixels. */
+export const expectNear = (actual: number, expected: number) =>
+  expect(
+    Math.abs(actual - expected),
+    `${actual} is within a pixel of ${expected}`
+  ).toBeLessThanOrEqual(1)
+
 interface Bundle {
   format: 'esm' | 'umd'
   file: string

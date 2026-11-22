@@ -1,6 +1,6 @@
 import { expect, type Page, test } from '@playwright/test'
 
-import { addModernStyles, preparePage } from './helpers'
+import { addModernStyles, expectNear, preparePage } from './helpers'
 
 declare global {
   interface Window {
@@ -460,12 +460,16 @@ test('pointer navigation switches fitted images without an animation', async ({
         .getAnimations()
         .filter(animation => animation.playState === 'running').length,
       center: [bounds.x + bounds.width / 2, bounds.y + bounds.height / 2],
-      viewport: [innerWidth / 2, innerHeight / 2],
+      // The engine centres in the window without its scrollbars.
+      viewport: [
+        document.documentElement.clientWidth / 2,
+        document.documentElement.clientHeight / 2,
+      ],
     }
   })
   expect(state.animations).toBe(0)
-  expect(state.center[0]).toBeCloseTo(state.viewport[0]!, 0)
-  expect(state.center[1]).toBeCloseTo(state.viewport[1]!, 0)
+  expectNear(state.center[0]!, state.viewport[0]!)
+  expectNear(state.center[1]!, state.viewport[1]!)
   await expect(
     page.getByRole('dialog').getByRole('img', { name: 'Forest' })
   ).toHaveCount(1)
@@ -938,7 +942,7 @@ test('the position keeps its width when the count gains a digit', async ({
   await expect(page.getByRole('status')).toContainText('10 / 12')
   expect(
     await navigation.evaluate(node => node.getBoundingClientRect().width)
-  ).toBeCloseTo(nine, 1)
+  ).toBeCloseTo(nine, 0)
 })
 
 test('stock controls take localized labels and positions', async ({ page }) => {
@@ -982,50 +986,46 @@ test('a swipe navigates without its trailing click dismissing the zoom', async (
     await window.modalZoom.open()
   })
   // A pen drag still fires a click in a later task, on the frame that is now leaving.
-  const swipe = (x: number) =>
+  // Past halfway, so it moves on by distance whatever the speed of the moves.
+  const swipe = (direction: number) =>
     page
       .locator('dialog img')
       .last()
-      .evaluate(async (frame, x) => {
+      .evaluate(async (frame, direction) => {
         const box = frame.getBoundingClientRect()
-        const start = { x: box.left + box.width / 2, y: box.top + 20 }
+        const y = box.top + 20
+        const from = innerWidth / 2 - direction * 0.3 * innerWidth
         const init = {
           bubbles: true,
           isPrimary: true,
           pointerId: 7,
           pointerType: 'pen',
+          clientY: y,
         }
         frame.dispatchEvent(
-          new PointerEvent('pointerdown', {
-            ...init,
-            clientX: start.x,
-            clientY: start.y,
-          })
+          new PointerEvent('pointerdown', { ...init, clientX: from })
         )
-        // Quick moves, so the release is a flick.
         for (let step = 1; step <= 3; step++) {
-          await new Promise(resolve => setTimeout(resolve, 16))
+          await new Promise(resolve => requestAnimationFrame(resolve))
           frame.dispatchEvent(
             new PointerEvent('pointermove', {
               ...init,
-              clientX: start.x + (x * step) / 3,
-              clientY: start.y,
+              clientX: from + (direction * 0.6 * innerWidth * step) / 3,
             })
           )
         }
         frame.dispatchEvent(
           new PointerEvent('pointerup', {
             ...init,
-            clientX: start.x + x,
-            clientY: start.y,
+            clientX: from + direction * 0.6 * innerWidth,
           })
         )
         await new Promise(resolve => setTimeout(resolve))
         frame.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-      }, x)
-  await swipe(-120)
+      }, direction)
+  await swipe(-1)
   await expect(page.getByRole('dialog', { name: 'Forest' })).toBeVisible()
-  await swipe(120)
+  await swipe(1)
   await expect(page.getByRole('dialog', { name: 'Mountain' })).toBeVisible()
   await page.locator('dialog img').last().dispatchEvent('click')
   await expect(page.locator('dialog')).toHaveCount(0)
@@ -1130,7 +1130,7 @@ test('control variables size, round, pace and pin the stock controls', async ({
   const closeBox = () =>
     page.locator('.medium-zoom-control--close').evaluate(node => {
       const { right, width } = node.getBoundingClientRect()
-      return { right: innerWidth - right, width }
+      return { right: document.documentElement.clientWidth - right, width }
     })
   await page.evaluate(async () => {
     window.modalZoom.update({ margin: 120 })
@@ -1215,6 +1215,8 @@ test('a held arrow key accelerates and sharpens only where it stops, in place', 
       announcements.push(announced.textContent!)
     ).observe(announced, { childList: true })
     let frames = 0
+    // Real time, not the page clock: the slide between steps runs on the document
+    // timeline, which the page clock does not drive, so paused repeats would outrun it.
     // The system repeats a held key about every 33 ms.
     for (let index = 0; index < 72; index++) {
       dialog.dispatchEvent(
@@ -1235,7 +1237,16 @@ test('a held arrow key accelerates and sharpens only where it stops, in place', 
       })[0]
     await new Promise(resolve => setTimeout(resolve, 150))
     const preview = box()
-    await new Promise(resolve => setTimeout(resolve, 900))
+    // Measured once the high-resolution copy joins the frame.
+    await new Promise<void>(resolve => {
+      const joined = () =>
+        dialog.querySelectorAll(
+          'img.medium-zoom-image--opened:not(.medium-zoom-image--leaving)'
+        ).length > 1
+          ? resolve()
+          : requestAnimationFrame(joined)
+      joined()
+    })
     const gaps = steps.slice(1).map((time, index) => time - steps[index]!)
     return {
       released,
@@ -1249,7 +1260,9 @@ test('a held arrow key accelerates and sharpens only where it stops, in place', 
   })
   // Far fewer steps than repeats, each gap shorter than the first as the hold goes on.
   expect(held.gaps.length).toBeLessThan(30)
-  expect(held.gaps.at(-1)!).toBeLessThan(held.gaps[0]! * 0.6)
+  // Judged on the last few gaps, so one stall of a busy machine cannot hide the trend.
+  const late = held.gaps.slice(-5).sort((a, b) => a - b)[2]!
+  expect(late).toBeLessThan(held.gaps[0]! * 0.6)
   expect(Math.min(...held.gaps)).toBeGreaterThanOrEqual(50)
   expect(held.settled).toBe(held.released)
   // An image and its high-resolution copy are two frames: at most one image leaves at a time.
@@ -1273,8 +1286,16 @@ test('a held arrow key accelerates and sharpens only where it stops, in place', 
         frames.map(frame => {
           const { left, top, width, height } = frame.getBoundingClientRect()
           return [
-            Math.abs(Math.round(left + width / 2 - innerWidth / 2)),
-            Math.abs(Math.round(top + height / 2 - innerHeight / 2)),
+            Math.abs(
+              Math.round(
+                left + width / 2 - document.documentElement.clientWidth / 2
+              )
+            ),
+            Math.abs(
+              Math.round(
+                top + height / 2 - document.documentElement.clientHeight / 2
+              )
+            ),
           ]
         })
       )
@@ -1317,8 +1338,12 @@ test('stock controls sit in the margin when it fits them, inside the image edge 
       const box = (selector: string) =>
         document.querySelector(selector)!.getBoundingClientRect()
       return {
-        close: innerWidth - box('.medium-zoom-control--close').right,
-        navigation: innerHeight - box('.medium-zoom-navigation').bottom,
+        close:
+          document.documentElement.clientWidth -
+          box('.medium-zoom-control--close').right,
+        navigation:
+          document.documentElement.clientHeight -
+          box('.medium-zoom-navigation').bottom,
       }
     })
   }

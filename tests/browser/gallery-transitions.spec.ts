@@ -538,7 +538,10 @@ test('slide() animates the incoming frame in from its side and settles in place'
     const opening = window.modalZoom.open({
       target: document.querySelectorAll('body > img')[1] as HTMLElement,
     })
-    await new Promise(resolve => setTimeout(resolve, 100))
+    // Two frames into the 400ms slide.
+    for (let frame = 0; frame < 2; frame++) {
+      await new Promise(resolve => requestAnimationFrame(resolve))
+    }
     const frame = document.querySelector('dialog img:last-of-type')!
     const left = frame.getBoundingClientRect().left
     await opening
