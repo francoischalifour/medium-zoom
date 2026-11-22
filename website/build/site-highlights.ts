@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
-import { codeToHtml } from '@pierre/highlights'
+import { codeToHtml, isSupportedLanguage, type Lang } from '@pierre/highlights'
 import {
   githubDarkDefault,
   githubLightDefault,
@@ -15,31 +15,18 @@ import {
 } from '../src/install-commands.ts'
 import { usageExamples } from '../src/usage-snippets.ts'
 
-type HighlightLanguage =
-  | 'html'
-  | 'tsx'
-  | 'js'
-  | 'vue'
-  | 'svelte'
-  | 'angular-ts'
-  | 'astro'
-  | 'ts'
-  | 'md'
-  | 'bash'
-  | 'css'
-
 const usageLanguages = {
   javascript: 'html',
   react: 'tsx',
-} as const satisfies Record<string, HighlightLanguage>
+} as const satisfies Record<string, Lang>
 
 // Fence names label code blocks; some highlight with another grammar.
-const fenceGrammars: Record<string, HighlightLanguage> = {
+const fenceGrammars: Readonly<Record<string, Lang | undefined>> = {
   solid: 'tsx',
   angular: 'angular-ts',
 }
 
-function highlight(code: string, lang: HighlightLanguage) {
+function highlight(code: string, lang: Lang) {
   const html = new TextDecoder().decode(
     codeToHtml(code, {
       lang,
@@ -88,7 +75,10 @@ function highlightSnippets(watch: (file: string) => void, source?: string) {
   for (const [, lang, code] of markdown.matchAll(
     /^```(js|ts|tsx|solid|vue|svelte|angular|astro|md|html|bash|css)\n([\s\S]*?)^```/gm
   )) {
-    const language = fenceGrammars[lang] ?? (lang as HighlightLanguage)
+    const language = fenceGrammars[lang] ?? lang
+    if (!isSupportedLanguage(language)) {
+      throw new Error(`Unsupported highlighting language: ${language}`)
+    }
     snippets[code.trim()] = highlight(code.trim(), language)
   }
   // Live examples import their displayed source. Only ship the examples this article uses.
