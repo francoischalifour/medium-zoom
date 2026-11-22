@@ -3,6 +3,7 @@ import {
   createCustomEvent,
   getPromise,
   getScrollY,
+  getViewportScale,
   isEscape,
 } from '#platform'
 
@@ -474,8 +475,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
       // Pinching and panning a magnified page must keep the full-size image open.
       if (
         active.__mz_isPinching ||
-        (window.visualViewport &&
-          window.visualViewport.scale > active.__mz_viewportScale!)
+        getViewportScale() > active.__mz_viewportScale!
       ) {
         scrollTop = currentScroll
         clearTimeout(active.__mz_scrollTimer)
@@ -777,7 +777,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
             opened = false
             void close()
           }
-          window.cancelAnimationFrame(frame)
+          cancelAnimationFrame(frame)
           resolve(zoom)
           if (opened) {
             document.body.classList.add('medium-zoom--opened')
@@ -884,7 +884,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
 
         host.appendChild(primary)
 
-        frame = window.requestAnimationFrame(() => {
+        frame = requestAnimationFrame(() => {
           document.body.classList.add('medium-zoom--opened')
         })
 
@@ -991,7 +991,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
           const transform = fit(content, filled)
           ;[style.transform, style.translate, style.scale] = shown
           content.getBoundingClientRect()
-          content.style.removeProperty('transition')
+          style.removeProperty('transition')
           // The scene is already presented: this only hands the new frames to the stage.
           if (media && stage) {
             current.__mz_view!.present(frames, transform, () => {})

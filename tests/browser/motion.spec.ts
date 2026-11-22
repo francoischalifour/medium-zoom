@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-import { loadZoomFixture } from './helpers.ts'
+import { addModernStyles, loadZoomFixture, preparePage } from './helpers.ts'
 
 const templateFadeDurations = {
   reduce: '0s',
@@ -290,4 +290,65 @@ test('lifecycle completion has a fallback when animation frames are suspended', 
     page.locator('.medium-zoom-overlay, .medium-zoom-image--opened')
   ).toHaveCount(0)
   await expect(page.locator('#image')).toBeVisible()
+})
+
+test('a transition running behind wall time settles when it ends', async ({
+  page,
+}) => {
+  await preparePage(page)
+  await addModernStyles(page)
+  const early = await page.evaluate(async () => {
+    const { createZoom } = await window.loadEntry('core')
+    const zoom = createZoom('#image')
+    // Long frames, as on a busy page: the transition's frames lag behind its timer.
+    let busy = true
+    const spin = () => {
+      const end = performance.now() + 45
+      while (performance.now() < end) {}
+      if (busy) {
+        requestAnimationFrame(spin)
+      }
+    }
+    requestAnimationFrame(spin)
+    let early = 0
+    for (let run = 0; run < 4; run++) {
+      await zoom.open()
+      early += document
+        .querySelector('.medium-zoom-image--opened')!
+        .getAnimations()
+        .filter(
+          animation =>
+            (animation as CSSTransition).transitionProperty === 'transform'
+        ).length
+      await zoom.close()
+    }
+    busy = false
+    return early
+  })
+  expect(early).toBe(0)
+})
+
+test('a transition held in place settles one delay late, never later', async ({
+  page,
+}) => {
+  await preparePage(page)
+  await addModernStyles(page)
+  const elapsed = await page.evaluate(async () => {
+    const { createZoom } = await window.loadEntry('core')
+    const zoom = createZoom('#image')
+    const start = performance.now()
+    const opening = zoom.open()
+    // As in a hidden tab: the transition holds where it is and never ends.
+    requestAnimationFrame(() =>
+      document
+        .querySelector('.medium-zoom-image--opened')!
+        .getAnimations()
+        .forEach(animation => animation.pause())
+    )
+    await opening
+    return performance.now() - start
+  })
+  // Two 350 ms timers: the 300 ms transition and its margin, then the wait for it.
+  expect(elapsed).toBeGreaterThan(600)
+  expect(elapsed).toBeLessThan(1_500)
 })

@@ -43,7 +43,7 @@ export const mountTemplate = (
       removeNode(content)
     } else {
       content.style.transition = parseFloat(
-        window.getComputedStyle(frame).transitionDuration
+        getComputedStyle(frame).transitionDuration
       )
         ? 'opacity 150ms'
         : 'none'
