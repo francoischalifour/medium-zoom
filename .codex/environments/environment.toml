@@ -19,6 +19,11 @@ icon = "run"
 command = "bun run stories"
 
 [[actions]]
+name = "Gallery playground"
+icon = "run"
+command = "bun run dev:gallery"
+
+[[actions]]
 name = "Watch library"
 icon = "run"
 command = "bun run dev"
@@ -26,7 +31,12 @@ command = "bun run dev"
 [[actions]]
 name = "Browser tests UI"
 icon = "test"
-command = "bun run build:website && bun run test:browser --ui"
+command = "bun run check examples && bun run test:browser --ui"
+
+[[actions]]
+name = "Check my changes"
+icon = "test"
+command = "bun run check --changed"
 
 [[actions]]
 name = "Full checks"
