@@ -439,9 +439,7 @@ test('defaults list getting started, actions, and popular pages, then recent one
 
 test('the preview shows the rendered page at the matched section', async ({
   page,
-  context,
 }) => {
-  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.setViewportSize({ width: 1_280, height: 800 })
   await page.goto('/docs/react/')
   await page.getByRole('button', { name: /Search docs/ }).click()
@@ -455,6 +453,31 @@ test('the preview shows the rendered page at the matched section', async ({
   await expect(
     article.locator('[data-docspot-anchor="margin"]')
   ).toBeInViewport()
+  // Links in the preview open their page and close search.
+  await article.getByRole('link', { name: 'update()' }).first().click()
+  await expect(page).toHaveURL(
+    /\/docs\/reference\/javascript\/methods\/#update$/
+  )
+  await expect(page.getByRole('dialog')).not.toBeVisible()
+})
+
+test('the preview copies its page as Markdown', async ({
+  page,
+  context,
+  browserName,
+}) => {
+  test.skip(
+    browserName !== 'chromium',
+    'Clipboard read permission is available in Chromium.'
+  )
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/docs/react/')
+  await page.getByRole('button', { name: /Search docs/ }).click()
+  await searchBox(page).fill('margin')
+  const preview = page.getByRole('region', { name: 'Result preview' })
+  await expect(
+    preview.locator('.site-search-preview').getByRole('heading', { level: 1 })
+  ).toHaveText('Options')
   await preview.getByRole('button', { name: 'Copy Markdown' }).click()
   await expect(
     page
@@ -465,12 +488,6 @@ test('the preview shows the rendered page at the matched section', async ({
   expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(
     /^# Options/
   )
-  // Links in the preview open their page and close search.
-  await article.getByRole('link', { name: 'update()' }).first().click()
-  await expect(page).toHaveURL(
-    /\/docs\/reference\/javascript\/methods\/#update$/
-  )
-  await expect(page.getByRole('dialog')).not.toBeVisible()
 })
 
 test('search URLs hydrate when the browser does not report paint timing', async ({
