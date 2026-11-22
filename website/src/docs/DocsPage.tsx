@@ -7,7 +7,7 @@ import {
 } from 'react'
 
 import { revealInScrollArea, ScrollArea } from '../scroll-area'
-import { Icon, SiteLink } from '../site-components'
+import { CodeSnippets, Icon, SiteLink } from '../site-components'
 import { BrandLink, SiteFooter, SiteHeader } from '../site-shell'
 import { CodeFence } from './doc-components'
 import { DocsOutline, DocsOutlineMenu } from './docs-outline'
@@ -16,10 +16,16 @@ import { useDocsNavigation } from './use-docs-navigation'
 
 import './docs.css'
 
-const pageContent = import.meta.glob<typeof import('./overview.mdx')>(
-  './*.mdx',
-  { eager: true }
-)
+type DocsArticle = typeof import('./overview.mdx')
+const pageContent = import.meta.glob<DocsArticle>('./*.mdx')
+
+export function loadDocsArticle(path: string): Promise<DocsArticle> {
+  const page = docsPages.find(page => page.path === path)
+  if (!page) {
+    throw new Error(`Unknown documentation page: ${path}`)
+  }
+  return pageContent[`./${page.source}`]()
+}
 
 function getHeadingText(children: ReactNode): string {
   return Children.toArray(children)
@@ -159,7 +165,13 @@ function DocsPagination({
   )
 }
 
-export function DocsPage({ path }: { path: string }) {
+export function DocsPage({
+  path,
+  article,
+}: {
+  path: string
+  article: DocsArticle
+}) {
   const { articleRef, activeHeadingId } = useDocsNavigation(path)
   useEffect(() => {
     const active = document.querySelector('.docs-sidebar [aria-current="page"]')
@@ -171,7 +183,7 @@ export function DocsPage({ path }: { path: string }) {
   if (!page) {
     throw new Error(`Unknown documentation page: ${path}`)
   }
-  const { default: Content, outline } = pageContent[`./${page.source}`]
+  const { default: Content, outline, snippets } = article
   const isOverview = page.path === '/docs/'
   const index = docsPages.findIndex(item => item.path === path)
   const previous = docsPages[index - 1]
@@ -230,9 +242,11 @@ export function DocsPage({ path }: { path: string }) {
               </DocsBreadcrumb>
               <h1>{page.title}</h1>
             </header>
-            <Content
-              components={{ h2: ArticleHeading, pre: CodeFence, a: SiteLink }}
-            />
+            <CodeSnippets.Provider value={snippets}>
+              <Content
+                components={{ h2: ArticleHeading, pre: CodeFence, a: SiteLink }}
+              />
+            </CodeSnippets.Provider>
           </article>
           <DocsPagination previous={previous} next={next} />
         </main>

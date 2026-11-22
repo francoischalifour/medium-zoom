@@ -4,6 +4,47 @@ import { readFileSync } from 'node:fs'
 import { exampleNames } from '../../scripts/example-names'
 import { expect, test } from './website-fixture'
 
+test('the video poster uses a production asset before JavaScript runs', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({ javaScriptEnabled: false })
+  try {
+    const page = await context.newPage()
+    await page.goto('/docs/guides/video/')
+    const poster = page.locator('.video-poster-trigger img')
+    const src = await poster.getAttribute('src')
+    expect(src).toMatch(/^\/assets\/flower-[\w-]+\.jpg$/)
+    const response = await context.request.get(src!)
+    expect(response.status()).toBe(200)
+    expect(response.headers()['content-type']).toBe('image/jpeg')
+  } finally {
+    await context.close()
+  }
+})
+
+test('documentation hydration downloads only the selected article', async ({
+  page,
+}) => {
+  const scripts: string[] = []
+  page.on('request', request => {
+    if (request.resourceType() === 'script') {
+      scripts.push(request.url())
+    }
+  })
+  await page.goto('/docs/guides/hd-images/')
+  await page.getByRole('button', { name: 'Switch to dark theme' }).click()
+  await expect(page.locator('html')).toHaveClass('dark')
+  expect(scripts.some(url => /\/hd-images-[^/]+\.js$/.test(url))).toBe(true)
+  expect(
+    scripts.some(url =>
+      /\/(?:video|composition-api|vue-integration)-[^/]+\.js$/.test(url)
+    )
+  ).toBe(false)
+  await expect(
+    page.locator('.docs-article .code-block code span[style]').first()
+  ).toBeAttached()
+})
+
 for (const path of ['/', '/react']) {
   test(`${path} hydrates without downloading documentation articles`, async ({
     page,

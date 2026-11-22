@@ -12,6 +12,26 @@ declare global {
 const body = `<img id="first" src="/images/image-1.jpg" width="160" alt="First">
   <img id="second" src="/images/image-2.jpg" width="160" alt="Second">`
 
+test('an empty snapshot freezes its images and no-op collection changes preserve identity', async ({
+  page,
+}) => {
+  await preparePage(page, { body })
+  const result = await page.evaluate(async () => {
+    const { createZoom } = await window.loadEntry('core')
+    const zoom = createZoom()
+    const empty = zoom.getSnapshot()
+    zoom.attach('#first')
+    const attached = zoom.getSnapshot()
+    zoom.attach('#first')
+    zoom.detach('#second')
+    await zoom.open()
+    const stable = attached.images === zoom.getSnapshot().images
+    await zoom.close()
+    return { frozen: Object.isFrozen(empty.images), stable }
+  })
+  expect(result).toEqual({ frozen: true, stable: true })
+})
+
 async function modal(page: Page) {
   await preparePage(page, { body })
   await addModernStyles(page)

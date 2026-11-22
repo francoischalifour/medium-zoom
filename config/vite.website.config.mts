@@ -71,6 +71,7 @@ export default defineConfig(({ command }) =>
     envDir: fileURLToPath(new URL('../', import.meta.url)),
     root: fileURLToPath(new URL('../website/', import.meta.url)),
     build: {
+      manifest: true,
       // Prerendered content must be styled before its hydration chunk loads.
       cssCodeSplit: false,
       rolldownOptions: {

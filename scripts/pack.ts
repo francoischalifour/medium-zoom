@@ -29,6 +29,11 @@ export function pack(cwd = process.cwd()) {
       directory,
       archive,
       root: join(unpacked, 'package'),
+      sizes: {
+        files: output[0].files.length,
+        tarball: output[0].size,
+        unpacked: output[0].unpackedSize,
+      },
       cleanup: () => rmSync(directory, { recursive: true, force: true }),
     }
   } catch (error) {

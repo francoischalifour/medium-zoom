@@ -1,95 +1,116 @@
 {
-  "revision": "d3dd923",
+  "revision": "bd64efa",
   "consumers": {
     "medium-zoom": {
-      "js": 3696,
+      "js": 3531,
       "css": 0
     },
     "medium-zoom/dist/pure": {
-      "js": 3485,
+      "js": 3324,
       "css": 253
     },
     "medium-zoom/modern": {
-      "js": 3501,
+      "js": 3344,
       "css": 0
     },
     "core": {
-      "js": 3544,
-      "css": 245
+      "js": 4096,
+      "css": 233
     },
     "core + HD loader": {
-      "js": 3775,
-      "css": 245
+      "js": 4328,
+      "css": 233
     },
     "core + container": {
-      "js": 3744,
-      "css": 245
+      "js": 4306,
+      "css": 233
     },
     "core + HD loader + container": {
-      "js": 3976,
-      "css": 245
+      "js": 4537,
+      "css": 233
     },
     "core + dialog": {
-      "js": 4484,
-      "css": 245
+      "js": 5325,
+      "css": 404
     },
     "core + dialog + template": {
-      "js": 4573,
-      "css": 245
+      "js": 5407,
+      "css": 404
     },
     "core + dialog + triggers": {
-      "js": 5054,
-      "css": 245
+      "js": 5963,
+      "css": 404
     },
     "core + dialog + gallery": {
-      "js": 4924,
-      "css": 245
+      "js": 5804,
+      "css": 404
+    },
+    "core + dialog + gallery + keyboard": {
+      "js": 6124,
+      "css": 404
+    },
+    "core + dialog + gallery + gestures": {
+      "js": 9212,
+      "css": 404
+    },
+    "core + dialog + gallery + custom transition": {
+      "js": 6036,
+      "css": 404
     },
     "everything composed": {
-      "js": 6728,
-      "css": 245
+      "js": 7164,
+      "css": 404
+    },
+    "stock gallery: HD loader + dialog + controls + slide + triggers": {
+      "js": 11161,
+      "css": 1131
     }
   },
   "artifacts": {
-    "dist/core/index.mjs": 3552,
-    "dist/core/index.cjs": 3554,
-    "dist/loaders/index.mjs": 459,
-    "dist/loaders/index.cjs": 462,
-    "dist/viewport/index.mjs": 418,
-    "dist/viewport/index.cjs": 422,
-    "dist/content/index.mjs": 254,
-    "dist/content/index.cjs": 258,
-    "dist/triggers/index.mjs": 852,
-    "dist/triggers/index.cjs": 853,
-    "dist/renderers/index.mjs": 1327,
-    "dist/renderers/index.cjs": 1328,
-    "dist/gallery/index.mjs": 880,
-    "dist/gallery/index.cjs": 880,
-    "dist/compat/index.mjs": 3697,
-    "dist/compat/index.cjs": 3694,
-    "dist/compat/pure/index.mjs": 3488,
-    "dist/compat/pure/index.cjs": 3492,
-    "dist/modern/index.mjs": 3538,
-    "dist/modern/index.cjs": 3520,
-    "dist/pure/index.mjs": 3488,
-    "dist/pure/index.cjs": 3492,
-    "dist/modern/style.css": 245,
+    "dist/core/index.mjs": 4115,
+    "dist/core/index.cjs": 4117,
+    "dist/loaders/index.mjs": 452,
+    "dist/loaders/index.cjs": 454,
+    "dist/viewport/index.mjs": 427,
+    "dist/viewport/index.cjs": 430,
+    "dist/content/index.mjs": 249,
+    "dist/content/index.cjs": 251,
+    "dist/triggers/index.mjs": 907,
+    "dist/triggers/index.cjs": 904,
+    "dist/renderers/index.mjs": 1690,
+    "dist/renderers/index.cjs": 1694,
+    "dist/renderers/style.css": 171,
+    "dist/transitions/index.mjs": 628,
+    "dist/transitions/index.cjs": 631,
+    "dist/gallery/index.mjs": 5413,
+    "dist/gallery/index.cjs": 5418,
+    "dist/gallery/style.css": 952,
+    "dist/gallery.css": 1131,
+    "dist/compat/index.mjs": 3537,
+    "dist/compat/index.cjs": 3504,
+    "dist/compat/pure/index.mjs": 3327,
+    "dist/compat/pure/index.cjs": 3330,
+    "dist/modern/index.mjs": 3365,
+    "dist/modern/index.cjs": 3362,
+    "dist/pure/index.mjs": 3327,
+    "dist/pure/index.cjs": 3330,
+    "dist/modern/style.css": 233,
     "dist/style.css": 253,
-    "dist/medium-zoom.esm.js": 3697,
-    "dist/medium-zoom.min.js": 3787,
-    "dist/pure/index.js": 3488,
-    "dist/pure/medium-zoom.min.umd.js": 3587
+    "dist/medium-zoom.esm.js": 3537,
+    "dist/medium-zoom.min.js": 3626,
+    "dist/pure/index.js": 3327,
+    "dist/pure/medium-zoom.min.umd.js": 3419
   },
   "packages": {
     "release": {
       "files": 13,
-      "tarball": 29553,
-      "unpacked": 128945
+      "tarball": 27741,
+      "unpacked": 119816
     },
     "candidate": {
-      "files": 62,
-      "tarball": 63985,
-      "unpacked": 327142
+      "files": 65,
+      "tarball": 82545,
+      "unpacked": 365340
     }
   }
 }
