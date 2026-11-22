@@ -23,8 +23,8 @@
     "version_pattern": "2.0.0-next.N",
     "policy": "One package, two channels: latest remains compatible v1; next is planned for deliberately approved v2 milestone previews. Historical next remains 1.0.0-next.0 until first authorized publication. No preview has been published by this setup.",
     "workflow": ".github/workflows/preview-release.yml",
-    "runbook": "docs/preview-release.md",
-    "default_contract": "Agreed v2 preview default: modern root/pure/styles/types, image zoom with HD, native dialog and accessible triggers, a slim state-based controller, structural CSS without gallery themes. Explicit compat preserves the v1 API/browser/style contract. Implemented locally, not published; see docs/modern-preset.md.",
+    "runbook": "CONTRIBUTING.md#preview-releases",
+    "default_contract": "Agreed v2 preview default: modern root/pure/styles/types, image zoom with HD, native dialog and accessible triggers, a slim state-based controller, structural CSS without gallery themes. Explicit compat preserves the v1 API/browser/style contract. Implemented locally, not published; see CONTRIBUTING.md#modern-preview-contract.",
     "local_verification": "Separate from the original audit: packed modern/compat consumer checks and Chromium/WebKit desktop/mobile regression tests pass against the PR #310 base, including HD fallback, reduced motion, keyboard focus and teardown. Gallery benchmarks remain within that base's layout/style tolerances, retaining 24 layouts for five open/close cycles. Installed Firefox could not launch its profile. Historical minimum browsers, physical devices and original external reproductions remain unverified. No per-item fix version, published availability or closure gate changes. Modern includes modal rendering; custom content and gallery/gestures remain explicit compositions with matching CSS.",
     "prerequisites": [
       "Review modern preset migration contract and candidate API readiness for the milestone",

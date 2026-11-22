@@ -83,10 +83,7 @@ export function validatePreview(root: string, version: string) {
 }
 
 export function packPreview(version: string) {
-  const artifact = packCandidate(
-    previewManifest(version),
-    'docs/preview-release.md'
-  )
+  const artifact = packCandidate(previewManifest(version), 'CONTRIBUTING.md')
   try {
     validatePreview(artifact.root, version)
     return artifact
