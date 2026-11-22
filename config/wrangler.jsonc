@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
   "name": "medium-zoom",
-  "main": "./worker.ts",
+  "main": "../website/worker.ts",
   "account_id": "b41c9db3b56da737528cffc5cb203c10",
   "compatibility_date": "2026-10-25",
   "workers_dev": true,
@@ -16,7 +16,7 @@
     },
   ],
   "assets": {
-    "directory": "./dist",
+    "directory": "../website/dist",
     "binding": "ASSETS",
     "run_worker_first": ["/r/*"],
     "not_found_handling": "404-page",

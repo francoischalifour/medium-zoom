@@ -72,7 +72,7 @@ Tracking runs only on the production domain and uses Altertable's audience mode,
 The Cloudflare Worker records `Registry Component Downloaded` in audience mode for successful production component downloads. Set its `ALTERTABLE_API_KEY` secret to an ingestion key for the same Altertable environment:
 
 ```sh
-bunx wrangler secret put ALTERTABLE_API_KEY --config website/wrangler.jsonc
+bunx wrangler secret put ALTERTABLE_API_KEY --config config/wrangler.jsonc
 ```
 
 These events count downloads, including retries and bots, rather than unique users or confirmed installs. Analytics failures do not block downloads.
