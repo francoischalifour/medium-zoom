@@ -44,6 +44,14 @@ Run `bun run update:downloads` to refresh the committed npm download snapshot. T
 
 Run `bun run generate:og` to regenerate the website sharing images and the 1280×640 GitHub social preview at `.github/social-preview.png`. Commit the generated images. To update the repository preview, upload that PNG in the repository's **Settings → General → Social preview → Edit → Upload an image**; GitHub does not pick it up from the repository automatically.
 
+## Add a page
+
+1. Write the MDX page in `src/docs/`. Keep it to one task or reference topic, explain prerequisites before commands, use complete examples, and link to existing explanations instead of repeating them.
+2. Add its route and metadata to `src/docs/pages.ts`. The sitemap follows from it.
+3. Include it in `tests/browser/website-docs.spec.ts`.
+4. Add aliases for the URL without a trailing slash and for `index.html` in `public/_redirects`.
+5. Run `bun run generate:og` to create its sharing image.
+
 ## Verify changes
 
 Build the site before checking documentation, metadata, and analytics:
@@ -55,7 +63,7 @@ bun run test:seo
 bun run test:analytics
 ```
 
-The documentation checks compile authored JavaScript and TSX snippets against the public API, then check rendered pages, navigation, links, and live examples in Chromium, Firefox, and WebKit. See [Write documentation](../CONTRIBUTING.md#write-documentation) for page registration and editorial guidance.
+The documentation checks compile authored JavaScript and TSX snippets against the public API, then check rendered pages, navigation, links, and live examples in Chromium, Firefox, and WebKit. To add a page, see [Add a page](#add-a-page).
 
 ## Analytics
 
