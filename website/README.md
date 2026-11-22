@@ -17,7 +17,7 @@ To preview the complete site, including stories and examples:
 
 ```sh
 bun run build:website
-bunx vite preview --config config/vite.website.config.mts --host 127.0.0.1 --port 5290
+bunx vite preview website --host 127.0.0.1 --port 5290
 ```
 
 ## Find the source

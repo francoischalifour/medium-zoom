@@ -5,9 +5,9 @@
   "type": "module",
   "main": "index.html",
   "scripts": {
-    "dev": "vite --config ../config/vite.website.config.mts --host 127.0.0.1",
+    "dev": "vite --host 127.0.0.1",
     "start": "bun run dev",
-    "build": "vite build --config ../config/vite.website.config.mts && bun ../scripts/prerender-website.ts",
+    "build": "vite build && bun ../scripts/prerender-website.ts",
     "typecheck": "bun check --no-script -p tsconfig.json"
   },
   "dependencies": {

@@ -38,7 +38,10 @@
     "tests/**/*.ts",
     "tests/unit/geometry.test.mts",
     "stories/catalogue/**/*.ts",
+    "stories/vite.config.mts",
+    "website/vite.config.mts",
     "playground/**/*.ts",
+    "playground/**/*.mts",
     "examples/*/vite.config.ts",
     "examples/shadcn/tests/experimental/**/*.tsx"
   ],

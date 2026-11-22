@@ -2,19 +2,19 @@ import { fileURLToPath } from 'node:url'
 
 import { defineConfig, mergeConfig } from 'vite'
 
-import { libraryConfig } from './vite.shared.config.mts'
+import { libraryConfig } from '../config/vite.shared.config.mts'
 
 export default mergeConfig(
   libraryConfig,
   defineConfig({
-    root: 'stories',
+    root: fileURLToPath(new URL('.', import.meta.url)),
     base: '/storybook/',
     publicDir: 'images',
     define: { module: '{}' },
     resolve: {
       alias: {
         '@storybook/html': fileURLToPath(
-          new URL('../stories/catalogue/registry.ts', import.meta.url)
+          new URL('catalogue/registry.ts', import.meta.url)
         ),
       },
     },
@@ -25,7 +25,7 @@ export default mergeConfig(
       rolldownOptions: {
         // Absolute paths: the development dependency scan resolves inputs from `root`, not the cwd.
         input: ['index.html', 'frame.html'].map(page =>
-          fileURLToPath(new URL(`../stories/${page}`, import.meta.url))
+          fileURLToPath(new URL(page, import.meta.url))
         ),
         treeshake: false,
       },

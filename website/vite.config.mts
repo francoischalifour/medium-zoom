@@ -4,20 +4,20 @@ import mdx from '@mdx-js/rollup'
 import react from '@vitejs/plugin-react'
 import { defineConfig, mergeConfig } from 'vite'
 
+import { libraryConfig } from '../config/vite.shared.config.mts'
 import { galleryAssets } from '../examples/shadcn/gallery-assets.ts'
 import packageJson from '../package.json' with { type: 'json' }
-import { docsPlugin } from '../website/build/docs-plugin.ts'
-import { generatedFiles } from '../website/build/generated-files.ts'
-import { libraryGzipBytes } from '../website/build/library-size.ts'
-import { siteHeaders } from '../website/build/site-headers.ts'
-import { siteHighlights } from '../website/build/site-highlights.ts'
-import { siteIndexingFiles } from '../website/build/site-indexing.ts'
-import { siteMarkdownFiles } from '../website/build/site-markdown.ts'
-import { sitePreferences } from '../website/build/site-preferences.ts'
-import { siteRedirects } from '../website/build/site-redirects.ts'
-import { siteStyles } from '../website/build/site-styles.ts'
-import { siteOrigin } from '../website/src/site-url.ts'
-import { libraryConfig } from './vite.shared.config.mts'
+import { docsPlugin } from './build/docs-plugin.ts'
+import { generatedFiles } from './build/generated-files.ts'
+import { libraryGzipBytes } from './build/library-size.ts'
+import { siteHeaders } from './build/site-headers.ts'
+import { siteHighlights } from './build/site-highlights.ts'
+import { siteIndexingFiles } from './build/site-indexing.ts'
+import { siteMarkdownFiles } from './build/site-markdown.ts'
+import { sitePreferences } from './build/site-preferences.ts'
+import { siteRedirects } from './build/site-redirects.ts'
+import { siteStyles } from './build/site-styles.ts'
+import { siteOrigin } from './src/site-url.ts'
 
 export default defineConfig(({ command }) =>
   mergeConfig(libraryConfig, {
@@ -69,22 +69,16 @@ export default defineConfig(({ command }) =>
       },
     },
     envDir: fileURLToPath(new URL('../', import.meta.url)),
-    root: fileURLToPath(new URL('../website/', import.meta.url)),
+    root: fileURLToPath(new URL('./', import.meta.url)),
     build: {
       manifest: true,
       // Prerendered content must be styled before its hydration chunk loads.
       cssCodeSplit: false,
       rolldownOptions: {
         input: {
-          notFound: fileURLToPath(
-            new URL('../website/404.html', import.meta.url)
-          ),
-          index: fileURLToPath(
-            new URL('../website/index.html', import.meta.url)
-          ),
-          react: fileURLToPath(
-            new URL('../website/react.html', import.meta.url)
-          ),
+          notFound: fileURLToPath(new URL('./404.html', import.meta.url)),
+          index: fileURLToPath(new URL('./index.html', import.meta.url)),
+          react: fileURLToPath(new URL('./react.html', import.meta.url)),
         },
       },
     },

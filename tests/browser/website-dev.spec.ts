@@ -21,7 +21,7 @@ test('website development loads library source instead of the built ES module', 
   const source = resolve('src/preset/index.ts')
   let loadedLibrarySource = false
   const server = await createServer({
-    configFile: resolve('config/vite.website.config.mts'),
+    configFile: resolve('website/vite.config.mts'),
     server: { host: '127.0.0.1', port: 0, strictPort: true },
     logLevel: 'silent',
     clearScreen: false,
@@ -75,7 +75,7 @@ test('production prerendering preserves a running development site and its hydra
     'The cache is shared tooling, independent of browser engine.'
   )
   const server = await createServer({
-    configFile: resolve('config/vite.website.config.mts'),
+    configFile: resolve('website/vite.config.mts'),
     server: { host: '127.0.0.1', port: 0, strictPort: true },
     logLevel: 'silent',
     clearScreen: false,

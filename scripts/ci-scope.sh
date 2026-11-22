@@ -12,7 +12,7 @@ while IFS= read -r file; do
     *.md | .claude/* | .codex/*) ;;
     # Specs named website* test the site's pages: CI runs them as the website suite.
     website/* | tests/analytics/* | tests/browser/website* | \
-    config/vite.website.config.mts | config/wrangler.jsonc)
+    config/wrangler.jsonc)
       scope=website ;;
     # Anything else, including bun.lock, can affect the library.
     *) echo library && exit ;;

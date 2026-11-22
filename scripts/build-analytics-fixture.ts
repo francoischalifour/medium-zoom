@@ -7,7 +7,7 @@ import { prerenderWebsite } from './prerender-website'
 // A public test key, with all delivery intercepted by the browser tests.
 const output = resolve('.cache/analytics-site')
 await build({
-  configFile: resolve('config/vite.website.config.mts'),
+  configFile: resolve('website/vite.config.mts'),
   define: {
     'import.meta.env.VITE_ALTERTABLE_API_KEY':
       JSON.stringify('website-test-key'),

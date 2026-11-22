@@ -35,7 +35,7 @@ export async function prerenderWebsite(directory: string) {
       new URL('../.cache/vite-prerender/', import.meta.url)
     ),
     configFile: fileURLToPath(
-      new URL('../config/vite.website.config.mts', import.meta.url)
+      new URL('../website/vite.config.mts', import.meta.url)
     ),
     server: { middlewareMode: true, watch: null, hmr: false, ws: false },
     appType: 'custom',

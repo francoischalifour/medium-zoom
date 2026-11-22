@@ -8,7 +8,7 @@ import {
   type UserConfig,
 } from 'vite'
 
-import { libraryConfig } from './vite.shared.config.mts'
+import { libraryConfig } from '../config/vite.shared.config.mts'
 
 export async function localExampleConfig({
   name,

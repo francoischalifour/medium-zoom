@@ -28,7 +28,7 @@ const websiteCommits = [
       'tests/browser/website-docs.spec.ts',
       'tests/server.ts',
       'scripts/prerender-website.ts',
-      'config/vite.website.config.mts',
+      'website/vite.config.mts',
     ],
   },
   {
