@@ -1,103 +1,103 @@
 {
   "consumers": {
     "medium-zoom": {
-      "js": 3513,
+      "js": 3504,
       "css": 0
     },
     "medium-zoom/dist/pure": {
-      "js": 3305,
+      "js": 3294,
       "css": 253
     },
     "medium-zoom/modern": {
-      "js": 3351,
+      "js": 3347,
       "css": 0
     },
     "core": {
-      "js": 4205,
+      "js": 4182,
       "css": 233
     },
     "core + loaders": {
-      "js": 4438,
+      "js": 4416,
       "css": 233
     },
     "core + viewport": {
-      "js": 4406,
+      "js": 4394,
       "css": 233
     },
     "core + content": {
-      "js": 4267,
+      "js": 4244,
       "css": 233
     },
     "core + triggers": {
-      "js": 4875,
+      "js": 4843,
       "css": 233
     },
     "core + renderers": {
-      "js": 5592,
+      "js": 5569,
       "css": 405
     },
     "core + transitions": {
-      "js": 4414,
+      "js": 4393,
       "css": 233
     },
     "core + gallery": {
-      "js": 4755,
+      "js": 4710,
       "css": 1186
     },
     "everything composed": {
-      "js": 7336,
+      "js": 7275,
       "css": 1358
     },
     "stock gallery": {
-      "js": 11508,
+      "js": 11436,
       "css": 1358
     }
   },
   "artifacts": {
-    "dist/core/index.mjs": 4226,
-    "dist/core/index.cjs": 4229,
+    "dist/core/index.mjs": 4210,
+    "dist/core/index.cjs": 4213,
     "dist/loaders/index.mjs": 452,
     "dist/loaders/index.cjs": 454,
-    "dist/viewport/index.mjs": 427,
-    "dist/viewport/index.cjs": 430,
+    "dist/viewport/index.mjs": 441,
+    "dist/viewport/index.cjs": 443,
     "dist/content/index.mjs": 249,
     "dist/content/index.cjs": 251,
-    "dist/triggers/index.mjs": 907,
-    "dist/triggers/index.cjs": 904,
+    "dist/triggers/index.mjs": 901,
+    "dist/triggers/index.cjs": 893,
     "dist/renderers/index.mjs": 1885,
     "dist/renderers/index.cjs": 1889,
     "dist/renderers/style.css": 172,
     "dist/transitions/index.mjs": 628,
     "dist/transitions/index.cjs": 631,
-    "dist/gallery/index.mjs": 5609,
-    "dist/gallery/index.cjs": 5615,
+    "dist/gallery/index.mjs": 5554,
+    "dist/gallery/index.cjs": 5560,
     "dist/gallery/style.css": 953,
     "dist/gallery.css": 1135,
-    "dist/compat/index.mjs": 3526,
-    "dist/compat/index.cjs": 3491,
-    "dist/compat/pure/index.mjs": 3312,
-    "dist/compat/pure/index.cjs": 3318,
-    "dist/modern/index.mjs": 3380,
-    "dist/modern/index.cjs": 3379,
-    "dist/pure/index.mjs": 3312,
-    "dist/pure/index.cjs": 3318,
+    "dist/compat/index.mjs": 3515,
+    "dist/compat/index.cjs": 3492,
+    "dist/compat/pure/index.mjs": 3300,
+    "dist/compat/pure/index.cjs": 3306,
+    "dist/modern/index.mjs": 3378,
+    "dist/modern/index.cjs": 3366,
+    "dist/pure/index.mjs": 3300,
+    "dist/pure/index.cjs": 3306,
     "dist/modern/style.css": 233,
     "dist/style.css": 253,
-    "dist/medium-zoom.esm.js": 3526,
-    "dist/medium-zoom.min.js": 3614,
-    "dist/pure/index.js": 3312,
-    "dist/pure/medium-zoom.min.umd.js": 3406
+    "dist/medium-zoom.esm.js": 3515,
+    "dist/medium-zoom.min.js": 3603,
+    "dist/pure/index.js": 3300,
+    "dist/pure/medium-zoom.min.umd.js": 3394
   },
   "packages": {
     "release": {
       "files": 13,
-      "tarball": 27841,
-      "unpacked": 117908
+      "tarball": 27903,
+      "unpacked": 118112
     },
     "candidate": {
       "files": 65,
-      "tarball": 86556,
-      "unpacked": 371597
+      "tarball": 86592,
+      "unpacked": 371559
     }
   }
 }

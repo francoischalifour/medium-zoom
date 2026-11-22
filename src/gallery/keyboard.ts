@@ -1,6 +1,6 @@
 import type { CoreZoomOptions } from 'medium-zoom/core'
 
-import type { GalleryController } from './index'
+import type { GalleryController } from './controller'
 
 /**
  * The pause between steps of a held key: about 200 ms, easing towards 60 ms, so a short

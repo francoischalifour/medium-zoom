@@ -1,7 +1,5 @@
 import type { CoreZoomOptions, ModalZoom } from 'medium-zoom/core'
 
-import type { ZoomTarget } from './frame'
-
 /** Options of `bindZoomTriggers()`. */
 export interface ZoomTriggersOptions {
   /** Unbinds when aborted, as the returned function does. */
@@ -50,7 +48,7 @@ export function bindZoomTriggers<Options extends CoreZoomOptions>(
 function bind<Options extends CoreZoomOptions>(
   zoom: ModalZoom<Options>
 ): () => void {
-  const records = new Map<ZoomTarget, () => void>()
+  const records = new Map<HTMLElement, () => void>()
   const documents = new WeakMap<Document, number>()
   const activate = (target: HTMLElement) =>
     zoom.open({ target, trigger: target })
@@ -61,10 +59,10 @@ function bind<Options extends CoreZoomOptions>(
     !event.metaKey &&
     !event.shiftKey
   const click = (event: MouseEvent) => {
-    const image = event.target as ZoomTarget
+    const image = event.target as HTMLElement
     if (records.has(image) && unmodified(event) && event.button === 0) {
       event.preventDefault()
-      void activate(image as HTMLElement)
+      void activate(image)
     }
   }
   const keydown = (event: KeyboardEvent) => {
@@ -75,66 +73,64 @@ function bind<Options extends CoreZoomOptions>(
       }
     }
   }
-  const sync = () => {
-    for (const image of zoom.getImages() as ZoomTarget[]) {
-      if (
-        records.has(image) ||
-        image.closest(interactive) ||
-        (image as HTMLElement).isContentEditable
-      ) {
-        continue
-      }
-      const attributes = {
-        role: 'button',
-        tabindex: image.getAttribute('tabindex') || '0',
-        'aria-haspopup': 'dialog',
-      }
-      const previous = Object.entries(attributes).map(([name, value]) => {
-        const original = image.getAttribute(name)
-        image.setAttribute(name, value)
-        return [name, value, original] as const
-      })
-      const hadClass = image.classList.contains('medium-zoom-image')
-      image.classList.add('medium-zoom-image')
-      const owner = image.ownerDocument
-      const count = documents.get(owner) || 0
-      if (!count) {
-        owner.addEventListener('click', click)
-      }
-      documents.set(owner, count + 1)
-      image.addEventListener('keydown', keydown as EventListener)
-      records.set(image, () => {
-        image.removeEventListener('keydown', keydown as EventListener)
-        const remaining = documents.get(owner)! - 1
-        documents.set(owner, remaining)
-        if (!remaining) {
-          owner.removeEventListener('click', click)
-        }
-        if (!hadClass) {
-          image.classList.remove('medium-zoom-image')
-        }
-        for (const [name, value, original] of previous) {
-          if (image.getAttribute(name) !== value) {
-            continue
-          }
+  const bindImage = (image: HTMLElement) => {
+    if (
+      records.has(image) ||
+      image.closest(interactive) ||
+      image.isContentEditable
+    ) {
+      return
+    }
+    const attributes = {
+      role: 'button',
+      tabindex: image.getAttribute('tabindex') || '0',
+      'aria-haspopup': 'dialog',
+    }
+    const restore = Object.entries(attributes).map(([name, value]) => {
+      const original = image.getAttribute(name)
+      image.setAttribute(name, value)
+      return () => {
+        if (image.getAttribute(name) === value) {
           if (original === null) {
             image.removeAttribute(name)
           } else {
             image.setAttribute(name, original)
           }
         }
-      })
+      }
+    })
+    const hadClass = image.classList.contains('medium-zoom-image')
+    image.classList.add('medium-zoom-image')
+    const owner = image.ownerDocument
+    const count = documents.get(owner) || 0
+    if (!count) {
+      owner.addEventListener('click', click)
     }
+    documents.set(owner, count + 1)
+    image.addEventListener('keydown', keydown as EventListener)
+    records.set(image, () => {
+      image.removeEventListener('keydown', keydown as EventListener)
+      const remaining = documents.get(owner)! - 1
+      documents.set(owner, remaining)
+      if (!remaining) {
+        owner.removeEventListener('click', click)
+      }
+      if (!hadClass) {
+        image.classList.remove('medium-zoom-image')
+      }
+      restore.forEach(attribute => attribute())
+    })
   }
+  const attach = (event: Event) => bindImage(event.currentTarget as HTMLElement)
   const detach = (event: Event) => {
-    const image = event.target as ZoomTarget
+    const image = event.target as HTMLElement
     records.get(image)?.()
     records.delete(image)
   }
-  zoom.on('attach', sync).on('detach', detach)
-  sync()
+  zoom.on('attach', attach).on('detach', detach)
+  zoom.getImages().forEach(bindImage)
   return () => {
-    zoom.off('attach', sync).off('detach', detach)
+    zoom.off('attach', attach).off('detach', detach)
     records.forEach(cleanup => cleanup())
     records.clear()
   }
