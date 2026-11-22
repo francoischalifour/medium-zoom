@@ -190,6 +190,11 @@ jobs:
         env:
           HOME: /root
         run: bun run test:rsc
+      - name: Benchmark runtime
+        if: ${{ matrix.browser == 'chromium' && matrix.shard == 1 && matrix.suite == 'api-and-examples' }}
+        env:
+          HOME: /root
+        run: bun run bench
       - name: Test website analytics
         if: ${{ matrix.browser == 'chromium' && matrix.shard == 1 && matrix.suite != 'stories' }}
         env:

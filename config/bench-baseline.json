@@ -1,0 +1,26 @@
+{
+  "compat: open and close ×5": {
+    "layouts": 10,
+    "styles": 205
+  },
+  "modern: open and close ×5": {
+    "layouts": 10,
+    "styles": 207
+  },
+  "gallery: open and close ×5": {
+    "layouts": 29,
+    "styles": 253
+  },
+  "gallery: resize ×30 while open": {
+    "layouts": 64,
+    "styles": 179
+  },
+  "gallery: step through 20 images": {
+    "layouts": 48,
+    "styles": 153
+  },
+  "gallery: swipes, a drag and pinches on a slow phone": {
+    "layouts": 29,
+    "styles": 349
+  }
+}
