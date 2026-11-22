@@ -83,6 +83,9 @@ export function dialog({
       element.style.cssText =
         'position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;color:inherit;overflow:visible;'
       let disposed = false
+      // Aborted once the dialog is gone: ends its own listeners and those of its content.
+      const lifetime = new AbortController()
+      const { signal } = lifetime
       // The page still scrolls under the modal: move the image and controls with it, as the
       // zoom does in the document, while the backdrop stays put until the scroll closes it.
       // The dialog must not clip, or shifting it would cut off the counter-shifted backdrop.
@@ -99,7 +102,7 @@ export function dialog({
         if (disposed || !overlay) {
           return
         }
-        addEventListener('scroll', follow, { passive: true })
+        addEventListener('scroll', follow, { passive: true, signal })
         // Controls take the backdrop's color scheme, so light-dark() styles contrast with
         // what is actually behind them, however the page sets its theme. A mostly
         // see-through backdrop keeps the page's scheme.
@@ -136,13 +139,14 @@ export function dialog({
       document.body.appendChild(element)
       let cleanup: void | (() => void) = undefined
       try {
-        cleanup = content?.({ element, zoom: zoom as ModalZoom, close })
+        cleanup = content?.({ element, zoom: zoom as ModalZoom, close, signal })
         element.showModal()
       } catch (error) {
         disposed = true
         try {
           cleanup?.()
         } finally {
+          lifetime.abort()
           element.remove()
         }
         throw error
@@ -276,11 +280,11 @@ export function dialog({
         },
         dispose() {
           disposed = true
-          removeEventListener('scroll', follow)
           overlay?.style.removeProperty('translate')
           try {
             cleanup?.()
           } finally {
+            lifetime.abort()
             element.close()
             element.remove()
             if (opener?.isConnected) {

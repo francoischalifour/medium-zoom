@@ -29,13 +29,14 @@ function Example() {
       const zoom = createZoom(images.current!.querySelectorAll('img'), {
         loader: loadHdImage,
         renderer: dialog({
-          content: ({ element, zoom, close }) => {
+          content: ({ element, zoom, close, signal }) => {
             const node = document.createElement('div')
             element.append(node)
             const root = createRoot(node)
-            // The zoom's controller, created with its session below.
-            const gallery = createGallery(zoom)
-            const unbind = bindGalleryKeyboard(element, gallery)
+            // A handle on the zoom's gallery, created with its session below; the content's
+            // signal releases it and the keyboard binding on close.
+            const gallery = createGallery(zoom, { signal })
+            bindGalleryKeyboard(element, gallery, { signal })
             root.render(
               <>
                 <button className="photo-close" autoFocus onClick={close}>
@@ -56,7 +57,6 @@ function Example() {
               </>
             )
             return () => {
-              unbind()
               root.unmount()
               node.remove()
             }

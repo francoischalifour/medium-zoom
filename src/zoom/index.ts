@@ -51,6 +51,11 @@ export type ZoomContent = (view: {
   readonly zoom: ModalZoom
   /** Closes the zoom for an application control: the close reason is `control`. */
   close: () => void
+  /**
+   * Aborts once the content is removed, after its cleanup: pass it to `addEventListener()`,
+   * `createGallery()` and the gallery bindings to release them with the content.
+   */
+  readonly signal: AbortSignal
 }) => void | (() => void)
 
 /**
@@ -162,6 +167,11 @@ export interface CreateZoomOptions extends CoreZoomOptions {
    * @default the window minus `margin`
    */
   viewport?: ZoomViewport
+  /**
+   * Detaches every image when aborted, closing the zoom first, so an effect can release the
+   * zoom with the bindings and galleries it passed the same signal to.
+   */
+  signal?: AbortSignal
 }
 
 // Application loaders return bare, detached images: give them the frame's presentation.
@@ -191,13 +201,15 @@ export function createZoom(
 ): Zoom
 export function createZoom(
   images?: ZoomSelector,
-  { renderer, loader, viewport, ...options }: CreateZoomOptions = {}
+  { renderer, loader, viewport, signal, ...options }: CreateZoomOptions = {}
 ): Zoom {
-  return createEngine<CoreZoomOptions>(
+  const zoom = createEngine<CoreZoomOptions>(
     loader,
     viewport,
     renderer as unknown as Stage,
     undefined,
     adoptMedia
-  )(images, options) as Zoom
+  )(signal?.aborted ? null : images, options) as Zoom
+  signal?.addEventListener('abort', () => zoom.detach(), { once: true })
+  return zoom
 }

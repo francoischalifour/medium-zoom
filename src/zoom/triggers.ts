@@ -14,26 +14,52 @@ export interface ZoomTriggersOptions<Options extends CoreZoomOptions> {
    * @default the zoom
    */
   commander?: ZoomCommander<Options>
+  /** Unbinds when aborted, as the returned function does. */
+  signal?: AbortSignal
 }
 
-const bindings = new WeakMap<object, () => void>()
+const bindings = new WeakMap<object, { unbind: () => void; count: number }>()
 const interactive =
   'button,a[href],input,select,textarea,summary,label,[role="button"],[role="link"],[role="checkbox"],[role="radio"],[role="switch"],[role="menuitem"],[contenteditable]'
 
 /**
  * Opens the zoom on click, Enter or Space on each attached image, current and future, and
  * announces it with `role="button"` and `aria-haspopup="dialog"`. Skips images inside
- * interactive elements, whose own activation is kept. Returns the unbind function, which
- * restores the images' attributes.
+ * interactive elements, whose own activation is kept. A zoom has one binding: each call
+ * returns an unbind function of its own, the first call's commander is kept, and the images'
+ * attributes are restored once every caller has unbound.
  */
 export function bindZoomTriggers<Options extends CoreZoomOptions>(
   zoom: ModalZoom<Options>,
-  { commander = zoom }: ZoomTriggersOptions<Options> = {}
+  { commander = zoom, signal }: ZoomTriggersOptions<Options> = {}
 ): () => void {
-  const existing = bindings.get(zoom)
-  if (existing) {
-    return existing
+  const binding = bindings.get(zoom) || {
+    unbind: bind(zoom, commander),
+    count: 0,
   }
+  bindings.set(zoom, binding)
+  binding.count++
+  let bound = true
+  const unbind = () => {
+    if (bound) {
+      bound = false
+      if (!--binding.count) {
+        bindings.delete(zoom)
+        binding.unbind()
+      }
+    }
+  }
+  signal?.addEventListener('abort', unbind)
+  if (signal?.aborted) {
+    unbind()
+  }
+  return unbind
+}
+
+function bind<Options extends CoreZoomOptions>(
+  zoom: ModalZoom<Options>,
+  commander: ZoomCommander<Options>
+): () => void {
   const records = new Map<ZoomTarget, () => void>()
   const documents = new WeakMap<Document, number>()
   const activate = (target: HTMLElement) =>
@@ -117,15 +143,9 @@ export function bindZoomTriggers<Options extends CoreZoomOptions>(
   }
   zoom.on('attach', sync).on('detach', detach)
   sync()
-  const unbind = () => {
-    if (bindings.get(zoom) !== unbind) {
-      return
-    }
-    bindings.delete(zoom)
+  return () => {
     zoom.off('attach', sync).off('detach', detach)
     records.forEach(cleanup => cleanup())
     records.clear()
   }
-  bindings.set(zoom, unbind)
-  return unbind
 }

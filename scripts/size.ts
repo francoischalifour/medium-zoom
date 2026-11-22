@@ -203,7 +203,8 @@ function assertIsolation(
     ],
     ['canPrevious', !!composition?.gallery, 'gallery'],
     [
-      'AbortController',
+      // The runner clears the effect's animations on every frame's subtree.
+      'subtree:',
       !!(composition?.transition || composition?.slide),
       'transition runner',
     ],

@@ -69,7 +69,7 @@ test('headless traversal creates no controls, retains modal focus and publishes 
   })
 })
 
-test('controller owns dynamic collection bounds and releases subscriptions', async ({
+test('controller follows the zoom collection and releases subscriptions', async ({
   page,
 }) => {
   await fixture(page)
@@ -81,10 +81,10 @@ test('controller owns dynamic collection bounds and releases subscriptions', asy
         .cloneNode() as HTMLImageElement
       extra.id = 'third'
       document.body.append(extra)
-      gallery.attach(extra)
+      window.modalZoom.attach(extra)
       await gallery.select(2)
       const count = gallery.getSnapshot().images.length
-      gallery.detach(extra)
+      window.modalZoom.detach(extra)
       await window.modalZoom.close()
       let notified = 0
       gallery.subscribe(() => notified++)
@@ -107,17 +107,22 @@ test('sessions and gallery traversal are independent and idempotent', async ({
       const { createZoomSession } = await window.loadEntry('session')
       const first = createZoomSession(window.modalZoom)
       const second = createZoomSession(window.modalZoom)
-      const same = createGallery(window.modalZoom) === window.galleryController
+      // Each call is a handle of its own on the zoom's one gallery.
+      const handle = createGallery(window.modalZoom)
+      const shared =
+        handle !== window.galleryController &&
+        handle.getSnapshot() === window.galleryController.getSnapshot()
+      handle.dispose()
       await first.open()
       await window.galleryController.next()
       await second.close()
       return {
         sameSession: first === second,
-        sameController: same,
+        sharedGallery: shared,
         closed: !window.modalZoom.getZoomedImage(),
       }
     })
-  ).toEqual({ sameSession: true, sameController: true, closed: true })
+  ).toEqual({ sameSession: true, sharedGallery: true, closed: true })
 })
 
 test('direct instance mutations publish settled collection state and stale disposal stays inert', async ({

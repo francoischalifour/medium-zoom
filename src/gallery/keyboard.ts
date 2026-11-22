@@ -25,11 +25,12 @@ export const isGalleryKey = (event: KeyboardEvent): boolean =>
  * the first or last on Home and End. A held arrow steps at a pace that accelerates the
  * longer it is held, independent of the system's repeat rate. Ignores keys with modifiers
  * and keys aimed at form fields, media, sliders and comboboxes. Creates no UI. Returns the
- * unbind function.
+ * unbind function; aborting `options.signal` unbinds too.
  */
 export function bindGalleryKeyboard<Options extends CoreZoomOptions>(
   element: HTMLElement,
-  gallery: GalleryController<Options>
+  gallery: GalleryController<Options>,
+  { signal }: { signal?: AbortSignal } = {}
 ): () => void {
   let pressed = 0
   let stepped = 0
@@ -56,6 +57,7 @@ export function bindGalleryKeyboard<Options extends CoreZoomOptions>(
       void (key === 'ArrowRight' ? gallery.next() : gallery.previous())
     }
   }
-  element.addEventListener('keydown', keydown)
+  // An already aborted signal adds nothing.
+  element.addEventListener('keydown', keydown, { signal })
   return () => element.removeEventListener('keydown', keydown)
 }

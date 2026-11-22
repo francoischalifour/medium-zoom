@@ -103,3 +103,17 @@ zoom.on('closed', event => {
 void zoom.close('control')
 // @ts-expect-error Close reasons are a closed set.
 void zoom.close('swipe')
+const lifetime = new AbortController()
+const { signal } = lifetime
+const owned = createZoom('img', { renderer: dialog(), signal })
+const handle = createGallery(owned, { signal })
+bindZoomTriggers(owned, { signal })
+bindGalleryKeyboard(document.body, handle, { signal })
+dialog({
+  content: view => {
+    createGallery(view.zoom, { signal: view.signal })
+  },
+})
+// @ts-expect-error The gallery navigates; the zoom manages its images.
+handle.attach('img')
+lifetime.abort()
