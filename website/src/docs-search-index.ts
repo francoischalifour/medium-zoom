@@ -169,7 +169,7 @@ export function createDocsSearch(entries: SearchEntry[]): DocsSearch {
         fuzzy: term => (term.length >= 5 ? 2 : term.length >= 4 ? 1 : false),
       })
     }
-    return results.slice(0, 5).map(result => {
+    return results.slice(0, 8).map(result => {
       const entry = byPath.get(String(result.id))!
       return {
         ...entry,

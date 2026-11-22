@@ -326,6 +326,8 @@ test('settled searches record search events without typing, dismissal, or anchor
   await expect.poll(() => searches().length).toBe(1)
   await search.fill('galleries')
   await expect.poll(() => searches().length).toBe(2)
+  // The first Escape clears the query and the second closes search.
+  await page.keyboard.press('Escape')
   await page.keyboard.press('Escape')
   await expect.poll(() => new URL(page.url()).searchParams.has('q')).toBe(false)
   await page.evaluate(() => {
@@ -392,7 +394,7 @@ test('chat handoffs use the same outbound tracking as other external links', asy
   await popup.close()
 })
 
-test('palette install actions respect package selection and clipboard permission', async ({
+test('search install actions respect package selection and clipboard permission', async ({
   page,
   context,
 }) => {

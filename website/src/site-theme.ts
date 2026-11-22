@@ -9,11 +9,12 @@ export function restoreTheme(key: string) {
   } catch {
     // System appearance still applies when storage is unavailable.
   }
-  document.documentElement.classList.toggle(
-    'dark',
+  const dark =
     theme === 'dark' ||
-      (!theme && matchMedia('(prefers-color-scheme: dark)').matches)
-  )
+    (!theme && matchMedia('(prefers-color-scheme: dark)').matches)
+  document.documentElement.classList.toggle('dark', dark)
+  // Docspot reads `data-theme`, so its overlay and scrollbars follow the site rather than the system.
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light'
 }
 
 export function getTheme() {
@@ -29,6 +30,7 @@ export function getServerTheme() {
 
 export function setTheme(dark: boolean) {
   document.documentElement.classList.toggle('dark', dark)
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light'
   try {
     localStorage.setItem(themeKey, dark ? 'dark' : 'light')
   } catch {}

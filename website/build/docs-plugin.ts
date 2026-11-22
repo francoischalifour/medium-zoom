@@ -23,6 +23,8 @@ function getSearchText(source: string) {
   return (
     source
       .replace(/^```[^\n]*\n[\s\S]*?^```/gm, '')
+      // MDX imports can span lines, as in `import {\n  A,\n  B,\n} from './x'`.
+      .replace(/^import\b[\s\S]*?\bfrom\s*(['"])[^'"\n]*\1;?[ \t]*$/gm, '')
       .replace(/^import .+$/gm, '')
       .replace(/`([^`\n]+)`/g, (_, code: string) => code.replace(/[<>]/g, ''))
       .replace(/<Prop\s+name="([^"]+)"/g, '$1 <Prop')
