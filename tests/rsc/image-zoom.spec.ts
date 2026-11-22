@@ -1,3 +1,6 @@
+import { execFileSync, spawn } from 'node:child_process'
+import { resolve } from 'node:path'
+
 import { expect, test } from '@playwright/test'
 
 import {
@@ -6,6 +9,35 @@ import {
   observeErrors,
   openImage,
 } from '../browser/helpers.ts'
+import { rscPort, rscUrl } from '../server-urls.ts'
+
+// The Next.js fixture builds and serves only when this project runs.
+const fixture = resolve('tests/fixtures/next')
+const env = { ...process.env, NEXT_TELEMETRY_DISABLED: '1' }
+let stop = () => {}
+test.beforeAll(async () => {
+  test.setTimeout(180_000)
+  execFileSync('bun', ['run', 'build'], { cwd: fixture, env, stdio: 'inherit' })
+  const server = spawn(
+    'node_modules/.bin/next',
+    ['start', '--hostname', '127.0.0.1', '--port', String(rscPort)],
+    { cwd: fixture, env, detached: true, stdio: 'inherit' }
+  )
+  stop = () => process.kill(-server.pid!)
+  await expect
+    .poll(
+      () =>
+        fetch(rscUrl).then(
+          ({ ok }) => ok,
+          () => false
+        ),
+      {
+        timeout: 60_000,
+      }
+    )
+    .toBe(true)
+})
+test.afterAll(() => stop())
 
 for (const path of ['/zoom', '/composed']) {
   test(`${path}: a Server Component renders the image in the initial HTML without JavaScript`, async ({

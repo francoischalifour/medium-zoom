@@ -5,7 +5,7 @@ import { defineConfig, devices } from '@playwright/test'
 import { reserveTestPorts } from './test-ports.mts'
 
 const repositoryRoot = fileURLToPath(new URL('../', import.meta.url))
-const { testUrl, sveltePort, svelteDevUrl, shadcnPort, shadcnDevUrl } =
+const { testUrl, sveltePort, svelteDevUrl, shadcnPort, shadcnDevUrl, rscUrl } =
   await reserveTestPorts()
 const mobileSpecs = [
   'mobile',
@@ -71,6 +71,20 @@ export default defineConfig({
       name: 'mobile-webkit',
       testMatch: mobileSpecs,
       use: { ...devices['iPhone 13'] },
+    },
+    {
+      // React Server Components in a Next.js app built on the packed library.
+      name: 'rsc',
+      testDir: '../tests/rsc',
+      workers: 1,
+      use: { ...devices['Desktop Chrome'], baseURL: rscUrl },
+    },
+    {
+      name: 'analytics',
+      testDir: '../tests/analytics',
+      // Clipboard permissions and focus are shared by the browser process.
+      workers: 1,
+      use: { ...devices['Desktop Chrome'] },
     },
   ],
   webServer: [

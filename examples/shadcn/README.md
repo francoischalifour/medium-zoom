@@ -30,7 +30,7 @@ The standalone playground uses shared photos from `assets/images/`. To develop t
 
 ```sh
 bun run test:browser shadcn --project=chromium
-bun run test:rsc
+bun run test:browser --project=rsc
 ```
 
 The browser tests cover interaction, hydration, and lifecycle behavior. The Next.js App Router fixture verifies React Server Component integration.

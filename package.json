@@ -88,8 +88,6 @@
     "test:stress": "MEDIUM_ZOOM_STRESS_SEEDS=${MEDIUM_ZOOM_STRESS_SEEDS:-12} MEDIUM_ZOOM_STRESS_STEPS=${MEDIUM_ZOOM_STRESS_STEPS:-80} bun run test:browser gallery-stress.spec.ts",
     "test:package": "bun scripts/check-package.ts",
     "test:examples": "bun scripts/check-examples.ts",
-    "test:rsc": "playwright test --config config/playwright.rsc.config.mts",
-    "test:analytics": "playwright test --config config/playwright.analytics.config.mts",
     "size": "bun scripts/size.ts",
     "bench": "bun scripts/bench.ts",
     "check": "bun scripts/check.ts",

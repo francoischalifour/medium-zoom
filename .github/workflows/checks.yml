@@ -195,7 +195,7 @@ jobs:
         if: ${{ matrix.browser == 'chromium' && matrix.shard == 1 && matrix.suite == 'api-and-examples' }}
         env:
           HOME: /root
-        run: bun run test:rsc
+        run: bun run test:browser --project=rsc
       - name: Benchmark runtime
         if: ${{ matrix.browser == 'chromium' && matrix.shard == 1 && matrix.suite == 'api-and-examples' }}
         env:
@@ -205,7 +205,7 @@ jobs:
         if: ${{ matrix.browser == 'chromium' && matrix.shard == 1 && matrix.suite != 'stories' }}
         env:
           HOME: /root
-        run: bun run test:analytics
+        run: bun run test:browser --project=analytics
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ !cancelled() }}
         with:

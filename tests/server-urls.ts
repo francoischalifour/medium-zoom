@@ -17,6 +17,11 @@ export function serverUrls(testPort: number) {
 }
 
 // Playwright configs reserve free ports and pass them to workers and servers through the environment.
-export const { testPort, testUrl, svelteDevUrl, shadcnDevUrl } = serverUrls(
-  Number(process.env[testPortEnv] ?? defaultTestPort)
-)
+export const {
+  testPort,
+  testUrl,
+  svelteDevUrl,
+  shadcnDevUrl,
+  rscPort,
+  rscUrl,
+} = serverUrls(Number(process.env[testPortEnv] ?? defaultTestPort))

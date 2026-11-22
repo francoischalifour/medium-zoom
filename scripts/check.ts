@@ -60,16 +60,6 @@ const steps: Record<string, Step> = {
     needs: ['browser'],
     scope: 'library',
   },
-  rsc: {
-    command: ['bun', 'run', 'test:rsc'],
-    needs: ['bench'],
-    scope: 'library',
-  },
-  analytics: {
-    command: ['bun', 'run', 'test:analytics'],
-    needs: ['browser', 'rsc'],
-    scope: 'website',
-  },
 }
 
 const git = (...args: string[]) => {
@@ -113,7 +103,7 @@ const select = (name: string) => {
   .forEach(select)
 // A website change only runs the website's browser suites.
 if (scope === 'website' && selected.has('browser')) {
-  steps.browser!.command.push('tests/browser/website')
+  steps.browser!.command.push('tests/browser/website', 'tests/analytics')
 }
 
 type Result = 'passed' | 'failed' | 'skipped'
