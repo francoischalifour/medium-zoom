@@ -383,7 +383,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
       state = Object.freeze({
         status,
         image: (active.__mz_original || null) as HTMLElement | null,
-        images: images as readonly HTMLElement[],
+        images: Object.freeze(images) as readonly HTMLElement[],
       })
       // A failing subscriber must not interrupt the lifecycle that notifies it.
       subscribers!.forEach(listener => {
@@ -491,14 +491,14 @@ export const createEngine = <Options extends CoreZoomOptions>(
         arguments,
         image => !isAttached(image)
       )
+      if (!__PRESET__ && !newImages.length) {
+        return zoom
+      }
 
       if (__PRESET__ && !images.length && newImages.length) {
         document.addEventListener('click', handleClick)
       }
       images = images.concat(newImages)
-      if (!__PRESET__) {
-        Object.freeze(images)
-      }
       newImages.forEach(image => {
         if (__PRESET__) {
           image.classList.add('medium-zoom-image')
@@ -509,7 +509,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
       })
 
       newImages.forEach(image => _dispatchEvent(image, 'attach'))
-      if (!__PRESET__ && newImages.length) {
+      if (!__PRESET__) {
         commit()
       }
       return zoom
@@ -523,6 +523,9 @@ export const createEngine = <Options extends CoreZoomOptions>(
       const detached = arguments.length
         ? getImagesFromSelectors(arguments, isAttached)
         : images
+      if (!__PRESET__ && !detached.length) {
+        return zoom
+      }
       detached.forEach(image => {
         if (__PRESET__) {
           image.classList.remove('medium-zoom-image')
@@ -530,13 +533,10 @@ export const createEngine = <Options extends CoreZoomOptions>(
         _dispatchEvent(image, 'detach')
       })
       images = images.filter(image => detached.indexOf(image) === -1)
-      if (!__PRESET__) {
-        Object.freeze(images)
-      }
       if (__PRESET__ && !images.length) {
         document.removeEventListener('click', handleClick)
       }
-      if (!__PRESET__ && detached.length) {
+      if (!__PRESET__) {
         commit()
       }
       return zoom
@@ -922,7 +922,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
           content.getBoundingClientRect()
           content.style.removeProperty('transition')
           // The scene is already presented: this only hands the new frames to the stage.
-          if (media) {
+          if (media && stage) {
             current.__mz_view!.present(frames, transform, () => {})
           }
           if (transform) {
@@ -948,11 +948,9 @@ export const createEngine = <Options extends CoreZoomOptions>(
                 assign(style, { left, top, width, height, transform: '' })
               })
               const transform = fit(primary, filled) || ''
-              frames.forEach(({ style }) => {
-                style.transform = transform
-                primary.getBoundingClientRect()
-                style.removeProperty('transition')
-              })
+              frames.forEach(({ style }) => (style.transform = transform))
+              primary.getBoundingClientRect()
+              frames.forEach(({ style }) => style.removeProperty('transition'))
             }
           }
         }

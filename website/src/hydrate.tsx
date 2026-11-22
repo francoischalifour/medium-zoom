@@ -16,8 +16,9 @@ export async function hydrateSite() {
   if (document.documentElement.dataset.page === 'not-found') {
     content = <NotFoundPage />
   } else if (page === 'docs') {
-    const { DocsPage } = await import('./docs/DocsPage')
-    content = <DocsPage path={location.pathname.replace(/\/?$/, '/')} />
+    const { DocsPage, loadDocsArticle } = await import('./docs/DocsPage')
+    const path = location.pathname.replace(/\/?$/, '/')
+    content = <DocsPage path={path} article={await loadDocsArticle(path)} />
   } else {
     content = <App page={page} />
   }

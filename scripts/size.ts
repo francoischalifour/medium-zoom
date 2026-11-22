@@ -26,6 +26,8 @@ import {
   releaseEntries,
 } from '../config/package.config.mts'
 import budgets from '../config/size.config.mts'
+import { pack } from './pack'
+import { packExperimental } from './pack-experimental'
 import { bytes, change, table } from './size-report'
 
 interface Baseline {
@@ -329,6 +331,15 @@ const artifacts = Object.fromEntries(
   budgets.map(({ path }) => [path, fileSize(path)])
 )
 
+function measurePackageSizes(create: () => ReturnType<typeof pack>) {
+  const artifact = create()
+  try {
+    return artifact.sizes
+  } finally {
+    artifact.cleanup()
+  }
+}
+
 if (updating) {
   const revision = execFileSync('git', ['rev-parse', '--short', 'HEAD'], {
     encoding: 'utf8',
@@ -340,7 +351,10 @@ if (updating) {
     revision: `${revision.trim()}${dirty ? ' + local changes' : ''}`,
     consumers,
     artifacts,
-    packages: baseline.packages,
+    packages: {
+      release: measurePackageSizes(pack),
+      candidate: measurePackageSizes(packExperimental),
+    },
   }
   writeFileSync(baselinePath, `${JSON.stringify(next, null, 2)}\n`)
   console.log(

@@ -1,4 +1,4 @@
-import { expect, type Page, test } from '@playwright/test'
+import type { Page } from '@playwright/test'
 
 import {
   decodeImages,
@@ -6,6 +6,7 @@ import {
   observeErrors,
   openImage,
 } from './helpers.ts'
+import { expect, test } from './website-fixture'
 
 const demo = '/react'
 

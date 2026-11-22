@@ -4,6 +4,8 @@ import snippets from 'virtual:highlighted-snippets'
 import { splitInlineCode } from './product-pages'
 import { siteOrigin } from './site-url'
 
+export const CodeSnippets = React.createContext<Record<string, string>>({})
+
 const iconPaths = {
   feather: (
     <>
@@ -237,7 +239,7 @@ export function CopyButton({
 }
 
 export function CodeTokens({ code }: { code: string }) {
-  const html = snippets[code]
+  const html = React.useContext(CodeSnippets)[code] || snippets[code]
   return (
     <span dangerouslySetInnerHTML={html ? { __html: html } : undefined}>
       {html ? undefined : code}

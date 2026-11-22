@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { dirname } from 'node:path'
+import { basename, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { parseExpressionAt } from 'acorn'
@@ -205,7 +205,7 @@ export function docsPlugin(): Plugin {
         return
       }
       const outline = getOutline(source)
-      return `${source}\n\nexport const outline = ${JSON.stringify(outline)}\n`
+      return `${source}\n\nexport const outline = ${JSON.stringify(outline)}\n\nexport { default as snippets } from ${JSON.stringify(`virtual:highlighted-snippets/docs/${basename(id)}`)}\n`
     },
   }
 }

@@ -155,6 +155,11 @@ async function checkPackage(
       (sum, path) => sum + statSync(join(artifact.root, path)).size,
       0
     )
+    assert.deepEqual(artifact.sizes, {
+      files: packedFiles.length,
+      tarball,
+      unpacked,
+    })
     packageRows.push([
       experimental ? 'private candidate fixture' : 'current release manifest',
       String(packedFiles.length),

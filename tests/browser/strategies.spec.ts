@@ -2,6 +2,41 @@ import { expect, test } from '@playwright/test'
 
 import { addModernStyles, expectNear, preparePage } from './helpers'
 
+test('a late HD image upgrades a zoom without a renderer and stays open', async ({
+  page,
+}) => {
+  await preparePage(page)
+  await addModernStyles(page)
+  const result = await page.evaluate(async () => {
+    const { createZoom } = await window.loadEntry('core')
+    const media = new Image()
+    media.src = '/images/image-2.jpg'
+    await media.decode()
+    let ready!: (image: HTMLImageElement) => void
+    const zoom = createZoom('#image', {
+      loader: (_context, complete) => {
+        ready = complete
+      },
+    })
+    await zoom.open()
+    ready(media)
+    await new Promise(resolve => setTimeout(resolve, 100))
+    const result = {
+      status: zoom.getSnapshot().status,
+      connected: media.isConnected,
+      fitted: !!media.style.transform,
+    }
+    await zoom.close()
+    return { ...result, removed: !media.isConnected }
+  })
+  expect(result).toEqual({
+    status: 'open',
+    connected: true,
+    fitted: true,
+    removed: true,
+  })
+})
+
 for (const capabilities of [
   [],
   ['loader'],

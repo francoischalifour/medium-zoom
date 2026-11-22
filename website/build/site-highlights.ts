@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
 import { codeToHtml } from '@pierre/highlights'
@@ -56,44 +56,47 @@ function highlight(code: string, lang: HighlightLanguage) {
 
 const moduleId = 'virtual:highlighted-snippets'
 const docs = new URL('../src/docs/', import.meta.url)
-const examples = new URL('examples/', docs)
+const docsModulePrefix = `${moduleId}/docs/`
 
 // The virtual module gives prerendering and hydration the same token markup without a checked-in generated file.
-function highlightSnippets(watch: (file: string) => void) {
-  const snippets: Record<string, string> = {
-    [javascriptUsageCode]: highlight(javascriptUsageCode, 'js'),
-  }
-  for (const example of usageExamples) {
-    snippets[example.code] = highlight(example.code, 'tsx')
-  }
-  for (const command of [
-    ...Object.values(javascriptCommands),
-    ...Object.values(componentCommands),
-  ]) {
-    snippets[command] = highlight(command, 'bash')
-  }
-  for (const image of Object.values(photos)) {
-    for (const kind of Object.keys(
-      usageLanguages
-    ) as (keyof typeof usageLanguages)[]) {
-      const code = usageCode(image, kind)
-      snippets[code] = highlight(code, usageLanguages[kind])
+function highlightSnippets(watch: (file: string) => void, source?: string) {
+  const snippets: Record<string, string> = {}
+  if (!source) {
+    snippets[javascriptUsageCode] = highlight(javascriptUsageCode, 'js')
+    for (const example of usageExamples) {
+      snippets[example.code] = highlight(example.code, 'tsx')
     }
-  }
-  for (const file of readdirSync(docs).filter(file => file.endsWith('.mdx'))) {
-    const path = new URL(file, docs)
-    watch(fileURLToPath(path))
-    for (const [, lang, code] of readFileSync(path, 'utf8').matchAll(
-      /^```(js|ts|tsx|solid|vue|svelte|angular|astro|md|html|bash|css)\n([\s\S]*?)^```/gm
-    )) {
-      const language = fenceGrammars[lang] ?? (lang as HighlightLanguage)
-      snippets[code.trim()] = highlight(code.trim(), language)
+    for (const command of [
+      ...Object.values(javascriptCommands),
+      ...Object.values(componentCommands),
+    ]) {
+      snippets[command] = highlight(command, 'bash')
     }
+    for (const image of Object.values(photos)) {
+      for (const kind of Object.keys(
+        usageLanguages
+      ) as (keyof typeof usageLanguages)[]) {
+        const code = usageCode(image, kind)
+        snippets[code] = highlight(code, usageLanguages[kind])
+      }
+    }
+    return snippets
   }
-  for (const file of readdirSync(examples)) {
-    const path = new URL(file, examples)
-    watch(fileURLToPath(path))
-    const code = readFileSync(path, 'utf8').trim()
+  const path = new URL(source, docs)
+  watch(fileURLToPath(path))
+  const markdown = readFileSync(path, 'utf8')
+  for (const [, lang, code] of markdown.matchAll(
+    /^```(js|ts|tsx|solid|vue|svelte|angular|astro|md|html|bash|css)\n([\s\S]*?)^```/gm
+  )) {
+    const language = fenceGrammars[lang] ?? (lang as HighlightLanguage)
+    snippets[code.trim()] = highlight(code.trim(), language)
+  }
+  // Live examples import their displayed source. Only ship the examples this article uses.
+  const prose = markdown.replace(/^```[^\n]*\n[\s\S]*?^```/gm, '')
+  for (const [, file] of prose.matchAll(/from ['"](.+?)\?raw['"]/g)) {
+    const example = new URL(file, path)
+    watch(fileURLToPath(example))
+    const code = readFileSync(example, 'utf8').trim()
     snippets[code] = highlight(
       code,
       file.endsWith('.tsx') ? 'tsx' : file.endsWith('.css') ? 'css' : 'js'
@@ -106,13 +109,18 @@ export function siteHighlights(): Plugin {
   return {
     name: 'medium-zoom-site-highlights',
     resolveId(id) {
-      if (id === moduleId) {
-        return `\0${moduleId}`
+      if (id === moduleId || id.startsWith(docsModulePrefix)) {
+        return `\0${id}`
       }
     },
     load(id) {
-      if (id === `\0${moduleId}`) {
-        const snippets = highlightSnippets(file => this.addWatchFile(file))
+      if (id === `\0${moduleId}` || id.startsWith(`\0${docsModulePrefix}`)) {
+        const snippets = highlightSnippets(
+          file => this.addWatchFile(file),
+          id === `\0${moduleId}`
+            ? undefined
+            : id.slice(docsModulePrefix.length + 1)
+        )
         return `export default ${JSON.stringify(snippets)}`
       }
     },
