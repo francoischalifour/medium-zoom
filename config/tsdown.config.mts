@@ -29,6 +29,11 @@ const stylesheetPath = fileURLToPath(
 // Mangle the engine's private scene state; preserve public options and DOM APIs.
 const privateProperties = /^__mz_/
 
+// The modern floor is the first release of each engine with HTMLDialogElement.showModal(),
+// which the dialog renderer requires (Baseline 2022): Safari and iOS 15.4, Chrome, Edge and
+// Firefox 98. Raising it lets modern entries use the platform without fallbacks.
+const modernBrowsers = { chrome: 98, firefox: 98, safari: [15, 4] } as const
+
 // Switch this profile for the v2 default; explicit compat stays stable.
 const defaultProfile: Profile = 'compat'
 
@@ -36,7 +41,7 @@ type Format = 'esm' | 'umd' | 'cjs'
 
 interface ProfileConfig {
   /** tsdown's syntax target; compat lowers later, through Babel. */
-  target: string
+  target: string | string[]
   css: { prepare: (source: string) => string; targets: Targets }
   /** Lower bundled syntax for the profile's browsers. */
   lower: (source: string, minify: boolean) => string | null | undefined
@@ -91,17 +96,28 @@ const profiles: Record<Profile, ProfileConfig> = {
     ecmaVersion: 2_015,
   },
   modern: {
-    target: 'es2020',
+    target: [
+      `chrome${modernBrowsers.chrome}`,
+      `edge${modernBrowsers.chrome}`,
+      `firefox${modernBrowsers.firefox}`,
+      `safari${modernBrowsers.safari.join('.')}`,
+    ],
     css: {
       prepare: source => source,
-      targets: { chrome: 80 << 16, firefox: 78 << 16, safari: 14 << 16 },
+      targets: {
+        chrome: modernBrowsers.chrome << 16,
+        firefox: modernBrowsers.firefox << 16,
+        safari:
+          (modernBrowsers.safari[0] << 16) | (modernBrowsers.safari[1] << 8),
+      },
     },
     lower: source => source,
     terser: {
       ecma: 2_020,
       compress: { passes: 3, sequences: true, booleans_as_integers: false },
     },
-    ecmaVersion: 2_020,
+    // Safari 15.4 parses ES2022 except class static blocks, which the target lowers.
+    ecmaVersion: 2_022,
   },
 }
 

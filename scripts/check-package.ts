@@ -66,10 +66,10 @@ function moduleFormat(path: string): ModuleFormat {
   return path.endsWith('.cjs') ? 'cjs' : 'umd'
 }
 
-// Modern files may use ES2020. Legacy ESM keeps ES2015 module syntax around an ES5 body.
+// Modern files may use ES2022 (Baseline 2022 browsers). Legacy ESM keeps ES2015 module syntax around an ES5 body.
 const profileSyntax: Record<Profile, Record<ModuleFormat, ecmaVersion>> = {
   compat: { esm: 2_015, cjs: 5, umd: 5 },
-  modern: { esm: 2_020, cjs: 2_020, umd: 2_020 },
+  modern: { esm: 2_022, cjs: 2_022, umd: 2_022 },
 }
 
 const sourceTypes: Record<ModuleFormat, 'module' | 'script'> = {
