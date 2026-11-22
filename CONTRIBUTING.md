@@ -25,6 +25,23 @@ Use the versions in `.node-version` and `.bun-version`. Run every command from t
 - `bun run stories`: serve the API stories.
 - `bun run examples`: preview the built website, stories, and every example.
 
+## Source
+
+One package holds two libraries. Each directory of `src` is one part of them:
+
+| Directory                     | Part                                                                                                                       |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `src/preset/`                 | The v1 library: `mediumZoom()` and its options, built for the compat and modern profiles.                                  |
+| `src/core/` to `src/gallery/` | The modern library, one directory per entry: `src/<entry>/index.ts` is `medium-zoom/<entry>`.                              |
+| `src/zoom/`                   | What both are made of: selectors, frames, geometry, transition waits, the HD loader, container bounds, and the stylesheet. |
+| `src/platform/`               | What the compat and modern profiles answer differently, imported as `#platform`.                                           |
+
+- **Neither library imports the other.** Both import `src/zoom`, so a change outside `src/zoom`, `src/platform`, and `src/preset` cannot change a released file.
+- **An entry's code stays in its bundle.** Entries share types through `medium-zoom/<entry>`. `src/core/stage.ts` is the one private contract between two entries: the engine drives it and a renderer implements it.
+- **Extensions use the public API.** Triggers and the gallery work on any zoom through its methods, state, events, and documented class names.
+
+`oxlint.config.mts` enforces the imports.
+
 ## Check
 
 ```sh

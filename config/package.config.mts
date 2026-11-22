@@ -45,15 +45,16 @@ function styled(
 ): CandidateEntry {
   return { ...entry, stylesheets, css: `dist/${stylesheets[0]!.fileName}` }
 }
+/** An entry is built from `src/<name>/index.ts`: the source tree mirrors the package. */
 function optional(
   name: string,
-  source: string,
   primaryExport: string,
   kind: string,
   includes: string,
   budgets: readonly [number, number],
   css?: string
 ): CandidateEntry {
+  const source = `src/${name}/index.ts`
   return {
     name,
     source: { esm: source, cjs: source },
@@ -78,7 +79,6 @@ function preset(
   const pure = name.includes('pure')
   const entry = optional(
     name,
-    `src/preset/${pure ? 'pure' : 'index'}.ts`,
     'default',
     `${profile} preset`,
     'HD/container/template; no modal/gallery',
@@ -91,7 +91,7 @@ function preset(
     injected,
     emitsCss: injected,
     source: {
-      ...entry.source,
+      esm: `src/preset/${pure ? 'pure' : 'index'}.ts`,
       cjs: `src/preset/${pure ? 'pure' : 'index'}-commonjs.ts`,
     },
   }
@@ -119,16 +119,14 @@ export const releaseEntries: PackageEntry[] = [
 export const extensionEntries: CandidateEntry[] = [
   optional(
     'core',
-    'src/zoom/index.ts',
     'createZoom',
     'instance API',
     'engine/contracts + state, close reasons and events, signal, groups',
-    [4_230, 4_230],
+    [4_040, 4_040],
     'dist/modern/style.css'
   ),
   optional(
     'loaders',
-    'src/zoom/hd-image.ts',
     'loadHdImage',
     'loading strategy',
     'detached media; readiness + cancellation',
@@ -136,15 +134,13 @@ export const extensionEntries: CandidateEntry[] = [
   ),
   optional(
     'viewport',
-    'src/zoom/viewport.ts',
     'containerBounds',
     'measurement strategy',
     'positioning-time layout',
-    [448, 512]
+    [420, 420]
   ),
   optional(
     'content',
-    'src/zoom/content.ts',
     'templateContent',
     'content helper',
     'renderer-neutral mount + cleanup',
@@ -152,7 +148,6 @@ export const extensionEntries: CandidateEntry[] = [
   ),
   optional(
     'triggers',
-    'src/zoom/triggers.ts',
     'bindZoomTriggers',
     'DOM binding',
     'pointer/keyboard activation; shared binding + signal',
@@ -161,7 +156,6 @@ export const extensionEntries: CandidateEntry[] = [
   styled(
     optional(
       'renderers',
-      'src/zoom/dialog.ts',
       'dialog',
       'modal renderer',
       'native dialog + scene replacement + state attributes',
@@ -170,14 +164,13 @@ export const extensionEntries: CandidateEntry[] = [
     [
       {
         fileName: 'renderers/style.css',
-        sources: ['src/zoom/dialog.css'],
+        sources: ['src/renderers/dialog.css'],
         maxBytes: 180,
       },
     ]
   ),
   optional(
     'transitions',
-    'src/gallery/transition.ts',
     'galleryTransition',
     'transition runner',
     'effect runner + slide; cancellation + reduced motion',
@@ -186,7 +179,6 @@ export const extensionEntries: CandidateEntry[] = [
   styled(
     optional(
       'gallery',
-      'src/gallery/index.ts',
       'createGallery',
       'headless controller',
       'shared headless controller + keyboard/gestures; optional stock controls',
@@ -204,7 +196,7 @@ export const extensionEntries: CandidateEntry[] = [
         fileName: 'gallery.css',
         sources: [
           'src/zoom/medium-zoom.css',
-          'src/zoom/dialog.css',
+          'src/renderers/dialog.css',
           'src/gallery/gallery.css',
         ],
         maxBytes: 1_168,
@@ -213,10 +205,10 @@ export const extensionEntries: CandidateEntry[] = [
   ),
 ]
 export const profileEntries: CandidateEntry[] = [
-  preset('compat', 'compat', true, [3_540, 3_540]),
-  preset('compat/pure', 'compat', false, [3_340, 3_340]),
-  preset('modern', 'modern', true, [3_420, 3_420]),
-  preset('pure', 'compat', false, [3_340, 3_340]),
+  preset('compat', 'compat', true, [3_410, 3_410]),
+  preset('compat/pure', 'compat', false, [3_200, 3_200]),
+  preset('modern', 'modern', true, [3_225, 3_225]),
+  preset('pure', 'compat', false, [3_200, 3_200]),
 ]
 export const candidateEntries = [...extensionEntries, ...profileEntries]
 export const candidateArtifacts = candidateEntries.flatMap(entry => [

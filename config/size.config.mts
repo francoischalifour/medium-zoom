@@ -4,15 +4,17 @@ interface BundleBudget {
   maxBytes: number
 }
 
-// Measured budgets include the adapter/frame preparation. Modern UI capabilities stay optional.
+// Measured budgets leave a few bytes of headroom. Modern UI capabilities stay optional.
 export default [
   ...candidateBudgets,
   { path: 'dist/modern/style.css', maxBytes: 256 },
   { path: 'dist/style.css', maxBytes: 260 },
-  { path: 'dist/medium-zoom.esm.js', maxBytes: 3_540 },
-  { path: 'dist/medium-zoom.min.js', maxBytes: 3_640 },
-  { path: 'dist/pure/index.js', maxBytes: 3_340 },
-  { path: 'dist/pure/medium-zoom.min.umd.js', maxBytes: 3_420 },
+  { path: 'dist/medium-zoom.esm.js', maxBytes: 3_410 },
+  // The website rounds this file's size: under 3,500 B it reads 3 kB, whether Bun or Node
+  // compresses it. Their results differ by a few bytes, so stay clear of the boundary.
+  { path: 'dist/medium-zoom.min.js', maxBytes: 3_490 },
+  { path: 'dist/pure/index.js', maxBytes: 3_200 },
+  { path: 'dist/pure/medium-zoom.min.umd.js', maxBytes: 3_290 },
 ] satisfies BundleBudget[]
 
 /**

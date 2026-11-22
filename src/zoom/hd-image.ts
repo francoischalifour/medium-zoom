@@ -1,9 +1,6 @@
-import type { ZoomLoader } from 'medium-zoom/core'
+import type { ZoomLoader } from '@/zoom/types'
 
-/**
- * Loads the image's `data-zoom-src`, or its `srcset`, in high resolution and shows it over the
- * frame once loaded. Keeps the attached image when neither is set or loading fails.
- */
+/** The loader of the v1 library, published to the modern one as `medium-zoom/loaders`. */
 export const loadHdImage: ZoomLoader = ({ original, clone }, ready) => {
   const source = original.getAttribute('data-zoom-src')
   if (!source && !original.hasAttribute('srcset')) {

@@ -4,7 +4,7 @@ import { addModernStyles, preparePage } from './helpers'
 
 declare global {
   interface Window {
-    zooms: Record<string, import('../../src/zoom').ModalZoom>
+    zooms: Record<string, import('../../src/core').ModalZoom>
     log: string[]
   }
 }

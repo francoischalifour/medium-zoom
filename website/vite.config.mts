@@ -24,7 +24,6 @@ export default defineConfig(({ command }) =>
     define: {
       __MEDIUM_ZOOM_VERSION__: JSON.stringify(packageJson.version),
       __MEDIUM_ZOOM_GZIP_BYTES__: libraryGzipBytes(),
-      ...(command === 'serve' && { __PRESET__: 'true' }),
     },
     plugins: [
       {
