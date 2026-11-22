@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url'
 
 import { defineConfig, devices } from '@playwright/test'
 
+import { chromium } from './playwright-chromium.mts'
 import { reserveTestPorts } from './test-ports.mts'
 
 const { testUrl } = await reserveTestPorts()
@@ -14,7 +15,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: 'list',
   use: { baseURL: testUrl, trace: 'retain-on-failure' },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [{ name: 'chromium', use: chromium(devices['Desktop Chrome']) }],
   webServer: {
     cwd: fileURLToPath(new URL('../', import.meta.url)),
     command: 'bun scripts/build-analytics-fixture.ts && bun tests/server.ts',

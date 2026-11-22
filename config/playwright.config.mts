@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url'
 
 import { defineConfig, devices } from '@playwright/test'
 
+import { chromium } from './playwright-chromium.mts'
 import { reserveTestPorts } from './test-ports.mts'
 
 const repositoryRoot = fileURLToPath(new URL('../', import.meta.url))
@@ -37,13 +38,13 @@ export default defineConfig({
     {
       name: 'chromium',
       testIgnore: '**/mobile.spec.ts',
-      use: { ...devices['Desktop Chrome'] },
+      use: chromium(devices['Desktop Chrome']),
     },
     {
       name: 'modern-chromium',
       testMatch: ['**/api.spec.ts', '**/loading.spec.ts', '**/motion.spec.ts'],
       metadata: { preset: 'modern' },
-      use: { ...devices['Desktop Chrome'] },
+      use: chromium(devices['Desktop Chrome']),
     },
     {
       name: 'firefox',
@@ -58,14 +59,14 @@ export default defineConfig({
     {
       name: 'mobile-chromium',
       testMatch: mobileSpecs,
-      use: { ...devices['Pixel 7'] },
+      use: chromium(devices['Pixel 7']),
     },
     {
       // A slow phone: sparse, late events and long frames.
       name: 'slow-mobile-chromium',
       testMatch: ['**/gallery-gestures.spec.ts', '**/gallery-stress.spec.ts'],
       metadata: { cpuThrottle: 6 },
-      use: { ...devices['Pixel 7'] },
+      use: chromium(devices['Pixel 7']),
     },
     {
       name: 'mobile-webkit',

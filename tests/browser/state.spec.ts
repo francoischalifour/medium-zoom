@@ -6,6 +6,7 @@ declare global {
   interface Window {
     statuses: string[]
     reasons: string[]
+    closeEvents: string[]
   }
 }
 
@@ -135,7 +136,7 @@ test('close and closed events report why the zoom closed', async ({ page }) => {
   await closed(1)
 
   await open()
-  await page.evaluate(() => window.modalZoom.close('control'))
+  await page.evaluate(() => window.modalZoom.close({ reason: 'control' }))
   await closed(2)
 
   await open()
@@ -173,12 +174,91 @@ test('close and closed events report why the zoom closed', async ({ page }) => {
   expect(await page.evaluate(() => window.reasons)).toEqual([
     'api',
     'control',
-    'escape',
+    'escape-key',
     'control',
     'form',
-    'pointer',
+    'image-press',
     'api',
     'detach',
+  ])
+})
+
+test('close details carry the DOM event behind each reason', async ({
+  page,
+}) => {
+  await modal(page)
+  await page.evaluate(() => {
+    window.closeEvents = []
+    window.modalZoom.on('closed', ({ detail }) =>
+      window.closeEvents.push(
+        `${detail.reason}:${detail.event ? `${detail.event.constructor.name} ${detail.event.type}` : 'none'}`
+      )
+    )
+  })
+  const open = () =>
+    page.evaluate(() =>
+      window.modalZoom.open({ target: window.modalZoom.getImages()[0] })
+    )
+  const closed = (count: number) =>
+    expect
+      .poll(() => page.evaluate(() => window.closeEvents.length))
+      .toBe(count)
+
+  await open()
+  await page.keyboard.press('Escape')
+  await closed(1)
+
+  await open()
+  await page.locator('#control').click()
+  await closed(2)
+
+  await open()
+  await page.locator('#submit').click()
+  await closed(3)
+
+  await open()
+  await page.locator('dialog img.medium-zoom-image--opened').first().click()
+  await closed(4)
+
+  await open()
+  // The backdrop covers the window: a click in a corner away from the controls lands on it.
+  const { width, height } = page.viewportSize()!
+  await page.mouse.click(width - 4, height - 4)
+  await closed(5)
+
+  await open()
+  await page.evaluate(() => window.modalZoom.close())
+  await closed(6)
+
+  await open()
+  // A close request without Escape, as the Android back gesture sends.
+  await page.evaluate(() =>
+    document
+      .querySelector('dialog')!
+      .dispatchEvent(new Event('cancel', { cancelable: true }))
+  )
+  await closed(7)
+
+  await open()
+  await page.evaluate(() =>
+    window.modalZoom.close({
+      reason: 'control',
+      event: new MouseEvent('click'),
+    })
+  )
+  await closed(8)
+
+  // Clicks are pointer events in some browsers and mouse events in others.
+  const events = await page.evaluate(() => window.closeEvents)
+  expect(events[0]).toBe('escape-key:KeyboardEvent keydown')
+  expect(events[1]).toMatch(/^control:(Pointer|Mouse)Event click$/)
+  expect(events[2]).toBe('form:SubmitEvent submit')
+  expect(events[3]).toMatch(/^image-press:(Pointer|Mouse)Event click$/)
+  expect(events[4]).toMatch(/^outside-press:(Pointer|Mouse)Event click$/)
+  expect(events.slice(5)).toEqual([
+    'api:none',
+    'back:Event cancel',
+    'control:MouseEvent click',
   ])
 })
 
@@ -189,7 +269,10 @@ test('the first reason wins while a close is under way', async ({ page }) => {
     const zoom = window.modalZoom
     const seen: string[] = []
     zoom.on('close', event => seen.push(event.detail.reason))
-    await Promise.all([zoom.close('control'), zoom.close('escape')])
+    await Promise.all([
+      zoom.close({ reason: 'control' }),
+      zoom.close({ reason: 'escape-key' }),
+    ])
     return [...seen, ...window.reasons]
   })
   expect(reasons).toEqual(['control', 'control'])

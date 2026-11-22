@@ -49,7 +49,9 @@ export function bindGalleryKeyboard<Options extends CoreZoomOptions>(
     const end = { Home: 0, End: last }[key]
     if (end !== undefined) {
       event.preventDefault()
-      void gallery.select(end)
+      void gallery.select(end, {
+        reason: key === 'Home' ? 'home-key' : 'end-key',
+      })
     } else if (key === 'ArrowLeft' || key === 'ArrowRight') {
       event.preventDefault()
       const now = event.timeStamp
@@ -60,7 +62,10 @@ export function bindGalleryKeyboard<Options extends CoreZoomOptions>(
         return
       }
       stepped = now
-      void (key === 'ArrowRight' ? gallery.next() : gallery.previous())
+      const reason = { reason: 'arrow-key' } as const
+      void (key === 'ArrowRight'
+        ? gallery.next(reason)
+        : gallery.previous(reason))
     }
   }
   // An already aborted signal adds nothing.

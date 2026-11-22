@@ -4,6 +4,10 @@ import {
   type CoreZoomOptions,
   createZoom,
   type ModalZoom,
+  type ZoomCloseEventMap,
+  type ZoomCloseReason,
+  type ZoomEvent,
+  type ZoomState,
 } from 'medium-zoom/core'
 import { loadHdImage } from 'medium-zoom/loaders'
 import { dialog } from 'medium-zoom/renderers'
@@ -17,14 +21,40 @@ export type ZoomOptions = CoreZoomOptions & {
   container?: Parameters<typeof containerBounds>[0]
 }
 
+/**
+ * Why the zoom asks to open or close: `trigger-press` for the trigger, `disabled` and
+ * `source-change` when the component closes it, or the zoom's own close reason.
+ */
+export type OpenChangeReason =
+  'trigger-press' | 'disabled' | 'source-change' | ZoomCloseReason
+
+type OpenChangeEventMap = ZoomCloseEventMap & {
+  'trigger-press': MouseEvent
+  disabled: never
+  'source-change': never
+}
+
+/** What `onOpenChange` receives with the next value. Checking `reason` narrows `event`. */
+export type OpenChangeDetails<
+  Reason extends OpenChangeReason = OpenChangeReason,
+> = Reason extends unknown
+  ? {
+      readonly reason: Reason
+      /** The DOM event behind the change; undefined when none caused it. */
+      readonly event?: OpenChangeEventMap[Reason]
+    }
+  : never
+
 export type RootProps = {
   children: React.ReactNode
   disabled?: boolean
   options?: ZoomOptions
   /** Supply this value to control zoom state from the parent. */
   open?: boolean
-  /** Receives the requested next value. Update `open` here when controlled. */
-  onOpenChange?: (open: boolean) => void
+  /** Whether an uncontrolled zoom opens once mounted. */
+  defaultOpen?: boolean
+  /** Receives the requested next value and why. Update `open` here when controlled. */
+  onOpenChange?: (open: boolean, details: OpenChangeDetails) => void
 }
 
 export type TriggerProps = Omit<
@@ -44,8 +74,8 @@ const ZoomContext = React.createContext<{
   setAlt: React.Dispatch<React.SetStateAction<string>>
   disabled: boolean
   zoomed: boolean
-  close: () => void
-  toggle: () => void
+  close: (details: OpenChangeDetails) => void
+  toggle: (event: MouseEvent) => void
 } | null>(null)
 
 function useZoomContext() {
@@ -58,43 +88,89 @@ function useZoomContext() {
   return context
 }
 
+const closedState: ZoomState = Object.freeze({
+  status: 'closed',
+  image: null,
+  images: [],
+})
+const subscribeToNothing = () => () => {}
+const getClosedState = () => closedState
+
+/** Warns once when `open` switches between controlled and uncontrolled, as React inputs do. */
+function useControlWarnings(open: boolean | undefined, defaultOpen?: boolean) {
+  const controlled = React.useRef(open !== undefined)
+  const warned = React.useRef(false)
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === 'production' || warned.current) {
+      return
+    }
+    const message =
+      open !== undefined && defaultOpen !== undefined
+        ? 'ImageZoom.Root received both `open` and `defaultOpen`: `defaultOpen` is ignored while `open` controls the zoom.'
+        : controlled.current !== (open !== undefined)
+          ? `ImageZoom.Root changed from ${controlled.current ? 'controlled' : 'uncontrolled'} to ${controlled.current ? 'uncontrolled' : 'controlled'}. Decide between \`open\` and \`defaultOpen\` for the lifetime of the component.`
+          : ''
+    if (message) {
+      warned.current = true
+      console.error(message)
+    }
+  })
+}
+
 export function Root({
   children,
   disabled = false,
   options,
   open,
+  defaultOpen,
   onOpenChange,
 }: RootProps) {
+  useControlWarnings(open, defaultOpen)
   const [image, setImage] = React.useState<HTMLImageElement | null>(null)
   const [alt, setAlt] = React.useState('')
-  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false)
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(
+    defaultOpen ?? false
+  )
   const wantedOpen = !disabled && (open ?? uncontrolledOpen)
   const wantedRef = React.useRef(wantedOpen)
   const changeRef = React.useRef(onOpenChange)
   const requestedRef = React.useRef(wantedOpen)
-  const zoomRef = React.useRef<ModalZoom | null>(null)
   const optionsRef = React.useRef(options)
+  // The zoom lives in an effect; until it exists, the component reads as closed.
+  const [zoom, setZoom] = React.useState<ModalZoom | null>(null)
+  const zoomRef = React.useRef<ModalZoom | null>(null)
+  const state = React.useSyncExternalStore(
+    zoom ? zoom.subscribe : subscribeToNothing,
+    zoom ? zoom.getSnapshot : getClosedState,
+    getClosedState
+  )
   // React must preserve the library's classes when consumers change className while zoomed.
-  const [zoomed, setZoomed] = React.useState(false)
+  const zoomed = state.status !== 'closed'
 
-  const requestOpen = React.useCallback((next: boolean) => {
-    if (requestedRef.current === next) {
-      return
-    }
-    requestedRef.current = next
-    setUncontrolledOpen(next)
-    changeRef.current?.(next)
-  }, [])
+  const requestOpen = React.useCallback(
+    (next: boolean, details: OpenChangeDetails) => {
+      if (requestedRef.current === next) {
+        return
+      }
+      requestedRef.current = next
+      setUncontrolledOpen(next)
+      changeRef.current?.(next, details)
+    },
+    []
+  )
 
-  const close = React.useCallback(() => {
-    requestOpen(false)
-    void zoomRef.current?.close()
-  }, [requestOpen])
+  const close = React.useCallback(
+    (details: OpenChangeDetails) => {
+      requestOpen(false, details)
+      void zoomRef.current?.close()
+    },
+    [requestOpen]
+  )
 
   React.useEffect(() => {
     changeRef.current = onOpenChange
     if (disabled) {
-      requestOpen(false)
+      requestOpen(false, { reason: 'disabled' })
     }
     wantedRef.current = wantedOpen
     requestedRef.current = wantedOpen
@@ -120,37 +196,27 @@ export function Root({
         containerBounds(optionsRef.current?.container ?? null)(bounds, core),
     })
     zoomRef.current = zoom
+    // The snapshot follows this zoom until the next one replaces it, so a zoom still closing
+    // after this effect ends keeps the image hidden until it is gone.
+    setZoom(zoom)
     // Listeners from on() hear this zoom only, even once a new zoom takes the image.
-    const onOpen = () => setZoomed(true)
-    const onClose = () => {
+    const onClose = ({ detail }: ZoomEvent<'close'>) => {
       if (!lifetime.signal.aborted) {
-        requestOpen(false)
+        requestOpen(false, {
+          reason: detail.reason,
+          event: detail.event,
+        } as OpenChangeDetails)
       }
     }
-    const onClosed = () => {
-      if (image.isConnected) {
-        setZoomed(false)
-      }
-      if (lifetime.signal.aborted) {
-        release()
-      }
-    }
-    const release = () =>
-      zoom.off('open', onOpen).off('close', onClose).off('closed', onClosed)
-    zoom.on('open', onOpen).on('close', onClose).on('closed', onClosed)
-    setZoomed(false)
+    zoom.on('close', onClose)
     if (wantedRef.current) {
       openZoom()
     }
     return () => {
       zoomRef.current = null
       setUncontrolledOpen(false)
-      const shown = zoom.getSnapshot().status !== 'closed'
+      zoom.off('close', onClose)
       lifetime.abort()
-      // A shown zoom releases its listeners once its close ends, in onClosed.
-      if (!shown) {
-        release()
-      }
     }
   }, [disabled, image, requestOpen])
 
@@ -180,10 +246,10 @@ export function Root({
         disabled,
         zoomed,
         close,
-        toggle: () => {
+        toggle: event => {
           // A controlled owner may decline a request; each new activation can ask again.
           requestedRef.current = wantedRef.current
-          requestOpen(!wantedRef.current)
+          requestOpen(!wantedRef.current, { reason: 'trigger-press', event })
         },
       }}
     >
@@ -210,7 +276,7 @@ export const Trigger = React.forwardRef<HTMLButtonElement, TriggerProps>(
         onClick={event => {
           onClick?.(event)
           if (!event.defaultPrevented) {
-            context.toggle()
+            context.toggle(event.nativeEvent)
           }
         }}
       />
@@ -243,7 +309,7 @@ export const Image = React.forwardRef<HTMLImageElement, ImageProps>(
       if (
         source.some((value, index) => value !== previousSource.current[index])
       ) {
-        close()
+        close({ reason: 'source-change' })
       }
       previousSource.current = source
     }, [props.src, props.srcSet, props.sizes, props['data-zoom-src'], close])
@@ -269,12 +335,16 @@ export const Image = React.forwardRef<HTMLImageElement, ImageProps>(
 )
 
 export const ImageZoom = React.forwardRef<HTMLImageElement, ImageZoomProps>(
-  function ImageZoom({ disabled, options, open, onOpenChange, ...props }, ref) {
+  function ImageZoom(
+    { disabled, options, open, defaultOpen, onOpenChange, ...props },
+    ref
+  ) {
     return (
       <Root
         disabled={disabled}
         options={options}
         open={open}
+        defaultOpen={defaultOpen}
         onOpenChange={onOpenChange}
       >
         <Trigger

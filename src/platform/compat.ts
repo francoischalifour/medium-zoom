@@ -1,6 +1,6 @@
 import type { ZoomInstance } from '../zoom/engine'
 
-type ZoomEventDetail = { zoom: ZoomInstance; reason?: string }
+type ZoomEventDetail = { zoom: ZoomInstance; reason?: string; event?: Event }
 
 // Preserve v1's no-Promise behavior without installing a global polyfill.
 // This executes the zoom lifecycle but does not implement promise chaining.

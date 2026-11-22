@@ -73,9 +73,9 @@
     }
   }
 
-  /* data-medium-zoom-pressed mirrors a held arrow key. The tint shows the press on bare icons too. */
+  /* data-pressed mirrors a held arrow key. The tint shows the press on bare icons too. */
   .medium-zoom-control:active:not([aria-disabled='true']),
-  .medium-zoom-control[data-medium-zoom-pressed]:not([aria-disabled='true']) {
+  .medium-zoom-control[data-pressed]:not([aria-disabled='true']) {
     background-image: radial-gradient(
       closest-side,
       color-mix(in srgb, currentColor 8%, transparent) 60%,
@@ -142,13 +142,13 @@
     clip-path: inset(50%);
   }
 
-  /* Hidden while idle, while a drag closes the image and once the zoom starts closing. */
-  [data-medium-zoom-idle] .medium-zoom-control--close:not(:focus-visible),
-  [data-medium-zoom-idle] .medium-zoom-navigation:not(:has(:focus-visible)),
-  [data-medium-zoom-gesture='close']
+  /* Hidden while idle, while a drag closes the image, and as the zoom opens and closes. */
+  [data-idle] .medium-zoom-control--close:not(:focus-visible),
+  [data-idle] .medium-zoom-navigation:not(:has(:focus-visible)),
+  [data-gesture='close']
     :is(.medium-zoom-control--close, .medium-zoom-navigation),
-  body:not(.medium-zoom--opened) .medium-zoom-control--close,
-  body:not(.medium-zoom--opened) .medium-zoom-navigation {
+  :is([data-starting-style], [data-ending-style])
+    :is(.medium-zoom-control--close, .medium-zoom-navigation) {
     opacity: 0;
   }
 
@@ -162,6 +162,6 @@
   A zoomed image is moved rather than closed by the pointer. Outside the layer: the core's
   unlayered zoom-out cursor would win over any layered rule.
 */
-[data-medium-zoom-zoomed] .medium-zoom-image--opened {
+[data-zoomed] .medium-zoom-image--opened {
   cursor: grab;
 }

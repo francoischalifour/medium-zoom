@@ -184,21 +184,64 @@ export interface ZoomInstance<
 }
 
 /**
- * Why a zoom closed: `api` for `close()` without a reason, `control` for an application
- * control such as a close button, `pointer` for a click on the image or backdrop, `escape`,
- * `form` for a `method="dialog"` form, `gesture`, `scroll`, `detach` when images were
- * detached while it was open, and `group` when another zoom of its group opened.
+ * The DOM event behind each close reason, as reported by `event` in the `close` and `closed`
+ * details. `never` marks reasons no event causes.
  */
-export type ZoomCloseReason =
-  | 'api'
-  | 'control'
-  | 'pointer'
-  | 'escape'
-  | 'form'
-  | 'gesture'
-  | 'scroll'
-  | 'detach'
-  | 'group'
+export interface ZoomCloseEventMap {
+  /** `close()` without a reason; the event when it is called as a listener. */
+  api: Event
+  /** An application control, such as a close button. */
+  control: Event
+  /** A click or tap on the zoomed image. */
+  'image-press': MouseEvent
+  /** A click or tap on the backdrop. */
+  'outside-press': MouseEvent
+  /** The Escape key. */
+  'escape-key': KeyboardEvent
+  /** Another close request from the platform, such as the Android back gesture. */
+  back: Event
+  /** A `method="dialog"` form. */
+  form: SubmitEvent
+  /** A drag or pinch that dismisses the image. */
+  gesture: PointerEvent
+  /** Scrolling the page past `scrollOffset`. */
+  scroll: never
+  /** Images detached while the zoom was open. */
+  detach: never
+  /** Another zoom of its group opened. */
+  group: never
+}
+
+/** Why a zoom closed. See `ZoomCloseEventMap` for each reason and its event. */
+export type ZoomCloseReason = keyof ZoomCloseEventMap
+
+/** Options of `close()`. */
+export interface ZoomCloseOptions<
+  Reason extends ZoomCloseReason = ZoomCloseReason,
+> {
+  /**
+   * Why, as reported by the `close` and `closed` events.
+   *
+   * @default 'api'
+   */
+  readonly reason?: Reason
+  /** The DOM event behind it, reported with the reason. */
+  readonly event?: ZoomCloseEventMap[Reason]
+}
+
+/**
+ * The `detail` of the `close` and `closed` events. One member per reason, so checking
+ * `reason` narrows `event`.
+ */
+export type ZoomCloseDetail<Reason extends ZoomCloseReason = ZoomCloseReason> =
+  Reason extends unknown
+    ? {
+        readonly zoom: ZoomInstance
+        readonly reason: Reason
+        /** The DOM event that closed the zoom; undefined for calls without one. */
+        readonly event?: ZoomCloseEventMap[Reason]
+      }
+    : never
 
 /** Where a zoom is in its lifecycle. Replacing the open image goes back to `opening`. */
 export type ZoomStatus = 'closed' | 'opening' | 'open' | 'closing'
@@ -216,8 +259,8 @@ export interface ZoomState {
 export interface ZoomEventMap {
   open: { readonly zoom: ZoomInstance }
   opened: { readonly zoom: ZoomInstance }
-  close: { readonly zoom: ZoomInstance; readonly reason: ZoomCloseReason }
-  closed: { readonly zoom: ZoomInstance; readonly reason: ZoomCloseReason }
+  close: ZoomCloseDetail
+  closed: ZoomCloseDetail
   attach: { readonly zoom: ZoomInstance }
   detach: { readonly zoom: ZoomInstance }
   update: { readonly zoom: ZoomInstance }
@@ -259,6 +302,7 @@ export interface Scene {
   __mz_release?: () => void
   __mz_requested?: number
   __mz_reason?: ZoomCloseReason
+  __mz_event?: Event
 }
 
 /** What a loader works from when a zoom opens. */
@@ -302,8 +346,14 @@ export interface LegacyAdapter<Options extends CoreZoomOptions> {
 export interface Stage {
   mount(context: {
     readonly zoom: ZoomInstance
-    /** Closes the zoom; the reason defaults to `control`. */
-    close: (reason?: ZoomCloseReason) => void
+    /**
+     * Closes the zoom; the reason defaults to `control`. Bound as a listener, it receives
+     * the event instead.
+     */
+    close: (
+      reason?: ZoomCloseReason | ZoomCloseOptions | Event,
+      event?: Event
+    ) => void
     readonly trigger?: HTMLElement
   }): StageView
 }
@@ -364,16 +414,20 @@ export const createEngine = <Options extends CoreZoomOptions>(
           // Only `close` and `closed` start with a "c" and carry the reason.
           __PRESET__
             ? { zoom }
-            : { zoom, reason: type[0] === 'c' ? reported : undefined }
+            : type[0] === 'c'
+              ? { zoom, reason: reported, event: reportedEvent }
+              : { zoom }
         )
       )
     }
 
     // Composed zooms keep a frozen state for subscribers and report why they close; the
     // presets do neither. `requested` is the reason given to the next close, `reported` the
-    // one carried by the close event being dispatched.
+    // one carried by the close event being dispatched, each with its DOM event.
     let requested: ZoomCloseReason | undefined
+    let requestedEvent: Event | undefined
     let reported: ZoomCloseReason | undefined
+    let reportedEvent: Event | undefined
     let status: ZoomStatus = 'closed'
     let state: ZoomState
     const subscribers = __PRESET__ ? undefined : new Set<() => void>()
@@ -405,7 +459,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
         if (__PRESET__) {
           _close()
         } else {
-          closeOnPointer()
+          void closeFor('outside-press', 'api', event)
         }
       }
     }
@@ -460,7 +514,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
 
     const _handleKeyUp = (event: KeyboardEvent) => {
       if (isEscape(event)) {
-        void (__PRESET__ ? close() : closeFor('escape'))
+        void (__PRESET__ ? close() : closeFor('escape-key', 'api', event))
       }
     }
 
@@ -528,6 +582,11 @@ export const createEngine = <Options extends CoreZoomOptions>(
           image.classList.remove('medium-zoom-image')
         }
         _dispatchEvent(image, 'detach')
+        // Composed zooms take their listeners off released images, so off() is not needed
+        // for images it can no longer reach. A closing image keeps them for its `closed`.
+        if (!__PRESET__ && image !== active.__mz_original) {
+          unlisten(image)
+        }
       })
       images = images.filter(image => detached.indexOf(image) === -1)
       if (!__PRESET__) {
@@ -541,6 +600,11 @@ export const createEngine = <Options extends CoreZoomOptions>(
       }
       return zoom
     }
+
+    const unlisten = (image: ZoomTarget) =>
+      eventListeners.forEach(([type, listener, options]) =>
+        image.removeEventListener(type, listener, options)
+      )
 
     const capture = (options: boolean | AddEventListenerOptions) =>
       typeof options === 'boolean' ? options : !!options.capture
@@ -577,7 +641,13 @@ export const createEngine = <Options extends CoreZoomOptions>(
               }
             }
         const handler = __PRESET__ ? listener : filter
-        images.forEach(image =>
+        // A detached image still closing keeps this zoom's listeners until it is closed.
+        ;(!__PRESET__ &&
+        active.__mz_original &&
+        !isAttached(active.__mz_original)
+          ? images.concat(active.__mz_original)
+          : images
+        ).forEach(image =>
           image[add ? 'addEventListener' : 'removeEventListener'](
             eventType,
             __PRESET__ ? listener : handler,
@@ -756,7 +826,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
         )
         current.__mz_frames = [primary]
         // Listen on the frame because mobile WebKit can fail to deliver its click to the document.
-        primary.addEventListener('click', __PRESET__ ? _close : closeOnPointer)
+        primary.addEventListener('click', __PRESET__ ? _close : closeOnImage)
 
         try {
           if (stage) {
@@ -765,7 +835,8 @@ export const createEngine = <Options extends CoreZoomOptions>(
               stage.mount({
                 zoom,
                 // Bound as a listener, it receives an event: that is a control.
-                close: reason => void closeFor(reason, 'control'),
+                close: (reason, event) =>
+                  void closeFor(reason, 'control', event),
                 trigger: options.trigger,
               })
             current.__mz_view.enter(primary)
@@ -854,7 +925,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
           }
           // An authored load handler may have replaced the copied classes.
           media.classList.add('medium-zoom-image--opened')
-          media.addEventListener('click', __PRESET__ ? _close : closeOnPointer)
+          media.addEventListener('click', __PRESET__ ? _close : closeOnImage)
           host.appendChild(media)
           current.__mz_frames!.push(media)
         }
@@ -1053,7 +1124,8 @@ export const createEngine = <Options extends CoreZoomOptions>(
         current.__mz_closing = true
         if (!__PRESET__) {
           current.__mz_reason = requested || 'api'
-          requested = undefined
+          current.__mz_event = requestedEvent
+          requested = requestedEvent = undefined
           if (current.__mz_release) {
             current.__mz_release()
           }
@@ -1085,8 +1157,12 @@ export const createEngine = <Options extends CoreZoomOptions>(
           } finally {
             if (!__PRESET__) {
               reported = current.__mz_reason
+              reportedEvent = current.__mz_event
             }
             _dispatchEvent(current.__mz_original!, 'closed')
+            if (!__PRESET__ && !isAttached(current.__mz_original!)) {
+              unlisten(current.__mz_original!)
+            }
           }
         }
 
@@ -1108,6 +1184,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
         if (!__PRESET__) {
           commit('closing')
           reported = current.__mz_reason
+          reportedEvent = current.__mz_event
         }
         _dispatchEvent(current.__mz_original!, 'close')
         if (!primary) {
@@ -1222,19 +1299,31 @@ export const createEngine = <Options extends CoreZoomOptions>(
       void close()
     }
     // Composed zooms only: records why the next close happens, unless one is under way.
-    const closeFor = (reason?: unknown, fallback: ZoomCloseReason = 'api') => {
+    const closeFor = (
+      reason?: unknown,
+      fallback: ZoomCloseReason = 'api',
+      event?: unknown
+    ) => {
       // Closing cancels an opening still waiting for another zoom of the group.
       if (queued()) {
         group!.__mz_ticket++
       }
       if (active.__mz_original && !active.__mz_closing) {
-        // Bound as a listener, close() receives an event rather than a reason.
-        requested =
-          typeof reason === 'string' ? (reason as ZoomCloseReason) : fallback
+        // `reason` is a reason, close options, or, bound as a listener, the event.
+        const options = (
+          typeof reason === 'string'
+            ? { reason, event }
+            : reason && (reason as Event).type
+              ? { event: reason }
+              : reason || {}
+        ) as ZoomCloseOptions
+        requested = options.reason || fallback
+        requestedEvent = options.event
       }
       return close()
     }
-    const closeOnPointer = () => void closeFor('pointer')
+    const closeOnImage = (event: Event) =>
+      void closeFor('image-press', 'api', event)
     const closeOnScroll = () => void closeFor('scroll')
 
     const _refit = () => {
@@ -1248,13 +1337,13 @@ export const createEngine = <Options extends CoreZoomOptions>(
         ZoomInstance<Options>,
         'close' | 'open' | 'toggle'
       > & {
-        close: (reason?: ZoomCloseReason) => Promise<unknown>
+        close: (options?: ZoomCloseOptions) => Promise<unknown>
         open: typeof request
         toggle: (options?: ModalOpenOptions) => Promise<unknown>
         getSnapshot: () => ZoomState
         subscribe: (listener: () => void) => () => void
       }
-      composed.close = reason => closeFor(reason)
+      composed.close = options => closeFor(options)
       composed.open = request
       composed.toggle = options =>
         queued() || active.__mz_original ? closeFor() : request(options)

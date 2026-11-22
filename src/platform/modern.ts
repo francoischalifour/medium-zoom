@@ -1,6 +1,6 @@
 import type { ZoomInstance } from '../zoom/engine'
 
-type ZoomEventDetail = { zoom: ZoomInstance; reason?: string }
+type ZoomEventDetail = { zoom: ZoomInstance; reason?: string; event?: Event }
 
 export const getPromise = (): PromiseConstructor => Promise
 

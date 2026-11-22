@@ -30,7 +30,11 @@ function Example() {
             bindGalleryKeyboard(element, gallery, { signal })
             root.render(
               <>
-                <button className="photo-close" autoFocus onClick={close}>
+                <button
+                  className="photo-close"
+                  autoFocus
+                  onClick={event => close({ event: event.nativeEvent })}
+                >
                   Close image
                 </button>
                 <GalleryControls.Root
