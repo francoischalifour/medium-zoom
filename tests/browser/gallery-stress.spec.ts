@@ -324,7 +324,12 @@ async function settle(page: Page) {
           Math.abs(y - (height - box!.height) / 2) <= 2
         if (
           !centred(left, top, stage.width, stage.height) &&
-          !centred(box!.left, box!.top, innerWidth, innerHeight)
+          !centred(
+            box!.left,
+            box!.top,
+            document.documentElement.clientWidth,
+            document.documentElement.clientHeight
+          )
         ) {
           problems.push(
             `frame ${Math.round(box!.width)}×${Math.round(box!.height)} off centre at ${Math.round(left)},${Math.round(top)} in ${Math.round(stage.width)}×${Math.round(stage.height)} (${frames.map(frame => `${frame.style.translate} | ${frame.style.scale}`).join(' ; ')})`
@@ -376,11 +381,19 @@ function actions(
         ]
       : [size.width / 2, size.height / 2]
   }
+  // Released inside the window: browsers do not report a mouse released outside it.
   const swipe = async (dx: number, dy = 0) => {
     const [x, y] = await centre()
+    const { width, height } = page.viewportSize()!
+    const inside = (from: number, by: number, size: number) =>
+      Math.min(Math.max(from + by, 8), size - 8) - from
     const input = await finger
     await input.down([x, y])
-    await input.glide(dx, dy, Math.round(random.between(2, 8)))
+    await input.glide(
+      inside(x, dx, width),
+      inside(y, dy, height),
+      Math.round(random.between(2, 8))
+    )
     await input.up()
   }
   const button = (name: string) =>

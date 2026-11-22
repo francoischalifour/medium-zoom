@@ -399,13 +399,16 @@ test('HD request attributes apply before fetching the replacement', async ({
       headers: { 'Access-Control-Allow-Origin': '*' },
     })
   })
+  // The zoom opens without waiting for the replacement: close only once it was requested.
+  const requested = page.waitForRequest('https://photos.example/hd.jpg')
   await page.evaluate(async () => {
     const { createZoom } = await window.loadEntry('core')
     const { loadHdImage } = await window.loadEntry('loaders')
-    const zoom = createZoom('#image', { loader: loadHdImage })
-    await zoom.open()
-    await zoom.close()
+    window.coreZoom = createZoom('#image', { loader: loadHdImage })
+    await window.coreZoom.open()
   })
+  await requested
+  await page.evaluate(() => window.coreZoom.close())
   expect(origin).toBe(new URL(page.url()).origin)
   expect(referrer).toBeUndefined()
 })

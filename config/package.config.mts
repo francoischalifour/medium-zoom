@@ -199,7 +199,7 @@ export const extensionEntries: CandidateEntry[] = [
       'headless controller',
       'headless controller + keyboard/gestures; optional stock controls',
       // Gestures are about 3 KB of it, shaken out by consumers that do not bind them.
-      [5_300, 5_300]
+      [5_330, 5_330]
     ),
     [
       {

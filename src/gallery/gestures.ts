@@ -447,8 +447,13 @@ export function bindGalleryGestures({
     const [cx, cy] = (anchor = centroid())
     let dx = cx! - start[0]!
     let dy = cy! - start[1]!
+    // The last 100ms of movement plus the sample just before, so speed is measured
+    // between two real points however sparse the events.
+    const recent = samples.findIndex(
+      sample => event.timeStamp - sample[0]! < 100
+    )
     samples = samples
-      .filter(sample => event.timeStamp - sample[0]! < 100)
+      .slice(recent < 0 ? -1 : Math.max(0, recent - 1))
       .concat([[event.timeStamp, cx!, cy!]])
     if (mode === 'pending') {
       if (Math.hypot(dx, dy) < slop) {
@@ -522,10 +527,13 @@ export function bindGalleryGestures({
       }
       return
     }
-    const recent = samples.filter(sample => event.timeStamp - sample[0]! < 100)
-    const first = recent[0]
-    const last = recent[recent.length - 1]
-    const elapsed = first && last ? last[0]! - first[0]! : 0
+    // A finger that rested before lifting has no speed left.
+    const first = samples[0]
+    const last = samples[samples.length - 1]
+    const elapsed =
+      first && last && event.timeStamp - last[0]! < 100
+        ? last[0]! - first[0]!
+        : 0
     velocity = elapsed
       ? [
           (last![1]! - first![1]!) / elapsed,

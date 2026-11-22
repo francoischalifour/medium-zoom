@@ -136,9 +136,10 @@ test('a swipe that catches the last one early holds the strip, both images in pl
   await finger.down([x, y])
   await finger.glide(-120, 0, 3)
   await finger.up()
-  await travelled(page, 0.1)
-  // A press holds both images; releasing carries on to the neighbour it was heading for.
+  // Pressed again at once, well before the strip is halfway, however slow the machine.
   await finger.down([x, y])
+  expect(-(await offsetX(page)) / page.viewportSize()!.width).toBeLessThan(0.5)
+  // A press holds both images; releasing carries on to the neighbour it was heading for.
   expect(
     await page
       .locator('dialog img:not([class]), dialog img.medium-zoom-image--opened')

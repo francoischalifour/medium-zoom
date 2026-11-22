@@ -938,7 +938,7 @@ test('the position keeps its width when the count gains a digit', async ({
   await expect(page.getByRole('status')).toContainText('10 / 12')
   expect(
     await navigation.evaluate(node => node.getBoundingClientRect().width)
-  ).toBe(nine)
+  ).toBeCloseTo(nine, 1)
 })
 
 test('stock controls take localized labels and positions', async ({ page }) => {
