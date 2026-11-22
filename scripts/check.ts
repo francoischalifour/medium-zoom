@@ -6,15 +6,23 @@
  *   bun run check --changed        The steps that this branch's changes can affect,
  *                                  chosen by scripts/ci-scope.sh as in CI.
  *
+ *   bun run check --no-cache       Run cached steps again.
+ *
  * A step's output is printed when it ends. A failed step skips the steps that need it,
- * and the others still run.
+ * and the others still run. A step with a cache is skipped when its inputs match its
+ * last pass, and its outputs are restored.
  */
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs'
+import { join } from 'node:path'
+
 type Scope = 'format' | 'website' | 'library'
 interface Step {
   command: string[]
   needs?: string[]
   /** The narrowest scope that runs it; `library` runs every step. */
   scope: Scope
+  /** Paths the step reads, and paths it writes that later steps need. */
+  cache?: { inputs: string[]; outputs?: string[] }
 }
 
 // Browser steps run one after another: together they would compete for the CPU.
@@ -39,6 +47,21 @@ const steps: Record<string, Step> = {
     command: ['bun', 'run', 'test:package'],
     needs: ['build'],
     scope: 'library',
+    cache: {
+      inputs: [
+        'dist',
+        'package.json',
+        'bun.lock',
+        'README.md',
+        'LICENSE',
+        'CHANGELOG.md',
+        'config',
+        'baselines/size.json',
+        'scripts',
+        'tests/types',
+        'tests/experimental',
+      ],
+    },
   },
   website: {
     command: ['bun', 'scripts/build-website.ts'],
@@ -46,9 +69,14 @@ const steps: Record<string, Step> = {
     scope: 'website',
   },
   examples: {
+    // Installs the published package, so the library build is not an input.
     command: ['bun', 'run', 'test:examples'],
     needs: ['website'],
     scope: 'website',
+    cache: {
+      inputs: ['examples', 'assets', 'scripts'],
+      outputs: ['website/dist/standalone-examples'],
+    },
   },
   browser: {
     command: ['bun', 'run', 'test:browser'],
@@ -106,6 +134,46 @@ if (scope === 'website' && selected.has('browser')) {
   steps.browser!.command.push('tests/browser/website', 'tests/analytics')
 }
 
+/**
+ * Hashes the inputs: Git's blob for each unchanged tracked file, and the contents of
+ * modified, untracked, and ignored files, such as the build in `dist`.
+ */
+function cacheKey(name: string, inputs: string[]) {
+  const hasher = new Bun.CryptoHasher('sha256')
+  hasher.update(`${Bun.version} ${steps[name]!.command.join(' ')}\n`)
+  const changed = new Set(
+    git('ls-files', '-m', '-o', '--exclude-standard', '--', ...inputs)
+      ?.split('\n')
+      .filter(Boolean)
+  )
+  for (const line of git('ls-files', '-s', '--', ...inputs)?.split('\n') ||
+    []) {
+    const [, blob, , path] = line.split(/\s+/)
+    if (path && !changed.has(path)) {
+      hasher.update(`${path} ${blob}\n`)
+    }
+  }
+  const ignored = inputs.filter(
+    input => Bun.spawnSync(['git', 'check-ignore', '-q', input]).success
+  )
+  const files = [
+    ...changed,
+    ...ignored.flatMap(input =>
+      [...new Bun.Glob('**/*').scanSync({ cwd: input, dot: true })].map(file =>
+        join(input, file)
+      )
+    ),
+  ].sort()
+  for (const file of files) {
+    if (existsSync(file)) {
+      hasher.update(`${file} `)
+      hasher.update(readFileSync(file))
+    }
+  }
+  return hasher.digest('hex')
+}
+const useCache = !process.argv.includes('--no-cache')
+
 type Result = 'passed' | 'failed' | 'skipped'
 const results = new Map<string, { result: Result; seconds: number }>()
 const running = new Map<string, Promise<void>>()
@@ -125,6 +193,23 @@ function run(name: string): Promise<void> {
       return
     }
     const began = performance.now()
+    const cacheDirectory = `.cache/check/${name}`
+    const key = step.cache && cacheKey(name, step.cache.inputs)
+    const keyFile = join(cacheDirectory, 'key')
+    if (
+      key &&
+      useCache &&
+      existsSync(keyFile) &&
+      readFileSync(keyFile, 'utf8') === key
+    ) {
+      for (const output of step.cache!.outputs || []) {
+        rmSync(output, { recursive: true, force: true })
+        cpSync(join(cacheDirectory, output), output, { recursive: true })
+      }
+      results.set(name, { result: 'passed', seconds: 0 })
+      console.log(`✓ ${name} · cached`)
+      return
+    }
     const child = Bun.spawn(step.command, {
       stdout: 'pipe',
       stderr: 'pipe',
@@ -143,6 +228,13 @@ function run(name: string): Promise<void> {
     )
     if (result === 'failed') {
       process.stdout.write(output + errors)
+    } else if (key) {
+      rmSync(cacheDirectory, { recursive: true, force: true })
+      mkdirSync(cacheDirectory, { recursive: true })
+      for (const output of step.cache!.outputs || []) {
+        cpSync(output, join(cacheDirectory, output), { recursive: true })
+      }
+      await Bun.write(keyFile, key)
     }
   })()
   running.set(name, promise)
@@ -164,5 +256,3 @@ if (failed.length) {
   )
   process.exitCode = 1
 }
-
-export {}

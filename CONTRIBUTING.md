@@ -31,7 +31,7 @@ Use the versions in `.node-version` and `.bun-version`. Run every command from t
 bun run check
 ```
 
-It runs every step CI runs, in parallel where it can. `scripts/check.ts` lists the steps. Name some to run only those and the steps they need, as in `bun run check lint typecheck`, or add `--changed` to run what your branch's changes can affect.
+It runs every step CI runs, in parallel where it can. `scripts/check.ts` lists the steps. Name some to run only those and the steps they need, as in `bun run check lint typecheck`, or add `--changed` to run what your branch's changes can affect. Slow steps are skipped when nothing they read has changed since they last passed; add `--no-cache` to run them anyway.
 
 To pass arguments, run a step's own command:
 
