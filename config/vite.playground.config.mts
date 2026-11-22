@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url'
 
 import { defineConfig } from 'vite'
 
-import { candidateAliases } from './vite.shared.config.mts'
+import { candidateAliases, noPostcssLookup } from './vite.shared.config.mts'
 
 const fromRoot = (path: string) =>
   fileURLToPath(new URL(`../${path}`, import.meta.url))
@@ -11,6 +11,7 @@ const fromRoot = (path: string) =>
 export default defineConfig({
   root: fromRoot('playground/gallery'),
   publicDir: fromRoot('assets'),
+  css: noPostcssLookup,
   resolve: { alias: candidateAliases },
   server: { host: '127.0.0.1' },
 })

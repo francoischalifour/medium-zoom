@@ -43,6 +43,7 @@ For a focused check, use the commands below:
 
 - `bun run format` or `bun run format:check`: format or check maintained files; pass paths to limit either to those files.
 - `bun run lint`: check source, tests, and tooling with Oxlint.
+- `bun run check:isolated`: run the format and lint checks again in a copy of the repository's files under an empty home folder, and fail if the results differ from the checkout's. Tools look for configs, ignore files, and dependencies in parent directories, so a nested worktree can pass locally and fail in CI. Run `bun install` in each worktree: without its own `node_modules`, scripts resolve tools from the parent checkout.
 - `bun run typecheck`: check tooling, documentation snippets, and framework examples.
 - `bun run test:package`: verify the npm tarball's entries, declarations, CSS, and ES5 syntax and APIs, then the same for the private candidate package.
 - `bun run test:examples`: copy each example outside the workspace, install with npm, check types, and build against the published package.
