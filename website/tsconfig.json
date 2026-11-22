@@ -15,6 +15,7 @@
       "@/components/ui/image-zoom": [
         "../examples/shadcn/src/components/ui/image-zoom.tsx"
       ],
+      "@/*": ["../src/*"],
       "medium-zoom": ["../src/preset/medium-zoom.ts"],
       "medium-zoom/dist/pure": ["../src/preset/medium-zoom.ts"],
       "medium-zoom/dist/pure/index.js": ["../src/preset/medium-zoom.ts"],

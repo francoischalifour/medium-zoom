@@ -1,7 +1,7 @@
 import type { ModalZoom, ZoomContent, ZoomRenderer } from 'medium-zoom/core'
 
-import type { Stage } from './engine'
-import type { Frame } from './frame'
+import type { Stage } from '@/zoom/engine'
+import type { Frame } from '@/zoom/frame'
 
 /** A frame on stage with the transform that fits it. */
 export interface StagedFrame {

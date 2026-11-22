@@ -6,22 +6,21 @@ import {
   getViewportScale,
   isEscape,
 } from '#platform'
-
 import {
   createOverlay,
   getImagesFromSelectors,
   pageBackground,
   removeNode,
-} from './dom'
+} from '@/zoom/dom'
 import {
   cloneImage,
   fitImage,
   type Frame,
   framePlacement,
   type ZoomTarget,
-} from './frame'
-import type { ZoomBounds } from './geometry'
-import { waitForTransition } from './transition'
+} from '@/zoom/frame'
+import type { ZoomBounds } from '@/zoom/geometry'
+import { waitForTransition } from '@/zoom/transition'
 
 /** The images to zoom: a CSS selector, an element, a list of elements, or `null` for none. */
 export type ZoomSelector =

@@ -1,1 +1,1 @@
-export { templateContent } from './content-template'
+export { templateContent } from '@/zoom/content-template'

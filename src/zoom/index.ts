@@ -13,8 +13,8 @@ import {
   type ZoomSelector,
   type ZoomState,
   type ZoomViewport,
-} from './engine'
-import { type Frame, isImage } from './frame'
+} from '@/zoom/engine'
+import { type Frame, isImage } from '@/zoom/frame'
 
 export type {
   CoreZoomOptions,
@@ -33,8 +33,8 @@ export type {
   ZoomEventMap,
   ZoomState,
   ZoomStatus,
-} from './engine'
-export type { ZoomBounds } from './geometry'
+} from '@/zoom/engine'
+export type { ZoomBounds } from '@/zoom/geometry'
 
 declare const rendererType: unique symbol
 /**

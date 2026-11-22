@@ -1,4 +1,4 @@
-import type { ZoomInstance } from '../zoom/engine'
+import type { ZoomInstance } from '@/zoom/engine'
 
 type ZoomEventDetail = { zoom: ZoomInstance; reason?: string; event?: Event }
 
