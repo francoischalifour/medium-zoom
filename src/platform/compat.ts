@@ -66,7 +66,7 @@ export const assign: typeof Object.assign =
 
 // Compatibility browsers lack getAnimations(): the zoom settles when its timer fires.
 export const hasAnimations = false
-export const findRunningTransform = (_image: Element): unknown => undefined
+export const findRunningTransform: (image: Element) => unknown = () => undefined
 
 export const getViewportScale = (): number =>
   window.visualViewport ? window.visualViewport.scale : 1
