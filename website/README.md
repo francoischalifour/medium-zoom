@@ -65,7 +65,12 @@ bun run test:browser website
 
 ## Deploy
 
-Cloudflare Workers Builds deploys `main`: its build command runs `bun install --frozen-lockfile && bun run build:website`, and its deploy command runs `bun run deploy:website`. The dashboard names only these scripts, so the scripts say where the Worker's config lives. Keep both names when changing them.
+Cloudflare Workers Builds deploys `main` with two commands set in its dashboard:
+
+- Build: `bun install --frozen-lockfile && bun run build:website`
+- Deploy: `bun run deploy:website`
+
+Renaming either script breaks deploys until the dashboard is updated.
 
 ## Analytics
 
