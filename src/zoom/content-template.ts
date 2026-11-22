@@ -1,6 +1,6 @@
 import type { ZoomContent } from 'medium-zoom/core'
 
-import { removeNode } from './dom'
+import { removeNode, resolveElement } from './dom'
 import type { LegacyContent } from './engine'
 import type { ZoomTarget } from './frame'
 
@@ -13,16 +13,9 @@ export interface TemplateOptions {
   template?: string | HTMLTemplateElement | null
 }
 
-const resolveTemplate = (
-  target: string | HTMLTemplateElement
-): HTMLTemplateElement | null =>
-  typeof target === 'string'
-    ? document.querySelector<HTMLTemplateElement>(target)
-    : target
-
 export const updateTemplate = (options: TemplateOptions): void => {
   if (options.template) {
-    options.template = resolveTemplate(options.template)
+    options.template = resolveElement(options.template)
   }
 }
 
@@ -34,7 +27,7 @@ export const mountTemplate = (
   if (!options.template) {
     return
   }
-  const target = resolveTemplate(options.template)!
+  const target = resolveElement(options.template)!
   const content = document.createElement('div')
   content.appendChild(target.content.cloneNode(true))
   host.appendChild(content)
@@ -60,7 +53,7 @@ export const templateContent =
   (target: string | HTMLTemplateElement): ZoomContent =>
   ({ element }) => {
     const node = document.createElement('div')
-    node.appendChild(resolveTemplate(target)!.content.cloneNode(true))
+    node.appendChild(resolveElement(target)!.content.cloneNode(true))
     element.appendChild(node)
     return () => node.remove()
   }

@@ -22,5 +22,9 @@
   "gallery: swipes, a drag and pinches on a slow phone": {
     "layouts": 29,
     "styles": 349
+  },
+  "gallery: attach 2,000 images with triggers bound": {
+    "layouts": 1,
+    "styles": 1
   }
 }

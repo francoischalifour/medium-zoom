@@ -6,7 +6,7 @@ import type {
 
 import { assign } from '#platform'
 
-import { isNode } from './dom'
+import { isNode, resolveElement } from './dom'
 
 /**
  * Explicit bounds to fit the zoomed image in, in viewport pixels. `width` and `height`
@@ -80,9 +80,7 @@ export const getContainerViewport = (
       top: box.top + margin,
     }
   }
-  const element = isNode(target)
-    ? target
-    : document.querySelector<HTMLElement>(target)!
+  const element = resolveElement(target)!
   const { width, height, left, top } = element.getBoundingClientRect()
   return {
     width: width - margin * 2,

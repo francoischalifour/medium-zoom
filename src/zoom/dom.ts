@@ -4,6 +4,11 @@ import { isImage, type ZoomTarget } from './frame'
 export const isNode = (selector: unknown): selector is ZoomTarget =>
   !!selector && (selector as Node).nodeType === 1
 
+export const resolveElement = <T extends Element>(
+  target: string | T
+): T | null =>
+  typeof target === 'string' ? document.querySelector<T>(target) : target
+
 export const getImagesFromSelectors = (
   selectors: ArrayLike<ZoomSelector>,
   include: (image: ZoomTarget) => boolean

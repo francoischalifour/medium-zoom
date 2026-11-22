@@ -13,7 +13,13 @@ import {
   pageBackground,
   removeNode,
 } from './dom'
-import { cloneImage, fitImage, type Frame, type ZoomTarget } from './frame'
+import {
+  cloneImage,
+  fitImage,
+  type Frame,
+  framePlacement,
+  type ZoomTarget,
+} from './frame'
 import type { ZoomBounds } from './geometry'
 import { waitForTransition } from './transition'
 
@@ -408,27 +414,25 @@ export const createEngine = <Options extends CoreZoomOptions>(
   ) => {
     const Promise = getPromise()
 
-    const _dispatchEvent = (image: ZoomTarget, type: string) => {
+    const _dispatchEvent = (
+      image: ZoomTarget,
+      type: string,
+      closingScene?: Scene
+    ) => {
       image.dispatchEvent(
         createCustomEvent(
           `medium-zoom:${type}`,
-          // Only `close` and `closed` start with a "c" and carry the reason.
-          __PRESET__
-            ? { zoom }
-            : type[0] === 'c'
-              ? { zoom, reason: reported, event: reportedEvent }
-              : { zoom }
+          !__PRESET__ && closingScene
+            ? {
+                zoom,
+                reason: closingScene.__mz_reason || 'api',
+                event: closingScene.__mz_event,
+              }
+            : { zoom }
         )
       )
     }
 
-    // Composed zooms keep a frozen state for subscribers and report why they close; the
-    // presets do neither. `requested` is the reason given to the next close, `reported` the
-    // one carried by the close event being dispatched, each with its DOM event.
-    let requested: ZoomCloseReason | undefined
-    let requestedEvent: Event | undefined
-    let reported: ZoomCloseReason | undefined
-    let reportedEvent: Event | undefined
     let status: ZoomStatus = 'closed'
     let state: ZoomState
     const subscribers = __PRESET__ ? undefined : new Set<() => void>()
@@ -806,7 +810,9 @@ export const createEngine = <Options extends CoreZoomOptions>(
         current.__mz_viewportScale = window.visualViewport
           ? window.visualViewport.scale
           : 1
-        _updateGlobalEvents(true)
+        if (!previous) {
+          _updateGlobalEvents(true)
+        }
         if (!__PRESET__) {
           commit('opening')
           // A subscriber may have closed it already: then it never opened.
@@ -1008,15 +1014,12 @@ export const createEngine = <Options extends CoreZoomOptions>(
           // reflowed, so closing zooms back to the right place. A gesture's zoom is dropped.
           current.__mz_refit = () => {
             if (prepared) {
-              const { left, top, width, height } = cloneImage(
-                current.__mz_original as HTMLImageElement,
-                stage
-              ).style
+              const placement = framePlacement(current.__mz_original!, stage)
               const frames = current.__mz_frames!
               frames.forEach(({ style }) => {
                 style.setProperty('transition', 'none', 'important')
                 style.translate = style.scale = ''
-                assign(style, { left, top, width, height, transform: '' })
+                assign(style, placement)
               })
               const transform = fit(primary, filled) || ''
               frames.forEach(({ style }) => (style.transform = transform))
@@ -1120,13 +1123,8 @@ export const createEngine = <Options extends CoreZoomOptions>(
         }
 
         current.__mz_closing = true
-        if (!__PRESET__) {
-          current.__mz_reason = requested || 'api'
-          current.__mz_event = requestedEvent
-          requested = requestedEvent = undefined
-          if (current.__mz_release) {
-            current.__mz_release()
-          }
+        if (!__PRESET__ && current.__mz_release) {
+          current.__mz_release()
         }
         if (current.__mz_cancelOpen) {
           current.__mz_cancelOpen()
@@ -1153,11 +1151,7 @@ export const createEngine = <Options extends CoreZoomOptions>(
           } catch (error) {
             reject(error)
           } finally {
-            if (!__PRESET__) {
-              reported = current.__mz_reason
-              reportedEvent = current.__mz_event
-            }
-            _dispatchEvent(current.__mz_original!, 'closed')
+            _dispatchEvent(current.__mz_original!, 'closed', current)
             if (!__PRESET__ && !isAttached(current.__mz_original!)) {
               unlisten(current.__mz_original!)
             }
@@ -1181,10 +1175,8 @@ export const createEngine = <Options extends CoreZoomOptions>(
         }
         if (!__PRESET__) {
           commit('closing')
-          reported = current.__mz_reason
-          reportedEvent = current.__mz_event
         }
-        _dispatchEvent(current.__mz_original!, 'close')
+        _dispatchEvent(current.__mz_original!, 'close', current)
         if (!primary) {
           finishClosing()
         }
@@ -1315,8 +1307,8 @@ export const createEngine = <Options extends CoreZoomOptions>(
               ? { event: reason }
               : reason || {}
         ) as ZoomCloseOptions
-        requested = options.reason || fallback
-        requestedEvent = options.event
+        active.__mz_reason = options.reason || fallback
+        active.__mz_event = options.event
       }
       return close()
     }

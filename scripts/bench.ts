@@ -128,6 +128,22 @@ const allWorkloads: Workload[] = [
   openAndClose('modern'),
   openAndClose('gallery'),
   {
+    name: 'gallery: attach 2,000 images with triggers bound',
+    page: 'gallery',
+    async run(page) {
+      await page.evaluate(() => {
+        const batch = document.createDocumentFragment()
+        for (let index = 0; index < 2_000; index++) {
+          batch.appendChild(document.createElement('img'))
+        }
+        const images = batch.querySelectorAll('img')
+        document.body.appendChild(batch)
+        window.benchZoom.attach(images)
+      })
+      await frames(page)
+    },
+  },
+  {
     // The presets close on resize, as in v1; composed zooms refit.
     name: 'gallery: resize ×30 while open',
     page: 'gallery',
@@ -211,7 +227,11 @@ const workloads = allWorkloads.filter(({ name }) => !grep || grep.test(name))
 
 declare global {
   interface Window {
-    benchZoom: { open(): Promise<unknown>; close(): Promise<unknown> }
+    benchZoom: {
+      open(): Promise<unknown>
+      close(): Promise<unknown>
+      attach(images: NodeListOf<HTMLImageElement>): void
+    }
     benchGallery: { next(): Promise<unknown> }
     frameTimes: number[]
   }

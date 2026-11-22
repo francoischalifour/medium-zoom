@@ -1,6 +1,6 @@
 import type { ZoomContent } from 'medium-zoom/core'
 
-import { createGallery } from './index'
+import { createGallery } from './controller'
 import { elementsWithOwnKeys, isGalleryKey } from './keyboard'
 
 /**

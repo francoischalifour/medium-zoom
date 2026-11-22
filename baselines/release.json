@@ -1,11 +1,11 @@
 {
-  "dist/medium-zoom.js": "sha256-AFlCvUAeAO7HIpxd2M+6k/6/5+ZQv65hOVb/mqTThmQ=",
-  "dist/medium-zoom.min.js": "sha256-+J2AHFHVknojmx8VZnbxkLzV44iEmVKBfc2qQketrbA=",
-  "dist/medium-zoom.esm.js": "sha256-zDRFh9gShhdyEVYuBsfOPPErXP/7ziFAGpeMmJ3h9LI=",
+  "dist/medium-zoom.js": "sha256-kltY8sFASXw1ZjTTo370TM6TMJvNxdo5g4uiyV86UnQ=",
+  "dist/medium-zoom.min.js": "sha256-KGbedWEwMg540k/wdf3guJPRlyBV0wCbeUBilnv1quQ=",
+  "dist/medium-zoom.esm.js": "sha256-yft0RjEuTtaTM2QEVy41cqpZo8XNJOF2adH9hULxOL4=",
   "dist/medium-zoom.d.ts": "sha256-U8Q8qHGwBX9Uq0OqoQF2Hy2ntFk6nzFURQwcNUXROa0=",
-  "dist/pure/index.js": "sha256-etPGMGfNBr3I4xW7LdHDkRgCJ58uOC3OY6gU1twLdIo=",
+  "dist/pure/index.js": "sha256-UJzC2RFzRKXwyyQljA5N1vQjWkbWRwezRp9uVfKkQgw=",
   "dist/pure/index.d.ts": "sha256-U8Q8qHGwBX9Uq0OqoQF2Hy2ntFk6nzFURQwcNUXROa0=",
-  "dist/pure/medium-zoom.umd.js": "sha256-Mj+OvXHLKL5753kNVsWh+q8U7o59/MVBkjLdcoYyKug=",
-  "dist/pure/medium-zoom.min.umd.js": "sha256-ckysWOse7wW+wy6n4/UBfgBuIjOzwNkiRkaeKx+V+xQ=",
+  "dist/pure/medium-zoom.umd.js": "sha256-/VQnwaPeoC+PqPT2TaYpM4C/aXZMiHPOLpp3lS5p8Rs=",
+  "dist/pure/medium-zoom.min.umd.js": "sha256-Fi59QrPrbzHtCYLGNLNCEBEtaI56Dz2Kd17Ey3+n9PU=",
   "dist/style.css": "sha256-ckjCs8DSoaI/O+jAYMsF0jf/sI/lGSohcfLNA/IKIbE="
 }
