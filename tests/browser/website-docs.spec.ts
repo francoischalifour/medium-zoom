@@ -1291,7 +1291,7 @@ test('external website links have one decorative destination icon', async ({
           await expect(link).toHaveAccessibleName(/\(opens in a new tab\)$/)
         }
         await expect(link).toHaveAttribute('rel', /noopener/)
-        await expect(link).toHaveAttribute('rel', /noreferrer/)
+        await expect(link).not.toHaveAttribute('rel', /noreferrer/)
       } else {
         await expect(link.locator('.external-link-icon'), href!).toHaveCount(0)
       }

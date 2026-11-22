@@ -57,7 +57,7 @@ export function CommandOption({
       type={isLink ? undefined : 'button'}
       href={isLink ? command.url : undefined}
       target={isChat ? '_blank' : undefined}
-      rel={isChat ? 'noopener noreferrer' : undefined}
+      rel={isChat ? 'noopener' : undefined}
       className={`command-result ${resultClass}`}
       onMouseDown={event => {
         if (event.button === 0) {
