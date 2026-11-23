@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.2.0](https://github.com/francoischalifour/medium-zoom/compare/1.1.2...1.2.0) (2026-11-23)
+
+
+### Features
+
+* **core:** close details, gallery reasons and state attributes ([#302](https://github.com/francoischalifour/medium-zoom/issues/302)) ([c047a97](https://github.com/francoischalifour/medium-zoom/commit/c047a979ef15f6d14a6abb2a8ec2cf1e5b2dac60))
+* **core:** composable state, lifetimes and zoom groups ([#300](https://github.com/francoischalifour/medium-zoom/issues/300)) ([e5d8a47](https://github.com/francoischalifour/medium-zoom/commit/e5d8a477c0a14bdc6d3a5b943c93c2548bce618e))
+* **gallery:** add stock controls, gestures, and instant loading ([#298](https://github.com/francoischalifour/medium-zoom/issues/298)) ([fd8243a](https://github.com/francoischalifour/medium-zoom/commit/fd8243a6d3038a6341a54ed793b6975693b9b484))
+
+
+### Bug Fixes
+
+* **core:** correct image attachment and gallery trigger handling ([#297](https://github.com/francoischalifour/medium-zoom/issues/297)) ([a5491d1](https://github.com/francoischalifour/medium-zoom/commit/a5491d18dad0fb3605d10837acae192ac7291bba))
+* **core:** rebuild the engine from composable capabilities ([#291](https://github.com/francoischalifour/medium-zoom/issues/291)) ([4ca3ba7](https://github.com/francoischalifour/medium-zoom/commit/4ca3ba7781f7c2302f865a77e3a9dad307129a59))
+* **core:** wait for a transition still running when the fallback timer fires ([#304](https://github.com/francoischalifour/medium-zoom/issues/304)) ([ff3e713](https://github.com/francoischalifour/medium-zoom/commit/ff3e71327d071af8e0f5c3db729159da552c802f))
+* **release:** omit v prefix from GitHub release titles ([#246](https://github.com/francoischalifour/medium-zoom/issues/246)) ([5e5ac59](https://github.com/francoischalifour/medium-zoom/commit/5e5ac592ce70fd6637783a30bec78b5fa73fc215))
+
+
+### Performance Improvements
+
+* clarify library boundaries and reduce trigger attachment work ([#307](https://github.com/francoischalifour/medium-zoom/issues/307)) ([9151821](https://github.com/francoischalifour/medium-zoom/commit/9151821bbd2d663c8d533506255a71f8e62202ec))
+* reduce documentation bundles and fix zoom lifecycle issues ([#301](https://github.com/francoischalifour/medium-zoom/issues/301)) ([248bcec](https://github.com/francoischalifour/medium-zoom/commit/248bcecfe5026ddfe93c7f66341d7b073a9b891a))
+
 ## [1.1.2](https://github.com/francoischalifour/medium-zoom/compare/1.1.1...1.1.2) (2026-10-25)
 
 
