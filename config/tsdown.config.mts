@@ -29,12 +29,9 @@ const stylesheetPath = fileURLToPath(
 // Mangle the engine's private scene state; preserve public options and DOM APIs.
 const privateProperties = /^__mz_/
 
-// The modern floor is the first release of each engine with HTMLDialogElement.showModal(),
-// which the dialog renderer requires (Baseline 2022): Safari and iOS 15.4, Chrome, Edge and
-// Firefox 98. Raising it lets modern entries use the platform without fallbacks.
-const modernBrowsers = { chrome: 98, firefox: 98, safari: [15, 4] } as const
+const modernBrowsers = { chrome: 99, firefox: 98, safari: [15, 4] } as const
 
-// Switch this profile for the v2 default; explicit compat stays stable.
+// Historical v1 artifacts always compile as compat. Candidate defaults are selected in the manifest.
 const defaultProfile: Profile = 'compat'
 
 type Format = 'esm' | 'umd' | 'cjs'
@@ -159,10 +156,17 @@ const exportTypes = new Set([
 
 function stylesheet(profile: Profile): TsdownPlugin {
   const { css } = profiles[profile]
+  const path =
+    profile === 'modern'
+      ? fileURLToPath(new URL('../src/modern/style.css', import.meta.url))
+      : stylesheetPath
   return {
     name: 'medium-zoom-stylesheet',
     resolveId(source) {
-      if (source === '@/zoom/medium-zoom.css') {
+      if (
+        source === '@/zoom/medium-zoom.css' ||
+        source === '@/modern/style.css'
+      ) {
         return '\0medium-zoom-stylesheet'
       }
     },
@@ -170,10 +174,10 @@ function stylesheet(profile: Profile): TsdownPlugin {
       if (id !== '\0medium-zoom-stylesheet') {
         return
       }
-      this.addWatchFile(stylesheetPath)
-      const source = readFileSync(stylesheetPath, 'utf8')
+      this.addWatchFile(path)
+      const source = readFileSync(path, 'utf8')
       const code = transformCss({
-        filename: stylesheetPath,
+        filename: path,
         code: Buffer.from(css.prepare(source)),
         minify: true,
         targets: css.targets,
@@ -332,7 +336,7 @@ function browserBundle(
     dts: false,
     clean: false,
     unbundle: false,
-    define: { __TEST__: 'false' },
+    define: { __TEST__: 'false', __EVENTS__: 'true' },
     // Tsdown applies the release banner after renderChunk via Rolldown postBanner.
     banner,
     failOnWarn: true,
@@ -367,6 +371,10 @@ function entryBundle(
       profile
     ),
     entry: { [`${name}/index`]: source },
+    define: {
+      __TEST__: 'false',
+      __EVENTS__: String(!(full && profile === 'modern')),
+    },
     // Declarations reference shared contracts from their owning entry instead of copying them.
     // Source imports of these entries are type-only, so runtime bundles never import them.
     deps: { neverBundle: ['medium-zoom/core', 'medium-zoom/renderers'] },
@@ -388,16 +396,29 @@ function entryBundle(
         onSuccess(config) {
           // CJS declarations are emitted in a separate pipeline without runtime plugins.
           const path = join(config.outDir, `${name}/index.d.cts`)
-          const names = [
-            'ZoomOptions',
-            'ZoomSelector',
-            'ZoomContainer',
-            'ZoomOpenOptions',
-          ]
+          const names =
+            profile === 'modern'
+              ? ['ZoomOptions', 'ZoomSelector', 'ZoomState']
+              : [
+                  'ZoomOptions',
+                  'ZoomSelector',
+                  'ZoomContainer',
+                  'ZoomOpenOptions',
+                ]
           const aliases = names
-            .map(name => `type ${name} = import('medium-zoom').${name};`)
+            .map(type => `type Public${type} = ${type};`)
             .join('\n')
-          const zoom = `type Zoom<Options extends import('medium-zoom/core').CoreZoomOptions = import('medium-zoom').ZoomOptions> = import('medium-zoom').Zoom<Options>;`
+          const zoom =
+            profile === 'modern'
+              ? 'type PublicZoom = Zoom;'
+              : 'type PublicZoom<Options extends CoreZoomOptions = ZoomOptions> = Zoom<Options>;'
+          const namespace = names
+            .map(type => `type ${type} = Public${type};`)
+            .join('\n')
+          const publicZoom =
+            profile === 'modern'
+              ? 'type Zoom = PublicZoom;'
+              : 'type Zoom<Options extends CoreZoomOptions = PublicZoomOptions> = PublicZoom<Options>;'
           const declaration = readFileSync(path, 'utf8')
           if (!declaration.includes('export = mediumZoom;')) {
             throw new Error(
@@ -406,7 +427,7 @@ function entryBundle(
           }
           const code = declaration.replace(
             'export = mediumZoom;',
-            `declare namespace mediumZoom { ${zoom}\n${aliases} }\nexport = mediumZoom;`
+            `${zoom}\n${aliases}\ndeclare namespace mediumZoom { ${publicZoom}\n${namespace} }\nexport = mediumZoom;`
           )
           writeFileSync(path, code)
         },

@@ -10,10 +10,8 @@ import {
 const profiles = {
   compat: 'compat/index.mjs',
   compatPure: 'compat/pure/index.mjs',
-  modern: 'modern/index.mjs',
   compatCjs: 'compat/index.cjs',
   compatPureCjs: 'compat/pure/index.cjs',
-  modernCjs: 'modern/index.cjs',
   modernCoreCjs: 'core/index.cjs',
 } as const
 
@@ -243,7 +241,7 @@ for (const [profile, file] of Object.entries(profiles)) {
   }
 }
 
-test('modern rendering matches compat and the v1 default', async ({ page }) => {
+test('compat rendering matches the v1 default', async ({ page }) => {
   const screenshots = []
   for (const file of [
     'medium-zoom.esm.js',

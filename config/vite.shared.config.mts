@@ -34,3 +34,7 @@ export const candidateAliases = candidateEntries.flatMap(
     })),
   ]
 )
+candidateAliases.push({
+  find: /^medium-zoom\/pure$/,
+  replacement: fromRoot('dist/compat/pure/index.mjs'),
+})

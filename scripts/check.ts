@@ -15,6 +15,8 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 
+import { previewMajor } from './release-channel.ts'
+
 type Scope = 'format' | 'website' | 'library'
 interface Step {
   command: string[]
@@ -40,6 +42,11 @@ const steps: Record<string, Step> = {
   size: { command: ['bun', 'run', 'size'], needs: ['build'], scope: 'library' },
   release: {
     command: ['bun', 'run', 'check:release'],
+    needs: ['build'],
+    scope: 'library',
+  },
+  preview: {
+    command: ['bun', 'scripts/check-preview.ts', `${previewMajor}.0.0-next.0`],
     needs: ['build'],
     scope: 'library',
   },

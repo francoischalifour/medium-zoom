@@ -48,6 +48,7 @@ export function bindZoomTriggers<Options extends CoreZoomOptions>(
 function bind<Options extends CoreZoomOptions>(
   zoom: ModalZoom<Options>
 ): () => void {
+  let attached: readonly HTMLElement[] | undefined
   const records = new Map<HTMLElement, () => void>()
   const documents = new WeakMap<Document, number>()
   const activate = (target: HTMLElement) =>
@@ -121,16 +122,25 @@ function bind<Options extends CoreZoomOptions>(
       restore.forEach(attribute => attribute())
     })
   }
-  const attach = (event: Event) => bindImage(event.currentTarget as HTMLElement)
-  const detach = (event: Event) => {
-    const image = event.target as HTMLElement
-    records.get(image)?.()
-    records.delete(image)
+  const sync = () => {
+    const current = zoom.getSnapshot().images
+    if (current === attached) {
+      return
+    }
+    attached = current
+    const images = new Set(current)
+    records.forEach((cleanup, image) => {
+      if (!images.has(image)) {
+        cleanup()
+        records.delete(image)
+      }
+    })
+    images.forEach(bindImage)
   }
-  zoom.on('attach', attach).on('detach', detach)
-  zoom.getImages().forEach(bindImage)
+  const unsubscribe = zoom.subscribe(sync)
+  sync()
   return () => {
-    zoom.off('attach', attach).off('detach', detach)
+    unsubscribe()
     records.forEach(cleanup => cleanup())
     records.clear()
   }

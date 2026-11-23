@@ -162,7 +162,16 @@ async function measureConsumers() {
         outputOptions: { entryFileNames: 'index.js' },
       })
       const code = readFileSync(join(output, 'index.js'), 'utf8')
-      const imported = consumer.preset ? ['preset'] : consumer.imports
+      const modern = consumer.preset?.startsWith('dist/modern/')
+      const imported = modern
+        ? [
+            'loaders/loadHdImage',
+            'renderers/dialog',
+            'triggers/bindZoomTriggers',
+          ]
+        : consumer.preset
+          ? ['preset']
+          : consumer.imports
       for (const [marker, exports] of markers) {
         assert.equal(
           code.includes(marker),

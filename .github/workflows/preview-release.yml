@@ -1,0 +1,116 @@
+name: Preview release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Unused milestone version: 2.0.0-next.N (no leading zeros)'
+        required: true
+        type: string
+      confirmation:
+        description: 'Type publish-next to authorize publication to npm next only'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    if: github.repository == 'francoischalifour/medium-zoom' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - name: Validate deliberate preview request
+        env:
+          VERSION: ${{ inputs.version }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          test "$CONFIRMATION" = publish-next
+          node --input-type=module -e 'import { assertReleaseChannel } from "./scripts/release-channel.ts"; assertReleaseChannel(process.env.VERSION, "next")'
+
+  checks:
+    needs: guard
+    uses: ./.github/workflows/checks.yml
+    with:
+      ref: ${{ github.sha }}
+
+  package:
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+      - run: bun install --frozen-lockfile
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: browser-build
+      - name: Pack and test the actual preview tarball
+        env:
+          VERSION: ${{ inputs.version }}
+        run: bun scripts/check-preview.ts "$VERSION"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: npm-preview
+          path: .cache/preview/medium-zoom.tgz
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: npm-next
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: npm-preview
+          path: .cache/preview
+      - name: Recheck package identity and channel
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          mkdir .cache/preview/unpacked
+          tar -xzf .cache/preview/medium-zoom.tgz -C .cache/preview/unpacked
+          node --input-type=module -e 'import assert from "node:assert/strict"; import { readFileSync } from "node:fs"; import { assertReleaseChannel } from "./scripts/release-channel.ts"; const p = JSON.parse(readFileSync(".cache/preview/unpacked/package/package.json")); assertReleaseChannel(p.version, "next"); assert.equal(p.version, process.env.VERSION); assert.equal(p.name, "medium-zoom"); assert.equal(p.private, undefined); assert.equal(p.publishConfig.tag, "next"); assert.equal(p.publishConfig.registry, "https://registry.npmjs.org/")'
+          node scripts/check-preview-registry.ts "$VERSION"
+      - name: Record stable tag before publication
+        run: npm view medium-zoom dist-tags.latest --json --registry https://registry.npmjs.org/ > .cache/preview/latest-before.json
+      - name: Publish only the verified tarball to next
+        run: npm publish .cache/preview/medium-zoom.tgz --tag next --access public --ignore-scripts --registry https://registry.npmjs.org/
+      - name: Verify channel isolation
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          npm view medium-zoom dist-tags --json --registry https://registry.npmjs.org/ > .cache/preview/tags-after.json
+          node --input-type=module -e 'import assert from "node:assert/strict"; import { readFileSync } from "node:fs"; const before = JSON.parse(readFileSync(".cache/preview/latest-before.json")); const tags = JSON.parse(readFileSync(".cache/preview/tags-after.json")); assert.equal(tags.latest, before, "Stop: latest changed; investigate without moving tags"); assert.equal(tags.next, process.env.VERSION, "Stop: next not yet visible; inspect registry before any retry")'

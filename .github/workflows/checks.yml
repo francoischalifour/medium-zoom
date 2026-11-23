@@ -78,7 +78,7 @@ jobs:
       - run: bun run check format lint isolated unit typecheck
       - name: Check package
         if: ${{ needs.changes.outputs.scope == 'library' }}
-        run: bun run check size release package
+        run: bun run check size release package preview
 
   build:
     needs: changes

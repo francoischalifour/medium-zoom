@@ -45,6 +45,19 @@ export function galleryControls({
   positionLabel = (position, total) => `Image ${position} of ${total}`,
 }: GalleryControlsOptions = {}): ZoomContent {
   return ({ element, zoom, close, signal }) => {
+    queueMicrotask(() => {
+      const overlay = element.querySelector('.medium-zoom-overlay')
+      if (signal.aborted || !overlay) {
+        return
+      }
+      const color = getComputedStyle(overlay).backgroundColor
+      const [red, green, blue, alpha = 1] =
+        (color.startsWith('rgb') && color.match(/[\d.]+/g)!.map(Number)) || []
+      if (alpha >= 0.5) {
+        element.style.colorScheme =
+          red! * 0.3 + green! * 0.6 + blue! * 0.1 < 128 ? 'dark' : 'light'
+      }
+    })
     // Every handle and binding here is released with the content, through its signal.
     const gallery = createGallery(zoom, { signal })
     const control = (

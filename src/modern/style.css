@@ -1,0 +1,57 @@
+@layer medium-zoom {
+  :where(.medium-zoom-overlay) {
+    position: fixed;
+    inset: 0;
+    opacity: 0;
+    transition: opacity var(--medium-zoom-duration, 300ms)
+      var(--medium-zoom-easing, cubic-bezier(0.2, 0, 0.2, 1));
+  }
+
+  :where(.medium-zoom--opened) :where(.medium-zoom-overlay) {
+    cursor: zoom-out;
+    opacity: 1;
+  }
+
+  :where(.medium-zoom-image) {
+    cursor: zoom-in;
+  }
+
+  :where(.medium-zoom-image--hidden) {
+    visibility: hidden;
+  }
+
+  :where(.medium-zoom-image--opened) {
+    cursor: zoom-out;
+    will-change: transform;
+    transition: transform var(--medium-zoom-duration, 300ms)
+      var(--medium-zoom-easing, cubic-bezier(0.2, 0, 0.2, 1)) !important;
+  }
+
+  :where(.medium-zoom-dialog)::backdrop {
+    background: transparent;
+  }
+
+  :where(.medium-zoom-dialog):focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  :where(.medium-zoom-dialog) > :where(.medium-zoom-overlay) {
+    z-index: -1;
+  }
+
+  :where(.medium-zoom-dialog[data-ending-style])
+    :where(.medium-zoom-image--leaving) {
+    opacity: 0 !important;
+    transition: opacity var(--medium-zoom-duration, 300ms) !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :where(
+      .medium-zoom-image--opened,
+      .medium-zoom-overlay,
+      .medium-zoom-image--leaving
+    ) {
+      transition: none !important;
+    }
+  }
+}

@@ -18,7 +18,8 @@
       "medium-zoom/dist/pure": ["./src/preset/medium-zoom.ts"],
       "medium-zoom/dist/pure/index.js": ["./src/preset/medium-zoom.ts"],
       "#platform": ["./src/platform/modern.ts"],
-      "medium-zoom/modern": ["./src/preset/index.ts"],
+      "medium-zoom/modern": ["./src/modern/index.ts"],
+      "medium-zoom/modern/pure": ["./src/modern/pure.ts"],
       "medium-zoom/compat": ["./src/preset/index.ts"],
       "medium-zoom/compat/pure": ["./src/preset/pure.ts"],
       "medium-zoom/renderers": ["./src/renderers/index.ts"],
@@ -43,6 +44,7 @@
     "examples/shadcn/tests/experimental"
   ],
   "exclude": [
+    "tests/preview/types",
     "**/node_modules",
     "tests/fixtures",
     "tests/unit/registry-downloads.test.mts",

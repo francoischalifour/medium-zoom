@@ -25,9 +25,10 @@ import compat from 'medium-zoom/compat'
 import compatPure from 'medium-zoom/compat/pure'
 import modern from 'medium-zoom/modern'
 import type { Zoom as ModernZoom } from 'medium-zoom/modern'
-const profileFactories: ((options?: ZoomOptions) => ModernZoom)[] = [
+const profileFactories: ((options?: ZoomOptions) => Zoom)[] = [
   compat,
   compatPure,
-  modern,
 ]
+const modernFactory: (images?: string) => ModernZoom = modern
+void modernFactory
 void profileFactories
