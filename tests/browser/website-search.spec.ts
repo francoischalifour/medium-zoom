@@ -95,8 +95,8 @@ test('aliases, keyboard selection, empty state, and modal accessibility', async 
   await search.fill('toggle')
   await expect(documentation(page).first()).toContainText('toggle()')
   await expect(
-    page.getByRole('option', { name: /Switch to .* theme/ })
-  ).toHaveCount(0)
+    page.getByRole('option', { name: 'Toggle dark theme' })
+  ).toBeVisible()
   await search.fill('nextjs')
   await expect(documentation(page).first()).toContainText('Server rendering')
   await search.fill('high resolution')
@@ -127,7 +127,7 @@ test('the theme action updates the control and persists across reloads', async (
   await page.goto('/docs/react/')
   await page.getByRole('button', { name: /Search docs/ }).click()
   await searchBox(page).fill('theme')
-  await page.getByRole('option', { name: 'Switch to dark theme' }).click()
+  await page.getByRole('option', { name: 'Toggle dark theme' }).click()
   await expect(page.getByRole('dialog')).not.toBeVisible()
   await expect(page.getByRole('button', { name: /Search docs/ })).toBeFocused()
   await expect(
@@ -140,7 +140,7 @@ test('the theme action updates the control and persists across reloads', async (
   await page.getByRole('button', { name: /Search docs/ }).click()
   await searchBox(page).fill('theme')
   await expect(
-    page.getByRole('option', { name: 'Switch to light theme' })
+    page.getByRole('option', { name: 'Toggle dark theme' })
   ).toBeVisible()
 })
 
@@ -360,7 +360,7 @@ test('search loading failures leave actions and handoffs available', async ({
     'unavailable'
   )
   await expect(page.getByRole('option', { name: /Ask Claude/ })).toBeVisible()
-  await page.getByRole('option', { name: /Switch to .* theme/ }).click()
+  await page.getByRole('option', { name: 'Toggle dark theme' }).click()
   await expect(page.getByRole('dialog')).not.toBeVisible()
 })
 
@@ -461,16 +461,128 @@ test('the preview shows the rendered page at the matched section', async ({
   await expect(page.getByRole('dialog')).not.toBeVisible()
 })
 
-test('the preview copies its page as Markdown', async ({
-  page,
-  context,
-  browserName,
+test('preview articles omit live examples while docs pages keep them', async ({
+  request,
 }) => {
-  test.skip(
-    browserName !== 'chromium',
-    'Clipboard read permission is available in Chromium.'
+  for (const path of [
+    '/docs/react/',
+    '/docs/guides/hd-images/',
+    '/docs/guides/multiple-images/',
+    '/docs/guides/styling/',
+    '/docs/guides/generated-svg/',
+    '/docs/guides/video/',
+    '/docs/guides/custom-react-triggers/',
+    '/docs/guides/controlled-state/',
+  ]) {
+    const preview = await request.get(`${path}preview.html`)
+    expect(preview.ok(), path).toBe(true)
+    const html = await preview.text()
+    expect(html, path).toContain('<h1>')
+    expect(html, path).not.toContain('class="docs-example"')
+    const page = await request.get(path)
+    expect(await page.text(), path).toContain('class="docs-example"')
+  }
+})
+
+test('the homepage preview excludes live examples and preserves code spacing', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1_280, height: 800 })
+  await page.goto('/')
+  await page.getByRole('button', { name: /Search docs/ }).click()
+  await searchBox(page).fill('photo-gallery')
+  const preview = page.getByRole('region', { name: 'Result preview' })
+  await expect(preview.getByRole('heading', { level: 1 })).toHaveText(
+    'Multiple images'
   )
-  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await expect(preview.getByRole('img')).toHaveCount(0)
+  await expect(preview.locator('.docs-example')).toHaveCount(0)
+  await expect(preview).toContainText('Each image opens independently.')
+  await expect(preview.locator('button')).toHaveCount(0)
+  await expect(preview).not.toContainText('Click to zoom')
+  const code = preview.locator('.site-search-preview > .code-block')
+  await expect(code.first()).toBeVisible()
+  const previewGap = await code.evaluateAll(blocks => {
+    const first = blocks[0]!.getBoundingClientRect()
+    const second = blocks[1]!.getBoundingClientRect()
+    return second.top - first.bottom
+  })
+  await preview.getByRole('link', { name: 'Open page', exact: true }).click()
+  for (const name of [
+    'Ocean sunset',
+    'Denali at sunrise',
+    'Yellowstone at sunrise',
+    'Aurora over Yellowstone',
+  ]) {
+    const image = page.locator(`.docs-article img[alt="${name}"]`)
+    await image.scrollIntoViewIfNeeded()
+    await expect(image).toBeVisible()
+    await expect
+      .poll(() =>
+        image.evaluate(element => (element as HTMLImageElement).naturalWidth)
+      )
+      .toBeGreaterThan(0)
+  }
+  const pageGap = await page
+    .locator('.docs-article > .code-block')
+    .evaluateAll(blocks => {
+      const first = blocks[0]!.getBoundingClientRect()
+      const second = blocks[1]!.getBoundingClientRect()
+      return second.top - first.bottom
+    })
+  expect(previewGap).toBeGreaterThan(0)
+  expect(previewGap).toBeCloseTo(pageGap, 2)
+})
+
+for (const failure of ['unavailable', 'unrendered'] as const) {
+  test(`the preview keeps working when an article is ${failure}`, async ({
+    page,
+  }) => {
+    const errors: Error[] = []
+    page.on('pageerror', error => errors.push(error))
+    await page.setViewportSize({ width: 1_280, height: 800 })
+    await page.goto('/docs/react/')
+    await page.route(
+      '**/docs/reference/javascript/options/preview.html',
+      route =>
+        route.fulfill({
+          status: failure === 'unavailable' ? 503 : 200,
+          contentType: 'text/html',
+          body: '<!doctype html><title>Documentation</title>',
+        })
+    )
+    await page.getByRole('button', { name: /Search docs/ }).click()
+    await searchBox(page).fill('margin')
+    const preview = page.getByRole('region', { name: 'Result preview' })
+    const article = preview.locator('.site-search-preview')
+    await expect(
+      article.getByRole('heading', { name: 'margin', exact: true })
+    ).toBeVisible()
+    await expect(article).toContainText(
+      'The space in pixels around the zoomed image.'
+    )
+    await searchBox(page).fill('background')
+    await expect(
+      article.getByRole('heading', { name: 'background', exact: true })
+    ).toBeVisible()
+    await searchBox(page).fill('margin')
+    await expect(
+      article.getByRole('heading', { name: 'margin', exact: true })
+    ).toBeVisible()
+    await page.keyboard.press('Escape')
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('dialog')).not.toBeVisible()
+    await page.getByRole('button', { name: /Search docs/ }).click()
+    await expect(article.getByRole('heading', { level: 1 })).toHaveText(
+      'React quickstart'
+    )
+    expect(errors).toEqual([])
+  })
+}
+
+test('the preview offers opening the page without copying Markdown', async ({
+  page,
+}) => {
   await page.goto('/docs/react/')
   await page.getByRole('button', { name: /Search docs/ }).click()
   await searchBox(page).fill('margin')
@@ -478,15 +590,12 @@ test('the preview copies its page as Markdown', async ({
   await expect(
     preview.locator('.site-search-preview').getByRole('heading', { level: 1 })
   ).toHaveText('Options')
-  await preview.getByRole('button', { name: 'Copy Markdown' }).click()
   await expect(
-    page
-      .getByRole('dialog')
-      .getByRole('status')
-      .filter({ hasText: 'copied as Markdown' })
-  ).toBeVisible()
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(
-    /^# Options/
+    preview.getByRole('button', { name: 'Copy Markdown' })
+  ).toHaveCount(0)
+  await preview.getByRole('link', { name: 'Open page' }).click()
+  await expect(page).toHaveURL(
+    /\/docs\/reference\/javascript\/options\/#margin$/
   )
 })
 

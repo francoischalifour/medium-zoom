@@ -45,12 +45,13 @@
   font-size: var(--text-md);
   line-height: 1.7;
 }
-.site-search-preview h1 {
+.site-search-preview.docs-article h1 {
   margin: 0 0 12px;
   font-size: var(--text-xl);
   line-height: 1.35;
 }
-.site-search-preview h2 {
+.site-search-preview h2,
+.site-search-preview.docs-article h2 {
   font-size: var(--text-lg);
 }
 .site-search-preview img,

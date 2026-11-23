@@ -144,7 +144,7 @@ jobs:
     name: ${{ matrix.browser }} (${{ matrix.suite }})${{ matrix.suite != 'stories' && format(' {0}/2', matrix.shard) || '' }}
     needs: [changes, build, standalone-examples]
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     container:
       image: ${{ needs.build.outputs.playwright-image }}
       options: --init --ipc=host

@@ -12,6 +12,11 @@ test.beforeAll(() => {
   })
 })
 
+test.afterEach(async ({ page, context }) => {
+  await page.unrouteAll({ behavior: 'wait' })
+  await context.unrouteAll({ behavior: 'wait' })
+})
+
 const origin = 'https://medium-zoom.francoischalifour.com'
 type Event = {
   event: string

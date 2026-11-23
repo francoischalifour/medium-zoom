@@ -8,6 +8,7 @@ import { App } from '../src/App'
 import { DocsPage, loadDocsArticle } from '../src/docs/DocsPage'
 import { docsPages } from '../src/docs/pages'
 import { NotFoundPage } from '../src/NotFoundPage'
+import { renderDocsPreview } from './docs-preview'
 
 export async function prerenderWebsite(directory: string) {
   const pages = [
@@ -38,6 +39,12 @@ export async function prerenderWebsite(directory: string) {
     writeFileSync(
       path,
       template.replace(outlet, `<div id="root">${markup}</div>`)
+    )
+  }
+  for (const page of docsPages) {
+    writeFileSync(
+      join(directory, page.path.slice(1), 'preview.html'),
+      await renderDocsPreview(page.path)
     )
   }
 }

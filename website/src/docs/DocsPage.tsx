@@ -9,7 +9,7 @@ import {
 import { revealInScrollArea, ScrollArea } from '../scroll-area'
 import { CodeSnippets, Icon, SiteLink } from '../site-components'
 import { BrandLink, SiteFooter, SiteHeader } from '../site-shell'
-import { CodeFence } from './doc-components'
+import { CodeFence, Example } from './doc-components'
 import { DocsOutline, DocsOutlineMenu } from './docs-outline'
 import { docsPages, headingId } from './pages'
 import { useDocsNavigation } from './use-docs-navigation'
@@ -199,9 +199,11 @@ function DocsPagination({
 export function DocsPage({
   path,
   article,
+  searchPreview = false,
 }: {
   path: string
   article: DocsArticle
+  searchPreview?: boolean
 }) {
   const { articleRef, activeHeadingId } = useDocsNavigation(path)
   useEffect(() => {
@@ -256,7 +258,12 @@ export function DocsPage({
             </header>
             <CodeSnippets.Provider value={snippets}>
               <Content
-                components={{ h2: ArticleHeading, pre: CodeFence, a: SiteLink }}
+                components={{
+                  h2: ArticleHeading,
+                  pre: CodeFence,
+                  a: SiteLink,
+                  Example: searchPreview ? () => null : Example,
+                }}
               />
             </CodeSnippets.Provider>
           </article>

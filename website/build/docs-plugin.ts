@@ -83,6 +83,26 @@ export function docsPlugin(): Plugin {
   return {
     name: 'medium-zoom-docs',
     enforce: 'pre',
+    configureServer(server) {
+      server.middlewares.use((request, response, next) => {
+        const url = new URL(request.url ?? '/', 'http://localhost')
+        if (
+          !url.searchParams.has('preview') ||
+          !docsPages.some(page => page.path === url.pathname)
+        ) {
+          next()
+          return
+        }
+        void server
+          .ssrLoadModule('/build/docs-preview.ts')
+          .then(({ renderDocsPreview }) => renderDocsPreview(url.pathname))
+          .then(html => {
+            response.setHeader('Content-Type', 'text/html; charset=utf-8')
+            response.end(html)
+          })
+          .catch(next)
+      })
+    },
     resolveId(id) {
       if (id === 'virtual:docs-search') {
         return '\0virtual:docs-search'
