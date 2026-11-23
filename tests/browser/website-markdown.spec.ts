@@ -81,6 +81,14 @@ test('Markdown copies point search engines to their HTML page', async ({
 test('Markdown pages replace interactive examples with their source', async ({
   request,
 }) => {
+  const multipleImages = await getText(
+    request,
+    '/docs/guides/multiple-images.md',
+    'text/markdown'
+  )
+  expect(multipleImages).toContain('```tsx title="multiple-images.tsx"\n')
+  expect(multipleImages).toContain('```css title="multiple-images.css"\n')
+
   const guide = await getText(
     request,
     '/docs/guides/hd-images.md',

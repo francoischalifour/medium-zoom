@@ -47,6 +47,7 @@ export function siteHeaders(): Plugin {
           '/examples/*\n  X-Robots-Tag: noindex, follow',
           '/storybook/*\n  X-Robots-Tag: noindex, follow',
           '/r/*\n  X-Robots-Tag: noindex',
+          '/docs/*/preview.html\n  X-Robots-Tag: noindex',
           ...siteMarkdownHeaders(),
           ...fingerprintedAssetPaths.map(
             assetPath =>

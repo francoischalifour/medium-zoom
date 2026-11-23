@@ -1,23 +1,18 @@
-import type { DocspotPageActionsProps, DocspotPreviewProps } from 'docspot'
+import type { DocspotPreviewProps } from 'docspot'
 import * as React from 'react'
 
-// The preview reuses the docs article styles, which ship on every page in the site's one
-// stylesheet. Importing docs.css here would move it ahead of the styles it overrides.
-
-// Prerendered pages already hold the article with highlighted code, so the preview shows the page
-// exactly as it reads, from the same cached response the browser uses to open it.
-const articles = new Map<string, Promise<string | null>>()
+const articleRequests = new Map<string, Promise<string | null>>()
 
 // Parts of the article that only work on the page itself.
-const pageOnly = [
+const pageOnlySelector = [
   'script',
   'style',
-  'button',
   '.copy-control',
   'dialog',
   'iframe',
   '.docs-breadcrumb',
   '.docs-anchor',
+  '.docs-preview-hint',
   '.demo-toolbar',
   '[role="tablist"]',
 ].join(', ')
@@ -29,8 +24,23 @@ function extractArticle(html: string) {
   if (!article?.querySelector('h1')) {
     return null
   }
-  for (const element of article.querySelectorAll(pageOnly)) {
+  for (const element of article.querySelectorAll(pageOnlySelector)) {
     element.remove()
+  }
+  for (const button of article.querySelectorAll('button')) {
+    if (button.querySelector('img, picture, video')) {
+      const media = article.ownerDocument.createElement('div')
+      for (const attribute of ['class', 'style', 'data-slot']) {
+        const value = button.getAttribute(attribute)
+        if (value !== null) {
+          media.setAttribute(attribute, value)
+        }
+      }
+      media.append(...button.childNodes)
+      button.replaceWith(media)
+    } else {
+      button.remove()
+    }
   }
   // The page under the dialog keeps its ids; Docspot opens the preview at `data-docspot-anchor`.
   for (const element of article.querySelectorAll('[id]')) {
@@ -45,35 +55,42 @@ function extractArticle(html: string) {
     element.removeAttribute('aria-describedby')
   }
   for (const image of article.querySelectorAll('img')) {
+    image.removeAttribute('aria-hidden')
     image.loading = 'lazy'
     image.decoding = 'async'
   }
   return article.innerHTML
 }
 
+async function fetchArticle(path: string): Promise<string | null> {
+  const previewUrl = import.meta.env.DEV
+    ? `${path}?preview`
+    : `${path}preview.html`
+  try {
+    const response = await fetch(previewUrl, { credentials: 'same-origin' })
+    if (!response.ok) {
+      return null
+    }
+    return extractArticle(await response.text())
+  } catch {
+    return null
+  }
+}
+
 function loadArticle(url: string) {
   const path = new URL(url, window.location.href).pathname
-  let article = articles.get(path)
-  if (!article) {
-    article = fetch(path, { credentials: 'same-origin' })
-      .then(response => (response.ok ? response.text() : null))
-      .then(html => (html ? extractArticle(html) : null))
-      .catch(() => null)
-    articles.set(path, article)
-    // A failed load retries the next time the result is previewed.
-    void article.then(value => {
-      if (value === null) {
-        articles.delete(path)
-      }
-    })
+  const cachedRequest = articleRequests.get(path)
+  if (cachedRequest) {
+    return cachedRequest
   }
-  return article
+  const request = fetchArticle(path)
+  articleRequests.set(path, request)
+  return request
 }
 
 export default function SearchPreview({ result }: DocspotPreviewProps) {
   const article = React.use(loadArticle(result.url))
   if (!article) {
-    // Pages served without prerendering, as in development, preview their matched passage.
     return (
       <div className="site-search-preview">
         <h2>{result.title}</h2>
@@ -87,49 +104,5 @@ export default function SearchPreview({ result }: DocspotPreviewProps) {
       // Same-origin, prerendered from this repository's MDX, with scripts removed.
       dangerouslySetInnerHTML={{ __html: article }}
     />
-  )
-}
-
-// Matches build/site-markdown.ts, which runs in Node and stays out of the browser bundle.
-function markdownPath(path: string) {
-  return path === '/' ? '/index.md' : path.replace(/\/?$/, '.md')
-}
-
-function copyMarkdown(path: string) {
-  const markdown = fetch(markdownPath(path)).then(response => {
-    if (!response.ok) {
-      throw new Error(response.statusText)
-    }
-    return response.blob()
-  })
-  // A pending ClipboardItem keeps the click's user activation in Safari while the page loads.
-  if (typeof ClipboardItem === 'function' && navigator.clipboard.write) {
-    return navigator.clipboard.write([
-      new ClipboardItem({
-        'text/plain': markdown.then(
-          blob => new Blob([blob], { type: 'text/plain' })
-        ),
-      }),
-    ])
-  }
-  return markdown
-    .then(blob => blob.text())
-    .then(text => navigator.clipboard.writeText(text))
-}
-
-export function PageActions({ result, notify }: DocspotPageActionsProps) {
-  return (
-    <button
-      type="button"
-      className="docspot-button docspot-button-ghost"
-      onClick={() => {
-        copyMarkdown(new URL(result.url, window.location.href).pathname).then(
-          () => notify('Page copied as Markdown'),
-          () => notify('Couldn’t copy the page')
-        )
-      }}
-    >
-      Copy Markdown
-    </button>
   )
 }

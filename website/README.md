@@ -30,7 +30,7 @@ bunx vite preview website --host 127.0.0.1 --port 5290
 
 The installable React component lives in `examples/shadcn/`. The root `registry.json` defines its registry entry. See the [component development guide](../examples/shadcn/README.md) for its build and verification commands.
 
-Documentation search uses [Docspot](https://github.com/francoischalifour/docspot) for the dialog and MiniSearch for the index. `src/site-search.tsx` configures it: the trigger, actions such as copying install commands and switching the theme, the pages listed before typing, and ChatGPT and Claude handoffs. The index and the preview load once the page is idle or when the trigger is hovered, focused, or used. The preview shows the prerendered page at the matched section, so it falls back to the matched passage in development.
+Documentation search uses [Docspot](https://github.com/francoischalifour/docspot) for the dialog and MiniSearch for the index. `src/site-search.tsx` configures it: the trigger, actions such as copying install commands and switching the theme, the pages listed before typing, and ChatGPT and Claude handoffs. The index and the preview load once the page is idle or when the trigger is hovered, focused, or used. The preview shows the article at the matched section, without live examples. Production prerenders each article's `preview.html`; development renders the same preview on demand. If the article cannot load, the preview falls back to the matched passage.
 
 The docs plugin indexes each page introduction and section’s prose, headings, and prop names. Tune aliases, field weights, and typo tolerance in `src/docs-search-index.ts`. Docspot is themed with the site's tokens in `src/site-search.css`.
 
@@ -47,6 +47,8 @@ Run `bun run update:downloads` to refresh the committed npm download snapshot. T
 Run `bun run generate:og` to regenerate the website sharing images and the 1280×640 GitHub social preview at `.github/social-preview.png`. Commit the generated images. To update the repository preview, upload that PNG in the repository's **Settings → General → Social preview → Edit → Upload an image**; GitHub does not pick it up from the repository automatically.
 
 ## Add a page
+
+Use `<Example>` for live figures without importing it in MDX. The docs page supplies the component through its MDX mapping; search previews map it to `null`. The example remains on the documentation page and its source remains in the Markdown export.
 
 1. Write the MDX page in `src/docs/`. Keep it to one task or reference topic, explain prerequisites before commands, use complete examples, and link to existing explanations instead of repeating them.
 2. Add its route and metadata to `src/docs/pages.ts`. The sitemap follows from it.

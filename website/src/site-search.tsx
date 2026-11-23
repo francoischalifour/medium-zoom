@@ -42,11 +42,13 @@ function once<T>(load: () => Promise<T>) {
 const loadIndex = once(() =>
   import('virtual:docs-search').then(module => module.default)
 )
-const loadPreview = once(() => import('./site-search-preview'))
+const loadPreview = once(async () => {
+  if (import.meta.env.DEV) {
+    await import('./docs/docs.css')
+  }
+  return import('./site-search-preview')
+})
 const SearchPreview = React.lazy(loadPreview)
-const PageActions = React.lazy(() =>
-  loadPreview().then(module => ({ default: module.PageActions }))
-)
 
 function toResult(entry: SearchResult): DocspotResult {
   const terms = entry.matchedTerms ?? []
@@ -153,7 +155,7 @@ const installReact = defineItem({
 function themeItem(dark: boolean): DocspotItem {
   return {
     id: 'theme',
-    title: `Switch to ${dark ? 'light' : 'dark'} theme`,
+    title: 'Toggle dark theme',
     keywords: [
       'theme',
       'appearance',
@@ -252,7 +254,6 @@ export function SiteSearch({
       handoffs={handoffs[framework]}
       slots={{
         preview: SearchPreview,
-        pageActions: PageActions,
         resultIcon: ResultIcon,
       }}
       messages={{ search: { placeholder: 'Search documentation…' } }}
