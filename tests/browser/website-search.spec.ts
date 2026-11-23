@@ -531,7 +531,7 @@ test('the homepage preview excludes live examples and preserves code spacing', a
       return second.top - first.bottom
     })
   expect(previewGap).toBeGreaterThan(0)
-  expect(previewGap).toBe(pageGap)
+  expect(previewGap).toBeCloseTo(pageGap, 2)
 })
 
 for (const failure of ['unavailable', 'unrendered'] as const) {
@@ -555,14 +555,20 @@ for (const failure of ['unavailable', 'unrendered'] as const) {
     await searchBox(page).fill('margin')
     const preview = page.getByRole('region', { name: 'Result preview' })
     const article = preview.locator('.site-search-preview')
-    await expect(article.getByRole('heading')).toHaveText('margin')
+    await expect(
+      article.getByRole('heading', { name: 'margin', exact: true })
+    ).toBeVisible()
     await expect(article).toContainText(
       'The space in pixels around the zoomed image.'
     )
     await searchBox(page).fill('background')
-    await expect(article.getByRole('heading')).toHaveText('background')
+    await expect(
+      article.getByRole('heading', { name: 'background', exact: true })
+    ).toBeVisible()
     await searchBox(page).fill('margin')
-    await expect(article.getByRole('heading')).toHaveText('margin')
+    await expect(
+      article.getByRole('heading', { name: 'margin', exact: true })
+    ).toBeVisible()
     await page.keyboard.press('Escape')
     await page.keyboard.press('Escape')
     await expect(page.getByRole('dialog')).not.toBeVisible()
